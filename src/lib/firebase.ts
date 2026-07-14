@@ -3,12 +3,7 @@ import { getFirestore, doc, setDoc, deleteDoc, getDoc } from "firebase/firestore
 import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBDxMgEkCLcYU3X--nJH4JYwnWrsgqljyA",
-  authDomain: "gen-lang-client-0768788170.firebaseapp.com",
-  projectId: "gen-lang-client-0768788170",
-  storageBucket: "gen-lang-client-0768788170.firebasestorage.app",
-  messagingSenderId: "291785267663",
-  appId: "1:291785267663:web:7311b08fb9ea630a0f5aba"
+
 };
 
 // Initialize Firebase
