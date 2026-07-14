@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Check if the user is a verified administrator
+    function isAdmin() {
+      return request.auth != null && 
+             request.auth.token.get('email_verified', false) == true && 
+             request.auth.token.get('email', '').lower() == "lhs41977@gmail.com";
+    }
+
+    match /rooms/{code} {
+      // Anyone can read a room with its code
+      allow read: if true;
+      // Listing rooms is allowed for authenticated users
+      allow list: if request.auth != null;
+      // Creating a room requires an authenticated session
+      allow create: if request.auth != null;
+      // Updating or deleting a room requires the owner or admin
+      allow update, delete: if request.auth != null && (request.auth.uid == resource.data.owner_uid || isAdmin());
+      
+      match /members/{member_id} {
+        // Anyone in the room can list/view members
+        allow read: if true;
+        // Joining or creating a member profile requires authentication
+        allow create: if request.auth != null;
+        // Editing or deleting member profiles requires owner or the user themselves or admin
+        allow update, delete: if request.auth != null && (
+          !('user_uid' in resource.data) ||
+          resource.data.user_uid == null ||
+          resource.data.user_uid == "" ||
+          request.auth.uid == resource.data.user_uid || 
+          request.auth.uid == get(/databases/$(database)/documents/rooms/$(code)).data.owner_uid ||
+          isAdmin()
+        );
+      }
+      
+      match /analysis/{doc_id} {
+        // Anyone can view or write computed analyses for this room
+        allow read, write: if true;
+      }
+    }
+    
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+
+      match /joined_rooms/{code} {
+        allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      }
+    }
+
+    // Survey Config
+    match /survey_config/{configId} {
+      // Anyone can read config to show the popup
+      allow read: if true;
+      // Only admin can write (create/update/delete)
+      allow write: if isAdmin();
+    }
+
+    // Survey Responses
+    match /survey_responses/{responseId} {
+      // Anyone can create (submit) a response
+      allow create: if true;
+      // Only admin can read (get/list), update, delete
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

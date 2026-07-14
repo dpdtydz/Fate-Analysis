@@ -1,0 +1,6 @@
+{
+  "name": "인연사주 - 우리들의 사용 설명서",
+  "description": "태어난 날의 오행 기운으로 풀어보는 우리들의 인연과 성격 궁합 리포트",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Hahmlet:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Hahmlet", "Noto Serif KR", Georgia, serif;
+}
+
+body {
+  background-color: #FAF7F2;
+  font-family: var(--font-sans);
+  color: #2C3E50;
+  margin: 0;
+  padding: 0;
+}
+
+@media print {
+  /* Hide all buttons, navigation elements, overlays, and modals */
+  button, 
+  nav, 
+  footer, 
+  .no-print, 
+  [id^="quick-demo-"], 
+  [id$="-btn"], 
+  .fixed,
+  .modal-overlay,
+  #premium-zone-tab {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #1a1a1a !important;
+  }
+
+  /* Make sure the main scroll container expands fully */
+  .overflow-y-auto {
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Focus solely on the print container */
+  #print-section {
+    background: #FAF8F5 !important;
+    padding: 2rem !important;
+    border: 1px solid #D6CCBC !important;
+    border-radius: 24px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+}
+

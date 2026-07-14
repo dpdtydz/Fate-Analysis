@@ -1,0 +1,70 @@
+{
+  "entities": {
+    "Room": {
+      "title": "Room",
+      "description": "An 인연사주 Saju matching room",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "owner_uid": { "type": "string" },
+        "created_at": { "type": "string" }
+      },
+      "required": ["title", "owner_uid", "created_at"]
+    },
+    "Member": {
+      "title": "Member",
+      "description": "A member of a room",
+      "type": "object",
+      "properties": {
+        "nickname": { "type": "string" },
+        "gender": { "type": "string", "enum": ["남성", "여성"] },
+        "birth_date": { "type": "string" },
+        "birth_time": { "type": "string" },
+        "user_uid": { "type": "string" },
+        "joined_at": { "type": "string" }
+      },
+      "required": ["nickname", "gender", "birth_date", "user_uid"]
+    },
+    "SurveyConfig": {
+      "title": "SurveyConfig",
+      "description": "Configuration for the usability evaluation popup",
+      "type": "object",
+      "properties": {
+        "active": { "type": "boolean" },
+        "questions": { "type": "array" }
+      },
+      "required": ["active", "questions"]
+    },
+    "SurveyResponse": {
+      "title": "SurveyResponse",
+      "description": "A submitted usability evaluation response",
+      "type": "object",
+      "properties": {
+        "answers": { "type": "object" },
+        "submittedAt": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "userUid": { "type": "string" },
+        "nickname": { "type": "string" }
+      },
+      "required": ["answers", "submittedAt"]
+    }
+  },
+  "firestore": {
+    "/rooms/{code}": {
+      "schema": "Room",
+      "description": "Match room"
+    },
+    "/rooms/{code}/members/{memberId}": {
+      "schema": "Member",
+      "description": "Room members list"
+    },
+    "/survey_config/{configId}": {
+      "schema": "SurveyConfig",
+      "description": "Usability survey config"
+    },
+    "/survey_responses/{responseId}": {
+      "schema": "SurveyResponse",
+      "description": "Submitted usability survey response"
+    }
+  }
+}
