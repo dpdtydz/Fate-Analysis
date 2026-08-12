@@ -3,7 +3,17 @@ import { calculateSaju, daymasterMap, getDynamicCharacter } from "../utils/saju"
 import { Member } from "../types";
 import { KOREAN_CITIES } from "@orrery/core";
 
-const REGIONS = Array.from(new Set(KOREAN_CITIES.map((c) => c.region)));
+const KOREAN_CITIES_MODIFIED = KOREAN_CITIES.map((city) => {
+  if (city.region === "전라남도" || city.region === "광주광역시") {
+    return {
+      ...city,
+      region: "전남광주통합특별시",
+    };
+  }
+  return city;
+});
+
+const REGIONS = Array.from(new Set(KOREAN_CITIES_MODIFIED.map((c) => c.region)));
 
 interface SajuFormProps {
   onSubmit: (formData: {
@@ -57,7 +67,7 @@ export default function SajuForm({
   const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const region = e.target.value;
     setSelectedRegion(region);
-    const citiesForRegion = KOREAN_CITIES.filter((c) => c.region === region);
+    const citiesForRegion = KOREAN_CITIES_MODIFIED.filter((c) => c.region === region);
     if (citiesForRegion.length > 0) {
       setBirthplaceCity(citiesForRegion[0].name);
     }
@@ -206,7 +216,7 @@ export default function SajuForm({
 
     try {
       // Calculate deterministic saju with birthplace timezone correction
-      const selectedCityObj = KOREAN_CITIES.find(
+      const selectedCityObj = KOREAN_CITIES_MODIFIED.find(
         (c) => c.region === selectedRegion && c.name === birthplaceCity
       ) || { name: "서울", lat: 37.5665, lon: 126.978 };
       const sajuResult = calculateSaju(compiledDate, selectedTime, selectedCityObj, gender);
@@ -370,7 +380,7 @@ export default function SajuForm({
             onChange={(e) => setBirthplaceCity(e.target.value)}
             className="w-full px-3 py-2 bg-white border border-[#E8E0D0] focus:outline-none focus:ring-2 focus:ring-[#C0392B]/20 focus:border-[#C0392B] rounded-xl text-xs sm:text-sm text-[#2C3E50] cursor-pointer"
           >
-            {KOREAN_CITIES.filter((c) => c.region === selectedRegion).map((city) => {
+            {KOREAN_CITIES_MODIFIED.filter((c) => c.region === selectedRegion).map((city) => {
               const isMetropolitan = city.region.endsWith("특별시") || city.region.endsWith("광역시") || city.region.endsWith("특별자치시");
               const displayName = isMetropolitan ? `${city.name} (전역 대표)` : `${city.name}시/군`;
               return (

@@ -136,6 +136,7 @@ export interface Member {
   character_color: string;
   joined_at: any;
   mbti?: string;
+  personal_analysis?: PersonalAnalysis;
 }
 
 export interface Room {

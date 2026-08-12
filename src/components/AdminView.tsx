@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Layout from "./Layout";
 import { auth, db } from "../lib/firebase";
-import { doc, getDoc, setDoc, collection, getDocs, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs, deleteDoc, query, where } from "firebase/firestore";
 import { 
   Settings, ToggleLeft, ToggleRight, Save, Plus, Trash2, 
   Download, Copy, RefreshCw, Check, ArrowLeft, Users, FileText, CheckSquare, Edit3
@@ -30,6 +30,15 @@ interface SurveyResponse {
   nickname: string | null;
 }
 
+interface Coupon {
+  code: string;
+  productType: "pdf" | "secret" | "group" | "all";
+  maxUses: number;
+  usedCount: number;
+  createdAt: string;
+  createdBy: string;
+}
+
 export default function AdminView() {
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
   const [loading, setLoading] = useState(true);
@@ -38,6 +47,17 @@ export default function AdminView() {
   const [saving, setSaving] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
   const [copied, setCopied] = useState(false);
+
+  // Coupon states
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [newCouponCode, setNewCouponCode] = useState("");
+  const [newCouponProduct, setNewCouponProduct] = useState<"pdf" | "secret" | "group" | "all">("pdf");
+  const [newCouponMaxUses, setNewCouponMaxUses] = useState<number>(10);
+  const [issuing, setIssuing] = useState(false);
+  const [couponError, setCouponError] = useState("");
+  const [couponSuccess, setCouponSuccess] = useState("");
+  const [couponToDelete, setCouponToDelete] = useState<string | null>(null);
+  const [responseToDelete, setResponseToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -115,6 +135,19 @@ export default function AdminView() {
       // Sort responses by submit date desc
       list.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
       setResponses(list);
+
+      // 3. Load coupons
+      const couponsSnap = await getDocs(collection(db, "coupons"));
+      const couponList: Coupon[] = [];
+      couponsSnap.forEach((docSnap) => {
+        couponList.push({
+          code: docSnap.id,
+          ...docSnap.data()
+        } as Coupon);
+      });
+      couponList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setCoupons(couponList);
+
     } catch (e) {
       console.error("Admin data loading error:", e);
     } finally {
@@ -129,6 +162,118 @@ export default function AdminView() {
       setLoading(false);
     }
   }, [currentUser]);
+
+  // Issue custom coupon
+  const handleIssueCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanCode = newCouponCode.trim().toUpperCase();
+    if (!cleanCode) {
+      setCouponError("쿠폰 코드(번호)를 입력해 주세요.");
+      return;
+    }
+    setIssuing(true);
+    setCouponError("");
+    setCouponSuccess("");
+    try {
+      const couponRef = doc(db, "coupons", cleanCode);
+      const existingSnap = await getDoc(couponRef);
+      if (existingSnap.exists()) {
+        setCouponError("이미 존재하는 쿠폰 번호입니다. 다른 코드를 지정해 주세요.");
+        setIssuing(false);
+        return;
+      }
+      const newCoupon: Coupon = {
+        code: cleanCode,
+        productType: newCouponProduct,
+        maxUses: Number(newCouponMaxUses),
+        usedCount: 0,
+        createdAt: new Date().toISOString(),
+        createdBy: currentUser?.uid || "admin"
+      };
+      await setDoc(couponRef, newCoupon);
+      setCouponSuccess(`쿠폰 '${cleanCode}'(이)가 성공적으로 등록/발급되었습니다!`);
+      setNewCouponCode("");
+      setNewCouponMaxUses(10);
+      
+      // Reload coupons
+      const couponsSnap = await getDocs(collection(db, "coupons"));
+      const couponList: Coupon[] = [];
+      couponsSnap.forEach((docSnap) => {
+        couponList.push({
+          code: docSnap.id,
+          ...docSnap.data()
+        } as Coupon);
+      });
+      couponList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setCoupons(couponList);
+    } catch (err: any) {
+      console.error("Error issuing coupon:", err);
+      setCouponError("쿠폰 발급에 실패했습니다: " + (err.message || err));
+    } finally {
+      setIssuing(false);
+    }
+  };
+
+  // Delete custom coupon and revoke users who applied it
+  const handleDeleteCoupon = async (code: string) => {
+    try {
+      // 1. Find all users who used this coupon
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("appliedCoupons", "array-contains", code));
+      const usersSnap = await getDocs(q);
+      
+      let revokedCount = 0;
+      for (const userDoc of usersSnap.docs) {
+        const userData = userDoc.data();
+        const uid = userDoc.id;
+        
+        let unlockedProducts: string[] = userData.unlockedProducts || [];
+        let appliedCoupons: string[] = userData.appliedCoupons || [];
+        let couponUnlocks: Record<string, string> = userData.couponUnlocks || {};
+        
+        // Find product type that this coupon unlocked
+        const productTypeToRevoke = couponUnlocks[code];
+        
+        // Remove coupon
+        appliedCoupons = appliedCoupons.filter(c => c !== code);
+        delete couponUnlocks[code];
+        
+        const updates: any = {
+          appliedCoupons,
+          couponUnlocks,
+          updatedAt: Date.now()
+        };
+        
+        if (productTypeToRevoke) {
+          if (productTypeToRevoke === "all") {
+            updates.isPremium = false;
+            updates.premiumUntil = null;
+            updates.subscriptionStatus = "inactive";
+          } else {
+            unlockedProducts = unlockedProducts.filter(p => p !== productTypeToRevoke);
+            updates.unlockedProducts = unlockedProducts;
+          }
+        }
+        
+        await setDoc(doc(db, "users", uid), updates, { merge: true });
+        revokedCount++;
+      }
+
+      // 2. Delete the coupon itself
+      await deleteDoc(doc(db, "coupons", code));
+      setCoupons(coupons.filter(c => c.code !== code));
+      
+      if (revokedCount > 0) {
+        setCouponSuccess(`쿠폰 '${code}'이(가) 영구 삭제되었으며, 이 쿠폰을 사용하여 해금했던 사용자 ${revokedCount}명의 권한이 모두 자동으로 회수되었습니다.`);
+      } else {
+        setCouponSuccess(`쿠폰 '${code}'이(가) 성공적으로 영구 삭제되었습니다.`);
+      }
+      setCouponToDelete(null);
+    } catch (e: any) {
+      console.error("Error deleting coupon:", e);
+      setCouponError("쿠폰 삭제 및 사용자 권한 회수 중 오류가 발생했습니다: " + (e.message || e));
+    }
+  };
 
   // Save config to Firestore
   const handleSaveConfig = async () => {
@@ -250,13 +395,14 @@ export default function AdminView() {
 
   // Delete a single response
   const handleDeleteResponse = async (resId: string) => {
-    if (!window.confirm("정말로 이 응답을 데이터베이스에서 영구 삭제하시겠습니까?")) return;
     try {
       await deleteDoc(doc(db, "survey_responses", resId));
       setResponses(responses.filter(r => r.id !== resId));
+      setResponseToDelete(null);
     } catch (e) {
       console.error("Error deleting response:", e);
-      alert("삭제 중 오류가 발생했습니다.");
+      setActionMessage("삭제 중 오류가 발생했습니다.");
+      setTimeout(() => setActionMessage(""), 3000);
     }
   };
 
@@ -458,6 +604,181 @@ export default function AdminView() {
               </div>
             </div>
 
+            {/* 2. Coupon Management Section */}
+            <div className="bg-white border border-[#D6CCBC] p-5 rounded-2xl shadow-2xs space-y-5">
+              <div className="border-b border-[#E8E0D0] pb-3">
+                <h3 className="text-xs font-bold text-[#2C3E50] flex items-center gap-1.5">
+                  <span className="text-amber-500">🎫</span>
+                  <span>프리미엄 혜택 쿠폰 발급 및 관리</span>
+                </h3>
+                <p className="text-[10px] text-[#8C7B6E] mt-1">
+                  마스터 계정이 수동으로 특정 쿠폰 번호(코드)와 혜택 대상 상품을 매칭하여 발급하고 사용량을 직접 통제합니다.
+                </p>
+              </div>
+
+              {/* Coupon Issue Form */}
+              <form onSubmit={handleIssueCoupon} className="bg-[#FAF8F5] border border-[#E8E0D0] p-4 rounded-xl space-y-4">
+                <h4 className="text-[11px] font-bold text-[#2C3E50]">새로운 쿠폰 수동 등록/발급</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* Coupon Code Input */}
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-[#8C7B6E]">쿠폰 코드 (난수 제외, 직접 지정)</label>
+                    <input
+                      type="text"
+                      value={newCouponCode}
+                      onChange={(e) => setNewCouponCode(e.target.value)}
+                      placeholder="예: FREEPDF100, SPECIAL777"
+                      className="w-full px-3 py-2 bg-white border border-[#E8E0D0] rounded-lg text-xs font-bold text-[#2C3E50] uppercase placeholder:normal-case focus:outline-none focus:border-[#C0392B]"
+                    />
+                  </div>
+
+                  {/* Target Product Select */}
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-[#8C7B6E]">혜택 대상 상품 매칭</label>
+                    <select
+                      value={newCouponProduct}
+                      onChange={(e) => setNewCouponProduct(e.target.value as any)}
+                      className="w-full px-2.5 py-2 bg-white border border-[#E8E0D0] rounded-lg text-xs font-semibold text-[#2C3E50] focus:outline-none"
+                    >
+                      <option value="pdf">📄 PDF 심층 리포트 (소장 & 다운로드)</option>
+                      <option value="secret">🔒 비밀 인연·상성 분석권</option>
+                      <option value="group">👥 그룹 오행 어울림 보고서</option>
+                      <option value="all">👑 전체 프리미엄 프리패스 (올인원)</option>
+                    </select>
+                  </div>
+
+                  {/* Max Uses Input */}
+                  <div className="space-y-1">
+                    <label className="block text-[10px] font-bold text-[#8C7B6E]">최대 사용 가능 횟수 (권수 통제)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={10000}
+                      value={newCouponMaxUses}
+                      onChange={(e) => setNewCouponMaxUses(Number(e.target.value))}
+                      className="w-full px-3 py-2 bg-white border border-[#E8E0D0] rounded-lg text-xs font-bold text-[#2C3E50] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {couponError && (
+                  <p className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 p-2 rounded-lg">
+                    ⚠️ {couponError}
+                  </p>
+                )}
+                {couponSuccess && (
+                  <p className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 p-2 rounded-lg">
+                    🎉 {couponSuccess}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={issuing}
+                  className="px-4 py-2 bg-purple-700 hover:bg-purple-800 disabled:bg-gray-300 text-white font-bold text-xs rounded-lg transition-all flex items-center gap-1.5 cursor-pointer shadow-3xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{issuing ? "발급 등록 중..." : "쿠폰 발급 및 저장"}</span>
+                </button>
+              </form>
+
+              {/* Coupon List */}
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-bold text-[#2C3E50]">현재 발급된 쿠폰 목록 ({coupons.length}개)</h4>
+                {coupons.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-[#8C7B6E] bg-[#FAF8F5] rounded-xl border border-dashed border-[#E8E0D0] italic">
+                    등록되어 사용 대기 중인 발급 쿠폰이 아직 없습니다.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto border border-[#E8E0D0] rounded-xl">
+                    <table className="w-full text-xs text-left">
+                      <thead className="bg-[#FAF8F5] text-[10px] text-[#8C7B6E] uppercase border-b border-[#E8E0D0]">
+                        <tr>
+                          <th className="px-4 py-2.5 font-bold">쿠폰 코드</th>
+                          <th className="px-4 py-2.5 font-bold">혜택 매칭 상품</th>
+                          <th className="px-4 py-2.5 font-bold">사용 횟수 / 제한</th>
+                          <th className="px-4 py-2.5 font-bold">등록일시</th>
+                          <th className="px-4 py-2.5 font-bold text-center">삭제</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#E8E0D0]/50 bg-white">
+                        {coupons.map((coupon) => {
+                          let prodLabel = "";
+                          switch (coupon.productType) {
+                            case "pdf":
+                              prodLabel = "📄 PDF 심층 리포트";
+                              break;
+                            case "secret":
+                              prodLabel = "🔒 비밀 인연·상성";
+                              break;
+                            case "group":
+                              prodLabel = "👥 그룹 오행 보고서";
+                              break;
+                            case "all":
+                              prodLabel = "👑 전체 프리미엄";
+                              break;
+                          }
+                          const isFullyUsed = coupon.usedCount >= coupon.maxUses;
+                          return (
+                            <tr key={coupon.code} className="hover:bg-[#FAF8F5]/40 transition">
+                              <td className="px-4 py-3 font-serif font-black text-[#C0392B] uppercase tracking-wider">
+                                {coupon.code}
+                              </td>
+                              <td className="px-4 py-3 font-semibold text-[#2C3E50]">
+                                {prodLabel}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span className={`font-mono font-bold px-1.5 py-0.5 rounded ${
+                                  isFullyUsed 
+                                    ? "bg-red-50 text-red-600 border border-red-100" 
+                                    : "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                                }`}>
+                                  {coupon.usedCount} / {coupon.maxUses}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-[10px] text-[#8C7B6E] font-mono">
+                                {new Date(coupon.createdAt).toLocaleString("ko-KR")}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                {couponToDelete === coupon.code ? (
+                                  <div className="flex items-center justify-center space-x-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteCoupon(coupon.code)}
+                                      className="px-1.5 py-0.5 bg-red-600 hover:bg-red-700 text-white font-bold text-[9px] rounded transition cursor-pointer"
+                                    >
+                                      삭제
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setCouponToDelete(null)}
+                                      className="px-1.5 py-0.5 bg-gray-200 hover:bg-gray-300 text-[#4A3B2E] font-bold text-[9px] rounded transition cursor-pointer"
+                                    >
+                                      취소
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() => setCouponToDelete(coupon.code)}
+                                    className="p-1 hover:text-red-600 text-gray-400 transition cursor-pointer"
+                                    title="쿠폰 무효화/삭제"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* 3. Survey Results View Section */}
             <div className="bg-[#FCFAF6] border border-[#D6CCBC] p-5 rounded-2xl shadow-2xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#E8E0D0] pb-3.5 space-y-2 sm:space-y-0">
@@ -522,15 +843,34 @@ export default function AdminView() {
                           <span className="font-mono">{res.userEmail || "비로그인/익명"}</span>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className="font-mono">{new Date(res.submittedAt).toLocaleString("ko-KR")}</span>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteResponse(res.id)}
-                            className="text-gray-400 hover:text-red-600 p-0.5 opacity-0 group-hover:opacity-100 transition cursor-pointer"
-                            title="응답 영구 삭제"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <span className="font-mono text-[9px]">{new Date(res.submittedAt).toLocaleString("ko-KR")}</span>
+                          {responseToDelete === res.id ? (
+                            <div className="flex items-center space-x-1">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteResponse(res.id)}
+                                className="px-1.5 py-0.5 bg-red-600 hover:bg-red-700 text-white font-bold text-[9px] rounded transition cursor-pointer"
+                              >
+                                진짜삭제
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setResponseToDelete(null)}
+                                className="px-1.5 py-0.5 bg-gray-200 hover:bg-gray-300 text-[#4A3B2E] font-bold text-[9px] rounded transition cursor-pointer"
+                              >
+                                취소
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setResponseToDelete(res.id)}
+                              className="text-gray-400 hover:text-red-600 p-0.5 opacity-0 group-hover:opacity-100 transition cursor-pointer"
+                              title="응답 영구 삭제"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
 

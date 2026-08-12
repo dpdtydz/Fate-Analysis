@@ -3,7 +3,9 @@ import Layout from "./Layout";
 import { db, auth, saveRoomToHistory } from "../lib/firebase";
 import { doc, getDoc, collection, onSnapshot, deleteDoc } from "firebase/firestore";
 import { Member, Room } from "../types";
-import { Copy, Share2, Users, Calendar, HelpCircle } from "lucide-react";
+import { Copy, Share2, Users, Calendar, HelpCircle, Crown } from "lucide-react";
+import PremiumPaywall from "./PremiumPaywall";
+import GoogleAds from "./GoogleAds";
 
 interface RoomViewProps {
   code: string;
@@ -16,6 +18,7 @@ export default function RoomView({ code }: RoomViewProps) {
   const [error, setError] = useState("");
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isShopOpen, setIsShopOpen] = useState(false);
 
   const [localMemberId, setLocalMemberId] = useState<string>(() => localStorage.getItem(`saju_member_id_${code}`) || "");
 
@@ -155,6 +158,7 @@ export default function RoomView({ code }: RoomViewProps) {
   }
 
   const hasJoined = members.some((m) => m.id === localMemberId);
+  const myMemberInfo = members.find((m) => m.id === localMemberId);
 
   return (
     <Layout title={room.title} showHomeButton>
@@ -204,6 +208,63 @@ export default function RoomView({ code }: RoomViewProps) {
           </div>
         </div>
 
+        {/* Premium Shop Quick Banner */}
+        <div className="bg-gradient-to-r from-amber-50/60 via-amber-100/30 to-amber-50/60 border border-amber-300 rounded-2xl p-3.5 flex items-center justify-between shadow-3xs">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-600">
+              <Crown className="w-4 h-4 fill-amber-300 animate-pulse" />
+            </div>
+            <div className="text-left">
+              <h4 className="text-[11px] font-black text-amber-950 flex items-center gap-1">
+                사주명가 프리미엄 인연 상점 👑
+              </h4>
+              <p className="text-[9px] text-amber-800 leading-none mt-0.5 font-medium">
+                1:1 비밀 상성, 평생 사주 감정서, 그룹 오행 총괄 해금
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsShopOpen(true)}
+            className="px-3 py-1.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-lg text-[10px] font-extrabold shadow-3xs cursor-pointer active:scale-95 transition-transform"
+          >
+            상점 열기
+          </button>
+        </div>
+
+        {/* Prominent Quick-Access for Personal Saju */}
+        {hasJoined && myMemberInfo && (
+          <div className="bg-gradient-to-br from-[#FAF8F5] via-[#FFFDFB] to-[#FAF7F2] border border-[#C0392B]/30 rounded-2xl p-4 shadow-sm space-y-3 text-left">
+            <div className="flex items-center justify-between border-b border-[#E8E0D0]/60 pb-2">
+              <span className="text-[10px] bg-[#FDEDEC] text-[#C0392B] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider border border-[#FADBD8]">
+                내 개인 사주 & 평생 감정서 👤
+              </span>
+              <span className="text-[9px] text-[#8C7B6E] font-medium">터치해서 상세 정보 열기</span>
+            </div>
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-full bg-[#FAF7F2] border border-[#C0392B]/30 flex items-center justify-center text-2xl shadow-2xs relative">
+                {myMemberInfo.character_emoji}
+                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-[#C0392B] text-white text-[8px] flex items-center justify-center rounded-full font-sans font-bold shadow-sm">
+                  나
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-[#2C3E50] truncate">
+                  {myMemberInfo.nickname}님의 평생 명품 사주 해설서
+                </p>
+                <p className="text-[10px] text-[#8C7B6E] mt-0.5 truncate">
+                  내 소울 기질: <span className="font-semibold text-[#C0392B]">{myMemberInfo.saju.daymaster.gan} {myMemberInfo.character_animal}</span> {myMemberInfo.mbti ? `· MBTI: ${myMemberInfo.mbti.toUpperCase()}` : ""}
+                </p>
+              </div>
+              <a
+                href={`#/room/${code}/me/${localMemberId}`}
+                className="px-3.5 py-2 bg-[#C0392B] hover:bg-[#A93226] text-white rounded-xl text-[11px] font-bold tracking-tight shadow-sm hover:scale-[1.02] active:scale-[0.98] transition cursor-pointer shrink-0"
+              >
+                감정서 열기 ➔
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Member Directory Grid */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -246,6 +307,9 @@ export default function RoomView({ code }: RoomViewProps) {
                     }}
                   >
                     {member.saju.daymaster.gan} {member.character_animal} {member.mbti ? ` · ${member.mbti.toUpperCase()}` : ""}
+                  </span>
+                  <span className="text-[9px] text-[#C0392B] mt-2 opacity-70 group-hover:opacity-100 font-bold transition-all flex items-center gap-0.5">
+                    🔍 상세분석 & 사주보기
                   </span>
                 </a>
               );
@@ -301,6 +365,27 @@ export default function RoomView({ code }: RoomViewProps) {
           </a>
         </div>
       </div>
+
+      {/* Floating Premium Shop Trigger */}
+      <button
+        type="button"
+        onClick={() => {
+          setIsShopOpen(true);
+        }}
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-1.5 px-4 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white font-serif font-extrabold text-[11px] tracking-wider rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-[0.97] transition-all cursor-pointer ring-4 ring-amber-100/50"
+      >
+        <Crown className="w-3.5 h-3.5 fill-amber-300 animate-pulse text-amber-200" />
+        <span>인연 상점</span>
+      </button>
+
+      {/* Premium Shop Modal */}
+      {isShopOpen && (
+        <PremiumPaywall 
+          isModal
+          onClose={() => setIsShopOpen(false)}
+          memberCount={members.length}
+        />
+      )}
     </Layout>
   );
 }

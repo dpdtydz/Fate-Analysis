@@ -3,7 +3,12 @@ import { getFirestore, doc, setDoc, deleteDoc, getDoc } from "firebase/firestore
 import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 
 const firebaseConfig = {
-
+  apiKey: "AIzaSyBDxMgEkCLcYU3X--nJH4JYwnWrsgqljyA",
+  authDomain: "gen-lang-client-0768788170.firebaseapp.com",
+  projectId: "gen-lang-client-0768788170",
+  storageBucket: "gen-lang-client-0768788170.firebasestorage.app",
+  messagingSenderId: "291785267663",
+  appId: "1:291785267663:web:7311b08fb9ea630a0f5aba"
 };
 
 // Initialize Firebase
@@ -154,31 +159,41 @@ export function clearAllLocalCache(): void {
 
 // Check if user has premium subscription activated
 export async function checkPremiumStatus(uid?: string): Promise<boolean> {
-  // 1. Check local storage override first (supports instant trial simulation for all users)
-  if (localStorage.getItem("saju_premium_unlocked_local") === "true") {
-    return true;
+  const targetUid = uid || auth.currentUser?.uid;
+  const isAuth = !!auth.currentUser;
+
+  // 1. If we have a authenticated session, query Firestore first as the source of truth
+  if (targetUid && !targetUid.startsWith("guest_") && isAuth) {
+    try {
+      const userSnap = await getDoc(doc(db, "users", targetUid));
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        let isPremiumActive = false;
+        if (data.isPremium === true) {
+          isPremiumActive = true;
+        } else if (data.premiumUntil) {
+          const expires = new Date(data.premiumUntil).getTime();
+          if (expires > Date.now()) {
+            isPremiumActive = true;
+          }
+        }
+
+        // Sync local storage state to match cloud authority!
+        if (isPremiumActive) {
+          localStorage.setItem("saju_premium_unlocked_local", "true");
+        } else {
+          localStorage.removeItem("saju_premium_unlocked_local");
+        }
+        return isPremiumActive;
+      }
+    } catch (err: any) {
+      console.log("Firestore premium status check error:", err.message || err);
+    }
   }
 
-  const targetUid = uid || auth.currentUser?.uid;
-  if (!targetUid || targetUid.startsWith("guest_") || !auth.currentUser) return false;
-
-  try {
-    const userSnap = await getDoc(doc(db, "users", targetUid));
-    if (userSnap.exists()) {
-      const data = userSnap.data();
-      if (data.isPremium === true) {
-        return true;
-      }
-      // Check if trial is active
-      if (data.premiumUntil) {
-        const expires = new Date(data.premiumUntil).getTime();
-        if (expires > Date.now()) {
-          return true;
-        }
-      }
-    }
-  } catch (err: any) {
-    console.log("No custom premium status document found in Firestore (normal for guest/new users):", err.message || err);
+  // 2. Fallback to local storage override for guest or offline testing
+  if (localStorage.getItem("saju_premium_unlocked_local") === "true") {
+    return true;
   }
 
   return false;
@@ -186,38 +201,76 @@ export async function checkPremiumStatus(uid?: string): Promise<boolean> {
 
 // Check if specific product is unlocked (or if global premium is active)
 export async function checkProductUnlock(productType: "pdf" | "secret" | "group", uid?: string): Promise<boolean> {
-  // If master premium is unlocked, all products are unlocked!
-  const isMasterPremium = await checkPremiumStatus(uid);
+  const targetUid = uid || auth.currentUser?.uid;
+  const isAuth = !!auth.currentUser;
+
+  // 1. If we have an authenticated session, query Firestore first as the source of truth
+  if (targetUid && !targetUid.startsWith("guest_") && isAuth) {
+    try {
+      const userSnap = await getDoc(doc(db, "users", targetUid));
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        
+        // Check global premium status in cloud
+        let isGlobalPremium = false;
+        if (data.isPremium === true) {
+          isGlobalPremium = true;
+        } else if (data.premiumUntil) {
+          const expires = new Date(data.premiumUntil).getTime();
+          if (expires > Date.now()) {
+            isGlobalPremium = true;
+          }
+        }
+
+        // Check specific product unlock in cloud
+        let isProductUnlocked = false;
+        if (data.unlockedProducts && Array.isArray(data.unlockedProducts)) {
+          if (data.unlockedProducts.includes(productType)) {
+            isProductUnlocked = true;
+          }
+        }
+
+        const isFullyUnlocked = isGlobalPremium || isProductUnlocked;
+
+        // Sync local storage state to match cloud authority!
+        if (isFullyUnlocked) {
+          localStorage.setItem(`saju_unlocked_${productType}`, "true");
+          if (isGlobalPremium) {
+            localStorage.setItem("saju_premium_unlocked_local", "true");
+          }
+        } else {
+          localStorage.removeItem(`saju_unlocked_${productType}`);
+          if (!isGlobalPremium) {
+            localStorage.removeItem("saju_premium_unlocked_local");
+          }
+        }
+
+        return isFullyUnlocked;
+      }
+    } catch (err: any) {
+      console.log("Firestore product unlock check error:", err.message || err);
+    }
+  }
+
+  // 2. Fallback to global premium local check
+  const isMasterPremium = localStorage.getItem("saju_premium_unlocked_local") === "true";
   if (isMasterPremium) return true;
 
-  // Otherwise check product-specific local storage override
+  // 3. Fallback check for product-specific local storage override
   try {
     const localUnlocked = localStorage.getItem(`saju_unlocked_${productType}`);
     if (localUnlocked === "true") return true;
   } catch (e) {}
 
-  const targetUid = uid || auth.currentUser?.uid;
-  if (!targetUid || targetUid.startsWith("guest_") || !auth.currentUser) return false;
-
-  try {
-    const userSnap = await getDoc(doc(db, "users", targetUid));
-    if (userSnap.exists()) {
-      const data = userSnap.data();
-      if (data.unlockedProducts && Array.isArray(data.unlockedProducts)) {
-        if (data.unlockedProducts.includes(productType)) {
-          return true;
-        }
-      }
-    }
-  } catch (err: any) {
-    console.log("No custom product unlock document found in Firestore (normal for guest/new users):", err.message || err);
-  }
-
   return false;
 }
 
 // Activate premium trial simulation (supports instant 7-day trial or specific product purchase)
-export async function activatePremiumSimulation(uid?: string, productType?: "pdf" | "secret" | "group"): Promise<boolean> {
+export async function activatePremiumSimulation(
+  uid?: string,
+  productType?: "pdf" | "secret" | "group",
+  couponCode?: string
+): Promise<boolean> {
   if (productType) {
     localStorage.setItem(`saju_unlocked_${productType}`, "true");
   } else {
@@ -230,28 +283,45 @@ export async function activatePremiumSimulation(uid?: string, productType?: "pdf
       const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // +7 days
       const userDocRef = doc(db, "users", targetUid);
       const userSnap = await getDoc(userDocRef);
+      
       let currentUnlocked: string[] = [];
+      let appliedCoupons: string[] = [];
+      let couponUnlocks: Record<string, string> = {};
+      
       if (userSnap.exists()) {
-        currentUnlocked = userSnap.data().unlockedProducts || [];
+        const userData = userSnap.data();
+        currentUnlocked = userData.unlockedProducts || [];
+        appliedCoupons = userData.appliedCoupons || [];
+        couponUnlocks = userData.couponUnlocks || {};
+      }
+
+      const updateData: any = {
+        updatedAt: Date.now()
+      };
+
+      if (couponCode) {
+        const cleanCoupon = couponCode.trim().toUpperCase();
+        if (!appliedCoupons.includes(cleanCoupon)) {
+          appliedCoupons.push(cleanCoupon);
+        }
+        couponUnlocks[cleanCoupon] = productType || "all";
+        updateData.appliedCoupons = appliedCoupons;
+        updateData.couponUnlocks = couponUnlocks;
       }
 
       if (productType) {
         if (!currentUnlocked.includes(productType)) {
           currentUnlocked.push(productType);
         }
-        await setDoc(userDocRef, {
-          unlockedProducts: currentUnlocked,
-          updatedAt: Date.now()
-        }, { merge: true });
+        updateData.unlockedProducts = currentUnlocked;
       } else {
-        await setDoc(userDocRef, {
-          isPremium: true,
-          premiumUntil: new Date(expiresAt).toISOString(),
-          premiumTrialStartedAt: new Date().toISOString(),
-          subscriptionStatus: "trialing",
-          updatedAt: Date.now()
-        }, { merge: true });
+        updateData.isPremium = true;
+        updateData.premiumUntil = new Date(expiresAt).toISOString();
+        updateData.premiumTrialStartedAt = new Date().toISOString();
+        updateData.subscriptionStatus = "trialing";
       }
+
+      await setDoc(userDocRef, updateData, { merge: true });
       return true;
     } catch (err) {
       console.error("Failed to persist premium simulation in Firestore:", err);

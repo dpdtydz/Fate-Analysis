@@ -47,9 +47,27 @@
         "nickname": { "type": "string" }
       },
       "required": ["answers", "submittedAt"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "A product matching coupon issued by master",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "productType": { "type": "string", "enum": ["pdf", "secret", "group", "all"] },
+        "maxUses": { "type": "integer" },
+        "usedCount": { "type": "integer" },
+        "createdAt": { "type": "string" },
+        "createdBy": { "type": "string" }
+      },
+      "required": ["code", "productType", "maxUses", "usedCount", "createdAt", "createdBy"]
     }
   },
   "firestore": {
+    "/coupons/{code}": {
+      "schema": "Coupon",
+      "description": "Coupons matching products"
+    },
     "/rooms/{code}": {
       "schema": "Room",
       "description": "Match room"

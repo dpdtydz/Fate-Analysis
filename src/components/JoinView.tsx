@@ -35,10 +35,11 @@ export default function JoinView({ code }: JoinViewProps) {
         }
         setRoomTitle(snap.data().title);
 
+        const membersSnap = await getDocs(collection(db, "rooms", code, "members"));
         const user = auth.currentUser;
+        let foundMemberId = "";
+
         if (user && !user.isAnonymous) {
-          const membersSnap = await getDocs(collection(db, "rooms", code, "members"));
-          let foundMemberId = "";
           membersSnap.forEach((docSnap) => {
             const data = docSnap.data();
             if (data.user_uid === user.uid) {

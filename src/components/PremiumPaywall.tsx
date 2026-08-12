@@ -24,7 +24,7 @@ import {
   Mail,
   Copy
 } from "lucide-react";
-import { auth, checkPremiumStatus, checkProductUnlock, activatePremiumSimulation, deactivatePremiumSimulation, deactivateProductSimulation } from "../lib/firebase";
+import { auth, checkPremiumStatus, checkProductUnlock, activatePremiumSimulation, deactivatePremiumSimulation, deactivateProductSimulation, getAnonymousUser } from "../lib/firebase";
 
 interface PremiumPaywallProps {
   onStatusChange?: (isPremium: boolean) => void;
@@ -71,6 +71,92 @@ export default function PremiumPaywall({
   const [billingEmail, setBillingEmail] = useState("lhs41977@gmail.com");
   const [copied, setCopied] = useState(false);
   const [receiptNo, setReceiptNo] = useState("");
+
+  // Master account checker
+  const isMaster = auth.currentUser?.email?.toLowerCase() === "lhs41977@gmail.com";
+
+  // Coupon & Testing Intercept Popup States
+  const [isTestingPopupOpen, setIsTestingPopupOpen] = useState(false);
+  const [couponCodeInput, setCouponCodeInput] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMsg, setCouponMsg] = useState("");
+  const [couponErrorMsg, setCouponErrorMsg] = useState("");
+
+  const handleUseCoupon = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = couponCodeInput.trim().toUpperCase();
+    if (!code) {
+      setCouponErrorMsg("쿠폰 코드를 입력해 주세요.");
+      return;
+    }
+    setCouponLoading(true);
+    setCouponMsg("");
+    setCouponErrorMsg("");
+    try {
+      const { doc, getDoc, updateDoc, increment } = await import("firebase/firestore");
+      const { db } = await import("../lib/firebase");
+      
+      const couponRef = doc(db, "coupons", code);
+      const couponSnap = await getDoc(couponRef);
+      if (!couponSnap.exists()) {
+        setCouponErrorMsg("존재하지 않거나 유효하지 않은 쿠폰 번호입니다.");
+        setCouponLoading(false);
+        return;
+      }
+      
+      const couponData = couponSnap.data();
+      if (couponData.usedCount >= couponData.maxUses) {
+        setCouponErrorMsg("이미 모든 사용 한도를 소진한 쿠폰입니다.");
+        setCouponLoading(false);
+        return;
+      }
+
+      // Check or generate guest/current user ID (signs in anonymously silently if not logged in)
+      let currentUser = auth.currentUser;
+      if (!currentUser) {
+        currentUser = await getAnonymousUser();
+      }
+      
+      const currentUid = currentUser?.uid || 
+                         localStorage.getItem("saju_fallback_guest_uid") || 
+                         ("guest_" + Math.random().toString(36).substring(2, 11) + "_" + Date.now());
+      
+      if (!auth.currentUser && currentUser && !currentUser.uid.startsWith("guest_")) {
+        // If they successfully signed in anonymously, store it
+        localStorage.setItem("saju_fallback_guest_uid", currentUser.uid);
+      } else if (!auth.currentUser && !localStorage.getItem("saju_fallback_guest_uid")) {
+        localStorage.setItem("saju_fallback_guest_uid", currentUid);
+      }
+
+      // Securely increment usedCount
+      await updateDoc(couponRef, {
+        usedCount: increment(1)
+      });
+
+      // Unlock product for this user in Firestore / Local Storage
+      const productType = couponData.productType; // "pdf" | "secret" | "group" | "all"
+      if (productType === "all") {
+        await activatePremiumSimulation(currentUid, undefined, code);
+      } else {
+        await activatePremiumSimulation(currentUid, productType, code);
+      }
+
+      // Sync local state
+      await syncUnlockStates();
+      
+      setCouponMsg(`🎉 쿠폰이 정상 등록되었습니다! ${
+        productType === "pdf" ? "[📄 PDF 심층 리포트]" :
+        productType === "secret" ? "[🔒 비밀 인연·상성]" :
+        productType === "group" ? "[👥 그룹 오행 분석]" : "[👑 전체 프리미엄 프리패스]"
+      } 혜택이 성공적으로 해금되었습니다.`);
+      setCouponCodeInput("");
+    } catch (err: any) {
+      console.error("Error applying coupon:", err);
+      setCouponErrorMsg("쿠폰 적용 중 오류가 발생했습니다: " + (err.message || err));
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   // Default checkout url
   const checkoutUrl = "https://connectfate.lemonsqueezy.com/checkout/buy/7de4acc2-8394-4b3b-a997-4bf79069a24f";
@@ -234,6 +320,12 @@ export default function PremiumPaywall({
   const currentProduct = getProductDetails(activeTab, groupSize);
 
   const handleOpenPayment = () => {
+    if (!isMaster) {
+      // General user: Show testing popup instead of direct payment sandbox
+      setIsTestingPopupOpen(true);
+      return;
+    }
+    // Master user: Show full virtual payment sandbox
     const randReceipt = "RECP-" + Math.floor(10000000 + Math.random() * 90000000);
     setReceiptNo(randReceipt);
     setPaymentStep("idle");
@@ -330,14 +422,16 @@ export default function PremiumPaywall({
                   평생 패스 / 프리미엄 멤버십 라이선스 활성화됨
                 </span>
               </div>
-              <button
-                id="deactivate-premium-btn"
-                onClick={handleDeactivate}
-                className="text-[9px] text-[#A69B8F] hover:text-[#C0392B] border border-[#E8E0D0] px-2 py-1 rounded bg-white hover:bg-red-50 transition font-medium cursor-pointer"
-                title="일반 모드 테스트를 위해 프리미엄을 비활성화합니다"
-              >
-                🔌 테스트용 일반모드 리셋
-              </button>
+              {isMaster && (
+                <button
+                  id="deactivate-premium-btn"
+                  onClick={handleDeactivate}
+                  className="text-[9px] text-[#A69B8F] hover:text-[#C0392B] border border-[#E8E0D0] px-2 py-1 rounded bg-white hover:bg-red-50 transition font-medium cursor-pointer"
+                  title="일반 모드 테스트를 위해 프리미엄을 비활성화합니다"
+                >
+                  🔌 테스트용 일반모드 리셋
+                </button>
+              )}
             </div>
             
             <div className="text-xs text-[#5A4D41] leading-relaxed space-y-2 relative z-10">
@@ -360,106 +454,108 @@ export default function PremiumPaywall({
           </div>
 
           {/* Recommended Pricing Quick Trigger (Sandbox Console) */}
-          <div className="flex flex-col bg-amber-50/50 border border-amber-100 rounded-2xl p-4 space-y-3 text-xs">
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <Smile className="w-4 h-4 text-emerald-600" />
-                <span className="text-[10.5px] text-amber-950 font-extrabold leading-relaxed">
-                  💻 가상 테스트용 원클릭 데모 해금 (클릭 시 온/오프 토글)
-                </span>
+          {isMaster && (
+            <div className="flex flex-col bg-amber-50/50 border border-amber-100 rounded-2xl p-4 space-y-3 text-xs">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-1.5">
+                  <Smile className="w-4 h-4 text-emerald-600" />
+                  <span className="text-[10.5px] text-amber-950 font-extrabold leading-relaxed">
+                    💻 가상 테스트용 원클릭 데모 해금 (클릭 시 온/오프 토글)
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {(isPdfUnlocked || isSecretUnlocked || isGroupUnlocked || isPremium) && (
+                    <button
+                      type="button"
+                      onClick={handleDeactivate}
+                      disabled={activating}
+                      className="text-[9px] text-[#C0392B] border border-red-200 bg-white hover:bg-red-50 px-2 py-0.5 rounded font-bold cursor-pointer transition-all"
+                      title="모든 해금 상태를 잠금 상태로 초기화합니다"
+                    >
+                      🔌 전체 초기화
+                    </button>
+                  )}
+                  <span className="text-[9px] bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.5 rounded-md">
+                    SANDBOX ONLY
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                {(isPdfUnlocked || isSecretUnlocked || isGroupUnlocked || isPremium) && (
-                  <button
-                    type="button"
-                    onClick={handleDeactivate}
-                    disabled={activating}
-                    className="text-[9px] text-[#C0392B] border border-red-200 bg-white hover:bg-red-50 px-2 py-0.5 rounded font-bold cursor-pointer transition-all"
-                    title="모든 해금 상태를 잠금 상태로 초기화합니다"
-                  >
-                    🔌 전체 초기화
-                  </button>
-                )}
-                <span className="text-[9px] bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.5 rounded-md">
-                  SANDBOX ONLY
-                </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {/* PDF Unlock Button */}
+                <button
+                  id="quick-demo-pdf-unlock-btn"
+                  type="button"
+                  onClick={() => handleSimulateActivate("pdf")}
+                  disabled={activating}
+                  className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
+                    isPdfUnlocked
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                      : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
+                  }`}
+                >
+                  {activating ? (
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                  ) : isPdfUnlocked ? (
+                    <>🔓 PDF 해금됨 (다시 잠금)</>
+                  ) : (
+                    <>
+                      <Unlock className="w-3 h-3" />
+                      <span>📄 PDF 리포트 해금</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Secret Unlock Button */}
+                <button
+                  id="quick-demo-secret-unlock-btn"
+                  type="button"
+                  onClick={() => handleSimulateActivate("secret")}
+                  disabled={activating}
+                  className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
+                    isSecretUnlocked
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                      : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
+                  }`}
+                >
+                  {activating ? (
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                  ) : isSecretUnlocked ? (
+                    <>🔓 비밀인연 해금됨 (다시 잠금)</>
+                  ) : (
+                    <>
+                      <Unlock className="w-3 h-3" />
+                      <span>🔒 비밀 인연·상성 해금</span>
+                    </>
+                  )}
+                </button>
+
+                {/* Group Unlock Button */}
+                <button
+                  id="quick-demo-group-unlock-btn"
+                  type="button"
+                  onClick={() => handleSimulateActivate("group")}
+                  disabled={activating}
+                  className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
+                    isGroupUnlocked
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                      : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
+                  }`}
+                >
+                  {activating ? (
+                    <RefreshCw className="w-3 h-3 animate-spin" />
+                  ) : isGroupUnlocked ? (
+                    <>🔓 그룹오행 해금됨 (다시 잠금)</>
+                  ) : (
+                    <>
+                      <Unlock className="w-3 h-3" />
+                      <span>👥 그룹 오행 해금</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {/* PDF Unlock Button */}
-              <button
-                id="quick-demo-pdf-unlock-btn"
-                type="button"
-                onClick={() => handleSimulateActivate("pdf")}
-                disabled={activating}
-                className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
-                  isPdfUnlocked
-                    ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
-                    : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
-                }`}
-              >
-                {activating ? (
-                  <RefreshCw className="w-3 h-3 animate-spin" />
-                ) : isPdfUnlocked ? (
-                  <>🔓 PDF 해금됨 (다시 잠금)</>
-                ) : (
-                  <>
-                    <Unlock className="w-3 h-3" />
-                    <span>📄 PDF 리포트 해금</span>
-                  </>
-                )}
-              </button>
-
-              {/* Secret Unlock Button */}
-              <button
-                id="quick-demo-secret-unlock-btn"
-                type="button"
-                onClick={() => handleSimulateActivate("secret")}
-                disabled={activating}
-                className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
-                  isSecretUnlocked
-                    ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
-                    : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
-                }`}
-              >
-                {activating ? (
-                  <RefreshCw className="w-3 h-3 animate-spin" />
-                ) : isSecretUnlocked ? (
-                  <>🔓 비밀인연 해금됨 (다시 잠금)</>
-                ) : (
-                  <>
-                    <Unlock className="w-3 h-3" />
-                    <span>🔒 비밀 인연·상성 해금</span>
-                  </>
-                )}
-              </button>
-
-              {/* Group Unlock Button */}
-              <button
-                id="quick-demo-group-unlock-btn"
-                type="button"
-                onClick={() => handleSimulateActivate("group")}
-                disabled={activating}
-                className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
-                  isGroupUnlocked
-                    ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
-                    : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
-                }`}
-              >
-                {activating ? (
-                  <RefreshCw className="w-3 h-3 animate-spin" />
-                ) : isGroupUnlocked ? (
-                  <>🔓 그룹오행 해금됨 (다시 잠금)</>
-                ) : (
-                  <>
-                    <Unlock className="w-3 h-3" />
-                    <span>👥 그룹 오행 해금</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       );
     }
@@ -479,6 +575,14 @@ export default function PremiumPaywall({
         <p className="text-[11px] text-[#8C7B6E] leading-relaxed font-medium">
           {subtitleText || "모임 인원과 사주 설문 분석 결과를 기반으로 한 최고의 유료 혜택들을 가상 결제 시뮬레이션으로 지금 즉시 경험해 보세요."}
         </p>
+      </div>
+
+      {/* Ad Removal Promotion Banner */}
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-3 flex items-start gap-2">
+        <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+        <div className="text-[10px] text-amber-950 font-medium leading-relaxed">
+          <span className="font-extrabold text-[#C0392B]">✨ 상점 단독 특별 혜택:</span> 상점 내 어떤 유료 상품이든 <span className="font-extrabold underline">단 1개라도 소지</span>하시면, <strong>사이트 전체의 구글 광고가 평생 완전히 제거</strong>되어 광고 없이 투명하고 쾌적하게 사주 서비스를 이용하실 수 있습니다!
+        </div>
       </div>
 
       {/* Pricing and Tab Options */}
@@ -554,6 +658,10 @@ export default function PremiumPaywall({
                   <Check className="w-4 h-4 text-[#C0392B] shrink-0 mt-0.5" /> 
                   <span>스마트폰/PC 어디서나 평생 접근 가능한 고유 다운로드 URL 제공</span>
                 </li>
+                <li className="flex items-start gap-2 text-emerald-700 font-extrabold bg-emerald-50/60 p-1 rounded-md border border-emerald-100">
+                  <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" /> 
+                  <span>[공통 혜택] 사이트 전체의 구글 광고 평생 제거 (쾌적한 무광고 감상)</span>
+                </li>
               </ul>
             </div>
           </div>
@@ -568,11 +676,11 @@ export default function PremiumPaywall({
               id="buy-pdf-btn"
               type="button"
               onClick={handleOpenPayment}
-              className="flex items-center justify-center space-x-2 w-full py-4 bg-gradient-to-r from-[#2C3E50] to-[#1A252F] text-[#FAF7F2] hover:from-[#1A252F] hover:to-[#111A24] font-serif font-extrabold text-xs tracking-widest rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer text-center"
+              className="flex items-center justify-center space-x-1.5 w-full py-3.5 sm:py-4 bg-gradient-to-r from-[#2C3E50] to-[#1A252F] text-[#FAF7F2] hover:from-[#1A252F] hover:to-[#111A24] font-serif font-extrabold text-[11px] xs:text-xs sm:text-xs tracking-normal xs:tracking-wide sm:tracking-widest rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer text-center px-2"
             >
-              <Printer className="w-4 h-4 text-amber-400 inline mr-1" />
-              <span>AI 심층 리포트 PDF 즉시 소장하기 (1,900원)</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#FAF7F2]/80 inline ml-1" />
+              <Printer className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="whitespace-nowrap">AI 심층 리포트 PDF 즉시 소장하기 (1,900원)</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#FAF7F2]/80 shrink-0" />
             </button>
           )}
         </div>
@@ -610,6 +718,10 @@ export default function PremiumPaywall({
                   <Check className="w-4 h-4 text-[#C0392B] shrink-0 mt-0.5" /> 
                   <span>성향 충돌을 영리하게 예방하는 맞춤형 비밀 완충 수칙</span>
                 </li>
+                <li className="flex items-start gap-2 text-emerald-700 font-extrabold bg-emerald-50/60 p-1 rounded-md border border-emerald-100">
+                  <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" /> 
+                  <span>[공통 혜택] 사이트 전체의 구글 광고 평생 제거 (쾌적한 무광고 감상)</span>
+                </li>
               </ul>
             </div>
           </div>
@@ -624,11 +736,11 @@ export default function PremiumPaywall({
               id="buy-secret-btn"
               type="button"
               onClick={handleOpenPayment}
-              className="flex items-center justify-center space-x-2 w-full py-4 bg-gradient-to-r from-amber-600 to-[#C0392B] hover:from-[#C0392B] hover:to-[#962D22] text-white font-serif font-extrabold text-xs tracking-widest rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer text-center"
+              className="flex items-center justify-center space-x-1.5 w-full py-3.5 sm:py-4 bg-gradient-to-r from-amber-600 to-[#C0392B] hover:from-[#C0392B] hover:to-[#962D22] text-white font-serif font-extrabold text-[11px] xs:text-xs sm:text-xs tracking-normal xs:tracking-wide sm:tracking-widest rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer text-center px-2"
             >
-              <Lock className="w-4 h-4 fill-white text-amber-300 inline mr-1" />
-              <span>비밀 인연 등급 & 상성 정밀 분석 (2,900원)</span>
-              <ArrowRight className="w-3.5 h-3.5 text-white/80 inline ml-1" />
+              <Lock className="w-3.5 h-3.5 fill-white text-amber-300 shrink-0" />
+              <span className="whitespace-nowrap">비밀 인연 등급 & 상성 정밀 분석 (2,900원)</span>
+              <ArrowRight className="w-3.5 h-3.5 text-white/80 shrink-0" />
             </button>
           )}
         </div>
@@ -649,7 +761,7 @@ export default function PremiumPaywall({
             </div>
             
             <p className="text-[11px] text-[#5C4D41] leading-relaxed">
-              소중한 모임의 규모에 비례해 합리적으로 이용할 수 있는 유연 요금 패스입니다. 전체 인원의 오행(목, 화, 토, 금, 수)이 조화를 이루는지 한눈에 보여주는 순환 에너지 분포와 최적의 그룹 처방을 제공합니다.
+              소중한 모임의 규모에 비례해 합리적으로 이용할 수 있는 유연 요금 패스입니다. 전체 인원의 오행(목, 화, 토, 금, 수)이 조화를 이루는지 한눈에 보여주는 순환 에너지 분포와 최적의 그룹 처방을 제공합니다. <span className="font-extrabold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">[공통 특전] 이 상품 해금 시 사이트의 구글 광고가 평생 100% 제거됩니다.</span>
             </p>
 
             {/* Interactive Group Size Calculator - Tier-based Selection Cards */}
@@ -751,117 +863,119 @@ export default function PremiumPaywall({
               id="buy-group-report-btn"
               type="button"
               onClick={handleOpenPayment}
-              className="flex items-center justify-center space-x-2 w-full py-4 bg-[#C0392B] hover:bg-[#A93226] text-white font-serif font-extrabold text-xs tracking-widest rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer text-center"
+              className="flex items-center justify-center space-x-1.5 w-full py-3.5 sm:py-4 bg-[#C0392B] hover:bg-[#A93226] text-white font-serif font-extrabold text-[11px] xs:text-xs sm:text-xs tracking-normal xs:tracking-wide sm:tracking-widest rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer text-center px-2"
             >
-              <Users className="w-4 h-4 inline mr-1" />
-              <span>오행 상생 총괄 분석서 발급 ({currentGroupPrice.current}원)</span>
-              <ArrowRight className="w-3.5 h-3.5 text-white/80 inline ml-1" />
+              <Users className="w-3.5 h-3.5 shrink-0" />
+              <span className="whitespace-nowrap">오행 상생 총괄 분석서 발급 ({currentGroupPrice.current}원)</span>
+              <ArrowRight className="w-3.5 h-3.5 text-white/80 shrink-0" />
             </button>
           )}
         </div>
       )}
 
       {/* Recommended Pricing Quick Trigger */}
-      <div className="flex flex-col bg-amber-50/50 border border-amber-100 rounded-2xl p-4 space-y-3 text-xs">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5">
-            <Smile className="w-4 h-4 text-emerald-600" />
-            <span className="text-[10.5px] text-amber-950 font-extrabold leading-relaxed">
-              💻 가상 테스트용 원클릭 데모 해금 (클릭 시 온/오프 토글)
-            </span>
+      {isMaster && (
+        <div className="flex flex-col bg-amber-50/50 border border-amber-100 rounded-2xl p-4 space-y-3 text-xs">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <Smile className="w-4 h-4 text-emerald-600" />
+              <span className="text-[10.5px] text-amber-950 font-extrabold leading-relaxed">
+                💻 가상 테스트용 원클릭 데모 해금 (클릭 시 온/오프 토글)
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {(isPdfUnlocked || isSecretUnlocked || isGroupUnlocked || isPremium) && (
+                <button
+                  type="button"
+                  onClick={handleDeactivate}
+                  disabled={activating}
+                  className="text-[9px] text-[#C0392B] border border-red-200 bg-white hover:bg-red-50 px-2 py-0.5 rounded font-bold cursor-pointer transition-all"
+                  title="모든 해금 상태를 잠금 상태로 초기화합니다"
+                >
+                  🔌 전체 초기화
+                </button>
+              )}
+              <span className="text-[9px] bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.5 rounded-md">
+                SANDBOX ONLY
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {(isPdfUnlocked || isSecretUnlocked || isGroupUnlocked || isPremium) && (
-              <button
-                type="button"
-                onClick={handleDeactivate}
-                disabled={activating}
-                className="text-[9px] text-[#C0392B] border border-red-200 bg-white hover:bg-red-50 px-2 py-0.5 rounded font-bold cursor-pointer transition-all"
-                title="모든 해금 상태를 잠금 상태로 초기화합니다"
-              >
-                🔌 전체 초기화
-              </button>
-            )}
-            <span className="text-[9px] bg-amber-100 text-amber-800 font-extrabold px-1.5 py-0.5 rounded-md">
-              SANDBOX ONLY
-            </span>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {/* PDF Unlock Button */}
+            <button
+              id="quick-demo-pdf-unlock-btn"
+              type="button"
+              onClick={() => handleSimulateActivate("pdf")}
+              disabled={activating}
+              className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
+                isPdfUnlocked
+                  ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                  : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
+              }`}
+            >
+              {activating ? (
+                <RefreshCw className="w-3 h-3 animate-spin" />
+              ) : isPdfUnlocked ? (
+                <>🔓 PDF 해금됨 (다시 잠금)</>
+              ) : (
+                <>
+                  <Unlock className="w-3 h-3" />
+                  <span>📄 PDF 리포트 해금</span>
+                </>
+              )}
+            </button>
+
+            {/* Secret Unlock Button */}
+            <button
+              id="quick-demo-secret-unlock-btn"
+              type="button"
+              onClick={() => handleSimulateActivate("secret")}
+              disabled={activating}
+              className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
+                isSecretUnlocked
+                  ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                  : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
+              }`}
+            >
+              {activating ? (
+                <RefreshCw className="w-3 h-3 animate-spin" />
+              ) : isSecretUnlocked ? (
+                <>🔓 비밀인연 해금됨 (다시 잠금)</>
+              ) : (
+                <>
+                  <Unlock className="w-3 h-3" />
+                  <span>🔒 비밀 인연·상성 해금</span>
+                </>
+              )}
+            </button>
+
+            {/* Group Unlock Button */}
+            <button
+              id="quick-demo-group-unlock-btn"
+              type="button"
+              onClick={() => handleSimulateActivate("group")}
+              disabled={activating}
+              className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
+                isGroupUnlocked
+                  ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                  : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
+              }`}
+            >
+              {activating ? (
+                <RefreshCw className="w-3 h-3 animate-spin" />
+              ) : isGroupUnlocked ? (
+                <>🔓 그룹오행 해금됨 (다시 잠금)</>
+              ) : (
+                <>
+                  <Unlock className="w-3 h-3" />
+                  <span>👥 그룹 오행 해금</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {/* PDF Unlock Button */}
-          <button
-            id="quick-demo-pdf-unlock-btn"
-            type="button"
-            onClick={() => handleSimulateActivate("pdf")}
-            disabled={activating}
-            className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
-              isPdfUnlocked
-                ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
-                : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
-            }`}
-          >
-            {activating ? (
-              <RefreshCw className="w-3 h-3 animate-spin" />
-            ) : isPdfUnlocked ? (
-              <>🔓 PDF 해금됨 (다시 잠금)</>
-            ) : (
-              <>
-                <Unlock className="w-3 h-3" />
-                <span>📄 PDF 리포트 해금</span>
-              </>
-            )}
-          </button>
-
-          {/* Secret Unlock Button */}
-          <button
-            id="quick-demo-secret-unlock-btn"
-            type="button"
-            onClick={() => handleSimulateActivate("secret")}
-            disabled={activating}
-            className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
-              isSecretUnlocked
-                ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
-                : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
-            }`}
-          >
-            {activating ? (
-              <RefreshCw className="w-3 h-3 animate-spin" />
-            ) : isSecretUnlocked ? (
-              <>🔓 비밀인연 해금됨 (다시 잠금)</>
-            ) : (
-              <>
-                <Unlock className="w-3 h-3" />
-                <span>🔒 비밀 인연·상성 해금</span>
-              </>
-            )}
-          </button>
-
-          {/* Group Unlock Button */}
-          <button
-            id="quick-demo-group-unlock-btn"
-            type="button"
-            onClick={() => handleSimulateActivate("group")}
-            disabled={activating}
-            className={`text-[10px] font-extrabold px-3 py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1 border transition-all ${
-              isGroupUnlocked
-                ? "bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
-                : "bg-white border-amber-200 text-[#C0392B] hover:bg-amber-100/40 hover:scale-[1.01]"
-            }`}
-          >
-            {activating ? (
-              <RefreshCw className="w-3 h-3 animate-spin" />
-            ) : isGroupUnlocked ? (
-              <>🔓 그룹오행 해금됨 (다시 잠금)</>
-            ) : (
-              <>
-                <Unlock className="w-3 h-3" />
-                <span>👥 그룹 오행 해금</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* COLLAPSIBLE PREVIEW SECTION (Addresses Response #5: "심층 리포트일 경우 어떻게 나오는지 상세페이지/샘플 미리보기 필요") */}
       <div className="border border-[#E8E0D0] rounded-xl overflow-hidden bg-[#FAF8F5]/40">
@@ -1189,6 +1303,137 @@ export default function PremiumPaywall({
                 </div>
               )}
 
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* 🎫 Coupon Redemption Section */}
+      <div className="mt-5 border border-[#E8E0D0] bg-[#FAF8F5] p-4 rounded-xl space-y-3.5 text-left">
+        <div className="flex items-center gap-1.5 border-b border-[#E8E0D0]/60 pb-2">
+          <span className="text-amber-500 text-xs">🎫</span>
+          <span className="text-[11px] font-bold text-[#5C4D41]">프리미엄 혜택 쿠폰 등록하기</span>
+        </div>
+        <form onSubmit={handleUseCoupon} className="flex gap-2">
+          <input
+            type="text"
+            value={couponCodeInput}
+            onChange={(e) => setCouponCodeInput(e.target.value)}
+            placeholder="발급받은 쿠폰 번호를 입력해 주세요"
+            className="flex-1 px-3 py-2 bg-white border border-[#E8E0D0] rounded-lg text-xs font-bold text-[#2C3E50] uppercase placeholder:normal-case focus:outline-none focus:border-[#C0392B]"
+          />
+          <button
+            type="submit"
+            disabled={couponLoading}
+            className="px-4 py-2 bg-[#2C3E50] hover:bg-[#1A252F] disabled:bg-gray-300 text-white font-bold text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap"
+          >
+            {couponLoading ? "적용 중..." : "적용"}
+          </button>
+        </form>
+        {couponErrorMsg && (
+          <p className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 p-2 rounded-lg">
+            ⚠️ {couponErrorMsg}
+          </p>
+        )}
+        {couponMsg && (
+          <p className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 p-2 rounded-lg animate-fade-in">
+            🎉 {couponMsg}
+          </p>
+        )}
+      </div>
+
+      {/* ====================================
+          TESTING INTERCEPT POPUP MODAL (Requirements #2 & #3)
+         ==================================== */}
+      {isTestingPopupOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-55 flex items-center justify-center p-4 backdrop-blur-xs animate-fade-in cursor-pointer"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsTestingPopupOpen(false);
+            }
+          }}
+        >
+          <div className="w-full max-w-md bg-[#FAF7F2] border-2 border-amber-400 rounded-[24px] shadow-2xl overflow-hidden text-left relative animate-scale-up cursor-default">
+            
+            {/* Header */}
+            <div className="bg-amber-500 text-white p-4 flex justify-between items-center">
+              <div className="flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 fill-white text-amber-500" />
+                <span className="font-serif font-black text-xs tracking-wider">🛠️ 서비스 안내 (테스트 기간)</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTestingPopupOpen(false)}
+                className="text-white hover:text-amber-100 font-extrabold text-xs cursor-pointer bg-white/10 px-2.5 py-1 rounded"
+              >
+                닫기
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5.5 space-y-4">
+              <div className="space-y-2 text-center py-2">
+                <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-300 text-amber-600 flex items-center justify-center text-2xl mx-auto mb-2 animate-bounce">
+                  ⚙️
+                </div>
+                <h4 className="font-serif font-black text-sm text-[#2C3E50]">실제 결제 모듈 도입 전 테스트 중인 서비스입니다</h4>
+                <p className="text-[10.5px] text-[#8C7B6E] leading-relaxed max-w-xs mx-auto">
+                  현재 본 서비스는 실제 PG 결제 모듈 탑재 전 최종 수용도 평가 및 안전성 검증을 진행 중입니다. 따라서 실제 결제 및 카드사 연동은 불가능합니다.
+                </p>
+              </div>
+
+              {/* Informative Help Box */}
+              <div className="bg-amber-50/60 border border-amber-200/80 p-3.5 rounded-xl text-[10.5px] text-amber-950 leading-relaxed font-semibold">
+                💡 <strong>해금/테스트 진행 방법:</strong>
+                <ul className="list-disc pl-4 mt-1.5 space-y-1">
+                  <li>최고 관리자 계정(<span className="text-[#C0392B]">lhs41977@gmail.com</span>)으로 로그인 시 우측 하단의 원클릭 데모 해금 콘솔을 즉시 활용하실 수 있습니다.</li>
+                  <li>마스터가 수동 발급한 <strong>쿠폰 코드</strong>를 아래에 입력하시면 실시간 무료 해금 처리가 가능합니다!</li>
+                </ul>
+              </div>
+
+              {/* Redeem Coupon inside Intercept Modal */}
+              <div className="border border-[#E8E0D0] bg-white p-4 rounded-xl space-y-2">
+                <label className="block text-[10px] font-bold text-[#8C7B6E]">🎫 보유하신 쿠폰 코드 등록</label>
+                <form onSubmit={async (e) => {
+                  await handleUseCoupon(e);
+                }} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCodeInput}
+                    onChange={(e) => setCouponCodeInput(e.target.value)}
+                    placeholder="쿠폰 번호를 입력하세요"
+                    className="flex-1 px-3 py-1.5 bg-white border border-[#E8E0D0] rounded-lg text-xs font-bold text-[#2C3E50] uppercase placeholder:normal-case focus:outline-none focus:border-amber-400"
+                  />
+                  <button
+                    type="submit"
+                    disabled={couponLoading}
+                    className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-300 text-white font-bold text-xs rounded-lg transition-all cursor-pointer whitespace-nowrap"
+                  >
+                    {couponLoading ? "검증 중..." : "적용"}
+                  </button>
+                </form>
+                {couponErrorMsg && (
+                  <p className="text-[9.5px] font-bold text-red-600 bg-red-50 p-1.5 rounded-md">
+                    ⚠️ {couponErrorMsg}
+                  </p>
+                )}
+                {couponMsg && (
+                  <p className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 p-1.5 rounded-md animate-fade-in">
+                    🎉 {couponMsg}
+                  </p>
+                )}
+              </div>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setIsTestingPopupOpen(false)}
+                className="w-full py-3 bg-[#2C3E50] hover:bg-[#1A252F] text-white text-xs font-serif font-black tracking-widest rounded-xl transition duration-150 cursor-pointer shadow-md text-center"
+              >
+                안내 확인 완료
+              </button>
             </div>
 
           </div>

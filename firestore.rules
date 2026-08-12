@@ -4,8 +4,7 @@ service cloud.firestore {
     // Check if the user is a verified administrator
     function isAdmin() {
       return request.auth != null && 
-             request.auth.token.get('email_verified', false) == true && 
-             request.auth.token.get('email', '').lower() == "lhs41977@gmail.com";
+             request.auth.token.email.lower() == "lhs41977@gmail.com";
     }
 
     match /rooms/{code} {
@@ -42,10 +41,10 @@ service cloud.firestore {
     
     match /users/{userId} {
       allow read: if true;
-      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if (request.auth != null && (request.auth.uid == userId || isAdmin())) || userId.startsWith("guest_");
 
       match /joined_rooms/{code} {
-        allow read, write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+        allow read, write: if (request.auth != null && (request.auth.uid == userId || isAdmin())) || userId.startsWith("guest_");
       }
     }
 
@@ -63,6 +62,21 @@ service cloud.firestore {
       allow create: if true;
       // Only admin can read (get/list), update, delete
       allow read, update, delete: if isAdmin();
+    }
+
+    // Product Matching Coupons
+    match /coupons/{code} {
+      // Anyone can read/validate a coupon if they know its code (supports iOS/Safari privacy blocks)
+      allow get: if true;
+      // Only admin can list, create or delete coupons
+      allow list, create, delete: if isAdmin();
+      // Anyone can update the usedCount to register coupon usage, under strict conditions
+      allow update: if isAdmin() || (
+        request.resource.data.usedCount == resource.data.usedCount + 1 &&
+        resource.data.usedCount < resource.data.maxUses &&
+        request.resource.data.productType == resource.data.productType &&
+        request.resource.data.maxUses == resource.data.maxUses
+      );
     }
   }
 }

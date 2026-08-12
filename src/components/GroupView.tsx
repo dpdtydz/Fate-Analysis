@@ -3,11 +3,12 @@ import Layout from "./Layout";
 import GroupNetwork from "./GroupNetwork";
 import LoadingOverlay from "./LoadingOverlay";
 import { db, getAnonymousUser, auth, checkPremiumStatus, checkProductUnlock } from "../lib/firebase";
-import { doc, getDoc, setDoc, collection, getDocs } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, getDocs, onSnapshot, deleteDoc } from "firebase/firestore";
 import { Member, Room, CachedAnalysisResult } from "../types";
-import { Sparkles, MessageSquare, TrendingUp, Download, Share2, Award, Heart, HelpCircle, ArrowLeft, RefreshCw, Crown, Smile } from "lucide-react";
+import { Sparkles, MessageSquare, TrendingUp, Download, Share2, Award, Heart, HelpCircle, ArrowLeft, RefreshCw, Crown, Smile, Users, Check } from "lucide-react";
 import html2canvas from "html2canvas";
 import PremiumPaywall from "./PremiumPaywall";
+import GoogleAds from "./GoogleAds";
 
 const isMbtiRegistered = (m?: any): boolean => {
   if (!m || !m.mbti) return false;
@@ -24,9 +25,21 @@ const isMbtiRegistered = (m?: any): boolean => {
   );
 };
 
+const getDeterministicHashScore = (str1: string, str2: string, seed: number, min = 65, max = 95) => {
+  const combined = [str1, str2].sort().join("");
+  let hash = 0;
+  for (let i = 0; i < combined.length; i++) {
+    hash = combined.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs((hash + seed) % (max - min + 1)) + min;
+};
+
 function generateCustomPrescription(m1: Member, m2: Member, score: number) {
   const m1Id = m1.id || "m1";
   const m2Id = m2.id || "m2";
+
+  // Use a deterministic index to vary descriptions across pairs sharing the same elemental properties
+  const variationIndex = getDeterministicHashScore(m1Id, m2Id, 77, 0, 2);
 
   // 1. Saju Daymaster Gan extraction
   const g1Full = m1.saju?.daymaster?.gan || "무토";
@@ -37,7 +50,7 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
   const elem2 = m2.saju?.daymaster?.element || "토";
 
   const GAN_PROPERTIES: Record<string, { name: string; title: string; symbol: string; desc: string }> = {
-    "갑": { name: "갑목(甲木)", title: "대림목(大林木)", symbol: "🌲", desc: "곧게 뻗어 오르는 소나무처럼 굽힘 없는 소신과 강한 추진력" },
+    "갑": { name: "갑목(甲木)", title: "대림목(大林木)", symbol: "🌲", desc: "곧게 뻗어 오르는 소나무처럼 굽힘 없는 소신 and 강한 추진력" },
     "을": { name: "을목(乙木)", title: "회목(𦇊木)", symbol: "🌿", desc: "유연하고 질기게 뻗어 나가는 넝쿨식물처럼 강인한 생명력과 적응력" },
     "병": { name: "병화(丙火)", title: "태양화(太陽火)", symbol: "☀️", desc: "하늘 높이 타오르는 태양처럼 화끈하고 뒤끝 없는 정열과 사교성" },
     "정": { name: "정화(丁火)", title: "등촉화(燈燭火)", symbol: "🕯️", desc: "어둠 속을 포근히 밝히는 등잔불처럼 사려 깊고 섬세한 배려와 헌신" },
@@ -56,31 +69,91 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
   let sajuDesc = "";
   let sajuRemedy = "";
 
-  // Saju Relations computation
+  // Saju Relations computation with 3 varied templates per category
   if ((elem1 === "금" && elem2 === "목") || (elem1 === "목" && elem2 === "금")) {
     sajuTitle = "⚔️ 금목상쟁(金木相爭) - 현실주의와 영감의 긴장 기류";
-    sajuDesc = `${m1.nickname}님의 단호하고 칼같이 예리한 안목(${gp1.name})과 ${m2.nickname}님의 진취적으로 뻗어 오르는 생명력(${gp2.name})이 만났습니다. 한쪽은 현실성이나 꼼꼼함을 먼저 보고, 다른 한쪽은 큰 흐름의 비전과 도전을 보기에 피드백 과정에서 예기치 못한 차가운 지적이나 자존심 충돌이 생길 수 있습니다.`;
-    sajuRemedy = `💧 흘려보내는 물(수)의 완충 윤활유 작용이 필수입니다. 차가운 아이스 음료를 곁들이거나 수변을 조망할 수 있는 통유리 카페에서 소통하면 서로의 날카로운 텐션이 온화하게 풀려 영감을 공유하는 완벽한 추진력으로 승화됩니다.`;
+    const descOptions = [
+      `${m1.nickname}님의 단호하고 칼같이 예리한 안목(${gp1.name})과 ${m2.nickname}님의 진취적으로 뻗어 오르는 생명력(${gp2.name})이 만났습니다. 한쪽은 현실성이나 꼼꼼함을 먼저 보고, 다른 한쪽은 큰 흐름의 비전과 도전을 보기에 피드백 과정에서 예기치 못한 차가운 지적이나 자존심 충돌이 생길 수 있습니다.`,
+      `${m1.nickname}님의 확실한 현실 기준과 규칙(${gp1.name})이 ${m2.nickname}님의 아이디어와 비전 탐색력(${gp2.name})과 다소 긴장을 형성합니다. 소통 시 한쪽은 디테일을 따지고 다른 한쪽은 맥락을 전수하려 하여, 가벼운 대화법의 마찰이 불현듯 생겨날 수 있는 조합입니다.`,
+      `${m1.nickname}님의 빈틈없는 완벽주의적 조언(${gp1.name})이 ${m2.nickname}님의 활기차고 주도적인 실행력(${gp2.name})에 간섭하며 팽팽한 힘을 겨릅니다. 서로 바라보는 속도가 다르다 보니, 선의의 격려가 의도치 않은 잔소리나 차가운 간섭으로 오독되기도 합니다.`
+    ];
+    const remedyOptions = [
+      `💧 흘려보내는 물(수)의 완충 윤활유 작용이 필수입니다. 차가운 아이스 음료를 곁들이거나 수변을 조망할 수 있는 통유리 카페에서 소통하면 서로의 날카로운 텐션이 온화하게 풀려 영감을 공유하는 완벽한 추진력으로 승화됩니다.`,
+      `💧 차가운 금(金)의 칼날과 마찰하는 목(木)의 소통을 돕기 위해 수(水) 기운의 윤활이 시급합니다. 차분한 감성 음악을 흐르게 하거나, 대화 중 달콤하고 시원한 에이드를 나누며 가볍고 촉촉한 어조로 이야기를 건네 보세요. 날카로움이 봄눈 녹듯 부드럽게 풀립니다.`,
+      `💧 예리한 이성(금)과 자율적 의지(목)가 평화를 찾도록 돕는 수(水) 기운 처방이 해답입니다. 피드백 전 "정말 대단한 생각이다!"라는 포근한 칭찬의 보충제를 건네고 소통하세요. 사소한 이견이 예상을 뛰어넘는 최고의 실무적 동지로 거듭납니다.`
+    ];
+    sajuDesc = descOptions[variationIndex];
+    sajuRemedy = remedyOptions[variationIndex];
   } else if ((elem1 === "화" && elem2 === "금") || (elem1 === "금" && elem2 === "화")) {
     sajuTitle = "🔥 화극금(火剋金) - 열정과 규율의 템포 마찰";
-    sajuDesc = `${m1.nickname}님의 화끈하고 거침없는 사교적 기상(${gp1.name})과 ${m2.nickname}님의 정확하고 한 치 오차 없는 신중함(${gp2.name})이 대조를 이룹니다. 일의 타임라인을 당기려 하거나 마감의 완성도를 독촉할 때 불꽃 튀는 자존심 마찰이나 생각의 속도차가 부각될 수 있습니다.`;
-    sajuRemedy = `⛰️ 뜨거운 열기를 품어 안정적으로 식혀줄 묵직한 흙(토) 기운을 채용하십시오. 차분한 황색 조명의 따뜻한 우드 인테리어 공간에서 소통하거나, 한식 디저트를 웃으며 건네며 소통의 호흡을 아늑하게 조율하면 갈등이 말끔히 해소됩니다.`;
+    const descOptions = [
+      `${m1.nickname}님의 화끈하고 거침없는 사교적 기상(${gp1.name})과 ${m2.nickname}님의 정확하고 한 치 오차 없는 신중함(${gp2.name})이 대조를 이룹니다. 일의 타임라인을 당기려 하거나 마감의 완성도를 독촉할 때 불꽃 튀는 자존심 마찰이나 생각의 속도차가 부각될 수 있습니다.`,
+      `${m1.nickname}님의 뜨겁고 역동적인 에너지(${gp1.name})가 ${m2.nickname}님의 정교하고 세련된 단호함(${gp2.name})을 용해하고 통제하려는 흐름입니다. 서로 주도권을 지키려 할 때 일시적으로 소통 템포가 과열되거나 침묵의 피로를 느낄 수 있습니다.`,
+      `${m1.nickname}님의 신속한 결단과 실행 속도(${gp1.name})와 ${m2.nickname}님의 냉철하고 원칙을 수호하는 스타일(${gp2.name})이 마주합니다. 일할 때 적극적인 추진 요구가 지나치게 단호하게 반려되는 듯한 차가움을 선사하여 은연중에 섭섭함이 피어날 여지가 있습니다.`
+    ];
+    const remedyOptions = [
+      `⛰️ 뜨거운 열기를 품어 안정적으로 식혀줄 묵직한 흙(토) 기운을 채용하십시오. 차분한 황색 조명의 따뜻한 우드 인테리어 공간에서 소통하거나, 한식 디저트를 웃으며 건네며 소통의 호흡을 아늑하게 조율하면 갈등이 말끔히 해소됩니다.`,
+      `⛰️ 화극금의 격렬한 불꽃을 길들이는 대지의 흙(토) 기운이 정답입니다. 함께 차분한 베이지톤 카페나 숲뷰가 있는 쉼터를 방문해 소통의 압력을 낮춰 보세요. 긴밀한 조율이 서로를 가장 위로해주는 영혼의 안식처가 될 수 있습니다.`,
+      `⛰️ 급한 열정(화)과 칼날 기질(금)을 중화할 흙(토)의 너그러운 기운이 비책입니다. 마찰을 빚기 전 "우선 맛있는 밥부터 한끼 든든히 먹고 얘기하자"며 푸근한 식사 시간을 배치해 보세요. 식사 후에 진행하는 대화는 더없이 매끄럽고 신사적으로 진행됩니다.`
+    ];
+    sajuDesc = descOptions[variationIndex];
+    sajuRemedy = remedyOptions[variationIndex];
   } else if ((elem1 === "수" && elem2 === "화") || (elem1 === "화" && elem2 === "수")) {
-    sajuTitle = "🌊 수화상쟁(수화상쟁) - 사색과 리액션의 감정 엇박자";
-    sajuDesc = `${m1.nickname}님의 사색적이고 차분히 가라앉는 신비로움(${gp1.name})과 ${m2.nickname}님의 즉흥적이고 솔직하며 밝은 표현력(${gp2.name})이 마주 보고 있습니다. 서로가 조율할 때 한쪽은 너무 즉흥적이고 리액션이 과하다 생각하고, 다른 한쪽은 너무 소극적이고 생각을 숨긴다 느껴 속마음 오해가 깃들기 쉽습니다.`;
-    sajuRemedy = `🌳 물과 불 사이를 연결하는 싱그러운 나무(목) 기운의 그리너리 처방이 적합합니다. 식물이 가득한 정원형 베이커리나 공원 산책을 하며 생각을 정돈해 보세요. 싱그러운 잎사귀들이 서로의 감정적 텐션을 따뜻한 생명력으로 치환해 줍니다.`;
+    sajuTitle = "🌊 수화상쟁(水火相爭) - 사색과 리액션의 감정 엇박자";
+    const descOptions = [
+      `${m1.nickname}님의 사색적이고 차분히 가라앉는 신비로움(${gp1.name})과 ${m2.nickname}님의 즉흥적이고 솔직하며 밝은 표현력(${gp2.name})이 마주 보고 있습니다. 서로가 조율할 때 한쪽은 너무 즉흥적이고 리액션이 과하다 생각하고, 다른 한쪽은 너무 소극적이고 생각을 숨긴다 느껴 속마음 오해가 깃들기 쉽습니다.`,
+      `${m1.nickname}님의 깊고 웅장한 사유의 흐름(${gp1.name})과 ${m2.nickname}님의 시원하고 거침없이 분출하는 리액션(${gp2.name})이 마주하고 있습니다. 서로 다른 마음의 온도 때문에 한쪽은 표현의 성급함을, 다른 한쪽은 생각의 고요함을 어색해하며 벽을 느끼기 쉽습니다.`,
+      `${m1.nickname}님의 차분하고 논리적인 쉼표 조절(${gp1.name})이 ${m2.nickname}님의 뜨겁게 발설하는 정열(${gp2.name})에 찬물을 끼얹는 모양새가 될 수 있습니다. 각자의 방식대로 감정을 분출하여 말 한마디에 소통의 서운한 균열이 생길 수 있습니다.`
+    ];
+    const remedyOptions = [
+      `🌳 물과 불 사이를 연결하는 싱그러운 나무(목) 기운의 그리너리 처방이 적합합니다. 식물이 가득한 정원형 베이커리나 공원 산책을 하며 생각을 정돈해 보세요. 싱그러운 잎사귀들이 서로의 감정적 텐션을 따뜻한 생명력으로 치환해 줍니다.`,
+      `🌳 차가운 바다(수)와 뜨거운 태양(화)이 절묘하게 이어지기 위해서는 생명의 성장력인 나무(목) 기운이 중간 다리가 되어야 합니다. 싱그러운 화초나 화분이 가득한 자연주의 복합 문화공간에서 마주앉거나 가벼운 숲길 산책을 즐겨보십시오. 엇박자 소통이 따사롭고 포근한 상호 격려로 변화됩니다.`,
+      `🌳 감정의 극과 극인 수화 기류를 이어주기 위해 초록색 생명력(목)을 동원하는 것이 비법입니다. 대화 전 서로 산뜻한 야외 산책을 곁들이며 "가끔은 이런 다른 관점을 듣는 게 머리를 맑게 한다"고 서로를 칭찬해 보십시오. 오해가 최고의 조력으로 급반전합니다.`
+    ];
+    sajuDesc = descOptions[variationIndex];
+    sajuRemedy = remedyOptions[variationIndex];
   } else if ((elem1 === "목" && elem2 === "토") || (elem1 === "토" && elem2 === "목")) {
-    sajuTitle = "🌲 목극토(목극토) - 거침없는 질주와 경계 수호의 마찰";
-    sajuDesc = `${m1.nickname}님의 속도감 넘치는 아이디어(${gp1.name})가 ${m2.nickname}님의 굳건하고 변함없는 원칙과 넓은 영토(${gp2.name})를 뚫고 진입하려는 모양새입니다. 상대방이 성실히 정립해 놓은 영역이나 일정 기준을 무심코 건드리거나, 주도권을 쥐려 할 때 은근한 대치 상태를 부를 소지가 있습니다.`;
-    sajuRemedy = `🔥 나무가 흙을 다치지 않고 든든히 생해주게 이끄는 불(화)의 활력이 필요합니다. 조명이 활발하고 이국적인 맛집에서 가벼운 식사를 나누거나 화사한 공간에서 수다를 나눠 보세요. 붉고 밝은 에너지가 서로의 방어벽을 기적처럼 허물어 줍니다.`;
+    sajuTitle = "🌲 목극토(木剋土) - 거침없는 질주와 경계 수호의 마찰";
+    const descOptions = [
+      `${m1.nickname}님의 속도감 넘치는 아이디어(${gp1.name})가 ${m2.nickname}님의 굳건하고 변함없는 원칙과 넓은 영토(${gp2.name})를 뚫고 진입하려는 모양새입니다. 상대방이 성실히 정립해 놓은 영역이나 일정 기준을 무심코 건드리거나, 주도권을 쥐려 할 때 은근한 대치 상태를 부를 소지가 있습니다.`,
+      `${m1.nickname}님의 창조적으로 성장하려는 목(木) 기운(${gp1.name})이 ${m2.nickname}님의 단단하게 터를 일구는 흙(토) 기운(${gp2.name})에 자극을 가합니다. 질서와 새로운 아이디어의 주권 대립이 미묘하게 교차하며 의견 다툼을 보이기 쉬운 조건입니다.`,
+      `${m1.nickname}님의 유연하고 신속하게 방향을 바꾸는 기동성(${gp1.name})과 ${m2.nickname}님의 듬직하고 흔들리지 않는 묵직함(${gp2.name})이 조우합니다. 서로에게 너무 경솔하다거나 반대로 지나치게 융통성 없이 굼뜨다고 느껴 마음의 거리가 생길 수 있습니다.`
+    ];
+    const remedyOptions = [
+      `🔥 나무가 흙을 다치지 않고 든든히 생해주게 이끄는 불(화)의 활력이 필요합니다. 조명이 활발하고 이국적인 맛집에서 가벼운 식사를 나누거나 화사한 공간에서 수다를 나눠 보세요. 붉고 밝은 에너지가 서로의 방어벽을 기적처럼 허물어 줍니다.`,
+      `🔥 목극토의 답답한 긴장 지대를 따뜻한 모닥불처럼 녹여줄 불(화) 기운이 해답입니다. 활력이 가득하고 화사한 무드의 레스토랑에서 만나 경쾌한 음식을 즐기며 이야기하세요. 따뜻하고 활달한 화(火) 에너지가 감춰진 동료애를 기적적으로 키워냅니다.`,
+      `🔥 고집 세게 흙을 파고드는 나무와 이를 수호하는 대지의 마찰을 누그러뜨리는 예의와 축제(화)의 처방이 약효입니다. 소통 전 밝게 먼저 웃음을 건네며 "늘 제 곁에서 기둥이 되어주어 감사해요"라고 인사를 건네십시오. 이견이 일순간에 정복됩니다.`
+    ];
+    sajuDesc = descOptions[variationIndex];
+    sajuRemedy = remedyOptions[variationIndex];
   } else if ((elem1 === "토" && elem2 === "수") || (elem1 === "수" && elem2 === "토")) {
-    sajuTitle = "⛰️ 토극수(토극수) - 정밀한 가이드라인과 자율성의 대립";
-    sajuDesc = `${m1.nickname}님의 무겁고 흔들림 없는 계획과 규칙론(${gp1.name})이 ${m2.nickname}님의 자유롭게 넘실거리며 지혜를 도모하려는 자율 기류(${gp2.name})를 제한하고 통제하려는 구도입니다. 소통할 때 한쪽은 답답한 구속감을, 다른 한쪽은 질서 없음에 불안정함을 표출하기 쉽습니다.`;
-    sajuRemedy = `💎 흙과 물을 정화하고 정교하게 여과해 줄 맑은 바위인 쇠(금) 기운이 시급합니다. 세련되고 시크한 메탈릭 인테리어 공간에서 조율하거나, 애매한 구두 약속 대신 구체적인 숫자와 확실한 약속 문항을 텍스트로 깔끔하게 정리해 공지하는 것이 서로의 오해를 완벽하게 차단하는 비방입니다.`;
+    sajuTitle = "⛰️ 토극수(土剋水) - 정밀한 가이드라인과 자율성의 대립";
+    const descOptions = [
+      `${m1.nickname}님의 무겁고 흔들림 없는 계획과 규칙론(${gp1.name})이 ${m2.nickname}님의 자유롭게 넘실거리며 지혜를 도모하려는 자율 기류(${gp2.name})를 제한하고 통제하려는 구도입니다. 소통할 때 한쪽은 답답한 구속감을, 다른 한쪽은 질서 없음에 불안정함을 표출하기 쉽습니다.`,
+      `${m1.nickname}님의 신중하게 설계된 마감 기준과 안목(${gp1.name})이 ${m2.nickname}님의 넘쳐나는 영민함과 지혜의 흐름(${gp2.name})을 막아 세워 갈등을 부추깁니다. 이로 인해 한쪽은 통제를 싫어하고 다른 한쪽은 경박함을 경계하여 미묘한 자존심 충돌이 예상됩니다.`,
+      `${m1.nickname}님의 묵직하고 완고한 기준 수립(${gp1.name})과 ${m2.nickname}님의 다방면으로 유연하게 물길을 대려는 순발력(${gp2.name})이 대치합니다. 통제와 자율의 경계선에서 가벼운 카톡 문자나 연락에도 일순간 차가운 피로감을 호소하게 만듭니다.`
+    ];
+    const remedyOptions = [
+      `💎 흙과 물을 정화하고 정교하게 여과해 줄 맑은 바위인 쇠(금) 기운이 시급합니다. 세련되고 시크한 메탈릭 인테리어 공간에서 조율하거나, 애매한 구두 약속 대신 구체적인 숫자와 확실한 약속 문항을 텍스트로 깔끔하게 정리해 공지하는 것이 서로의 오해를 완벽하게 차단하는 비방입니다.`,
+      `💎 탁해지기 쉬운 토극수 대결 구도를 맑고 품격 있게 여과해 줄 쇠(금)의 세련됨이 해결방안입니다. 모던한 그레이나 메탈릭 톤의 시크한 미팅룸에서 대화하세요. 구두 조율보다는 기록으로 정돈해 투명한 체크리스트를 공유하면 갈등이 영리하게 예방됩니다.`,
+      `💎 흙의 구속과 물의 범람을 스마트하게 여과하는 단단한 원석(금) 기운을 보강해야 합니다. 메탈릭 조명이 돋보이는 모던하고 현대적인 카페에서 미팅을 추진하며, 상호 "오직 정확한 팩트와 수치만 얘기하자"는 합의점을 정해 대화해 보십시오. 효율이 최정상에 도달합니다.`
+    ];
+    sajuDesc = descOptions[variationIndex];
+    sajuRemedy = remedyOptions[variationIndex];
   } else if (elem1 === elem2) {
-    sajuTitle = `🤝 비겁(비겁) 공명 - 같은 '${elem1}' 기운을 나누는 의리 콤비`;
-    sajuDesc = `${m1.nickname}님과 ${m2.nickname}님은 동일한 '${elem1}'의 오행 원소(${gp1.name}와 ${gp2.name})를 지녀, 굳이 많은 설명을 늘어놓지 않아도 서로가 왜 그렇게 행동하고 판단하는지 직관적으로 깊게 이해하는 유대감과 의리를 지니고 있습니다.`;
-    sajuRemedy = `📢 같은 기운이라 편안하지만 한편으론 자존심 대립 시 정면충돌할 수 있으니, 대화 전에 반드시 상대의 노고를 먼저 치하하는 "칭찬 선제권"을 발휘해 보십시오. 의리가 두 배로 증폭됩니다.`;
+    sajuTitle = `🤝 비겁(比劫) 공명 - 같은 '${elem1}' 기운을 나누는 의리 콤비`;
+    const descOptions = [
+      `${m1.nickname}님과 ${m2.nickname}님은 동일한 '${elem1}'의 오행 원소(${gp1.name}와 ${gp2.name})를 지녀, 굳이 많은 설명을 늘어놓지 않아도 서로가 왜 그렇게 행동하고 판단하는지 직관적으로 깊게 이해하는 유대감과 의리를 지니고 있습니다.`,
+      `${m1.nickname}님과 ${m2.nickname}님은 한 우물에서 자라난 듯 완벽히 동일한 '${elem1}' 기운의 결(${gp1.name}와 ${gp2.name})을 공유합니다. 가치관과 삶의 원칙이 서로 거울을 보듯 완벽히 닮아, 어색함 없이 깊고 편안하게 속마음을 전수하는 아름다운 유대감을 가집니다.`,
+      `${m1.nickname}님과 ${m2.nickname}님은 서로 같은 '${elem1}' 오행의 파동(${gp1.name}와 ${gp2.name})을 고스란히 맞물리고 있습니다. 설명이 생략된 텔레파시 소통이 통할 정도로 서로의 성정과 버릇을 단번에 이해하는 최상의 의리 콤비입니다.`
+    ];
+    const remedyOptions = [
+      `📢 같은 기운이라 편안하지만 한편으론 자존심 대립 시 정면충돌할 수 있으니, 대화 전에 반드시 상대의 노고를 먼저 치하하는 "칭찬 선제권"을 발휘해 보십시오. 의리가 두 배로 증폭됩니다.`,
+      `📢 너무 똑같이 닮은 성향 탓에 한 번 의견 대립이 시작되면 누구 한 명도 지지 않으려는 미묘한 침묵 기싸움이 벌어질 수 있습니다. 평소에 "역시 너밖에 없다"며 상대의 능력을 아낌없이 추켜세워 주면 부작용 없이 동지애가 두 배로 무제한 커집니다.`,
+      `📢 똑같은 성정의 두 사람이라 좋으면서도 사소한 일에 마음을 걸어 삐치는 흐름까지 닮을 염려가 있습니다. 회의 전 "우리 둘의 닮은 꼴 시너지는 진짜 최고야"라고 기분 좋은 말로 분위기를 따스하게 살려보십시오. 시너지가 무한대로 솟구칩니다.`
+    ];
+    sajuDesc = descOptions[variationIndex];
+    sajuRemedy = remedyOptions[variationIndex];
   } else {
     // Check Sangseng
     const order = ["목", "화", "토", "금", "수"];
@@ -94,12 +167,32 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
       const gElem = giver === m1.nickname ? elem1 : elem2;
       const rElem = giver === m1.nickname ? elem2 : elem1;
       sajuTitle = `✨ 오행 상생(${elem1}생${elem2}) - 무한한 자양분의 순환 지대`;
-      sajuDesc = `${giver}님의 넘쳐나는 천연 자양분(${gElem} 기운)이 ${receiver}님의 원대한 꿈과 결실(${rElem} 기운)에 끊임없이 땔감이나 수분을 부어주는 환상적인 우주적 순환 배합입니다. 두 분이 대화할수록 사기가 솟구치고 서로의 잠재력이 최고조로 꽃을 피우게 됩니다.`;
-      sajuRemedy = `🚀 서로의 재능을 빛내는 공동의 역할을 분담해 보세요. "네 비전 덕분에 더 용기를 낼 수 있었어"라는 솔직하고 명확한 존중의 감사를 자주 발설하는 것이 이 상생 흐름을 평생의 든든한 궤도로 고정해 줍니다.`;
+      const descOptions = [
+        `${giver}님의 넘쳐나는 천연 자양분(${gElem} 기운)이 ${receiver}님의 원대한 꿈과 결실(${rElem} 기운)에 끊임없이 땔감이나 수분을 부어주는 환상적인 우주적 순환 배합입니다. 두 분이 대화할수록 사기가 솟구치고 서로의 잠재력이 최고조로 꽃을 피우게 됩니다.`,
+        `${giver}님의 따뜻하고 깊은 격려와 자양분(${gElem} 기운)이 ${receiver}님의 지칠 수 있는 기지(${rElem} 기운)에 끊임없이 신선한 자극과 에너지를 조달하는 최고의 조력입니다. 든든한 등대를 마주한 듯, 함께하는 대화가 늘 새로운 용기와 기운을 북돋아 줍니다.`,
+        `${giver}님이 말없이 건네는 든든한 신의와 후원(${gElem} 기운)을 발판 삼아 ${receiver}님이 넓고 눈부신 날개(${rElem} 기운)를 힘차게 펴는 형국입니다. 서로 완벽한 조타수와 엔진의 결합으로, 어떤 역경 속에서도 끝까지 서로를 밀어주는 완벽한 상생 조력 관계입니다.`
+      ];
+      const remedyOptions = [
+        `🚀 서로의 재능을 빛내는 공동의 역할을 분담해 보세요. "네 비전 덕분에 더 용기를 낼 수 있었어"라는 솔직하고 명확한 존중의 감사를 자주 발설하는 것이 이 상생 흐름을 평생의 든든한 궤도로 고정해 줍니다.`,
+        `🚀 이 든든한 에너지를 오랫동안 고정하기 위해 공동의 구체적 목표를 정해 소통해 보세요. 가벼운 성공이라도 함께 달성하며 "네가 곁에 있어서 정말 다행이야"라고 서로 고마움을 소리내 표현하는 것이 이 관계의 원동력이 됩니다.`,
+        `🚀 무결점에 가까운 축복받은 상생의 순환 관계입니다. 서로 "너의 아이디어와 나의 노하우가 엮이면 두려울 게 없다"는 확신의 응원을 일상에 버릇처럼 보태어 보세요. 상생의 에너지가 평생의 영원한 수호 기류로 굳어집니다.`
+      ];
+      sajuDesc = descOptions[variationIndex];
+      sajuRemedy = remedyOptions[variationIndex];
     } else {
       sajuTitle = "🍀 오행의 온화한 흐름 - 유기적 수평 공존";
-      sajuDesc = `${m1.nickname}님의 ${gp1.name}과 ${m2.nickname}님의 ${gp2.name}이 서로 자극이나 마찰 없이 물 흐르듯 잔잔하게 어우러지는 수평적이고 담백한 역학적 배치입니다. 가만히 있어도 내어주는 심리적 편안함과 든든한 동반자적 신뢰를 맛볼 수 있습니다.`;
-      sajuRemedy = `🍵 기분 좋은 힐링 가득한 소소한 티타임이나 일상의 가벼운 취미를 함께 공유하며 결속력을 더해 보세요. 잔잔하게 깔려 있는 우주의 온화한 행운이 두 분의 앞길을 안전하고 따스하게 지켜줍니다.`;
+      const descOptions = [
+        `${m1.nickname}님의 ${gp1.name}과 ${m2.nickname}님의 ${gp2.name}이 서로 자극이나 마찰 없이 물 흐르듯 잔잔하게 어우러지는 수평적이고 담백한 역학적 배치입니다. 가만히 있어도 내어주는 심리적 편안함과 든든한 동반자적 신뢰를 맛볼 수 있습니다.`,
+        `${m1.nickname}님의 부드러운 기류(${gp1.name})가 ${m2.nickname}님의 무던하고 따사로운 기운(${gp2.name})과 만나, 모나지 않고 수평적인 소통을 도모합니다. 서로 간섭을 최소화하는 고도의 존중심이 깔려 있어 오랜 동반자로 담백하게 지내기 좋은 소통 흐름입니다.`,
+        `${m1.nickname}님의 수호 파동(${gp1.name})과 ${m2.nickname}님의 편안한 성정(${gp2.name})이 결합해 무겁지도 가볍지도 않은 쾌적하고 맑은 소통 지대를 형성합니다. 마찰을 자초하는 격정 대신 가만히 곁에만 있어도 안락함과 고요함을 선사하는 평화로운 인연입니다.`
+      ];
+      const remedyOptions = [
+        `🍵 기분 좋은 힐링 가득한 소소한 티타임이나 일상의 가벼운 취미를 함께 공유하며 결속력을 더해 보세요. 잔잔하게 깔려 있는 우주의 온화한 행운이 두 분의 앞길을 안전하고 따스하게 지켜줍니다.`,
+        `🍵 소란스러운 번화가보다는 아늑하고 조용히 정원을 바라볼 수 있는 소박한 한옥 다도 공간이나 골목 맛집을 활용해 보세요. 담백하게 나눈 사소한 일상의 안부가 서로에게 가장 무거운 힐링의 처방전으로 기능합니다.`,
+        `🍵 서로 부담을 지우지 않는 최적의 수평적 관계입니다. 가끔 맛있는 과자나 간식을 서로 가볍게 챙겨주며 미소 띤 고마움을 전하는 것으로 충분히 좋습니다. 우주의 온화한 수호 흐름이 평화의 영구 궤도를 단단히 수립해 줍니다.`
+      ];
+      sajuDesc = descOptions[variationIndex];
+      sajuRemedy = remedyOptions[variationIndex];
     }
   }
 
@@ -137,7 +230,7 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
     if (code1[3] !== code2[3]) {
       return {
         desc: `한쪽은 정교한 타임라인과 명확한 결론을 선호하는 체계적 판단형(J)이고, 다른 한쪽은 자율성과 임기응변, 새로운 대안의 자유로움을 사랑하는 유연한 인식형(P)입니다. 일을 전개하거나 일정을 정할 때 한쪽은 '불안정하고 무계획하다'고 우려하고, 다른 한쪽은 '지나치게 숨 막히게 숨 쉴 틈 없이 조인다'며 답답해할 수 있습니다.`,
-        remedy: `💬 [MBTI J-P 완화] 판단형(J)은 상대에게 1분 단위 of 촘촘한 가이드라인을 요구하지 않고 큰 마감 기한과 목표만 설정해 주어 상대의 즉흥적 시너지를 보장하고, 인식형(P)은 계획이 중간에 변경되거나 딜레이가 우려되면 즉시 카톡이나 공지 등을 통해 투명하게 중간 진척 상황을 전달해 예측 가능성을 더해주어야 합니다.`
+        remedy: `💬 [MBTI J-P 완화] 판단형(J)은 상대에게 1분 단위의 촘촘한 가이드라인을 요구하지 않고 큰 마감 기한과 목표만 설정해 주어 상대의 즉흥적 시너지를 보장하고, 인식형(P)은 계획이 중간에 변경되거나 딜레이가 우려되면 즉시 카톡이나 공지 등을 통해 투명하게 중간 진척 상황을 전달해 예측 가능성을 더해주어야 합니다.`
       };
     }
 
@@ -219,32 +312,60 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
   const ze1 = getZodiacElement(zod1.name);
   const ze2 = getZodiacElement(zod2.name);
 
-  const getZodiacRelation = (e1: string, e2: string, s1: string, s2: string) => {
+  const getZodiacRelation = (e1: string, e2: string, s1: string, s2: string, vIdx: number) => {
     if (e1 === e2) {
-      return {
-        desc: `서로 같은 황도 12궁의 '${e1}'를 공유하고 있습니다. ${s1}와 ${s2}의 동조 공명은 서로가 세상을 받아들이는 감성과 유머 코드가 완벽히 흡사함을 가리킵니다.`,
-        remedy: `🌌 [우주 별자리 처방] 서로 주파수가 같은 만큼 은은한 밤바다, 노을 뷰가 비치는 테라스나 모던하고 세련된 야간 분위기 속에서 대화해 보세요. 우주의 정서적 친밀도가 비약적으로 향상됩니다.`
-      };
+      const descOptions = [
+        `서로 같은 황도 12궁의 '${e1}'를 공유하고 있습니다. ${s1}와 ${s2}의 동조 공명은 서로가 세상을 받아들이는 감성과 유머 코드가 완벽히 흡사함을 가리킵니다.`,
+        `우주 원소 기질상 같은 '${e1}'를 나란히 공유하는 쌍둥이 같은 구성입니다. ${s1}와 ${s2}가 자아내는 아름다운 정서적 일치도는 깊은 대화 없이도 소통의 정밀 템포가 한 번에 맞아떨어지게 만듭니다.`,
+        `황도대에서 동일한 원소 영역인 '${e1}'를 정중앙에서 맞물리고 있습니다. ${s1}와 ${s2}의 신비로운 텔레파시 결합은 생각과 일상적 생활관이 아주 똑 닮아 편안한 대화의 소울 메이트가 되기 좋은 조건을 자랑합니다.`
+      ];
+      const remedyOptions = [
+        `🌌 [우주 별자리 처방] 서로 주파수가 같은 만큼 은은한 밤바다, 노을 뷰가 비치는 테라스나 모던하고 세련된 야간 분위기 속에서 대화해 보세요. 우주의 정서적 친밀도가 비약적으로 향상됩니다.`,
+        `🌌 [우주 별자리 처방] 닮은꼴의 시너지를 극대화하기 위해 레트로풍 감성이 가득한 은은한 엘피바나 무드 있는 가구 쇼룸, 미술관을 방문해 보십시오. 공유하는 감수성이 두 배로 따스하게 빛을 발합니다.`,
+        `🌌 [우주 별자리 처방] 가끔 너무 닮은 탓에 침묵이 무거워지면 밝은 조명의 경쾌한 브런치 카페나 활기찬 테마 공원을 찾아 대화의 에너지를 환기시키세요. 우주 지표의 힐링 지수가 최고조로 상승합니다.`
+      ];
+      return { desc: descOptions[vIdx], remedy: remedyOptions[vIdx] };
     }
     if ((e1 === "불(火) 원소" && e2 === "공기(風) 원소") || (e2 === "불(火) 원소" && e1 === "공기(風) 원소")) {
-      return {
-        desc: `열정의 불꽃(${e1 === "불(火) 원소" ? s1 : s2})과 불꽃을 자유롭게 번지게 이끄는 바람(${e1 === "공기(風) 원소" ? s1 : s2})의 배합입니다. 대화할수록 아이디어가 꼬리를 물며 창조적 에너지를 터뜨립니다.`,
-        remedy: `🌌 [우주 별자리 처방] 활기찬 아이디어 회동을 위해 넓은 통창이 있는 개방적인 대형 카페나 도심 야외 명소를 활용해 소통해 보십시오. 무한한 아이디어가 시너지로 불타오릅니다.`
-      };
+      const descOptions = [
+        `열정의 불꽃(${e1 === "불(火) 원소" ? s1 : s2})과 불꽃을 자유롭게 번지게 이끄는 바람(${e1 === "공기(風) 원소" ? s1 : s2})의 배합입니다. 대화할수록 아이디어가 꼬리를 물며 창조적 에너지를 터뜨립니다.`,
+        `타오르는 뜨거운 태양과 같은 열정(${e1 === "불(火) 원소" ? s1 : s2})과 신선하게 영감을 공급하는 바람(${e1 === "공기(風) 원소" ? s1 : s2})이 만났습니다. 머릿속의 어렴풋한 생각들이 서로의 화법을 타고 거대한 창조적 시너지 불빛으로 확산되는 명랑한 궁합입니다.`,
+        `서로 불과 바람처럼 영감의 촉매가 되어주는 별자리 궤도 배치입니다. ${s1}의 주도력과 ${s2}의 뛰어난 정보력이 시너지를 내어, 대화하고 나면 없던 추진력과 놀라운 실행 의욕이 가득 채워지는 축복받은 역동적 배치입니다.`
+      ];
+      const remedyOptions = [
+        `🌌 [우주 별자리 처방] 활기찬 아이디어 회동을 위해 넓은 통창이 있는 개방적인 대형 카페나 도심 야외 명소를 활용해 소통해 보십시오. 무한한 아이디어가 시너지로 불타오릅니다.`,
+        `🌌 [우주 별자리 처방] 활기찬 아이디어를 결실로 이끌기 위해 현대적이고 힙한 루프탑 바나 감각적인 야외 카페를 추천합니다. 확 트인 바람의 기운이 마음의 열정을 무한대로 해방시켜 줄 것입니다.`,
+        `🌌 [우주 별자리 처방] 서로 대화 텐션이 높을 때 가끔 사소한 의견차로 뜨거워질 수 있으니, 시원한 얼음 에이드 음료를 곁들이며 "네 생각이 참 기발하다!"는 산뜻한 감탄을 주기적으로 건네 보십시오.`
+      ];
+      return { desc: descOptions[vIdx], remedy: remedyOptions[vIdx] };
     }
     if ((e1 === "흙(土) 원소" && e2 === "물(水) 원소") || (e2 === "흙(土) 원소" && e1 === "물(水) 원소")) {
-      return {
-        desc: `묵직하고 비옥한 대지(${e1 === "흙(土) 원소" ? s1 : s2})와 그 땅을 비옥하게 살려주는 단비(${e1 === "물(水) 원소" ? s1 : s2})의 만남입니다. 신뢰도가 최고 수준으로 정서적 깊이감이 대단히 깊습니다.`,
-        remedy: `🌌 [우주 별자리 처방] 조용히 속마음을 나눌 수 있는 따스하고 아늑한 자연 친화적 찻집이나 프라이빗 다도 공간에서 대화해 보세요. 서로에게 그 어떤 곳보다 훌륭한 평화의 심리적 대피소가 마련됩니다.`
-      };
+      const descOptions = [
+        `묵직하고 비옥한 대지(${e1 === "흙(土) 원소" ? s1 : s2})와 그 땅을 비옥하게 살려주는 단비(${e1 === "물(水) 원소" ? s1 : s2})의 만남입니다. 신뢰도가 최고 수준으로 정서적 깊이감이 대단히 깊습니다.`,
+        `단단하고 성실한 대지(${e1 === "흙(土) 원소" ? s1 : s2})에 생기를 부어 촉촉이 적셔주는 생명의 물(${e1 === "물(水) 원소" ? s1 : s2})의 행복한 배합입니다. 서로의 마음속 가장 외롭거나 어두운 자리를 말없이 가장 포근하게 위로해 주고 지켜주는 소울 메이트의 흐름입니다.`,
+        `별자리 원소 중 영양 가득한 흙과 투명한 샘물의 수려한 융합 관계입니다. ${s1}와 ${s2}의 교감은 어떤 화려한 리액션보다도 신뢰의 깊이가 최고이며, 서로에게 세상 그 누구보다 편안한 심리적 방파제이자 완벽한 대피소가 되어 줍니다.`
+      ];
+      const remedyOptions = [
+        `🌌 [우주 별자리 처방] 조용히 속마음을 나눌 수 있는 따스하고 아늑한 자연 친화적 찻집이나 프라이빗 다도 공간에서 대화해 보세요. 서로에게 그 어떤 곳보다 훌륭한 평화의 심리적 대피소가 마련됩니다.`,
+        `🌌 [우주 별자리 처방] 한적하고 고즈넉한 사찰이나 조용히 흐르는 물소리를 감상할 수 있는 한적한 강변 카페에서 대화하세요. 깊숙한 속내가 거름망 없이 흘러나와 평생의 소중한 연을 두텁게 다질 수 있습니다.`,
+        `🌌 [우주 별자리 처방] 서로 깊은 안정감을 나누도록 은은한 허브티나 국산 차를 내리는 프라이빗한 차실이나 공원 산책길을 애용해 보세요. 정서적인 우주의 친밀 주파수가 완벽한 평온에 연착륙합니다.`
+      ];
+      return { desc: descOptions[vIdx], remedy: remedyOptions[vIdx] };
     }
-    return {
-      desc: `서로 사뭇 다른 궤도의 우주 원소(${e1}의 ${s1}와 ${e2}의 ${s2})가 새로운 가치 조율을 꾀하는 흥미진진한 교차 배치입니다. 다소의 관점 차이가 도리어 독특하고 신선한 대안과 참신한 피드백을 이끌어냅니다.`,
-      remedy: `🌌 [우주 별자리 처방] 대화 중 이질감이 들 때 다름을 지적하기보다 "우주의 공전 주기가 달라 신선한 자극이 되네요!"라며 상대의 독창적인 가치관을 포용력 있게 품어내는 넓은 도량을 보충해 보세요.`
-    };
+    const descOptions = [
+      `서로 사뭇 다른 궤도의 우주 원소(${e1}의 ${s1}와 ${e2}의 ${s2})가 새로운 가치 조율을 꾀하는 흥미진진한 교차 배치입니다. 다소의 관점 차이가 도리어 독특하고 신선한 대안과 참신한 피드백을 이끌어냅니다.`,
+      `황도 상 다른 축에 상주하는 우주 원소(${e1}의 ${s1}와 ${e2}의 ${s2})의 신선한 조우입니다. 처음에는 이해가 필요하지만, 마음을 열면 내가 미처 보지 못한 사각지대를 예리하고 현명하게 짚어주는 최고의 나침반이자 멋진 영감의 구원투수가 됩니다.`,
+      `우주의 서로 다른 행성 궤도를 회전하는 독창적인 원소의 결합(${e1}의 ${s1}와 ${e2}의 ${s2})입니다. 서로 지닌 일상 궤도가 달라 색다른 자극과 신선함을 선물해 주며, 평소의 좁은 시야를 획기적으로 넓혀주는 훌륭한 지적 파트너입니다.`
+    ];
+    const remedyOptions = [
+      `🌌 [우주 별자리 처방] 대화 중 이질감이 들 때 다름을 지적하기보다 "우주의 공전 주기가 달라 신선한 자극이 되네요!"라며 상대의 독창적인 가치관을 포용력 있게 품어내는 넓은 도량을 보충해 보세요.`,
+      `🌌 [우주 별자리 처방] 서로의 신선함을 예우하기 위해 유행하는 힙한 이국적인 식당이나 인센스 향이 매력적인 모던 쇼룸에서 이색적인 미팅을 추천합니다. 색다름이 끈끈한 호감과 탐색욕으로 영리하게 치환됩니다.`,
+      `🌌 [우주 별자리 처방] 의견 차가 들 때 "너는 어떻게 그런 기발한 생각을 다 했니?"라며 넓은 우주의 신선함을 인정해 보십시오. 단점이 완벽한 퍼즐 조각으로 탈바꿈하여 공동의 힘을 창출해 냅니다.`
+    ];
+    return { desc: descOptions[vIdx], remedy: remedyOptions[vIdx] };
   };
 
-  const zodiacRelation = getZodiacRelation(ze1, ze2, zod1.name, zod2.name);
+  const zodiacRelation = getZodiacRelation(ze1, ze2, zod1.name, zod2.name, variationIndex);
 
   const isM1MbtiOk = isMbtiRegistered(m1);
   const isM2MbtiOk = isMbtiRegistered(m2);
@@ -625,6 +746,7 @@ export default function GroupView({ code }: GroupViewProps) {
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
   const [shareStatus, setShareStatus] = useState("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showAllPairs, setShowAllPairs] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
   const [isGroupUnlocked, setIsGroupUnlocked] = useState(false);
@@ -632,6 +754,65 @@ export default function GroupView({ code }: GroupViewProps) {
   const [isPdfUnlocked, setIsPdfUnlocked] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [shopInitialTab, setShopInitialTab] = useState<"pdf" | "secret" | "group">("group");
+  const [rawAnalysisDoc, setRawAnalysisDoc] = useState<any>(null);
+
+  const isSchemaValid = React.useMemo(() => {
+    if (!rawAnalysisDoc || !rawAnalysisDoc.personal || !rawAnalysisDoc.group || !rawAnalysisDoc.pairs) return false;
+    const firstPersonal = Object.values(rawAnalysisDoc.personal)[0] as any;
+    const hasNewSchema = firstPersonal && firstPersonal.four_areas && 'essence' in firstPersonal.four_areas;
+    return !!(hasNewSchema && typeof rawAnalysisDoc.group.overall_score === "number" && rawAnalysisDoc.group.overall_score > 0 && rawAnalysisDoc.pairs.length > 0);
+  }, [rawAnalysisDoc]);
+
+  const isCacheValid = React.useMemo(() => {
+    if (!isSchemaValid || members.length < 2) return false;
+    
+    const currentMemberIds = members.map(m => m.id);
+    const cachedMemberIds = Object.keys(rawAnalysisDoc.personal);
+    const isMemberMatch = currentMemberIds.length === cachedMemberIds.length &&
+                          currentMemberIds.every(id => cachedMemberIds.includes(id));
+
+    return isMemberMatch;
+  }, [members, isSchemaValid, rawAnalysisDoc]);
+
+  const hoursSinceCreated = React.useMemo(() => {
+    if (!rawAnalysisDoc || !rawAnalysisDoc.created_at) return null;
+    const createdTime = new Date(rawAnalysisDoc.created_at).getTime();
+    if (isNaN(createdTime)) return null;
+    return (Date.now() - createdTime) / (1000 * 60 * 60);
+  }, [rawAnalysisDoc]);
+
+  const isWithin24HoursLimit = React.useMemo(() => {
+    return hoursSinceCreated !== null && hoursSinceCreated < 24;
+  }, [hoursSinceCreated]);
+
+  const timeLeftText = React.useMemo(() => {
+    if (hoursSinceCreated === null) return "";
+    const remainingMs = (24 - hoursSinceCreated) * 60 * 60 * 1000;
+    if (remainingMs <= 0) return "";
+    
+    const h = Math.floor(remainingMs / (1000 * 60 * 60));
+    const m = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+    return `${h}시간 ${m}분`;
+  }, [hoursSinceCreated]);
+
+  useEffect(() => {
+    if (rawAnalysisDoc) {
+      if (isCacheValid) {
+        setAnalysis(rawAnalysisDoc);
+        setPageLoading(false);
+        setAnalyzing(false);
+      } else if (isWithin24HoursLimit && isSchemaValid) {
+        // Members list has changed, but we are within 24h limit, so we show the previous cached analysis as fallback
+        setAnalysis(rawAnalysisDoc);
+        setPageLoading(false);
+        setAnalyzing(false);
+      } else {
+        setAnalysis(null);
+      }
+    } else {
+      setAnalysis(null);
+    }
+  }, [isCacheValid, isWithin24HoursLimit, isSchemaValid, rawAnalysisDoc]);
 
   const syncUnlockStates = async () => {
     const status = await checkPremiumStatus();
@@ -672,87 +853,27 @@ export default function GroupView({ code }: GroupViewProps) {
     return "bg-[#f87171]";
   };
 
-  // Fetch Room, Members, and check for existing Cached Analysis
-  const performDataFetch = async () => {
-    setPageLoading(true);
-    setError("");
+  const acquireLockAndAnalyze = async (currentMembers: Member[], roomTitle: string) => {
     try {
-      // 1. Fetch Room Info
-      const roomSnap = await getDoc(doc(db, "rooms", code));
-      if (!roomSnap.exists()) {
-        setError("방이 만료되거나 존재하지 않는 코드입니다.");
-        setPageLoading(false);
-        return;
-      }
-      const roomData = roomSnap.data();
-      if (roomData && roomData.expire_at) {
-        const expireDate = new Date(roomData.expire_at);
-        if (expireDate < new Date()) {
-          setError("만료된 모임입니다 (생성 후 30일 경과).");
-          setPageLoading(false);
-          return;
-        }
-      }
-      const rData = { code, ...roomData } as Room;
-      setRoom(rData);
-
-      // 2. Fetch Members list in subcollection
-      const membersSnap = await getDocs(collection(db, "rooms", code, "members"));
-      const mList: Member[] = [];
-      membersSnap.forEach((docSnap) => {
-        mList.push({ id: docSnap.id, ...docSnap.data() } as Member);
-      });
-
-      if (mList.length < 2) {
-        setError("인연 궁합을 엮으려면 최소 2명 이상 사주를 등록해야 합니다.");
-        setPageLoading(false);
-        return;
-      }
-
-      setMembers(mList);
-      console.log("Members loaded:", mList);
-
-      // 3. Check for existing analysis in rooms/{code}/analysis/result
-      const analysisSnap = await getDoc(doc(db, "rooms", code, "analysis", "result"));
-      console.log("Analysis snap exists:", analysisSnap.exists(), "Data:", analysisSnap.data());
-
-      if (analysisSnap.exists()) {
-        const cachedData = analysisSnap.data() as CachedAnalysisResult;
-        
-        // Ensure cache personal data is present and matches the updated essence/talent schema structure
-        const firstPersonal = cachedData && cachedData.personal && Object.values(cachedData.personal)[0];
-        const hasNewSchema = firstPersonal && firstPersonal.four_areas && 'essence' in firstPersonal.four_areas;
-
-        const isCacheValid = cachedData && 
-                             cachedData.group && 
-                             typeof cachedData.group.overall_score === "number" && 
-                             cachedData.group.overall_score > 0 && 
-                             cachedData.group.description &&
-                             cachedData.group.atmosphere &&
-                             cachedData.group.synergy_tips &&
-                             cachedData.pairs &&
-                             cachedData.pairs.length > 0 &&
-                             cachedData.personal &&
-                             Object.keys(cachedData.personal).length > 0 &&
-                             hasNewSchema;
-
-        if (isCacheValid) {
-          console.log("Cached group analysis found, loading directly.");
-          setAnalysis(cachedData);
-          setPageLoading(false);
-        } else {
-          console.log("Cached group analysis was incomplete, corrupted or 0 score. Re-triggering AI Analysis...");
-          await triggerAIAnalysis(mList, rData.title);
-        }
-      } else {
-        // No cache: Trigger Gemini AI aggregation analysis immediately
-        console.log("No cache found. Compiling members and invoking analyze API.");
-        await triggerAIAnalysis(mList, rData.title);
-      }
-
+      console.log("Acquiring AI analysis lock in Firestore...");
+      const lockPayload = {
+        status: "processing",
+        started_at: new Date().toISOString(),
+        members_analyzed: currentMembers.map(m => m.id)
+      };
+      await setDoc(doc(db, "rooms", code, "analysis", "result"), lockPayload);
+      
+      // Call the API
+      await triggerAIAnalysis(currentMembers, roomTitle);
     } catch (err: any) {
-      console.error("Failed to load group details:", err);
-      setError(err.message || "기록을 조율하는 와중 장치간 장애가 일어났습니다.");
+      console.error("Failed to acquire lock or trigger analysis:", err);
+      setError(err.message || "AI 사주 융합 풀이 과정에서 지연이 발생했습니다.");
+      
+      // On failure, delete the processing doc so others can retry
+      await deleteDoc(doc(db, "rooms", code, "analysis", "result")).catch((delErr) => {
+        console.error("Failed to clear processing lock on error:", delErr);
+      });
+      setAnalyzing(false);
       setPageLoading(false);
     }
   };
@@ -762,12 +883,24 @@ export default function GroupView({ code }: GroupViewProps) {
     setAnalyzing(true);
     setError("");
     try {
+      // Enrich currentMembers with any existing personal analyses from the cached analysis doc to prevent redundant AI requests
+      const enrichedMembers = currentMembers.map(m => {
+        const existingPersonal = analysis?.personal?.[m.id];
+        if (existingPersonal) {
+          return {
+            ...m,
+            personal_analysis: existingPersonal
+          };
+        }
+        return m;
+      });
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ room_title: roomTitle, members: currentMembers }),
+        body: JSON.stringify({ room_title: roomTitle, members: enrichedMembers }),
       });
 
       if (!response.ok) {
@@ -809,20 +942,124 @@ export default function GroupView({ code }: GroupViewProps) {
       setAnalysis(payload);
     } catch (err: any) {
       console.error("AI aggregation analysis failed:", err);
-      // Detailed error logging to help debug
-      if (err.response) {
-        console.error("AI response error:", await err.response.text());
-      }
-      setError(err.message || "AI 사주 융합 풀이 완료에 난조가 생겼습니다. 재시도해 주세요.");
-    } finally {
-      setAnalyzing(false);
-      setPageLoading(false);
+      throw err; // Re-throw so acquireLockAndAnalyze can clear the lock
     }
   };
 
   useEffect(() => {
-    performDataFetch();
-  }, [code]);
+    let unsubscribeAnalysis: (() => void) | null = null;
+
+    const startDataFetch = async () => {
+      setPageLoading(true);
+      setError("");
+      try {
+        // 1. Fetch Room Info
+        const roomSnap = await getDoc(doc(db, "rooms", code));
+        if (!roomSnap.exists()) {
+          setError("방이 만료되거나 존재하지 않는 코드입니다.");
+          setPageLoading(false);
+          return;
+        }
+        const roomData = roomSnap.data();
+        if (roomData && roomData.expire_at) {
+          const expireDate = new Date(roomData.expire_at);
+          if (expireDate < new Date()) {
+            setError("만료된 모임입니다 (생성 후 30일 경과).");
+            setPageLoading(false);
+            return;
+          }
+        }
+        const rData = { code, ...roomData } as Room;
+        setRoom(rData);
+
+        // 2. Fetch Members list in subcollection
+        const membersSnap = await getDocs(collection(db, "rooms", code, "members"));
+        const mList: Member[] = [];
+        membersSnap.forEach((docSnap) => {
+          mList.push({ id: docSnap.id, ...docSnap.data() } as Member);
+        });
+
+        if (mList.length < 2) {
+          setError("인연 궁합을 엮으려면 최소 2명 이상 사주를 등록해야 합니다.");
+          setPageLoading(false);
+          return;
+        }
+
+        setMembers(mList);
+        console.log("Members loaded:", mList);
+
+        // 3. Listen to real-time analysis doc
+        const analysisRef = doc(db, "rooms", code, "analysis", "result");
+        unsubscribeAnalysis = onSnapshot(analysisRef, async (analysisSnap) => {
+          try {
+            if (analysisSnap.exists()) {
+              const docData = analysisSnap.data();
+              setRawAnalysisDoc(docData);
+
+              // Check if another client is currently processing
+              if (docData.status === "processing") {
+                const startedAt = docData.started_at ? new Date(docData.started_at).getTime() : 0;
+                const now = Date.now();
+                const elapsedSeconds = (now - startedAt) / 1000;
+
+                if (elapsedSeconds < 90) {
+                  console.log("Another client is currently performing AI analysis... waiting.");
+                  setAnalyzing(true);
+                  setPageLoading(false);
+                  return;
+                } else {
+                  console.warn("AI analysis lock expired (elapsed seconds:", elapsedSeconds, "). Clearing orphaned lock...");
+                  setAnalyzing(false);
+                  setPageLoading(false);
+                  await deleteDoc(analysisRef).catch((delErr) => {
+                    console.error("Failed to clear expired processing lock:", delErr);
+                  });
+                  return;
+                }
+              }
+            } else {
+              setRawAnalysisDoc(null);
+            }
+            // Turn off initial page loading once we get snapshot
+            setPageLoading(false);
+          } catch (listenerErr: any) {
+            console.error("Error in real-time analysis listener:", listenerErr);
+            setError(listenerErr.message || "실시간 분석 중 오류가 발생했습니다.");
+            setAnalyzing(false);
+            setPageLoading(false);
+          }
+        });
+
+      } catch (err: any) {
+        console.error("Failed to load group details:", err);
+        setError(err.message || "기록을 조율하는 와중 장치간 장애가 일어났습니다.");
+        setPageLoading(false);
+      }
+    };
+
+    startDataFetch();
+
+    return () => {
+      if (unsubscribeAnalysis) {
+        unsubscribeAnalysis();
+      }
+    };
+  }, [code, refreshTrigger]);
+
+  // Separate effect for auto-trigger on room size <= 6 when no analysis exists
+  useEffect(() => {
+    if (pageLoading || members.length < 2 || !room || analyzing) return;
+
+    const autoTrigger = async () => {
+      // Auto-trigger only on initial load if no analysis document exists,
+      // and the room size is <= 6.
+      if (!rawAnalysisDoc && members.length <= 6) {
+        console.log("Auto-triggering AI analysis for room.");
+        await acquireLockAndAnalyze(members, room.title);
+      }
+    };
+    autoTrigger();
+  }, [members, room, rawAnalysisDoc, pageLoading, analyzing]);
 
   // Image capture & sharing utilizing html2canvas
   const handleShareResult = async () => {
@@ -898,7 +1135,7 @@ export default function GroupView({ code }: GroupViewProps) {
     );
   }
 
-  if (error || !room || !analysis) {
+  if (error || !room) {
     return (
       <Layout title="중합 궁합 오류" showHomeButton>
         <div className="text-center py-12 space-y-4">
@@ -908,7 +1145,7 @@ export default function GroupView({ code }: GroupViewProps) {
           </p>
           <div className="flex flex-col space-y-3 max-w-xs mx-auto pt-2">
             <button
-              onClick={performDataFetch}
+              onClick={() => setRefreshTrigger(prev => prev + 1)}
               className="flex items-center justify-center space-x-1.5 py-3.5 bg-[#C0392B] text-white rounded-xl font-serif font-bold text-xs tracking-wider cursor-pointer shadow-lg shadow-[#C0392B]/15 hover:bg-[#A93226]"
             >
               <RefreshCw className="w-4 h-4 text-white" />
@@ -945,7 +1182,7 @@ export default function GroupView({ code }: GroupViewProps) {
   };
 
   // Check and upgrade generic boilerplate pairs to dynamic premium chemistry pairs
-  const upgradedPairs = analysis.pairs.map((p) => {
+  const upgradedPairs = analysis ? analysis.pairs.map((p) => {
     const m1 = findMemberObj(p.member_id_1);
     const m2 = findMemberObj(p.member_id_2);
     const isGeneric = p.label === "상생과 화합의 인연 메이트" ||
@@ -955,7 +1192,7 @@ export default function GroupView({ code }: GroupViewProps) {
       return generateDynamicPairCompatibility(m1, m2);
     }
     return p;
-  });
+  }) : [];
 
   // Sort pairs by score desc to highlight best matches
   const sortedPairs = [...upgradedPairs].sort((a, b) => b.score - a.score);
@@ -987,29 +1224,83 @@ export default function GroupView({ code }: GroupViewProps) {
             모임방 메인 대기실로 돌아가기
           </a>
           <button
-            onClick={() => triggerAIAnalysis(members, room.title)}
-            className="inline-flex items-center text-xs font-semibold text-[#C0392B] hover:text-[#A93226] transition bg-white border border-[#D6CCBC] px-3 py-1.5 rounded-xl shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
+            onClick={() => {
+              if (isWithin24HoursLimit) {
+                alert(`종합 궁합 분석은 최상의 분석 품질 유지와 과도한 서버 트래픽 방지를 위해 24시간에 단 한 번만 가능합니다. 새로운 멤버 구성으로 재분석하려면 ${timeLeftText} 후에 시도해 주세요!`);
+                return;
+              }
+              acquireLockAndAnalyze(members, room.title);
+            }}
+            disabled={analyzing}
+            className={`inline-flex items-center text-xs font-semibold transition px-3 py-1.5 rounded-xl border cursor-pointer ${
+              isWithin24HoursLimit
+                ? "bg-[#FCFAF5] border-[#E6DFD3] text-[#8C7B6E]/80 cursor-not-allowed"
+                : "text-[#C0392B] hover:text-[#A93226] bg-white border-[#D6CCBC] shadow-2xs hover:shadow-xs active:scale-95"
+            }`}
           >
-            <RefreshCw className="w-3 h-3 mr-1" />
-            <span>정밀 AI 재해석</span>
+            <RefreshCw className={`w-3 h-3 mr-1 ${analyzing ? 'animate-spin' : ''}`} />
+            <span>{isWithin24HoursLimit ? `분석 잠금 (${timeLeftText})` : "정밀 AI 재해석"}</span>
           </button>
         </div>
 
-        {/* --- SHARING CAPTURE TARGET START --- */}
-        <div id="capture-target" ref={captureRef} className="p-5 bg-[#FAF7F2] border border-[#D6CCBC] rounded-[24px] space-y-5 shadow-sm">
-          
-          {/* Group Header Title */}
-          <div className="text-center space-y-1.5 pt-1">
-            <span className="text-[9px] bg-[#C0392B] text-white px-2.5 py-0.5 rounded-full font-bold uppercase tracking-[0.2em] font-sans">
-              인연명당
-            </span>
-            <h3 className="font-serif text-lg font-bold text-[#2C3E50] tracking-tight">
-              {room.title}
-            </h3>
-            <p className="text-[10px] text-[#8C7B6E] font-medium tracking-tight">
-              천문 조율 일자 : {new Date(analysis.created_at).toLocaleDateString("ko-KR", { year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
+        {isWithin24HoursLimit && !isCacheValid && (
+          <div className="bg-[#FAF7F2] border border-[#D6CCBC] p-4.5 rounded-2xl flex items-start space-x-3 shadow-2xs">
+            <div className="text-[#C0392B] font-serif text-lg leading-none">⚠️</div>
+            <div className="space-y-1.5">
+              <h4 className="font-serif text-xs font-bold text-[#2C3E50] tracking-tight">
+                멤버 구성 변경 감지 (분석 잠금 상태)
+              </h4>
+              <p className="text-[11px] text-[#5A4D41] leading-relaxed font-medium">
+                모임방의 멤버 목록에 변동(입퇴장 또는 사주 수정)이 감지되었습니다. 단, 과도한 서버 부하 방지 및 정밀 풀이 품질 보장을 위해 <strong>종합 인연 궁합서는 24시간에 단 1회만 분석</strong>할 수 있습니다. 다음 재분석 가능 시간까지는 기존 멤버 기준의 마지막 감정서가 안전하게 보존되어 노출됩니다.
+              </p>
+              <div className="text-[10px] text-[#8C7B6E] font-medium flex items-center space-x-1">
+                <span>⏱ 재해석 가능 시간까지:</span>
+                <span className="text-[#C0392B] font-serif font-bold bg-white px-1.5 py-0.5 rounded border border-[#E6DFD3] shadow-3xs">{timeLeftText}</span>
+                <span>남음</span>
+              </div>
+            </div>
           </div>
+        )}
+
+        {!analysis ? (
+          <div className="bg-white border border-[#D6CCBC] rounded-[24px] p-8 text-center space-y-4 shadow-sm py-16">
+            <div className="w-16 h-16 mx-auto rounded-full border border-dashed border-[#D6CCBC] flex items-center justify-center font-serif text-3xl text-[#C0392B]">
+              ☯
+            </div>
+            <div className="space-y-3 max-w-sm mx-auto">
+              <h4 className="font-serif text-base font-bold text-[#2C3E50]">궁합 해독 결과 대기 중</h4>
+              <p className="text-xs text-[#8C7B6E] leading-relaxed">
+                현재 모임방 전체 멤버들의 천기를 융합한 종합 인연 궁합서가 아직 발급되지 않았습니다. 아래 버튼을 클릭하여 궁합을 실시간 해독해 보세요!
+              </p>
+              <button
+                onClick={async () => {
+                  await acquireLockAndAnalyze(members, room.title);
+                }}
+                disabled={analyzing}
+                className="inline-flex items-center justify-center space-x-1.5 px-6 py-3 bg-[#C0392B] text-white font-serif font-bold text-xs rounded-xl shadow-md shadow-[#C0392B]/10 hover:bg-[#A93226] active:scale-[0.98] transition-all tracking-wider cursor-pointer mt-2"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${analyzing ? 'animate-spin' : ''}`} />
+                <span>☯ AI 궁합 해독하기</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* --- SHARING CAPTURE TARGET START --- */}
+            <div id="capture-target" ref={captureRef} className="p-5 bg-[#FAF7F2] border border-[#D6CCBC] rounded-[24px] space-y-5 shadow-sm">
+              
+              {/* Group Header Title */}
+              <div className="text-center space-y-1.5 pt-1">
+                <span className="text-[9px] bg-[#C0392B] text-white px-2.5 py-0.5 rounded-full font-bold uppercase tracking-[0.2em] font-sans">
+                  인연명당
+                </span>
+                <h3 className="font-serif text-lg font-bold text-[#2C3E50] tracking-tight">
+                  {room.title}
+                </h3>
+                <p className="text-[10px] text-[#8C7B6E] font-medium tracking-tight">
+                  천문 조율 일자 : {analysis.created_at ? new Date(analysis.created_at).toLocaleDateString("ko-KR", { year: 'numeric', month: 'long', day: 'numeric' }) : "실시간 도출"}
+                </p>
+              </div>
 
           {/* Group Compatibility Rating Card */}
           <div className="bg-white border border-[#D6CCBC] p-5 rounded-2xl text-left space-y-4 relative shadow-xs">
@@ -1618,6 +1909,11 @@ export default function GroupView({ code }: GroupViewProps) {
             </button>
           </div>
         </div>
+        </>
+        )}
+
+        {/* Real-time Google Ads Slot / Premium promo */}
+        <GoogleAds layout="banner" className="mb-4" hasContent={!!analysis && !pageLoading && members.length >= 2} />
 
         {/* Direct Footer Control */}
         <div className="pt-6 border-t border-[#E8E0D0]">

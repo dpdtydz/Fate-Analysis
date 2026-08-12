@@ -6,9 +6,13 @@ import LoadingOverlay from "./LoadingOverlay";
 import { db, auth, signInWithGoogle, checkPremiumStatus, checkProductUnlock, activatePremiumSimulation } from "../lib/firebase";
 import { doc, getDoc, getDocs, setDoc, deleteDoc, collection } from "firebase/firestore";
 import { Member, PersonalAnalysis } from "../types";
-import { Sparkles, ArrowLeft, Compass, Coins, Heart, Activity, LogIn, Crown, Printer } from "lucide-react";
+import { 
+  Sparkles, ArrowLeft, Compass, Coins, Heart, Activity, LogIn, Crown, Printer,
+  Sun, Calendar, Moon, MapPin, Clock, ShieldAlert, Gift, Briefcase, Award, ArrowUpRight
+} from "lucide-react";
 import MbtiTest, { MBTI_EXPLANATIONS } from "./MbtiTest";
 import PremiumPaywall from "./PremiumPaywall";
+import GoogleAds from "./GoogleAds";
 import { getSajuPillarsComprehensiveSynthesis } from "../utils/sajuSynthesis";
 
 const isMbtiRegistered = (m?: any): boolean => {
@@ -87,6 +91,31 @@ function getWesternZodiac(birthDate: string): { name: string; emoji: string } {
   if ((month === 2 && day >= 19) || (month === 3 && day <= 20)) return { name: "물고기자리", emoji: "♓" };
 
   return { name: "알 수 없음", emoji: "⭐" };
+}
+
+function getMissingRequiredFields(m?: any): string[] {
+  const missing: string[] = [];
+  
+  // 1. 사주 일주론 (requires saju object, daymaster and pillars)
+  const hasSaju = !!(m?.saju && m?.saju?.daymaster && m?.saju?.daymaster?.gan && m?.saju?.pillars);
+  if (!hasSaju) {
+    missing.push("사주 일주론");
+  }
+
+  // 2. 황도 백자리 (requires birth_date and zodiac)
+  const zodiac = m?.birth_date ? getWesternZodiac(m.birth_date) : null;
+  const hasZodiac = !!(m?.birth_date && zodiac && zodiac.name !== "알 수 없음");
+  if (!hasZodiac) {
+    missing.push("황도 백자리");
+  }
+
+  // 3. MBTI 심리 데이터
+  const hasMbti = isMbtiRegistered(m);
+  if (!hasMbti) {
+    missing.push("MBTI 심리 데이터");
+  }
+
+  return missing;
 }
 
 function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
@@ -413,6 +442,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
   const [member, setMember] = useState<Member | null>(null);
   const [allMembers, setAllMembers] = useState<Member[]>([]);
   const [aiAnalysis, setAiAnalysis] = useState<PersonalAnalysis | null>(null);
+  const [allPersonalAnalyses, setAllPersonalAnalyses] = useState<Record<string, PersonalAnalysis>>({});
   const [allPairs, setAllPairs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -425,6 +455,9 @@ export default function MeView({ code, memberId }: MeViewProps) {
   const [activeTab, setActiveTab] = useState<"free" | "premium">("free");
   const [showSoulCharExplanation, setShowSoulCharExplanation] = useState(false);
   const [expandedPairs, setExpandedPairs] = useState<Record<string, boolean>>({});
+  const isMaster = auth.currentUser?.email?.toLowerCase() === "lhs41977@gmail.com";
+  const localMemberId = localStorage.getItem(`saju_member_id_${code}`) || "";
+  const isViewingSelf = !localMemberId || localMemberId === memberId;
 
   // Premium Horoscope States
   const [horoscope, setHoroscope] = useState<any | null>(null);
@@ -434,6 +467,19 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
   const fetchHoroscope = async (force = false) => {
     if (!member) return;
+
+    // 1. Check premium status
+    if (!isPdfUnlocked) {
+      setHoroscopeError("실시간 동서양 우주 융합 운세 예보는 프리미엄 회원 전용 서비스입니다.");
+      return;
+    }
+
+    // 2. Check missing required fields
+    const missingFields = getMissingRequiredFields(member);
+    if (missingFields.length > 0) {
+      setHoroscopeError(`필수 입력 정보가 누락되었습니다: ${missingFields.join(", ")}`);
+      return;
+    }
 
     // Check localStorage cache first to avoid unnecessary API requests (token-saving optimization)
     try {
@@ -515,10 +561,12 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
   // Trigger horoscope loading when premium tab is viewed & unlocked
   useEffect(() => {
-    if (activeTab === "premium" && isPdfUnlocked && member && !horoscope && !horoscopeLoading) {
-      fetchHoroscope();
+    if (activeTab === "premium" && isPdfUnlocked && member && !horoscope && !horoscopeLoading && !horoscopeError) {
+      if (getMissingRequiredFields(member).length === 0) {
+        fetchHoroscope();
+      }
     }
-  }, [activeTab, isPdfUnlocked, member]);
+  }, [activeTab, isPdfUnlocked, member, horoscope, horoscopeLoading, horoscopeError]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editError, setEditError] = useState("");
@@ -537,14 +585,28 @@ export default function MeView({ code, memberId }: MeViewProps) {
   const [selectedMbtiLetter3, setSelectedMbtiLetter3] = useState("F");
   const [selectedMbtiLetter4, setSelectedMbtiLetter4] = useState("J");
 
-  const reanalyzeWithMbti = async (updatedMembers: Member[]) => {
+  const reanalyzeWithMbti = async (updatedMembers: Member[], forceRecalculateIds: string[] = []) => {
     try {
+      const enrichedMembers = updatedMembers.map(m => {
+        if (forceRecalculateIds.includes(m.id)) {
+          return m;
+        }
+        const existingPersonal = allPersonalAnalyses[m.id];
+        if (existingPersonal) {
+          return {
+            ...m,
+            personal_analysis: existingPersonal
+          };
+        }
+        return m;
+      });
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ room_title: roomTitle || "친목모임", members: updatedMembers }),
+        body: JSON.stringify({ room_title: roomTitle || "친목모임", members: enrichedMembers }),
       });
 
       if (!response.ok) {
@@ -569,8 +631,11 @@ export default function MeView({ code, memberId }: MeViewProps) {
       await setDoc(doc(db, "rooms", code, "analysis", "result"), payload);
 
       // Update local states immediately
-      if (aiData.personal && aiData.personal[memberId]) {
-        setAiAnalysis(aiData.personal[memberId]);
+      if (aiData.personal) {
+        setAllPersonalAnalyses(aiData.personal);
+        if (aiData.personal[memberId]) {
+          setAiAnalysis(aiData.personal[memberId]);
+        }
       }
       if (aiData.pairs) {
         setAllPairs(aiData.pairs);
@@ -585,12 +650,23 @@ export default function MeView({ code, memberId }: MeViewProps) {
     setEditLoading(true);
     setEditError("");
     try {
+      const enrichedMembers = allMembers.map(m => {
+        const existingPersonal = allPersonalAnalyses[m.id];
+        if (existingPersonal) {
+          return {
+            ...m,
+            personal_analysis: existingPersonal
+          };
+        }
+        return m;
+      });
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ room_title: roomTitle || "친목모임", members: allMembers }),
+        body: JSON.stringify({ room_title: roomTitle || "친목모임", members: enrichedMembers }),
       });
 
       if (!response.ok) {
@@ -614,10 +690,13 @@ export default function MeView({ code, memberId }: MeViewProps) {
       await setDoc(doc(db, "rooms", code, "analysis", "result"), payload);
 
       // Update local states immediately
-      if (aiData.personal && aiData.personal[memberId]) {
-        setAiAnalysis(aiData.personal[memberId] as PersonalAnalysis);
-      } else {
-        setAiAnalysis(null);
+      if (aiData.personal) {
+        setAllPersonalAnalyses(aiData.personal);
+        if (aiData.personal[memberId]) {
+          setAiAnalysis(aiData.personal[memberId] as PersonalAnalysis);
+        } else {
+          setAiAnalysis(null);
+        }
       }
       if (aiData.pairs) {
         setAllPairs(aiData.pairs);
@@ -653,8 +732,16 @@ export default function MeView({ code, memberId }: MeViewProps) {
       );
       setAllMembers(updatedMembersList);
 
-      // Trigger automatic reanalysis to update individual/group interpretations!
-      await reanalyzeWithMbti(updatedMembersList);
+      // Clear cached personal analysis for this user only, so it gets recalculated with the new MBTI
+      setAllPersonalAnalyses((prev) => {
+        const copy = { ...prev };
+        delete copy[memberId];
+        return copy;
+      });
+      setAiAnalysis(null);
+
+      // Trigger automatic reanalysis to update individual/group interpretations with forced recalculation for this user!
+      await reanalyzeWithMbti(updatedMembersList, [memberId]);
     } catch (err: any) {
       console.error("Failed to save MBTI:", err);
       setEditError(err.message || "MBTI 저장 중 오류가 발생했습니다.");
@@ -692,8 +779,16 @@ export default function MeView({ code, memberId }: MeViewProps) {
       });
       setAllMembers(updatedMembersList);
 
-      // Trigger automatic reanalysis
-      await reanalyzeWithMbti(updatedMembersList);
+      // Clear cached personal analysis for this user only, so it gets recalculated without MBTI
+      setAllPersonalAnalyses((prev) => {
+        const copy = { ...prev };
+        delete copy[memberId];
+        return copy;
+      });
+      setAiAnalysis(null);
+
+      // Trigger automatic reanalysis with forced recalculation for this user
+      await reanalyzeWithMbti(updatedMembersList, [memberId]);
     } catch (err: any) {
       console.error("Failed to clear MBTI:", err);
       setEditError(err.message || "MBTI 제거 중 오류가 발생했습니다.");
@@ -708,8 +803,6 @@ export default function MeView({ code, memberId }: MeViewProps) {
     });
     return () => unsubscribe();
   }, []);
-
-  const localMemberId = localStorage.getItem(`saju_member_id_${code}`) || "";
 
   const handleEditSubmit = async (formData: {
     nickname: string;
@@ -749,11 +842,18 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
       await setDoc(memberRef, payload);
 
-      // Clear cached analysis since details changed
-      const cacheRef = doc(db, "rooms", code, "analysis", "result");
-      await deleteDoc(cacheRef).catch((e) => {
-        console.log("No cached analysis to delete during edit, continuing safely.");
-      });
+      const birthDateChanged = member.birth_date !== formData.birth_date;
+      const mbtiChanged = member.mbti !== formData.mbti;
+      const forceRecalc = birthDateChanged || mbtiChanged || !allPersonalAnalyses[memberId];
+
+      if (forceRecalc) {
+        setAllPersonalAnalyses((prev) => {
+          const copy = { ...prev };
+          delete copy[memberId];
+          return copy;
+        });
+        setAiAnalysis(null);
+      }
 
       const updatedMember = {
         ...member,
@@ -768,12 +868,10 @@ export default function MeView({ code, memberId }: MeViewProps) {
       );
       setAllMembers(updatedMembersList);
 
-      // Reclear cached aiAnalysis locally so they are forced to recalculate
-      setAiAnalysis(null);
       setIsEditing(false);
 
-      // Trigger automatic reanalysis to update individual/group interpretations immediately!
-      await reanalyzeWithMbti(updatedMembersList);
+      // Trigger automatic reanalysis to update individual/group interpretations immediately, forcing recalculation of current member only if changed!
+      await reanalyzeWithMbti(updatedMembersList, forceRecalc ? [memberId] : []);
     } catch (err: any) {
       console.error("Failed to update profile:", err);
       setEditError(err.message || "수정 사항을 저장하는 중 오류가 발생했습니다.");
@@ -824,8 +922,11 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
         if (analysisSnap.exists()) {
           const cacheData = analysisSnap.data();
-          if (cacheData.personal && cacheData.personal[memberId]) {
-            setAiAnalysis(cacheData.personal[memberId] as PersonalAnalysis);
+          if (cacheData.personal) {
+            setAllPersonalAnalyses(cacheData.personal as Record<string, PersonalAnalysis>);
+            if (cacheData.personal[memberId]) {
+              setAiAnalysis(cacheData.personal[memberId] as PersonalAnalysis);
+            }
           }
           if (cacheData.pairs) {
             setAllPairs(cacheData.pairs);
@@ -1167,215 +1268,14 @@ export default function MeView({ code, memberId }: MeViewProps) {
                 )}
 
             {/* 2단계: 현대 성향심리 결합 (MBTI 분석) */}
-            {activeTab === "free" && (
-              <div className="bg-white/60 backdrop-blur-xs border border-[#D6CCBC] p-5 rounded-2xl space-y-4 shadow-xs text-left animate-fade-in">
-              <div className="flex items-center justify-between border-b border-[#E8E0D0] pb-2.5">
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-base">🧬</span>
-                  <h4 className="font-serif text-sm font-bold text-[#2C3E50] tracking-tight">
-                    [2단계] 현대 성향심리 결합 (MBTI)
-                  </h4>
-                </div>
-                {member.mbti && isMyProfile && (
-                  <button
-                    onClick={handleClearMbti}
-                    className="text-[10px] text-gray-400 hover:text-[#C0392B] underline cursor-pointer"
-                  >
-                    초기화
-                  </button>
-                )}
-              </div>
-
-              {isTestingMbti ? (
-                <MbtiTest
-                  onComplete={handleSaveMbti}
-                  onCancel={() => setIsTestingMbti(false)}
-                />
-              ) : isSelectingMbtiDirectly ? (
-                <div className="space-y-4 bg-[#FCFAF6] border border-[#E8E0D0] p-4 rounded-xl animate-fade-in">
-                  <h5 className="font-serif text-xs font-bold text-[#2C3E50]">내 MBTI 코드 직접 선택</h5>
-                  <div className="grid grid-cols-4 gap-2">
-                    <select
-                      value={selectedMbtiLetter1}
-                      onChange={(e) => setSelectedMbtiLetter1(e.target.value)}
-                      className="p-2 border border-[#D6CCBC] rounded-lg bg-white text-xs text-center font-bold"
-                    >
-                      <option value="E">E (외향)</option>
-                      <option value="I">I (내향)</option>
-                    </select>
-                    <select
-                      value={selectedMbtiLetter2}
-                      onChange={(e) => setSelectedMbtiLetter2(e.target.value)}
-                      className="p-2 border border-[#D6CCBC] rounded-lg bg-white text-xs text-center font-bold"
-                    >
-                      <option value="S">S (감각)</option>
-                      <option value="N">N (직관)</option>
-                    </select>
-                    <select
-                      value={selectedMbtiLetter3}
-                      onChange={(e) => setSelectedMbtiLetter3(e.target.value)}
-                      className="p-2 border border-[#D6CCBC] rounded-lg bg-white text-xs text-center font-bold"
-                    >
-                      <option value="T">T (사고)</option>
-                      <option value="F">F (감정)</option>
-                    </select>
-                    <select
-                      value={selectedMbtiLetter4}
-                      onChange={(e) => setSelectedMbtiLetter4(e.target.value)}
-                      className="p-2 border border-[#D6CCBC] rounded-lg bg-white text-xs text-center font-bold"
-                    >
-                      <option value="J">J (판단)</option>
-                      <option value="P">P (인식)</option>
-                    </select>
-                  </div>
-                  <div className="flex gap-2 justify-end pt-1">
-                    <button
-                      onClick={() => setIsSelectingMbtiDirectly(false)}
-                      className="px-3 py-1.5 bg-gray-200 text-gray-700 text-[11px] font-bold rounded-lg cursor-pointer"
-                    >
-                      취소
-                    </button>
-                    <button
-                      onClick={handleDirectMbtiSubmit}
-                      className="px-3.5 py-1.5 bg-[#C0392B] text-white text-[11px] font-bold rounded-lg cursor-pointer"
-                    >
-                      등록하기
-                    </button>
-                  </div>
-                </div>
-              ) : member.mbti ? (
-                (() => {
-                  const info = MBTI_EXPLANATIONS[member.mbti.toUpperCase()] || { title: "신비로운 성향가", desc: "나만의 고유한 인생관을 지닌 존재", icon: "⭐" };
-                  const daymasterElement = member.saju.daymaster.element;
-                  const synthesis = getSajuMbtiSynthesis(daymasterElement, member.mbti);
-                  
-                  return (
-                    <div className="space-y-4 animate-fade-in">
-                      <div className="flex items-center space-x-3 bg-[#FCFAF6] border border-[#E8E0D0] p-4 rounded-xl">
-                        <div className="w-12 h-12 rounded-full bg-white border border-[#D6CCBC] flex items-center justify-center text-2xl shrink-0">
-                          {info.icon}
-                        </div>
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-base font-black text-[#2C3E50]">{member.mbti.toUpperCase()}</span>
-                            <span className="text-[10px] bg-[#C0392B]/10 text-[#C0392B] px-1.5 py-0.5 rounded font-serif font-bold">{info.title}</span>
-                          </div>
-                          <p className="text-[11px] text-[#8C7B6E] leading-normal">{info.desc}</p>
-                        </div>
-                      </div>
-
-                      {/* Synthesis Card */}
-                      <div className="bg-[#FAF7F2] border border-[#C0392B]/20 p-4 rounded-xl space-y-1.5 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-2 h-full bg-[#C0392B]/10" />
-                        <h5 className="font-serif text-xs font-bold text-[#C0392B] flex items-center gap-1">
-                          ☯ 오행과 MBTI의 조화 해독 : <span className="underline">{isPdfUnlocked ? synthesis.title : "🔒 프리미엄 전용 조화 해독"}</span>
-                        </h5>
-                        {isPdfUnlocked ? (
-                          <p className="text-[11px] text-[#5A4D41] leading-relaxed font-medium">
-                            {synthesis.text}
-                          </p>
-                        ) : (
-                          <div className="relative">
-                            <p className="text-[11px] text-[#5A4D41]/40 leading-relaxed font-medium blur-[3.5px] select-none pointer-events-none">
-                              이 일주의 고유한 사주 오행 분포와 {member.mbti.toUpperCase()} 성향의 완벽한 융합 해설입니다. 타고난 기운과 사회적 성격의 상생 조화 분석을 통해 진정한 나의 정체성을 완벽하게 파악하실 수 있습니다.
-                            </p>
-                            <div className="absolute inset-0 flex flex-col items-center justify-center text-center bg-white/20 backdrop-blur-[0.5px]">
-                              <span className="text-[10px] font-extrabold text-[#C0392B] flex items-center gap-1 px-2.5 py-1 bg-amber-50 border border-amber-200 rounded-lg shadow-3xs">
-                                <Crown className="w-3 h-3 fill-amber-300 text-amber-600" />
-                                <span>프리미엄 융합 성향 해설 잠금</span>
-                              </span>
-                              <p className="text-[9px] text-[#8C7B6E] mt-1 font-semibold">프리미엄 구독 시 즉시 해금됩니다</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {isMyProfile && (
-                        <div className="text-right">
-                          <button
-                            onClick={() => setIsSelectingMbtiDirectly(true)}
-                            className="text-[10px] text-[#C0392B] hover:underline font-bold cursor-pointer"
-                          >
-                            ✏️ 내 MBTI 정보 정정하기
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()
-              ) : (
-                <div className="bg-[#FCFAF6] border border-[#E8E0D0] p-4 rounded-xl text-center space-y-3.5">
-                  <p className="text-[11px] text-[#8C7B6E] leading-relaxed">
-                    아직 등록된 MBTI 정보가 없습니다. <br />
-                    전통 오행(목·화·토·금·수)과 현대 심리학 MBTI의 결합 시너지를 풀기 위해 MBTI를 등록해 보세요!
-                  </p>
-                  
-                  {isMyProfile ? (
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <button
-                        onClick={() => setIsSelectingMbtiDirectly(true)}
-                        className="py-2.5 bg-white border border-[#D6CCBC] hover:bg-[#F2EFE6] text-[#5A4D41] font-serif font-bold text-[11px] rounded-lg cursor-pointer shadow-xs"
-                      >
-                        코드 직접 입력
-                      </button>
-                      <button
-                        onClick={() => setIsTestingMbti(true)}
-                        className="py-2.5 bg-[#C0392B] hover:bg-[#A93226] text-white font-serif font-bold text-[11px] rounded-lg cursor-pointer shadow-xs"
-                      >
-                        ⚡ 12문항 스피드 검사
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-[10px] text-gray-400 italic font-medium">이 사용자는 아직 MBTI 정보를 등록하지 않았습니다.</p>
-                  )}
-                </div>
-              )}
-            </div>
-            )}
-
-            {/* 무료 궁합 맛보기 영역 (비과금 탭 전용) - (통합된 인연 궁합 탭으로 대체) */}
-            {activeTab === "free" && (
-              <div className="space-y-4 pt-6 border-t border-[#E8E0D0] animate-fade-in text-left">
-                <div className="flex items-center justify-between border-b border-[#E8E0D0] pb-2 flex-wrap gap-2">
-                  <div className="flex items-center space-x-1.5">
-                    {isGroupUnlocked ? (
-                      <>
-                        <Crown className="w-4 h-4 text-amber-600 fill-amber-200 animate-bounce" />
-                        <h4 className="font-serif text-xs font-bold text-amber-950 tracking-tight">
-                          👥 모임 멤버들과의 1:1 인연 궁합 케미 (전체 해금 완료)
-                        </h4>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-base">🎁</span>
-                        <h4 className="font-serif text-xs font-bold text-[#2C3E50] tracking-tight">
-                          [맛보기] 모임 멤버와의 1:1 인연 궁합 케미 (1명 무료)
-                        </h4>
-                      </>
-                    )}
-                  </div>
-                  
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShopInitialTab("group");
-                      setIsShopOpen(true);
-                    }}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-amber-50 border border-amber-300 text-amber-800 font-serif font-bold text-[10px] rounded-lg shadow-3xs hover:shadow-2xs transition-all cursor-pointer"
-                  >
-                    <Crown className="w-3 h-3 fill-amber-300 text-amber-500" />
-                    <span>👑 프리미엄 상점</span>
-                  </button>
-                </div>
-
-                {allMembers.filter((m) => m.id !== memberId).length === 0 ? (
+                          {allMembers.filter((m) => m.id !== memberId).length === 0 ? (
                   <p className="text-xs text-center text-[#8C7B6E] py-4 italic font-serif">
                     아직 모임방에 다른 멤버가 가입하지 않았습니다. 초대 코드를 공유해 다른 멤버를 초대해 보세요!
                   </p>
                 ) : (() => {
                   const otherMembers = allMembers.filter((m) => m.id !== memberId);
                   const membersToRender = isGroupUnlocked ? otherMembers : [otherMembers[0]];
-                  
+
                   const matchMember = (idOrName: string, targetMember: Member) => {
                     if (!idOrName || !targetMember) return false;
                     const normInput = idOrName.trim().toLowerCase().replace(/님$/, "");
@@ -1426,26 +1326,20 @@ export default function MeView({ code, memberId }: MeViewProps) {
                               </span>
                               <span>{other.nickname}</span>
                               <span className="ml-auto bg-[#C0392B] text-white px-2.5 py-0.5 rounded-lg text-[11px] font-sans font-bold">{pair.score}점</span>
-                              {idx === 0 && !isGroupUnlocked && (
-                                <span className="ml-1.5 text-[9px] font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md">
-                                  FREE
-                                </span>
-                              )}
-                              {isGroupUnlocked && (
-                                <span className="ml-1.5 text-[9px] font-black text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md">
-                                  👑 UNLOCKED
+                              {!isUnlockedItem && (
+                                <span className="ml-1.5 text-[9px] font-black text-[#C0392B] bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                                  <Crown className="w-2.5 h-2.5 fill-amber-400 text-amber-700" /> Locked
                                 </span>
                               )}
                             </div>
 
-                            <div className="space-y-4">
+                            <div className={!isUnlockedItem ? "filter blur-sm opacity-25 select-none pointer-events-none space-y-4" : "space-y-4"}>
                               <div className="px-3 py-2 border border-amber-400/30 bg-amber-50/20 rounded-xl text-center text-xs font-bold leading-normal text-[#C0392B]">
                                 ✨ {pair.label}
                               </div>
 
                               <p className="text-xs text-[#5A4D41] leading-relaxed font-semibold">{pair.description}</p>
 
-                              {/* 4-Area Compatibility Breakdown inside MeView */}
                               {pair.saju && pair.ziwei && pair.mbti && pair.zodiac && (
                                 <div className="mt-3.5 pt-3.5 border-t border-dashed border-[#FAF0DE] space-y-3">
                                   <h5 className="text-[10px] font-extrabold text-[#C0392B] uppercase tracking-wider flex items-center gap-1">
@@ -1453,77 +1347,49 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                   </h5>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {/* Saju */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs relative overflow-hidden">
+                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs">
                                       <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
                                         <span className="font-bold text-[11px] text-[#2C3E50]">☯️ 사주 궁합 분석</span>
-                                        {isUnlockedItem ? (
-                                          <span className="text-[9px] font-extrabold text-[#C0392B] bg-red-50 px-1.5 py-0.5 rounded border border-red-100">
-                                            평균 {Math.round((pair.saju.score_1_to_2 + pair.saju.score_2_to_1) / 2)}점
-                                          </span>
-                                        ) : (
-                                          <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 flex items-center gap-0.5">
-                                            <Crown className="w-2.5 h-2.5 fill-amber-300" /> LOCK
-                                          </span>
-                                        )}
+                                        <span className="text-[9px] font-extrabold text-[#C0392B] bg-red-50 px-1.5 py-0.5 rounded border border-red-100">
+                                          평균 {Math.round((pair.saju.score_1_to_2 + pair.saju.score_2_to_1) / 2)}점
+                                        </span>
                                       </div>
                                       <div className="text-[9px] text-[#8C7B6E] flex justify-between">
                                         <span>나의 기운 ➔ {other.nickname}:</span>
-                                        <span className="font-bold text-red-500">{isUnlockedItem ? (isM1First ? pair.saju.score_1_to_2 : pair.saju.score_2_to_1) : "🔒"}점</span>
+                                        <span className="font-bold text-red-500">{isM1First ? pair.saju.score_1_to_2 : pair.saju.score_2_to_1}점</span>
                                       </div>
                                       <div className="text-[9px] text-[#8C7B6E] flex justify-between">
                                         <span>{other.nickname} 기운 ➔ 나:</span>
-                                        <span className="font-bold text-green-600">{isUnlockedItem ? (isM1First ? pair.saju.score_2_to_1 : pair.saju.score_1_to_2) : "🔒"}점</span>
+                                        <span className="font-bold text-green-600">{isM1First ? pair.saju.score_2_to_1 : pair.saju.score_1_to_2}점</span>
                                       </div>
-                                      {isUnlockedItem ? (
-                                        <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/40 font-medium pt-1">
-                                          {pair.saju.description}
-                                        </p>
-                                      ) : (
-                                        <div className="relative pt-1">
-                                          <p className="text-[10px] text-[#5A4D41]/30 leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/20 font-medium blur-[2.5px] select-none pointer-events-none">
-                                            두 사람의 타고난 일주와 오행의 결합도를 정밀 해독하여, 서로에게 흘러가는 정신적 자양분과 천기간의 궁합 작용을 완전 해독한 결과입니다.
-                                          </p>
-                                          <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-[0.2px]">
-                                            <span className="text-[9px] font-black text-amber-800 bg-white border border-amber-200 px-2 py-0.5 rounded-md shadow-3xs flex items-center gap-0.5">
-                                              🔒 프리미엄 전용 상세 해독
-                                            </span>
-                                          </div>
-                                        </div>
-                                      )}
+                                      <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/40 font-medium pt-1">
+                                        {pair.saju.description}
+                                      </p>
                                     </div>
 
                                     {/* Ziwei */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs relative overflow-hidden">
+                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs">
                                       <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                        <span className="font-bold text-[11px] text-[#2C3E50]">🌌 자미두수 궁합</span>
-                                        {isUnlockedItem ? (
-                                          <span className="text-[9px] font-extrabold text-[#C0392B] bg-red-50 px-1.5 py-0.5 rounded border border-red-100">{pair.ziwei.score}점</span>
-                                        ) : (
-                                          <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 flex items-center gap-0.5">
-                                            <Crown className="w-2.5 h-2.5 fill-amber-300" /> LOCK
-                                          </span>
-                                        )}
+                                        <span className="font-bold text-[11px] text-[#2C3E50]">🔮 자미두수 궁합 분석</span>
+                                        <span className="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                                          평균 {Math.round((pair.ziwei.score_1_to_2 + pair.ziwei.score_2_to_1) / 2)}점
+                                        </span>
                                       </div>
-                                      {isUnlockedItem ? (
-                                        <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/40 font-medium pt-1">
-                                          {pair.ziwei.description}
-                                        </p>
-                                      ) : (
-                                        <div className="relative pt-1">
-                                          <p className="text-[10px] text-[#5A4D41]/30 leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/20 font-medium blur-[2.5px] select-none pointer-events-none">
-                                            별자리의 자미두수 명반 배치를 통해 본 전생의 인연 점수와, 두 사람의 혼의 교감 및 내면적 성격 궁합도를 동양 점성술로 완전히 규명한 분석 리포트입니다.
-                                          </p>
-                                          <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-[0.2px]">
-                                            <span className="text-[9px] font-black text-amber-800 bg-white border border-amber-200 px-2 py-0.5 rounded-md shadow-3xs flex items-center gap-0.5">
-                                              🔒 프리미엄 전용 상세 해독
-                                            </span>
-                                          </div>
-                                        </div>
-                                      )}
+                                      <div className="text-[9px] text-[#8C7B6E] flex justify-between">
+                                        <span>나의 명궁 ➔ {other.nickname}:</span>
+                                        <span className="font-bold text-red-500">{isM1First ? pair.ziwei.score_1_to_2 : pair.ziwei.score_2_to_1}점</span>
+                                      </div>
+                                      <div className="text-[9px] text-[#8C7B6E] flex justify-between">
+                                        <span>{other.nickname} 명궁 ➔ 나:</span>
+                                        <span className="font-bold text-green-600">{isM1First ? pair.ziwei.score_2_to_1 : pair.ziwei.score_1_to_2}점</span>
+                                      </div>
+                                      <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-indigo-500/40 font-medium pt-1">
+                                        {pair.ziwei.description}
+                                      </p>
                                     </div>
 
                                     {/* MBTI */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs relative overflow-hidden">
+                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs">
                                       {isMbtiRegistered(member) && isMbtiRegistered(other) ? (
                                         <>
                                           <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
@@ -1539,11 +1405,11 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                             )}
                                           </div>
                                           <div className="text-[9px] text-[#8C7B6E] flex justify-between">
-                                            <span>나의 성정 ➔ {other.nickname}:</span>
+                                            <span>나의 성향 ➔ {other.nickname}:</span>
                                             <span className="font-bold text-red-500">{isUnlockedItem ? (isM1First ? pair.mbti.score_1_to_2 : pair.mbti.score_2_to_1) : "🔒"}점</span>
                                           </div>
                                           <div className="text-[9px] text-[#8C7B6E] flex justify-between">
-                                            <span>{other.nickname} 성정 ➔ 나:</span>
+                                            <span>{other.nickname} 성향 ➔ 나:</span>
                                             <span className="font-bold text-green-600">{isUnlockedItem ? (isM1First ? pair.mbti.score_2_to_1 : pair.mbti.score_1_to_2) : "🔒"}점</span>
                                           </div>
                                           {isUnlockedItem ? (
@@ -1553,7 +1419,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                           ) : (
                                             <div className="relative pt-1">
                                               <p className="text-[10px] text-[#5A4D41]/30 leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/20 font-medium blur-[2.5px] select-none pointer-events-none">
-                                                두 사람의 MBTI 유형 성향과 인지 기능 조화를 정밀 분석하여 행동양식 상성 조화를 완전 분석한 결과입니다.
+                                                두 사람의 MBTI 지표(E/I, S/N, T/F, J/P) 궁합을 바탕으로 상호 성격의 보완성과 충돌 위험성을 해독한 결과입니다.
                                               </p>
                                               <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-[0.2px]">
                                                 <span className="text-[9px] font-black text-amber-800 bg-white border border-amber-200 px-2 py-0.5 rounded-md shadow-3xs flex items-center gap-0.5">
@@ -1631,66 +1497,103 @@ export default function MeView({ code, memberId }: MeViewProps) {
                     </div>
                   );
                 })()}
-              </div>
-            )}
 
-                {activeTab === "premium" && (
-                  <div className="space-y-6 text-left animate-fade-in">
-                    {/* 4-Dimensional Cosmic Fusion Badges */}
-                    {(() => {
-                          const zodiacInfo = getWesternZodiac(member.birth_date);
-                          const dmGan = member.saju.daymaster.gan;
-                          const dmElem = member.saju.daymaster.element;
-                          const dayPillarDetail = member.saju.pillars_detail?.find((p) => p.type === "일주")?.ganzi || `${member.saju.pillars.day.gan}${member.saju.pillars.day.ji}`;
-                          
-                          let ziweiStarsSummary = "명성 가득한 성좌";
-                          if (member.saju.ziwei?.palaces) {
-                            const mingGong = Object.values(member.saju.ziwei.palaces).find((p: any) => p.name === "命宮" || p.nameKr === "명궁") as any;
-                            if (mingGong && mingGong.stars?.length) {
-                              ziweiStarsSummary = mingGong.stars.slice(0, 3).map((s: any) => s.nameKr).join(" · ");
-                            }
-                          }
+            {activeTab === "premium" && (
+              !isViewingSelf ? (
+                <div className="py-12 px-6 flex flex-col items-center justify-center text-center space-y-6 w-full bg-[#FCFAF6] border-2 border-[#D6CCBC]/40 rounded-3xl shadow-sm animate-fade-in my-4">
+                  <div className="w-14 h-14 rounded-full bg-amber-50 border-2 border-amber-200 flex items-center justify-center text-amber-700 shadow-md">
+                    <ShieldAlert className="w-7 h-7 text-amber-600 animate-pulse" />
+                  </div>
+                  <div className="space-y-2.5 max-w-sm">
+                    <h5 className="font-serif text-sm font-black text-[#2C3E50]">
+                      🔒 개인 정보 및 프리미엄 운세 자산 보호
+                    </h5>
+                    <p className="text-[11px] text-[#8C7B6E] leading-relaxed font-semibold">
+                      실시간 융합 운세 및 평생 감정서는 개인의 소중한 명리학적 정보이자 유료 디지털 자산입니다.
+                    </p>
+                    <p className="text-[11px] text-[#8C7B6E] leading-relaxed">
+                      무단 캡처, 전재, 그리고 개인 사생활 보호를 위해 <strong>본인의 계정 및 디바이스에서만</strong> 상세 열람이 허용되도록 시스템 보안이 작동 중입니다.
+                    </p>
+                    <div className="bg-amber-100/40 border border-amber-200/50 rounded-xl p-3 text-left space-y-1 mt-2">
+                      <p className="text-[10px] font-black text-amber-900">💡 궁합을 확인하는 더 좋은 방법:</p>
+                      <p className="text-[9.5px] text-[#6E5D4F] leading-normal font-semibold">
+                        상대방과의 상세 인연 및 성향 궁합 분석은 <strong>[무료 기본 분석 & 성향]</strong> 탭 또는 나의 프로필 화면 하단의 <strong>[1:1 인연 궁합]</strong> 영역에서 언제든지 안전하게 상호 확인하실 수 있습니다!
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full max-w-xs justify-center items-center">
+                    <a
+                      href={`#/room/${code}/me/${localMemberId}`}
+                      className="w-full px-5 py-3 bg-[#C0392B] hover:bg-[#A93226] text-white rounded-xl text-xs font-serif font-black shadow-md transition duration-200 text-center cursor-pointer"
+                    >
+                      👤 나의 프로필로 돌아가기
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("free")}
+                      className="w-full px-5 py-3 bg-white hover:bg-[#FAF8F5] text-[#2C3E50] border border-[#D6CCBC] rounded-xl text-xs font-serif font-bold shadow-xs transition duration-200 cursor-pointer"
+                    >
+                      🌟 무료 기본 분석 보기
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6 text-left animate-fade-in">
+                {/* 4-Dimensional Cosmic Fusion Badges */}
+                {(() => {
+                  const zodiacInfo = getWesternZodiac(member.birth_date);
+                  const dmGan = member.saju.daymaster.gan;
+                  const dmElem = member.saju.daymaster.element;
+                  const dayPillarDetail = member.saju.pillars_detail?.find((p) => p.type === "일주")?.ganzi || `${member.saju.pillars.day.gan}${member.saju.pillars.day.ji}`;
+                  
+                  let ziweiStarsSummary = "명성 가득한 성좌";
+                  if (member.saju.ziwei?.palaces) {
+                    const mingGong = Object.values(member.saju.ziwei.palaces).find((p: any) => p.name === "命宮" || p.nameKr === "명궁") as any;
+                    if (mingGong && mingGong.stars?.length) {
+                      ziweiStarsSummary = mingGong.stars.slice(0, 3).map((s: any) => s.nameKr).join(" · ");
+                    }
+                  }
 
-                          return (
-                            <div className="grid grid-cols-2 gap-2.5 pt-1">
-                              {/* 1. Saju */}
-                              <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
-                                <span className="text-lg text-[#C0392B]">☯</span>
-                                <div className="space-y-0.5">
-                                  <span className="block text-[9px] font-bold text-[#8C7B6E] uppercase tracking-wider">동양 사주명리</span>
-                                  <span className="block text-[11px] font-bold text-[#5A4D41]">{dmGan}({dmElem}) · {dayPillarDetail}일주</span>
-                                </div>
-                              </div>
+                  return (
+                    <div className="grid grid-cols-2 gap-2.5 pt-1">
+                      {/* 1. Saju */}
+                      <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
+                        <span className="text-lg text-[#C0392B]">☯</span>
+                        <div className="space-y-0.5">
+                          <span className="block text-[9px] font-bold text-[#8C7B6E] uppercase tracking-wider">동양 사주명리</span>
+                          <span className="block text-[11px] font-bold text-[#5A4D41]">{dmGan}({dmElem}) · {dayPillarDetail}일주</span>
+                        </div>
+                      </div>
 
-                              {/* 2. Zi Wei */}
-                              <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
-                                <span className="text-lg text-[#C0392B]">🌌</span>
-                                <div className="space-y-0.5">
-                                  <span className="block text-[9px] font-bold text-[#8C7B6E] uppercase tracking-wider">천상 자미두수</span>
-                                  <span className="block text-[11px] font-bold text-[#5A4D41] truncate max-w-[130px] font-serif" title={ziweiStarsSummary}>{ziweiStarsSummary}</span>
-                                </div>
-                              </div>
+                      {/* 2. Zi Wei */}
+                      <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
+                        <span className="text-lg text-[#C0392B]">🌌</span>
+                        <div className="space-y-0.5">
+                          <span className="block text-[9px] font-bold text-[#8C7B6E] uppercase tracking-wider">천상 자미두수</span>
+                          <span className="block text-[11px] font-bold text-[#5A4D41] truncate max-w-[130px] font-serif" title={ziweiStarsSummary}>{ziweiStarsSummary}</span>
+                        </div>
+                      </div>
 
-                              {/* 3. Western Zodiac */}
-                              <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
-                                <span className="text-lg text-[#C0392B]">{zodiacInfo.emoji}</span>
-                                <div className="space-y-0.5">
-                                  <span className="block text-[9px] font-bold text-[#8C7B6E] uppercase tracking-wider">서양 황도별자리</span>
-                                  <span className="block text-[11px] font-bold text-[#5A4D41]">{zodiacInfo.name}</span>
-                                </div>
-                              </div>
+                      {/* 3. Western Zodiac */}
+                      <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
+                        <span className="text-lg text-[#C0392B]">{zodiacInfo.emoji}</span>
+                        <div className="space-y-0.5">
+                          <span className="block text-[9px] font-bold text-[#8C7B6E] uppercase tracking-wider">서양 황도별자리</span>
+                          <span className="block text-[11px] font-bold text-[#5A4D41]">{zodiacInfo.name}</span>
+                        </div>
+                      </div>
 
-                              {/* 4. MBTI */}
-                              <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
-                                <span className="text-lg text-[#C0392B]">🧬</span>
-                                <div className="space-y-0.5">
-                                  <span className="block text-[9px] font-bold text-[#8C7B6E] uppercase tracking-wider">현대 성향심리</span>
-                                  <span className="block text-[11px] font-bold text-[#5A4D41]">{member.mbti ? `${member.mbti.toUpperCase()}형 기운` : "미등록 상태"}</span>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })()}
+                      {/* 4. MBTI */}
+                      <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
+                        <span className="text-lg text-[#C0392B]">🧬</span>
+                        <div className="space-y-0.5">
+                          <span className="block text-[9px] font-bold text-[#8C7B6E] uppercase tracking-wider">현대 성향심리</span>
+                          <span className="block text-[11px] font-bold text-[#5A4D41]">{member.mbti ? `${member.mbti.toUpperCase()}형 기운` : "미등록 상태"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                         {/* Real-time Premium Horoscope Section */}
                         <div className="bg-gradient-to-br from-[#FCFAF2] via-white to-[#FAF6EE] border-2 border-amber-300 rounded-3xl p-5.5 space-y-5 shadow-md text-left relative overflow-hidden animate-fade-in no-print">
@@ -1711,8 +1614,68 @@ export default function MeView({ code, memberId }: MeViewProps) {
                             </div>
                           </div>
 
-                          {horoscopeLoading ? (
-                            <div className="py-12 flex flex-col items-center justify-center space-y-3.5 text-center">
+
+
+
+
+
+                          {!isPdfUnlocked ? (
+                            <div className="relative py-12 flex flex-col items-center justify-center text-center space-y-4 w-full">
+                              <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center shadow-3xs">
+                                <Crown className="w-5 h-5 text-amber-600 fill-amber-300 animate-pulse" />
+                              </div>
+                              <div className="space-y-1.5 max-w-sm">
+                                <h5 className="font-serif text-xs font-black text-[#2C3E50]">
+                                  🔒 실시간 우주 융합 운세 잠김
+                                </h5>
+                                <p className="text-[10px] text-[#8C7B6E] leading-relaxed font-semibold px-4">
+                                  실시간 동서양 우주 융합 운세 예보는 프리미엄 회원(AI 심층 리포트 해금) 전용 서비스입니다. 해금 후 우주 만세력 기류와 성향 융합 분석을 받아보세요!
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShopInitialTab("pdf");
+                                  setIsShopOpen(true);
+                                }}
+                                className="px-5 py-2.5 bg-gradient-to-r from-amber-700 to-amber-800 text-white rounded-lg text-[10px] font-serif font-extrabold hover:shadow-md hover:scale-[1.01] transition cursor-pointer"
+                              >
+                                🔓 AI 심층 리포트 (PDF) 해금하고 보기
+                              </button>
+                            </div>
+                          ) : getMissingRequiredFields(member).length > 0 ? (
+                            <div className="py-6 flex flex-col items-center justify-center text-center space-y-4 w-full">
+                              <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-red-600 shadow-2xs">
+                                <ShieldAlert className="w-5 h-5 animate-bounce" />
+                              </div>
+                              <div className="space-y-1.5 max-w-sm">
+                                <h5 className="font-serif text-xs font-black text-red-900">
+                                  ⚠️ 필수 우주·심리 데이터 미입력 상태
+                                </h5>
+                                <p className="text-[10px] text-[#8C7B6E] leading-relaxed font-semibold px-4">
+                                  실시간 우주 융합 운세를 해독하려면 <strong>사주 일주론, 황도 백자리, MBTI 심리 데이터</strong>를 모두 입력하셔야 합니다.
+                                </p>
+                                <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-left space-y-1.5 max-w-xs mx-auto mt-2 w-full">
+                                  <p className="text-[9.5px] font-black text-red-800 border-b border-red-100 pb-1">누락된 필수 항목:</p>
+                                  <div className="flex flex-col gap-1">
+                                    {getMissingRequiredFields(member).map((f) => (
+                                      <span key={f} className="text-[9.5px] font-bold text-[#C0392B] flex items-center gap-1">
+                                        ❌ {f}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setIsEditing(true)}
+                                className="px-5 py-2.5 bg-[#C0392B] hover:bg-[#A0281B] text-white rounded-xl text-[10px] font-serif font-black shadow-xs transition duration-200 cursor-pointer"
+                              >
+                                ✏️ 필수 데이터 입력 및 수정하러 가기
+                              </button>
+                            </div>
+                          ) : horoscopeLoading ? (
+                            <div className="py-12 flex flex-col items-center justify-center space-y-3.5 text-center w-full">
                               <div className="w-10 h-10 border-4 border-amber-200 border-t-[#C0392B] rounded-full animate-spin" />
                               <div className="space-y-1">
                                 <p className="text-xs font-serif font-bold text-[#2C3E50] animate-pulse">오늘의 천기(氣) 기류와 우주 만세력을 연동하여 융합 운세를 해석하는 중...</p>
@@ -1730,24 +1693,27 @@ export default function MeView({ code, memberId }: MeViewProps) {
                               </button>
                             </div>
                           ) : horoscope ? (
-                            <div className="space-y-4">
-                              {/* Period Tabs */}
-                              <div className="grid grid-cols-4 gap-1 bg-[#FAF6EE] p-1 border border-amber-200 rounded-xl">
+                            <div className="space-y-6">
+                              {/* Period Tabs: High-Craft Segmented Control */}
+                              <div className="grid grid-cols-4 gap-1.5 bg-[#FAF6EE] p-1.5 border border-[#D6CCBC] rounded-xl shadow-inner">
                                 {(["today", "weekly", "monthly", "yearly"] as const).map((tab) => {
-                                  const label = tab === "today" ? "오늘의 운세" : tab === "weekly" ? "주간 예보" : tab === "monthly" ? "월간 리포트" : "연간 대명운";
+                                  const label = tab === "today" ? "오늘 운세" : tab === "weekly" ? "주간 예보" : tab === "monthly" ? "월간 리포트" : "연간 대명운";
                                   const isActive = activeHoroscopeTab === tab;
+                                  const IconComponent = tab === "today" ? Sun : tab === "weekly" ? Calendar : tab === "monthly" ? Moon : Compass;
                                   return (
                                     <button
                                       key={tab}
                                       type="button"
                                       onClick={() => setActiveHoroscopeTab(tab)}
-                                      className={`py-2 text-center text-[10.5px] font-bold rounded-lg cursor-pointer transition-all ${
+                                      className={`py-2 px-1 flex flex-col sm:flex-row items-center justify-center gap-1 text-[10px] sm:text-xs font-serif font-bold rounded-lg cursor-pointer transition-all duration-300 relative ${
                                         isActive
-                                          ? "bg-[#C0392B] text-white shadow-xs scale-[1.01]"
-                                          : "text-[#5A4D41] hover:bg-amber-100/50"
+                                          ? "bg-[#C0392B] text-[#FCFAF7] shadow-md scale-[1.02]"
+                                          : "text-[#5A4D41] hover:bg-[#FAF1DF] hover:text-[#C0392B]"
                                       }`}
                                     >
-                                      {label}
+                                      <IconComponent className={`w-3.5 h-3.5 ${isActive ? "text-[#FCFAF7] animate-pulse" : "text-[#8C7B6E]"}`} />
+                                      <span className="hidden sm:inline">{label}</span>
+                                      <span className="sm:hidden">{label.split(" ")[0]}</span>
                                     </button>
                                   );
                                 })}
@@ -1762,12 +1728,12 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                   if (!text) return null;
                                   const paragraphs = text.split(/\n+/).map(p => p.trim()).filter(Boolean);
                                   return (
-                                    <div className="space-y-4 pt-1">
+                                    <div className="space-y-3 pt-1">
                                       {paragraphs.map((para, idx) => (
                                         <p key={idx} className="text-xs sm:text-[13px] md:text-[14px] text-[#4A3B2E] leading-relaxed md:leading-loose font-medium text-left">
                                           {para.startsWith("-") || para.startsWith("•") || para.startsWith("*") ? (
                                             <span className="flex items-start">
-                                              <span className="text-amber-600 mr-2 shrink-0 mt-1">•</span>
+                                              <span className="text-[#C0392B] mr-2 shrink-0 mt-1">•</span>
                                               <span>{para.replace(/^[-•*]\s*/, "")}</span>
                                             </span>
                                           ) : para}
@@ -1778,21 +1744,65 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                 };
 
                                 return (
-                                  <div className="space-y-5 animate-fade-in">
-                                    {/* Score and Summary Card */}
-                                    <div className="bg-white border-2 border-[#D6CCBC] p-6 rounded-2xl space-y-4 shadow-xs relative overflow-hidden text-left">
-                                      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-[#C0392B]/5 to-transparent pointer-events-none" />
-                                      <div className="flex items-center space-x-3 border-b border-amber-100 pb-3 flex-wrap gap-2">
-                                        <div className="flex flex-col items-center justify-center bg-[#FAF6EE] border border-amber-300 rounded-xl px-3.5 py-1.5 shrink-0 shadow-3xs">
-                                          <span className="text-[9px] text-amber-900 font-black leading-none uppercase tracking-wider mb-1">행운 지수</span>
-                                          <span className="text-sm font-serif font-black text-[#C0392B] leading-none">{currentData.score}점</span>
+                                  <div className="space-y-6 animate-fade-in">
+                                    {/* Traditional Oriental Parchment Score Card */}
+                                    <div className="bg-[#FAF7F2] border-2 border-double border-[#D6CCBC] p-6 rounded-2xl shadow-sm relative overflow-hidden text-left">
+                                      <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-to-bl from-[#C0392B]/5 to-transparent pointer-events-none" />
+                                      <div className="absolute top-1 left-1 w-2 h-2 border-t border-l border-[#C0392B]/40" />
+                                      <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-[#C0392B]/40" />
+                                      <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-[#C0392B]/40" />
+                                      <div className="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-[#C0392B]/40" />
+
+                                      <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 border-b border-[#E8E0D0] pb-4">
+                                        <div className="space-y-1 text-center sm:text-left">
+                                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 border border-amber-200/60 rounded text-[9px] text-[#C0392B] font-serif font-bold uppercase tracking-wider">
+                                            <Sparkles className="w-3 h-3 text-amber-500 animate-spin" />
+                                            <span>실시간 천간지지 융합 해독</span>
+                                          </div>
+                                          <h4 className="font-serif text-base sm:text-lg font-black text-[#2C3E50] tracking-tight">
+                                            {activeHoroscopeTab === "today" ? "오늘의 운세 (今日之運)" : activeHoroscopeTab === "weekly" ? "주간 예보 (週間之運)" : activeHoroscopeTab === "monthly" ? "월간 리포트 (月間之運)" : "연간 대명운 (年間之運)"}
+                                          </h4>
                                         </div>
-                                        <h4 className="font-serif text-sm md:text-base font-black text-[#2C3E50] tracking-tight flex items-center gap-1.5">
-                                          🌟 {activeHoroscopeTab === "today" ? "오늘의 운세 (今日之運)" : activeHoroscopeTab === "weekly" ? "주간 예보 (週間之運)" : activeHoroscopeTab === "monthly" ? "월간 리포트 (月間之運)" : "연간 대명운 (年間之運)"}
-                                        </h4>
+
+                                        {/* Fortune Meter Dial / Gauge */}
+                                        <div className="flex items-center gap-3 bg-white border border-[#E8E0D0] px-3.5 py-2 rounded-2xl shadow-3xs shrink-0 self-center">
+                                          <div className="relative w-12 h-12 flex items-center justify-center">
+                                            <svg className="w-12 h-12 transform -rotate-90">
+                                              <circle
+                                                cx="24"
+                                                cy="24"
+                                                r="20"
+                                                stroke="#FCFAF7"
+                                                strokeWidth="3.5"
+                                                fill="transparent"
+                                              />
+                                              <circle
+                                                cx="24"
+                                                cy="24"
+                                                r="20"
+                                                stroke="#C0392B"
+                                                strokeWidth="3.5"
+                                                fill="transparent"
+                                                strokeDasharray={2 * Math.PI * 20}
+                                                strokeDashoffset={2 * Math.PI * 20 * (1 - (currentData.score || 80) / 100)}
+                                                strokeLinecap="round"
+                                                className="transition-all duration-1000 ease-out"
+                                              />
+                                            </svg>
+                                            <span className="absolute text-[11px] font-mono font-black text-[#C0392B]">
+                                              {currentData.score}
+                                            </span>
+                                          </div>
+                                          <div className="flex flex-col text-left">
+                                            <span className="text-[8.5px] text-[#8C7B6E] font-black uppercase tracking-widest leading-none mb-1">길운 지표</span>
+                                            <span className="text-xs font-serif font-black text-[#2C3E50] leading-none">
+                                              {currentData.score >= 90 ? "대길 (大吉)" : currentData.score >= 80 ? "소길 (小吉)" : currentData.score >= 70 ? "평온 (平穩)" : "주의 (注意)"}
+                                            </span>
+                                          </div>
+                                        </div>
                                       </div>
                                       
-                                      <div className="space-y-3 font-serif leading-relaxed">
+                                      <div className="space-y-3 font-serif leading-relaxed pt-2">
                                         {renderRichText(currentData.summary)}
                                       </div>
                                     </div>
@@ -1801,49 +1811,51 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                     {activeHoroscopeTab === "today" && (
                                       <div className="space-y-4">
                                         {/* Lucky Items Grid */}
-                                        <div className="bg-white border-2 border-[#D6CCBC]/80 rounded-2xl p-5 space-y-4 shadow-3xs">
-                                          <span className="text-xs font-black text-amber-900 uppercase tracking-wider block border-b border-amber-100 pb-2 text-left">🔑 오행 개운(開運)의 무기 & 행운 처방</span>
-                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                                        <div className="bg-[#FAF7F2] border border-[#D6CCBC]/80 rounded-2xl p-5 space-y-4 shadow-sm text-left relative">
+                                          <span className="text-xs font-serif font-black text-amber-950 uppercase tracking-wider block border-b border-[#E8E0D0] pb-2">
+                                            🔑 오행 개운(開運)의 무기 & 행운 처방 (吉물秘策)
+                                          </span>
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
                                             {/* Lucky Color */}
-                                            <div className="bg-[#FCFAF6] border border-[#FAF0DE] p-4 rounded-xl space-y-2 shadow-xs">
+                                            <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl space-y-2 hover:shadow-xs transition duration-200">
                                               <div className="flex items-center space-x-2 border-b border-amber-100/60 pb-1.5">
-                                                <span className="text-sm">🎨</span>
-                                                <span className="text-[10px] font-black text-[#8C7B6E] tracking-wider uppercase">행운의 컬러 (吉色)</span>
+                                                <Sun className="w-4 h-4 text-rose-500" />
+                                                <span className="text-[10px] font-serif font-black text-[#8C7B6E] tracking-wider uppercase">행운의 컬러 (吉色)</span>
                                               </div>
-                                              <p className="text-xs md:text-sm text-[#5A4D41] leading-relaxed font-serif pt-0.5">
+                                              <p className="text-xs sm:text-[13px] text-[#4A3B2E] font-serif font-bold leading-relaxed pt-0.5">
                                                 {currentData.lucky_items?.color}
                                               </p>
                                             </div>
 
                                             {/* Lucky Number */}
-                                            <div className="bg-[#FCFAF6] border border-[#FAF0DE] p-4 rounded-xl space-y-2 shadow-xs">
+                                            <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl space-y-2 hover:shadow-xs transition duration-200">
                                               <div className="flex items-center space-x-2 border-b border-amber-100/60 pb-1.5">
-                                                <span className="text-sm">🔢</span>
-                                                <span className="text-[10px] font-black text-[#8C7B6E] tracking-wider uppercase">행운의 숫자 (吉數)</span>
+                                                <Coins className="w-4 h-4 text-emerald-600" />
+                                                <span className="text-[10px] font-serif font-black text-[#8C7B6E] tracking-wider uppercase">행운의 숫자 (吉數)</span>
                                               </div>
-                                              <p className="text-xs md:text-sm text-[#5A4D41] leading-relaxed font-serif pt-0.5">
+                                              <p className="text-xs sm:text-[13px] text-[#4A3B2E] font-serif font-bold leading-relaxed pt-0.5">
                                                 {currentData.lucky_items?.number}
                                               </p>
                                             </div>
 
                                             {/* Lucky Direction */}
-                                            <div className="bg-[#FCFAF6] border border-[#FAF0DE] p-4 rounded-xl space-y-2 shadow-xs">
+                                            <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl space-y-2 hover:shadow-xs transition duration-200">
                                               <div className="flex items-center space-x-2 border-b border-amber-100/60 pb-1.5">
-                                                <span className="text-sm">🧭</span>
-                                                <span className="text-[10px] font-black text-[#8C7B6E] tracking-wider uppercase">행운의 길방 (吉方)</span>
+                                                <Compass className="w-4 h-4 text-blue-600" />
+                                                <span className="text-[10px] font-serif font-black text-[#8C7B6E] tracking-wider uppercase">행운의 길방 (吉方)</span>
                                               </div>
-                                              <p className="text-xs md:text-sm text-[#5A4D41] leading-relaxed font-serif pt-0.5">
+                                              <p className="text-xs sm:text-[13px] text-[#4A3B2E] font-serif font-bold leading-relaxed pt-0.5">
                                                 {currentData.lucky_items?.direction}
                                               </p>
                                             </div>
 
                                             {/* Lucky Time */}
-                                            <div className="bg-[#FCFAF6] border border-[#FAF0DE] p-4 rounded-xl space-y-2 shadow-xs">
+                                            <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl space-y-2 hover:shadow-xs transition duration-200">
                                               <div className="flex items-center space-x-2 border-b border-amber-100/60 pb-1.5">
-                                                <span className="text-sm">⏰</span>
-                                                <span className="text-[10px] font-black text-[#8C7B6E] tracking-wider uppercase">최적 개운 시간대 (吉時)</span>
+                                                <Clock className="w-4 h-4 text-purple-600" />
+                                                <span className="text-[10px] font-serif font-black text-[#8C7B6E] tracking-wider uppercase">최적 개운 시간대 (吉時)</span>
                                               </div>
-                                              <p className="text-xs md:text-sm text-[#5A4D41] leading-relaxed font-serif pt-0.5">
+                                              <p className="text-xs sm:text-[13px] text-[#4A3B2E] font-serif font-bold leading-relaxed pt-0.5">
                                                 {currentData.lucky_items?.time}
                                               </p>
                                             </div>
@@ -1852,37 +1864,40 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                       </div>
                                     )}
 
-                              {/* Weekly Fortune Details */}
-                              {activeHoroscopeTab === "weekly" && (
-                                <div className="space-y-5">
-                                  {/* Weekly Core Aspects Stack */}
-                                  <div className="space-y-4">
-                                    <div className="bg-[#FCFAF6] border-2 border-[#D6CCBC]/60 p-5 rounded-2xl shadow-3xs text-left">
-                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2 mb-3">
+                                    {/* Weekly Fortune Details */}
+                                    {activeHoroscopeTab === "weekly" && (
+                                      <div className="space-y-5">
+                                        {/* Weekly Core Aspects Stack */}
+                                        <div className="space-y-4">
+                                    <div className="bg-[#FAF7F2] border border-[#D6CCBC]/80 p-5 rounded-2xl shadow-3xs text-left relative overflow-hidden">
+                                      <div className="absolute top-0 left-0 w-1 h-full bg-[#C0392B]" />
+                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2.5 mb-3.5 pl-2">
                                         <span className="text-base">🤝</span>
-                                        <span className="text-xs sm:text-sm font-black text-[#2C3E50] tracking-tight">대인관계 & 소셜 파트너십 (人際關係)</span>
+                                        <span className="text-xs sm:text-sm font-serif font-black text-[#2C3E50] tracking-tight">대인관계 & 소셜 파트너십 (人際關係)</span>
                                       </div>
-                                      <div className="space-y-2.5">
+                                      <div className="space-y-2.5 pl-2">
                                         {renderRichText(currentData.love_and_social)}
                                       </div>
                                     </div>
 
-                                    <div className="bg-[#FCFAF6] border-2 border-[#D6CCBC]/60 p-5 rounded-2xl shadow-3xs text-left">
-                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2 mb-3">
+                                    <div className="bg-[#FAF7F2] border border-[#D6CCBC]/80 p-5 rounded-2xl shadow-3xs text-left relative overflow-hidden">
+                                      <div className="absolute top-0 left-0 w-1 h-full bg-[#E67E22]" />
+                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2.5 mb-3.5 pl-2">
                                         <span className="text-base">💰</span>
-                                        <span className="text-xs sm:text-sm font-black text-[#2C3E50] tracking-tight">재물 흐름 & 직업적 비결 (財物職境)</span>
+                                        <span className="text-xs sm:text-sm font-serif font-black text-[#2C3E50] tracking-tight">재물 흐름 & 직업적 비결 (財物職境)</span>
                                       </div>
-                                      <div className="space-y-2.5">
+                                      <div className="space-y-2.5 pl-2">
                                         {renderRichText(currentData.wealth_and_job)}
                                       </div>
                                     </div>
 
-                                    <div className="bg-[#FCFAF6] border-2 border-[#D6CCBC]/60 p-5 rounded-2xl shadow-3xs text-left">
-                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2 mb-3">
+                                    <div className="bg-[#FAF7F2] border border-[#D6CCBC]/80 p-5 rounded-2xl shadow-3xs text-left relative overflow-hidden">
+                                      <div className="absolute top-0 left-0 w-1 h-full bg-[#16A085]" />
+                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2.5 mb-3.5 pl-2">
                                         <span className="text-base">🔋</span>
-                                        <span className="text-xs sm:text-sm font-black text-[#2C3E50] tracking-tight">건강 에너지 & 오행 보충법 (健康五行)</span>
+                                        <span className="text-xs sm:text-sm font-serif font-black text-[#2C3E50] tracking-tight">건강 에너지 & 오행 보충법 (健康五行)</span>
                                       </div>
-                                      <div className="space-y-2.5">
+                                      <div className="space-y-2.5 pl-2">
                                         {renderRichText(currentData.health_and_energy)}
                                       </div>
                                     </div>
@@ -1924,7 +1939,6 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                   )}
                                 </div>
                               )}
-
                               {/* Monthly Fortune Details */}
                               {activeHoroscopeTab === "monthly" && (
                                 <div className="space-y-5">
@@ -2173,12 +2187,12 @@ export default function MeView({ code, memberId }: MeViewProps) {
                 </div>
               )}
 
-              {/* 모임 멤버들과의 동서양 인연 궁합 케미 (무제한 해금됨) */}
+              {/* 모임 멤버들과의 동서양 인연 궁합 케미 */}
               <div className="space-y-4 pt-6 border-t border-[#E8E0D0] animate-fade-in text-left">
                 <div className="flex items-center space-x-1.5 pb-1">
                   <Crown className="w-4 h-4 text-amber-600 fill-amber-300 animate-pulse" />
                   <h4 className="font-serif text-sm font-bold text-[#2C3E50]">
-                    모임 멤버들과의 동서양 인연 궁합 케미 (무제한 해금됨)
+                    모임 멤버들과의 동서양 인연 궁합 케미 {isSecretUnlocked ? "(무제한 해금됨)" : "(첫 번째 인연 무료 공개)"}
                   </h4>
                 </div>
 
@@ -2190,6 +2204,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
                   <div className="space-y-4">
                     {allMembers
                       .filter((m) => m.id !== memberId)
+                      .filter((_, idx) => isSecretUnlocked || idx === 0)
                       .map((otherMember, idx) => {
                         const matchMember = (idOrName: string, targetMember: Member) => {
                           if (!idOrName || !targetMember) return false;
@@ -2223,7 +2238,6 @@ export default function MeView({ code, memberId }: MeViewProps) {
                         }
 
                         const isM1First = matchMember(pair.member_id_1, member);
-                        const isLocked = !isSecretUnlocked && idx > 0;
 
                         return (
                           <div key={otherMember.id} className="bg-white border border-[#D6CCBC] p-5 rounded-2xl space-y-4 shadow-xs text-left relative overflow-hidden">
@@ -2238,14 +2252,9 @@ export default function MeView({ code, memberId }: MeViewProps) {
                               </span>
                               <span>{otherMember.nickname}</span>
                               <span className="ml-auto bg-[#C0392B] text-white px-2.5 py-0.5 rounded-lg text-[11px] font-sans font-bold">{pair.score}점</span>
-                              {isLocked && (
-                                <span className="ml-1.5 text-[9px] font-black text-[#C0392B] bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-                                  <Crown className="w-2.5 h-2.5 fill-amber-400 text-amber-700" /> Locked
-                                </span>
-                              )}
                             </div>
 
-                            <div className={isLocked ? "filter blur-sm opacity-25 select-none pointer-events-none space-y-4" : "space-y-4"}>
+                            <div className="space-y-4">
                               {/* Elegant Full-width humorous label callout */}
                               <div className="px-3 py-2 border border-amber-400/30 bg-amber-50/20 rounded-xl text-center text-xs font-bold leading-normal text-[#C0392B]">
                                 ✨ {pair.label}
@@ -2367,44 +2376,49 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                 </div>
                               )}
                             </div>
-
-                            {/* Elegant Lock Overlay for idx > 0 */}
-                            {isLocked && (
-                              <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/95 to-white/90 flex flex-col items-center justify-center p-4 text-center">
-                                <span className="p-1.5 bg-amber-50 border border-amber-200 text-amber-700 rounded-full mb-1.5">
-                                  <Crown className="w-4 h-4 fill-amber-400 text-amber-700" />
-                                </span>
-                                <h6 className="font-serif text-[11px] font-black text-[#2C3E50] leading-none mb-1">
-                                  🔒 두 번째 멤버와의 궁합부터는 프리미엄 전용입니다
-                                </h6>
-                                <p className="text-[9px] text-[#8C7B6E] max-w-[280px] leading-relaxed mb-3 font-medium">
-                                  첫 번째 인연({allMembers.filter((m) => m.id !== memberId)[0]?.nickname || "첫 멤버"})의 정보는 무료로 감상하실 수 있습니다. 이 방의 전체 멤버들과의 상세 궁합 분석을 모두 열람해 보시겠어요?
-                                </p>
-                                <button
-                                  onClick={async () => {
-                                    const success = await activatePremiumSimulation("secret");
-                                    if (success) {
-                                      syncUnlockStates();
-                                    }
-                                  }}
-                                  className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-serif font-bold text-[10px] shadow-sm active:scale-[0.98] transition cursor-pointer"
-                                >
-                                  ✨ 7일 무료체험 시뮬레이션 즉시 활성화
-                                </button>
-                              </div>
-                            )}
                           </div>
                         );
                       })}
+
+                    {/* Elegant Consolidated Lock Card for Subsequent Members */}
+                    {!isSecretUnlocked && allMembers.filter((m) => m.id !== memberId).length > 1 && (
+                      <div className="bg-[#FAF9F6] border-2 border-dashed border-[#FAF0DE] p-6 rounded-2xl flex flex-col items-center justify-center text-center space-y-3.5 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 bg-[#C0392B] text-white font-sans font-bold text-[8px] px-2.5 py-0.5 rounded-bl-lg uppercase tracking-wider">
+                          Premium
+                        </div>
+                        <span className="p-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-full">
+                          <Crown className="w-5 h-5 fill-amber-400 text-amber-700" />
+                        </span>
+                        <h5 className="font-serif text-xs font-black text-[#2C3E50] leading-none">
+                          🔒 두 번째 멤버와의 궁합부터는 프리미엄 전용입니다
+                        </h5>
+                        <p className="text-[10px] text-[#8C7B6E] max-w-sm leading-relaxed font-medium">
+                          첫 번째 인연({allMembers.filter((m) => m.id !== memberId)[0]?.nickname || "첫 멤버"})의 정보는 무료로 감상하실 수 있습니다. 이 방의 전체 멤버들과의 상세 궁합 분석을 모두 열람해 보시겠어요?
+                        </p>
+                        <button
+                          onClick={() => {
+                            setShopInitialTab("secret");
+                            setIsShopOpen(true);
+                          }}
+                          className="px-4 py-2 bg-[#C0392B] hover:bg-[#A93226] text-white rounded-xl font-serif font-bold text-[10px] shadow-sm active:scale-[0.98] transition cursor-pointer"
+                        >
+                          👑 비밀 인연 상성 분석 해금하기
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
             </div>
-          )}
+          )
+        )}
         </>
       )}
     </>
   )}
+
+        {/* Real-time Google Ads Slot / Premium promo */}
+        <GoogleAds layout="banner" className="mb-4" hasContent={!!member && !loading && !!member.saju && !!member.personal_analysis} />
 
         {/* Back Button */}
         <div className="pt-4 border-t border-[#E8E0D0]">
