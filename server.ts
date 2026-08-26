@@ -4,8 +4,78 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 
 dotenv.config();
+
+// Firebase server configuration matching client for database operations
+const firebaseConfig = {
+  apiKey: "AIzaSyBDxMgEkCLcYU3X--nJH4JYwnWrsgqljyA",
+  authDomain: "gen-lang-client-0768788170.firebaseapp.com",
+  projectId: "gen-lang-client-0768788170",
+  storageBucket: "gen-lang-client-0768788170.firebasestorage.app",
+  messagingSenderId: "291785267663",
+  appId: "1:291785267663:web:7311b08fb9ea630a0f5aba"
+};
+
+const serverFbApp = initializeApp(firebaseConfig, "inyeons-server-admin");
+const serverDb = getFirestore(serverFbApp, "ai-studio-87874d9b-de7d-42c6-9ce0-5a2d8b3fb609");
+
+// Middleware to strictly verify caller's Firebase ID Token and enforce 'lhs41977@gmail.com' master admin role
+async function checkAdmin(req: any, res: any, next: any) {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "인증 정보(ID Token)가 누락되었거나 유효하지 않습니다." });
+    }
+    const idToken = authHeader.split("Bearer ")[1];
+    
+    // Server-side verification utilizing Google Identity Toolkit API (highly reliable, no external dependencies needed)
+    const apiKey = firebaseConfig.apiKey;
+    const verifyRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken })
+    });
+    
+    if (!verifyRes.ok) {
+      return res.status(401).json({ error: "서버가 관리자 토큰 검증에 실패했습니다. 유효하지 않은 세션입니다." });
+    }
+    
+    const verifyData: any = await verifyRes.json();
+    const email = verifyData.users?.[0]?.email;
+    
+    if (email?.toLowerCase() === "lhs41977@gmail.com") {
+      req.adminEmail = email;
+      req.adminUid = verifyData.users?.[0]?.localId;
+      next();
+    } else {
+      return res.status(403).json({ error: "이 작업을 수행할 최고 관리자(admin) 권한이 없습니다." });
+    }
+  } catch (error) {
+    console.error("[SERVER checkAdmin ERROR]:", error);
+    return res.status(500).json({ error: "관리자 신원 검증 도중 서버 내부 오류가 발생했습니다." });
+  }
+}
+
+// Fluent Korean Guideline (https://github.com/snflkd/fluent-korean)
+const FLUENT_KOREAN_SYSTEM_GUIDELINE = `
+## [snflkd/fluent-korean 한국어 출력 유창성 및 완전성 절대 원칙]
+(https://github.com/snflkd/fluent-korean 원칙 100% 필수 적용)
+
+1. **조사 및 어미의 생략 절대 금지 (완전한 문장 구조 유지):**
+   - 주어, 목적어, 보어 뒤에 붙는 필수 조사('은/는', '이/가', '을/를', '에/에게', '으로/로', '와/과' 등)를 절대로 생략하지 마십시오.
+   - 명사만 파편화하여 나열하는 '전보식 명사형 종결'이나 개조식 문장(예: "성격 온화. 사주 목 기운 강함.")을 엄격히 금지합니다.
+   - 모든 문장은 온전한 주어-서술어 호응과 유려한 연결 어미(~하며, ~하므로, ~합니다, ~바랍니다)를 갖춘 완성형 문장으로 서술하십시오.
+
+2. **영어 번역투 및 어색한 직역 표현 철저 배제:**
+   - "~를 가지다(have)", "~에 의해(by)", "~의 관점에서(in terms of)", "~을 필요로 하다"와 같은 부자연스러운 번역투 표현을 배제하고, 자연스러운 한국어 능동형 서술과 한국인 정서에 맞는 세련된 어휘를 채택하십시오.
+
+3. **정중하고 품격 있는 에세이/상담 문체 유지 (horasat.kr 퀄리티):**
+   - 기계적인 텍스트가 아닌, 깊은 통찰력을 지닌 전문가가 온화하고 정중하게 대화하듯(하십시오체/해요체) 일관성 있게 서술하십시오.
+   - 띄어쓰기, 맞춤법, 문맥 간 연결성을 완벽히 준수하여 읽는 이에게 깊은 감동과 신뢰를 전달하십시오.
+`;
 
 function getWesternZodiac(birthDate: string): string {
   if (!birthDate) return "알 수 없음";
@@ -136,6 +206,81 @@ async function startServer() {
     }
   });
 
+  // Admin APIs: Safe Server-Authoritative Operations (Check credentials first, execute DB mutations on server)
+  
+  // 1. Fetch entire rooms list for authorized admin
+  app.get("/api/admin/rooms", checkAdmin, async (req, res) => {
+    try {
+      const roomsRef = collection(serverDb, "rooms");
+      const querySnapshot = await getDocs(roomsRef);
+      const rooms: any[] = [];
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        rooms.push({
+          code: docSnap.id,
+          title: data.title || "인연 사주방",
+          owner_uid: data.owner_uid || "",
+          created_at: data.created_at || "",
+          expire_at: data.expire_at || "",
+          isStaging: data.isStaging || false
+        });
+      });
+      res.json(rooms);
+    } catch (error) {
+      console.error("[SERVER admin GET rooms ERROR]:", error);
+      res.status(500).json({ error: "데이터베이스에서 인연방 전체 목록을 동기화하지 못했습니다." });
+    }
+  });
+
+  // 2. Safely delete room document with admin re-verification
+  app.delete("/api/admin/rooms/:code", checkAdmin, async (req, res) => {
+    try {
+      const { code } = req.params;
+      if (!code) {
+        return res.status(400).json({ error: "삭제할 인연방의 6자리 코드가 명시되지 않았습니다." });
+      }
+      const roomRef = doc(serverDb, "rooms", code);
+      await deleteDoc(roomRef);
+      res.json({ success: true, message: `인연방 [${code}]이(가) 데이터베이스에서 영구 소멸되었습니다.` });
+    } catch (error) {
+      console.error(`[SERVER admin DELETE room ${req.params.code} ERROR]:`, error);
+      res.status(500).json({ error: "서버가 대상 인연방을 데이터베이스에서 폭파(삭제)하는 데 실패했습니다." });
+    }
+  });
+
+  // 3. Batch staging/dummy rooms cleaner action (wipes "테스트", "Backdoor" or similar dummy titles)
+  app.post("/api/admin/clean-dummy-rooms", checkAdmin, async (req, res) => {
+    try {
+      const roomsRef = collection(serverDb, "rooms");
+      const querySnapshot = await getDocs(roomsRef);
+      
+      let cleanedCount = 0;
+      const dummyKeywords = ["테스트", "test", "backdoor", "백도어", "Backdoor", "dummy", "더미", "임시방", "백도어방"];
+      
+      for (const docSnap of querySnapshot.docs) {
+        const data = docSnap.data();
+        const title = (data.title || "").toLowerCase();
+        const code = docSnap.id;
+        
+        const isDummy = dummyKeywords.some(kw => title.includes(kw)) || code.toLowerCase().includes("test");
+        
+        if (isDummy) {
+          await deleteDoc(doc(serverDb, "rooms", code));
+          cleanedCount++;
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `더미 및 테스트용 인연방 총 ${cleanedCount}개가 데이터베이스에서 영구적으로 격리 및 소멸 정리되었습니다.`,
+        cleanedCount 
+      });
+    } catch (error) {
+      console.error("[SERVER clean-dummy-rooms ERROR]:", error);
+      res.status(500).json({ error: "개발용 더미 방 데이터를 일괄 자동 청소하는 작업 중 오류가 발생했습니다." });
+    }
+  });
+
   // Reusable helper function to generate personal Saju & MBTI analysis using Gemini 3.5 Flash
   async function generatePersonalAnalysisForMember(member: any): Promise<any> {
     const ai = getGeminiClient();
@@ -183,22 +328,30 @@ async function startServer() {
     };
 
     const prompt = `
-당신은 대한민국 최고의 사주명리학 대가이자 동서양 점성학, 자미두수 수리학, 그리고 현대 심리학적 분석(MBTI)의 대가입니다.
-사용자 '${member.nickname}'님의 개인 명리학 정보를 기반으로, 동서양 4대 영역 통합 우주 평생 개인 감정서를 작성하십시오.
+${FLUENT_KOREAN_SYSTEM_GUIDELINE}
+
+당신은 대한민국 최고의 사주명리학 대가이자 동서양 점성학(자미두수·황도12궁), 그리고 현대 심리학적 분석(MBTI)의 대가입니다.
+horasat.kr 스타일의 정갈하고 깊이 있는 문체로, 사용자 '${member.nickname}'님의 내면 심리와 행동 양식, 사회적 페르소나를 입체적으로 해독한 평생 개인 감정서를 작성하십시오.
 
 ## 대상자 핵심 정보:
 ${JSON.stringify(enrichedMemberInfo, null, 2)}
 
-## 핵심 가이드라인 (공신력, 현실성 및 표기 형식 극대화):
-1. **MBTI 코드 영문 대문자 표기 절대 원칙 (초필수):** 
-   - 모든 MBTI 코드(예: ENFP, INFJ 등)는 반드시 영문 대문자로만 표기해야 합니다. 한글 음차 표기(예: '인프피', '인티제' 등)는 절대 금지합니다.
-2. **동서양 4대 영역의 완벽한 '입체적 융합' (단순 나열/열거 전면 금지):**
-   - 사주명리, 별자리, 자미두수, MBTI 기운을 항목별로 나누어 기계적으로 단순 나열하지 마시고, 이 네 요소를 하나의 통합된 흐름으로 유기적이고 설득력 있게 엮어내어 들려주십시오.
-3. **어려운 한자(漢字) 노출 절대 금지 및 순수 한글 표기 원칙 (초필수):**
-   - 사주명리학, 자미두수 등의 어려운 학술용어 및 오행/천간/지지 등의 한자(예: 辛金, 亥수, 命宮 등)는 절대로 한자로 직접 표기하지 마십시오.
-   - 모든 한자 용어는 100% 쉬운 한글(예: 신금, 해수, 명궁, 목, 금, 일간 등)로만 표기하여 작성하십시오.
-4. **컴팩트하고 세련된 핵심 분석 서술 (출력 토큰 절약 및 로딩 속도 향상 초필수):**
-   - 각 분석 필드('essence', 'talent', 'flow', 'fortune', 'character_desc')는 2~3개의 정밀하고 완성도 높은 문장(공백 포함 150~250자 내외)으로 밀도 있게 작성하여 로딩 지연을 최소화하면서도 명확하고 알찬 내용이 되도록 해 주십시오.
+## 핵심 작성 지침 (문맥의 자연스러움과 깊이 있는 통찰 극대화):
+1. **정갈하고 자연스러운 에세이/상담 문체 (horasat.kr 퀄리티 및 fluent-korean 준수):**
+   - 기계적인 키워드 나열이나 단편적 설명("목 기운이라 곧습니다")을 지양하고, 마치 오랜 세월 사람의 마음을 관찰해온 현자가 1:1로 정중하고 날카롭게 핵심을 짚어주듯 문맥이 유려하게 이어지는 고품격 한국어 문장으로 작성하십시오.
+   - 겉으로 보이는 첫인상/사회적 페르소나와 실제 내면의 생각/무의식적 방어기제 간의 미묘한 차이를 생생하게 포착하여 들려주십시오.
+2. **MBTI 코드 영문 대문자 표기 절대 원칙 (초필수):** 
+   - 모든 MBTI 코드(예: ENFP, INFJ 등)는 반드시 영문 대문자로만 표기해야 합니다.
+3. **동서양 4대 영역의 완벽한 '입체적 융합':**
+   - 사주 일주론(기질의 뿌리), 별자리(정서적 리듬), 자미두수(인생의 나침반), MBTI(현실적 소통 스타일)를 유기적으로 직조하십시오.
+4. **어려운 한자(漢字) 노출 절대 금지 및 순수 한글 표기 원칙:**
+   - 모든 명리/점성 용어(예: 신금, 해수, 명궁, 오행 등)는 100% 쉬운 한글로만 표기하십시오.
+5. **각 영역별 작성 가이드:**
+   - character_desc: 한눈에 사람의 본질을 꿰뚫어 보는 품격 있는 총평 요약 (150~220자).
+   - essence (내면의 기질과 사고방식): 겉모습 뒤에 숨겨진 진솔한 생각의 결, 무엇이 이 사람의 가슴을 뛰게 하고 무엇에 상처받는지.
+   - talent (사회적 페르소나와 재능): 타인에게 비치는 인상과 매력, 어떤 환경에서 몰입과 성과가 폭발하는지.
+   - flow (대인관계와 소통의 역학): 사람을 대할 때의 심리적 거리감, 편안함을 느끼는 관계의 조건과 주의할 점.
+   - fortune (현실적 개운과 마음 처방): 에너지가 소진되었을 때 스스로를 충전하는 지혜와 일상적 행운의 조언.
 `;
 
     const responseSchema = {
@@ -353,32 +506,33 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
       });
 
       const prompt = `
-당신은 대한민국 최고의 사주명리학 대가이자 동서양 점성학, 자미두수 수리학, 그리고 현대 심리학적 분석(MBTI)의 대가입니다.
-사용자들이 모인 모임방의 멤버 데이터를 기반으로, 지극히 현실성 있고 공신력 있으며 일관성 있는 융합 총합운세 감정서 중, 멤버간 인연 궁합(pairs)과 그룹 분석(group)을 작성하십시오.
+${FLUENT_KOREAN_SYSTEM_GUIDELINE}
+
+당신은 대한민국 최고의 사주명리학 대가이자 동서양 점성학(자미두수·별자리), 그리고 현대 심리학적 분석(MBTI)의 대가입니다.
+horasat.kr 수준의 깊이 있는 심리 분석과 자연스럽고 유려한 문체로, 멤버 간 1:1 인연 궁합(pairs)과 모임 전체 그룹 분석(group)을 작성하십시오.
 
 ## [중요] 개인 분석 생략 안내:
 각 멤버의 개인 평생 감정서('personal_analysis')는 이미 완벽히 해독되어 각 멤버 정보 내에 탑재되어 제공되었습니다.
 따라서 귀하는 이번 응답에서 개개인의 개인 분석을 수행할 필요가 없습니다. 오직 멤버 간 '1:1 개별 인연 궁합 분석(pairs)'과 '전체 그룹 분석(group)'만 정확하게 수행하여 응답해 주십시오.
 
-## 핵심 가이드라인 (공신력, 현실성 및 표기 형식 극대화):
-1. **MBTI 코드 영문 대문자 표기 절대 원칙 (초필수):** 
-   - 모든 MBTI 코드(예: ENFP, INFJ, ESTP, INTJ 등)는 반드시 영문 대문자로만 표기해야 합니다. 한글 음차 표기를 절대 금지합니다.
-2. **로맨틱/연인 표현 전면 배제 및 소셜/동료 용어 사용 원칙 (초필수):**
-   - '커플', '연인', '사랑', '부부' 등의 로맨틱하거나 애정 관계를 암시하는 단어는 절대로 사용하지 마십시오.
-   - 대신 '메이트', '파트너', '조합', '단짝', '동료', '인연', '멤버', '찰떡 시너지 조합' 등의 소셜/친목 지향적 단어만 사용하십시오.
-3. **어려운 한자(漢字) 노출 절대 금지 및 순수 한글 표기 원칙 (초필수):**
-   - 사주명리학, 자미두수 등의 모든 용어 및 천간/지지(예: 辛金, 亥水, 命宮, 木, 金 등)는 절대로 한자로 노출하지 말고, 100% 쉬운 한글(예: 신금, 해수, 명궁, 목, 금 등)로만 표기하십시오.
-4. **멤버 간 1:1 개별 인연 궁합 분석 지침 (자미두수, MBTI, 별자리, 사주 및 총합) [극도로 중요]:**
+## 핵심 가이드라인 (문맥의 자연스러움, 현실적 통찰, 격조 높은 서술):
+1. **문맥이 유려한 1:1 관계 역학 서술 (horasat.kr 퀄리티):**
+   - 두 사람이 마주했을 때의 첫인상과 분위기, 대화할 때 느껴지는 편안함이나 미묘한 텐션의 원인, 무의식적으로 부딪히거나 서로를 돕게 되는 심리적 연결고리를 실제 상담하듯 자연스럽게 엮어내십시오.
+   - 단편적인 점수 나열이 아니라, "왜 이 조합이 서로에게 필요한지", "어떤 대화법을 쓸 때 시너지가 폭발하는지"를 입체적으로 설명하십시오.
+2. **MBTI 코드 영문 대문자 표기 절대 원칙 (초필수):** 
+   - 모든 MBTI 코드(예: ENFP, INFJ, ESTP, INTJ 등)는 반드시 영문 대문자로만 표기해야 합니다.
+3. **소셜/동료 용어 사용 원칙 (초필수):**
+   - '메이트', '파트너', '조합', '단짝', '동료', '인연', '멤버', '시너지 조합' 등의 세련된 소셜/친목 지향적 단어만 사용하십시오.
+4. **어려운 한자(漢字) 노출 절대 금지 및 순수 한글 표기 원칙:**
+   - 모든 명리학, 자미두수 용어는 100% 쉬운 한글(예: 신금, 해수, 명궁, 목, 금 등)로만 표기하십시오.
+5. **멤버 간 1:1 개별 인연 궁합 분석 지침:**
    ${pairsGuideline}
    - 각 영역(saju, ziwei, mbti, zodiac) 및 종합 총합(combined/pairs) 별로:
      - 1번 멤버가 2번 멤버에게 주는 궁합 점수(score_1_to_2)와 2번 멤버가 1번 멤버에게 주는 궁합 점수(score_2_to_1)를 다르고 주관적으로 부여하십시오.
-     - 오행의 생극제화, 십이주성, 성향 궁합 등 학술적 근거에 입각하여 상세히 설명(description)을 작성하십시오.
-     - **[초필수 표기 규칙]** 각 하위 궁합 영역(saju, ziwei, mbti, zodiac)의 설명 텍스트(description)의 첫 문장 또는 서두에 반드시 "A님은 B님에게 X점, B님은 A님에게 Y점" 형식으로 조사를 붙여 문장으로 명확히 표기하십시오.
-       - 예시: "김도화님은 혁님에게 90점, 혁님은 김도화님에게 34점" 과 같이 정확히 '님은', '님에게' 라는 예의 바른 호칭 조사를 사용하여 한글 문장으로 명확히 표현해 주어야 합니다. 단순 화살표나 기호는 절대로 사용하지 마십시오.
-   - 4대 분야(saju, ziwei, mbti, zodiac)를 따로 깊이 분석한 뒤, 최종적으로 이를 총합하여 예술적이고 아름다운 종합 인연 지수(score), 시너지 타이틀(label), 그리고 전체 종합 궁합 해설(description)을 작성하십시오.
-5. **설명 서술 길이 및 출력 밀도 지침:**
-   - 위 '1:1 개별 인연 궁합 분석 지침'에 표기된 대로, 소규모 그룹의 경우 깊이 있게, 대규모 그룹의 경우 극도로 짧고 간결하게 1문장 내외로 요약하여 모든 쌍을 누락 없이 출력할 수 있도록 조절하십시오.
-6. **입력 데이터의 고유 식별자(member_id) 원본 유지 절대 원칙 (초필수):**
+     - 오행의 생극제화, 십이주성, 성향 궁합 등 학술적 근거에 입각하여 깊이 있는 설명(description)을 작성하십시오.
+     - **[초필수 표기 규칙]** 각 하위 궁합 영역(saju, ziwei, mbti, zodiac)의 설명 텍스트(description)의 첫 문장 또는 서두에 반드시 "A님은 B님에게 X점, B님은 A님에게 Y점" 형식으로 조사를 붙여 문장으로 명확히 표기하십시오. (예: "김도화님은 혁님에게 90점, 혁님은 김도화님에게 84점.")
+   - 4대 분야(saju, ziwei, mbti, zodiac)를 입체적으로 융합한 후, 최종적으로 종합 인연 지수(score), 시너지 타이틀(label), 그리고 전체 종합 궁합 해설(description)을 작성하십시오.
+6. **입력 데이터의 고유 식별자(member_id) 원본 유지 절대 원칙:**
    - 'pairs' 내의 'member_id_1'과 'member_id_2'는 무조건 입력 데이터의 멤버 'id' 값과 완벽하게 일치해야 합니다.
 
 ## 모임 이름: ${room_title || "친목모임"}
@@ -618,6 +772,19 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
       const dmGan = member.saju?.daymaster?.gan || "알 수 없음";
       const dmElem = member.saju?.daymaster?.element || "알 수 없음";
       
+      // Calculate unified deterministic today fortune score (matches frontend algorithm)
+      const todayObj = new Date();
+      const dateStr = todayObj.toISOString().slice(0, 10);
+      let seed = 0;
+      const cleanGan = dmGan || "갑목";
+      const cleanElem = dmElem || "목";
+      const combinedStr = cleanGan + cleanElem + dateStr;
+      for (let i = 0; i < combinedStr.length; i++) {
+        seed = (seed << 5) - seed + combinedStr.charCodeAt(i);
+        seed |= 0;
+      }
+      const deterministicTodayScore = 75 + Math.abs(seed % 24);
+
       let dayPillarDetail = "알 수 없음";
       if (member.saju?.pillars_detail) {
         const dp = member.saju.pillars_detail.find((p: any) => p.type === "일주");
@@ -630,6 +797,8 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
       }
 
       const prompt = `
+${FLUENT_KOREAN_SYSTEM_GUIDELINE}
+
 당신은 대한민국 최고의 사주명리학 대가이자 동서양 점성학, 자미두수, 그리고 현대 심리학적 성향 분석(MBTI)의 대가입니다.
 사용자 '${member.nickname}'님을 위해 지극히 현실적이고 구체적이며, 일상에서 즉시 와닿고 행동에 옮길 수 있는 최고 수준의 오늘의운세, 주간운세, 월간운세, 연간운세 해설서를 일괄 작성해 주십시오.
 
@@ -641,17 +810,20 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
 - 서양 황도 백자리: ${zodiac}
 - 명리학 일주: ${dayPillarDetail} (${dmGan}일간, 오행 기운: ${dmElem})
 - 오행 구성 비율: ${member.saju?.ohaeng_count ? JSON.stringify(member.saju.ohaeng_count) : "기본 구성"}
+- 오늘의 확정된 천간지지 일진 점수: ${deterministicTodayScore}점 (today.score 필드에 반드시 ${deterministicTodayScore}를 기재하십시오)
 
-## 작성 지침 (현실성, 실전 개운 처방 및 퀄리티 극대화):
-1. **극도의 현실성과 즉시 와닿는 조언 (추상적인 이론이나 미사여구 중심의 가벼운 해설 전면 금지):**
+## 작성 지침 (현실성, 실전 개운 처방, fluent-korean 및 퀄리티 극대화):
+1. **fluent-korean 원칙 100% 준수 (자연스러운 한국어, 조사/어미 완전 유지, 번역투 배제):**
+   - 모든 문장은 온전한 주어-서술어 호응을 갖추고, 명사형 종결이나 단답식 나열을 금하며 정중하고 자연스러운 한국어 문장으로 서술하십시오.
+2. **극도의 현실성과 즉시 와닿는 조언 (추상적인 이론이나 미사여구 중심의 가벼운 해설 전면 금지):**
    - 사주 일주론, 별자리 기류, MBTI 성향을 깊이 있게 융합하여 서술하되, 절대 "금수 기운이 맑아 지혜가 솟구칩니다" 처럼 추상적이고 모호하게 얼버무리지 마십시오.
    - "천생연분을 만날 수 있는 운명적인 흐름이 강하니 오늘 미팅이나 소개팅이 있다면 절대 미루지 말고 가십시오", "오후 2시경 약속 장소로 향하는 도중에 예상치 못한 호감을 지닌 인연과 대화를 나눌 기회가 생깁니다" 처럼 사용자가 즉시 체감하고 실행할 수 있는 현실적이고 구체적인 시나리오와 대처 행동을 가이드하십시오.
-2. **연애, 연인, 소셜 파트너십의 비중 대폭 강화:**
+3. **연애, 연인, 소셜 파트너십의 비중 대폭 강화:**
    - 만남, 소개팅, 썸, 연애, 부부/연인 관계의 로맨틱한 기류를 다채롭게 서술하고, 대화 스타일이나 행운의 처방 등을 행동 중심으로 작성하십시오.
-3. **적정 분량 및 가독성 최적화 지침 (초필수):**
+4. **적정 분량 및 가독성 최적화 지침 (초필수):**
    - 오늘의 전체적인 운세 해설('today.summary')은 사주 일주론, 황도 백자리, MBTI 성향을 한데 녹여내어, 오늘 마주할 운명학적 기류 분석, 상황적 시나리오, 그리고 직접적인 개운 행동 지침까지 유기적으로 연결된 **3개의 문단 (줄바꿈 \n\n 2번 사용, 공백 포함 350~500자 내외)**으로 풍성하게 작성해 주십시오.
    - 주간, 월간, 연간의 세부 분석 필드들은 각각 **단 하나의 알차고 풍성한 문단 (공백 포함 150~250자 내외)**으로 명확하고 구체적으로 작성하십시오. 과도한 중복 생성이나 너무 길어져서 발생하는 응답 시간 초과와 JSON 짤림 문제를 예방하기 위한 절대 기준입니다.
-4. **구체적인 개운(開運) 처방전:**
+5. **구체적인 개운(開運) 처방전:**
    - 행운의 아이템(코디 색상, 숫자, 방향, 최고의 시간대)을 명확하게 명시하십시오.
 `;
 
@@ -743,6 +915,9 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
           });
 
           finalResult = JSON.parse(response.text!.trim());
+          if (finalResult?.today) {
+            finalResult.today.score = deterministicTodayScore;
+          }
           break;
         } catch (innerErr) {
           console.warn(`Horoscope attempt ${attempts} failed:`, innerErr);

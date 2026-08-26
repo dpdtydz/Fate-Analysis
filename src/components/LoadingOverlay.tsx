@@ -5,11 +5,11 @@ interface LoadingOverlayProps {
 }
 
 const defaultPhrases = [
-  "오행을 헤아리는 중...",
-  "천기를 누설하는 중...",
-  "궁합을 엮는 중...",
+  "오행의 생극을 헤아리는 중...",
+  "정통 만세력을 계산하는 중...",
+  "인연 궁합을 엮는 중...",
   "사주 원국을 해독하는 중...",
-  "우주의 기운을 조율하는 중..."
+  "명식의 조화와 기운을 살피는 중..."
 ];
 
 export default function LoadingOverlay({ message }: LoadingOverlayProps) {
@@ -64,8 +64,8 @@ export default function LoadingOverlay({ message }: LoadingOverlayProps) {
 
         {/* Explanation footnote */}
         <div className="mt-8 pt-4 border-t border-[#E8E0D0] text-[10px] text-[#A69B8F] leading-normal tracking-tight">
-          명리학 만세력 계산을 기반으로 동양 오행상생 관계 및 <br />
-          Gemini 우주 천문 인공지능이 케미스트리를 영특하게 풀이하고 있습니다.
+          동양 정통 만세력 계산 및 오행 생극제화 알고리즘으로 <br />
+          인연 케미스트리를 정밀하게 풀이하고 있습니다.
         </div>
       </div>
     </div>

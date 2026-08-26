@@ -119,7 +119,7 @@ export default function GoogleAds({ slotId, layout = "banner", className = "", h
     return (
       <div id="google-adsense-container" className={`w-full my-4 p-1 bg-white/40 border border-gray-200/50 rounded-xl text-center overflow-hidden relative ${className}`}>
         {/* Adsense Spec Compliant Label */}
-        <div className="absolute top-1 left-2 text-[8px] text-[#8C7B6E]/60 uppercase tracking-widest pointer-events-none select-none">
+        <div className="absolute top-1 left-2 text-[8px] text-[#5C5046]/60 uppercase tracking-widest pointer-events-none select-none">
           Sponsor
         </div>
         <div className="pt-4 pb-1">
@@ -153,7 +153,7 @@ export default function GoogleAds({ slotId, layout = "banner", className = "", h
           <span className="text-[8px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-sm font-extrabold uppercase tracking-widest border border-amber-200">
             Sponsor
           </span>
-          <span className="text-[8px] text-[#8C7B6E] font-medium flex items-center gap-0.5">
+          <span className="text-[8px] text-[#5C5046] font-medium flex items-center gap-0.5">
             <ShieldCheck className="w-2.5 h-2.5 text-emerald-600" /> 프리미엄 안심 혜택
           </span>
         </div>
@@ -166,7 +166,7 @@ export default function GoogleAds({ slotId, layout = "banner", className = "", h
             <h4 className="text-[11px] font-black text-amber-950 tracking-tight leading-snug">
               궁합 3단계 완전 해금 👑
             </h4>
-            <p className="text-[9px] text-[#8C7B6E] leading-relaxed mt-1 font-medium">
+            <p className="text-[9px] text-[#5C5046] leading-relaxed mt-1 font-medium">
               1:1 매칭 속궁합, 프리미엄 십성 대운 분석, 그룹 전체 오행 네트워크까지 단 한 번의 평생 해금으로 완벽하게 확인하세요.
             </p>
           </div>
@@ -198,7 +198,7 @@ export default function GoogleAds({ slotId, layout = "banner", className = "", h
             <p className="text-[10px] font-bold text-gray-800 truncate">
               📢 커피 한 잔 가격으로 사주명가 인연궁합 평생 해금하기
             </p>
-            <p className="text-[8px] text-[#8C7B6E] truncate">
+            <p className="text-[8px] text-[#5C5046] truncate">
               광고 없는 명품 프리미엄 해설서로 지인들의 운명을 속 시원히 파헤치세요.
             </p>
           </div>
@@ -227,7 +227,7 @@ export default function GoogleAds({ slotId, layout = "banner", className = "", h
           <h4 className="text-[10px] font-black text-[#2C3E50] leading-none">
             광고 없이 깨끗하게 즐기는 인연사주 🔮
           </h4>
-          <p className="text-[8px] text-[#8C7B6E] leading-none mt-1 font-medium">
+          <p className="text-[8px] text-[#5C5046] leading-none mt-1 font-medium">
             프리미엄 멤버십으로 전환하고 모든 광고 제거와 십성 대운을 확인하세요.
           </p>
         </div>

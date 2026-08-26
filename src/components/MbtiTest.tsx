@@ -198,7 +198,7 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
         </div>
 
         <div className="bg-[#FCFAF6] border border-[#E8E0D0] p-4 rounded-xl text-center space-y-1">
-          <p className="text-[11px] text-[#8C7B6E]">
+          <p className="text-[11px] text-[#5C5046]">
             이 MBTI 기운을 내 사주 명식에 등록하여 <br />
             <strong>오행과의 조화 및 궁합 케미</strong>를 완성할 수 있습니다.
           </p>
@@ -207,7 +207,7 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
         <div className="grid grid-cols-2 gap-3 pt-2">
           <button
             onClick={resetTest}
-            className="py-3.5 bg-[#FAF7F2] border border-[#D6CCBC] hover:bg-[#F0EDE4] text-[#8C7B6E] font-serif font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+            className="py-3.5 bg-[#FAF7F2] border border-[#D6CCBC] hover:bg-[#F0EDE4] text-[#5C5046] font-serif font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>처음부터 다시</span>
@@ -223,7 +223,7 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
 
         <button
           onClick={onCancel}
-          className="w-full text-center text-[11px] text-[#8C7B6E] hover:underline pt-1"
+          className="w-full text-center text-[11px] text-[#5C5046] hover:underline pt-1"
         >
           돌아가기
         </button>
@@ -237,7 +237,7 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
     <div className="bg-white border border-[#D6CCBC] p-6 rounded-2xl shadow-md space-y-6 text-left relative overflow-hidden">
       {/* Progress Bar */}
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between text-[10px] text-[#8C7B6E] font-bold">
+        <div className="flex items-center justify-between text-[10px] text-[#5C5046] font-bold">
           <span>스피드 MBTI 테스트</span>
           <span>{currentIdx + 1} / {QUESTIONS.length} 문항</span>
         </div>
@@ -263,7 +263,7 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
             onClick={() => handleSelectOption(q.optionA.value)}
             className={`w-full p-4.5 rounded-xl border text-left text-xs leading-relaxed font-semibold transition-all duration-200 cursor-pointer flex items-start gap-3 bg-white border-[#E8E0D0] hover:border-[#C0392B] hover:bg-[#FFF9F6] active:scale-[0.99]`}
           >
-            <span className="w-5 h-5 rounded-full bg-[#FCFAF5] border border-[#D6CCBC] flex items-center justify-center text-[10px] font-bold text-[#8C7B6E] mt-0.5 shrink-0">A</span>
+            <span className="w-5 h-5 rounded-full bg-[#FCFAF5] border border-[#D6CCBC] flex items-center justify-center text-[10px] font-bold text-[#5C5046] mt-0.5 shrink-0">A</span>
             <span className="text-[#5A4D41]">{q.optionA.text}</span>
           </button>
 
@@ -271,7 +271,7 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
             onClick={() => handleSelectOption(q.optionB.value)}
             className={`w-full p-4.5 rounded-xl border text-left text-xs leading-relaxed font-semibold transition-all duration-200 cursor-pointer flex items-start gap-3 bg-white border-[#E8E0D0] hover:border-[#C0392B] hover:bg-[#FFF9F6] active:scale-[0.99]`}
           >
-            <span className="w-5 h-5 rounded-full bg-[#FCFAF5] border border-[#D6CCBC] flex items-center justify-center text-[10px] font-bold text-[#8C7B6E] mt-0.5 shrink-0">B</span>
+            <span className="w-5 h-5 rounded-full bg-[#FCFAF5] border border-[#D6CCBC] flex items-center justify-center text-[10px] font-bold text-[#5C5046] mt-0.5 shrink-0">B</span>
             <span className="text-[#5A4D41]">{q.optionB.text}</span>
           </button>
         </div>
@@ -283,7 +283,7 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
           onClick={handlePrev}
           disabled={currentIdx === 0}
           className={`flex items-center gap-1 py-1.5 px-3 rounded text-[11px] font-bold font-serif ${
-            currentIdx === 0 ? "text-[#D6CCBC] cursor-not-allowed" : "text-[#8C7B6E] hover:text-[#C0392B] cursor-pointer"
+            currentIdx === 0 ? "text-[#D6CCBC] cursor-not-allowed" : "text-[#5C5046] hover:text-[#C0392B] cursor-pointer"
           }`}
         >
           <ArrowLeft className="w-3 h-3" />
@@ -292,7 +292,7 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
 
         <button
           onClick={onCancel}
-          className="text-[11px] text-[#8C7B6E] hover:underline"
+          className="text-[11px] text-[#5C5046] hover:underline"
         >
           테스트 취소
         </button>

@@ -1,10 +1,45 @@
 import React, { useState, useEffect } from "react";
 import Layout from "./Layout";
-import { auth, db, getRoomHistory, signInWithGoogle, signOutUser, removeRoomFromHistory, clearAllLocalCache } from "../lib/firebase";
+import { 
+  auth, 
+  db, 
+  getRoomHistory, 
+  signInWithGoogle, 
+  signOutUser, 
+  removeRoomFromHistory, 
+  clearAllLocalCache, 
+  getUserMembershipInfo,
+  getUserPersonalProfile,
+  PersonalSajuProfile,
+  getFriendlyAuthErrorMessage
+} from "../lib/firebase";
 import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
-import { LogIn, LogOut, Compass, Sparkles, BookOpen, ChevronRight, UserCheck, Trash2, RefreshCw, Crown } from "lucide-react";
+import { 
+  LogIn, 
+  LogOut, 
+  Compass, 
+  Sparkles, 
+  BookOpen, 
+  ChevronRight, 
+  UserCheck, 
+  Trash2, 
+  RefreshCw, 
+  Crown, 
+  Users, 
+  KeyRound, 
+  PlusCircle, 
+  ArrowRight, 
+  ShieldCheck, 
+  HelpCircle,
+  Sun,
+  Edit3,
+  RotateCcw
+} from "lucide-react";
 import PremiumPaywall from "./PremiumPaywall";
 import GoogleAds from "./GoogleAds";
+import { logAnalyticsEvent } from "../lib/analytics";
+import UpgradeToSocialModal from "./UpgradeToSocialModal";
+import AuthModal from "./AuthModal";
 
 interface HistoryRoom {
   code: string;
@@ -17,11 +52,37 @@ export default function LandingView() {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [historyRooms, setHistoryRooms] = useState<HistoryRoom[]>([]);
+  const [roomFilter, setRoomFilter] = useState<"all" | "owner" | "member">("all");
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
+  const [myProfile, setMyProfile] = useState<PersonalSajuProfile | null>(null);
   const [roomsLoading, setRoomsLoading] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
-  const [policyModal, setPolicyModal] = useState<"privacy" | "terms" | "cookies" | "column1" | "column2" | "column3" | "column4" | null>(null);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [policyModal, setPolicyModal] = useState<"column1" | "column2" | "column3" | "column4" | null>(null);
+  const [isRoomsExpanded, setIsRoomsExpanded] = useState(false);
+  const [archiveTab, setArchiveTab] = useState<"columns" | "faq">("columns");
+
+  // Listen to hash / initial load for Academic Columns deep linking
+  useEffect(() => {
+    const checkColumnHash = () => {
+      const currentHash = window.location.hash;
+      const match = currentHash.match(/^#\/column\/([1-4])$/);
+      if (match) {
+        setPolicyModal(`column${match[1]}` as any);
+      } else if (!currentHash.startsWith("#/column/")) {
+        setPolicyModal(null);
+      }
+    };
+
+    checkColumnHash();
+    window.addEventListener("hashchange", checkColumnHash);
+    return () => window.removeEventListener("hashchange", checkColumnHash);
+  }, []);
+
+  const membership = getUserMembershipInfo(currentUser);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -30,85 +91,122 @@ export default function LandingView() {
     return () => unsubscribe();
   }, []);
 
+  const [cleanLoading, setCleanLoading] = useState(false);
+  const [pendingDeleteRoom, setPendingDeleteRoom] = useState<{
+    code: string;
+    title: string;
+    role: string;
+    actionType: "delete_db" | "exclude_list";
+    roomObj: any;
+    timeoutId: any;
+  } | null>(null);
+
+  const handleImmediateCommit = async (pendingObj: any) => {
+    if (!pendingObj) return;
+    clearTimeout(pendingObj.timeoutId);
+    if (pendingObj.actionType === "delete_db") {
+      try {
+        const idToken = await currentUser?.getIdToken();
+        if (idToken) {
+          await fetch(`/api/admin/rooms/${pendingObj.code}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${idToken}`
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Failed immediate commit delete:", err);
+      }
+    } else {
+      await removeRoomFromHistory(pendingObj.code);
+    }
+  };
+
+  const handleCleanDummyRooms = async () => {
+    if (!currentUser) return;
+    if (!confirm("⚠️ '테스트', 'test', 'backdoor', '백도어', 'dummy', '더미', '임시방' 등의 문구가 포함된 개발용 더미 방들을 데이터베이스에서 일괄 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.")) {
+      return;
+    }
+    
+    try {
+      setCleanLoading(true);
+      const idToken = await currentUser.getIdToken();
+      const res = await fetch("/api/admin/clean-dummy-rooms", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`
+        }
+      });
+      
+      const data = await res.json();
+      if (res.ok) {
+        alert(`🧹 더미방 일괄 파기 완료: ${data.message}`);
+        window.location.reload();
+      } else {
+        alert(`⚠️ 정리 오류: ${data.error || "일괄 정리에 실패했습니다."}`);
+      }
+    } catch (err) {
+      console.error("Clean dummy rooms failed:", err);
+      alert("서버 통신 중 오류가 발생했습니다.");
+    } finally {
+      setCleanLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getUserPersonalProfile().then((p) => setMyProfile(p));
+  }, [currentUser]);
+
   useEffect(() => {
     const loadUserRooms = async () => {
       setRoomsLoading(true);
-      console.log("Loading user rooms, currentUser:", currentUser);
       try {
-        const localHistory = getRoomHistory(); // Array of { code, role, title, updatedAt }
         const mergedMap = new Map<string, HistoryRoom>();
 
-        // 1. If Google account logged in, load real-time database owned rooms dynamically
+        // 1. If user is logged in (authenticated), load their rooms from cloud Firestore
         if (currentUser && !currentUser.isAnonymous) {
-          const isAdmin = currentUser.email?.toLowerCase() === "lhs41977@gmail.com";
-          console.log("CurrentUser email:", currentUser.email, "IsAdmin:", isAdmin);
-          
-          // A. Load owned rooms
-          const q = isAdmin
-            ? query(collection(db, "rooms"))
-            : query(
-                collection(db, "rooms"),
-                where("owner_uid", "==", currentUser.uid)
-              );
-          
+          const q = query(
+            collection(db, "rooms"),
+            where("owner_uid", "==", currentUser.uid)
+          );
           try {
             const querySnapshot = await getDocs(q);
-            console.log("Admin rooms query successful, size:", querySnapshot.size);
             querySnapshot.forEach((docSnap) => {
               const data = docSnap.data();
               mergedMap.set(docSnap.id, {
                 code: docSnap.id,
-                role: isAdmin ? "admin" : "owner",
+                role: "owner",
                 title: data.title || "인연 사주방",
                 updatedAt: data.created_at ? new Date(data.created_at).getTime() : Date.now(),
               });
             });
           } catch (e) {
-            console.error("Error loading admin rooms:", e);
+            console.error("Error loading owner rooms:", e);
           }
 
-          // B. Load joined rooms from user profile
-          const joinedSnap = await getDocs(collection(db, "users", currentUser.uid, "joined_rooms"));
-          joinedSnap.forEach((docSnap) => {
-            if (!mergedMap.has(docSnap.id)) {
-              const data = docSnap.data();
-              mergedMap.set(docSnap.id, {
-                code: docSnap.id,
-                role: data.role as "member",
-                title: data.title || "인연 사주방",
-                updatedAt: data.updatedAt || Date.now(),
-              });
-            }
-          });
-        }
-
-        // 2. Load and overlay local localStorage histories to catch member/guest rooms
-        for (const item of localHistory) {
-          if (!mergedMap.has(item.code)) {
-            try {
-              const rSnap = await getDoc(doc(db, "rooms", item.code));
-              if (rSnap.exists()) {
-                const rData = rSnap.data();
-                const isExpired = rData.expire_at && new Date(rData.expire_at) < new Date();
-                if (!isExpired) {
-                  mergedMap.set(item.code, {
-                    code: item.code,
-                    role: item.role,
-                    title: rData.title || item.title,
-                    updatedAt: item.updatedAt || Date.now(),
-                  });
-                }
+          try {
+            const joinedSnap = await getDocs(collection(db, "users", currentUser.uid, "joined_rooms"));
+            joinedSnap.forEach((docSnap) => {
+              if (!mergedMap.has(docSnap.id)) {
+                const data = docSnap.data();
+                mergedMap.set(docSnap.id, {
+                  code: docSnap.id,
+                  role: data.role as "member",
+                  title: data.title || "인연 사주방",
+                  updatedAt: data.updatedAt || Date.now(),
+                });
               }
-            } catch (err) {
-              // Fallback to offline representation if database fetch fails
-              mergedMap.set(item.code, {
-                code: item.code,
-                role: item.role,
-                title: item.title,
-                updatedAt: item.updatedAt || Date.now(),
-              });
-            }
+            });
+          } catch (e) {
+            console.error("Error loading joined rooms:", e);
           }
+        } else {
+          // 2. If user is logged out or has no account, do not persist or load previous rooms
+          setHistoryRooms([]);
+          setRoomsLoading(false);
+          return;
         }
 
         const finalRooms = Array.from(mergedMap.values()).sort(
@@ -135,100 +233,185 @@ export default function LandingView() {
       return;
     }
 
-    // Go directly to room
+    logAnalyticsEvent({
+      eventName: "join_room",
+      category: "traffic",
+      metadata: { source: "landing_input" },
+      roomCode: cleanCode
+    });
+
     window.location.hash = `#/room/${cleanCode}`;
   };
 
   const isGoogleUser = currentUser && !currentUser.isAnonymous;
 
   return (
-    <Layout>
-      <div className="flex flex-col items-center justify-center py-4 text-center">
-        {/* Visual Symbol logo */}
-        <div className="w-16 h-16 rounded-full border border-[#D6CCBC] bg-[#FCFAF5] flex items-center justify-center font-serif text-3xl text-[#C0392B] shadow-xs mb-4">
-          ☯
-        </div>
+    <Layout maxWidth="6xl">
+      <div className="space-y-6">
         
-        <h2 className="font-serif text-3xl font-bold tracking-tight text-[#C0392B] mb-1.5 leading-tight animate-fade-in">
-          인연사주
-        </h2>
-        <p className="font-serif text-xs italic text-[#8C7B6E] tracking-[0.1em] mb-6">
-          단톡방 · 모임용 사주 기반 단체 궁합 엮기
-        </p>
-
-        {/* Traditional card container design */}
-        <div className="w-full bg-[#FCFAF6] border border-[#D6CCBC] p-5 rounded-2xl text-left space-y-3.5 shadow-xs mb-5">
-          <p className="text-xs font-bold text-[#8C7B6E] uppercase tracking-[0.2em] text-center border-b border-[#E8E0D0] pb-2.5">
-            소동물 사주 캐릭터와 궁합 인연망
-          </p>
-          <ul className="space-y-2 text-xs text-[#5A4D41] leading-relaxed list-none pl-0.5">
-            <li className="flex items-start">
-              <span className="text-[#C0392B] mr-2 font-bold select-none">✦</span>
-              <span>방장이 방을 개설하고 <strong>초대 링크</strong>를 주면 모임 참여가 시작됩니다.</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-[#C0392B] mr-2 font-bold select-none">✦</span>
-              <span>각자 생년월일시 사주를 입력하면 음양오행 및 만세력 동물 캐릭터가 입명됩니다.</span>
-            </li>
-            <li className="flex items-start">
-              <span className="text-[#C0392B] mr-2 font-bold select-none">✦</span>
-              <span>동양 오행의 상생/상극 관계를 바탕으로 다채로운 AI 궁합 인연망을 확인해 보세요.</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* Main Action Control Panel */}
-        <div className="w-full space-y-4">
-          
-          {/* Create Button block */}
+        {/* ========================================================================= */}
+        {/* TOP TAB SWITCHER: [Tab1: 나만의 소울 사주 카드] vs [Tab2: 모임 그룹 궁합] (Frame 2147258042) */}
+        {/* ========================================================================= */}
+        <div className="grid grid-cols-2 gap-2 bg-[#EFE9DF] p-1.5 rounded-2xl text-xs sm:text-sm font-serif font-bold shadow-2xs">
           <a
-            id="create-room-btn"
-            href="#/create"
-            className="block w-full py-4 bg-[#C0392B] text-[#FAF7F2] rounded-xl font-serif font-bold text-sm text-center hover:bg-[#A93226] active:scale-[0.99] transition-all tracking-widest shadow-md flex items-center justify-center space-x-2 cursor-pointer"
+            href="#/my-saju"
+            onClick={(e) => {
+              e.preventDefault();
+              window.location.hash = "#/my-saju";
+            }}
+            className="py-3 px-2.5 rounded-xl text-[#5C5046] hover:text-[#2C3E50] hover:bg-white/50 flex items-center justify-center gap-1.5 transition cursor-pointer text-center"
           >
-            <Sparkles className="w-4 h-4" />
-            <span>새로운 인연방 만들기</span>
+            <Sparkles className="w-4 h-4 text-amber-600" />
+            <span className="truncate">나만의 소울 사주 카드</span>
           </a>
 
-          {/* CODE JOIN FORM */}
-          <form id="join-code-form" onSubmit={handleJoinByCode} className="bg-white/60 backdrop-blur-xs p-4.5 border border-[#D6CCBC] rounded-2xl text-left space-y-3 shadow-xs">
-            <label className="block text-xs font-bold text-[#2C3E50] tracking-tight">초대 코드로 인연 참가</label>
-            <div className="flex space-x-2">
-              <input
-                id="join-code-input"
-                type="text"
-                maxLength={6}
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                placeholder="6자리 대문자 코드 예: AF7X29"
-                className="flex-grow px-3.5 py-3.5 bg-white border border-[#E8E0D0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C0392B]/20 focus:border-[#C0392B] text-sm text-[#2C3E50] placeholder:text-[#B0A69B] uppercase font-mono tracking-widest"
-              />
-              <button
-                id="join-code-submit"
-                type="submit"
-                className="px-5 py-3.5 bg-[#2C3E50] text-[#FAF7F2] rounded-xl text-xs font-serif font-bold hover:bg-[#1A252F] hover:text-white transition-all cursor-pointer"
-              >
-                입장
-              </button>
-            </div>
-            {error && (
-              <p className="text-[11px] text-[#C0392B] font-bold mt-1 text-center">⚠️ {error}</p>
-            )}
-          </form>
+          <button
+            type="button"
+            className="py-3 px-2.5 rounded-xl bg-white text-[#2C3E50] shadow-sm flex items-center justify-center gap-1.5 transition cursor-pointer text-center"
+          >
+            <Users className="w-4 h-4 text-[#C0392B]" />
+            <span className="truncate">모임 그룹 궁합</span>
+          </button>
+        </div>
 
-          {/* MY REGISTERED ROOMS PANEL (나의 인연 사주방 기록서) */}
-          <div className="w-full border border-[#D6CCBC] rounded-2xl bg-[#FCFAF6] text-left p-4.5 space-y-3 shadow-xs">
-            <div className="flex items-center justify-between border-b border-[#E8E0D0] pb-2.5">
-              <div className="flex items-center space-x-2 text-[#2C3E50]">
-                <BookOpen className="w-4 h-4 text-[#C0392B]" />
-                <h3 className="font-serif text-xs font-bold uppercase tracking-wider">
-                  {currentUser?.email === "lhs41977@gmail.com" ? "전체 인연방 대장 (운영자 모드)" : "나의 인연방 목록"}
-                </h3>
+        {/* ========================================================================= */}
+        {/* HERO SECTION: Authentic Korean Editorial Identity */}
+        {/* ========================================================================= */}
+        <div className="text-center sm:text-left pt-1 pb-3 border-b border-[#EFE9DF]">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
+            <div className="space-y-2">
+              <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-md bg-[#FDF3F1] border border-[#C0392B]/30 text-[#C0392B] text-xs font-serif font-bold">
+                <span>因緣四柱</span>
+                <span className="text-[10px] opacity-70">|</span>
+                <span className="text-[11px] font-sans font-medium text-[#4F443B]">정통 만세력 & 그룹 케미스트리</span>
               </div>
-              {isGoogleUser && (
-                <div className="flex items-center space-x-1.5">
-                  <span className="text-[9px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                    Google 연동 중 ({currentUser?.displayName})
+              <h1 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#1E293B] leading-tight">
+                우리 모임의 기운과 <br className="sm:hidden" />
+                <span className="text-[#C0392B]">인연 지도</span>를 펼치다
+              </h1>
+              <p className="text-xs sm:text-sm text-[#64748B] max-w-lg leading-relaxed font-normal">
+                단톡방, 프로젝트 팀, 동호회 사람들의 태어난 날(음양오행)을 기반으로<br className="hidden sm:inline" />
+                서로를 살리는 상생(相生)과 지혜롭게 조율할 내면 기질 상성·케미스트리를 정밀 분석합니다.
+              </p>
+            </div>
+
+            {/* Quick Stats Pill / Seal Stamp */}
+            <div className="hidden sm:flex flex-col items-end justify-center p-3.5 bg-[#FAF8F5] border border-[#E7E1D6] rounded-xl text-right space-y-1 shrink-0">
+              <span className="text-[10px] text-[#8C827A] font-mono uppercase tracking-wider">Analysis Engine</span>
+              <span className="text-xs font-serif font-bold text-[#1E293B]">萬歲曆 · 紫微斗數 · MBTI</span>
+              <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-medium">
+                🔒 개인정보 30일 파기
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* ACTION BENTO GRID: Create Room (Left) vs Join Code (Right) */}
+        {/* ========================================================================= */}
+        <div id="group-action-cards" className="grid grid-cols-1 md:grid-cols-2 gap-4 scroll-mt-6">
+          
+          {/* Card 1: Create Room */}
+          <div className="bg-gradient-to-br from-[#2C3E50] to-[#1E293B] text-white p-6 rounded-2xl shadow-sm border border-[#1E293B] flex flex-col justify-between space-y-5 relative overflow-hidden group">
+            <div className="space-y-3 relative z-10">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-300 tracking-wider font-serif bg-white/10 px-2.5 py-1 rounded-lg backdrop-blur-xs">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  새로운 인연방
+                </span>
+                <span className="text-[11px] text-slate-300 font-mono">1분 완료</span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-serif font-bold tracking-tight text-white leading-snug">
+                모임방 개설하고<br />
+                초대 코드 발급받기
+              </h2>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                방을 만들고 6자리 코드를 공유하면, 구성원들이 각자 생년월일을 입력해 12간지 캐릭터와 전체 궁합이 완성됩니다.
+              </p>
+            </div>
+
+            <button
+              id="create-room-btn"
+              onClick={() => {
+                if (membership.isEmailOnly) {
+                  setIsUpgradeModalOpen(true);
+                } else if (membership.isGuest) {
+                  setIsAuthModalOpen(true);
+                } else {
+                  window.location.hash = "#/create";
+                }
+              }}
+              className="relative z-10 w-full py-3 px-4 bg-[#C0392B] hover:bg-[#A93226] active:scale-[0.99] text-white font-serif font-bold text-sm rounded-xl text-center transition-all flex items-center justify-center space-x-2 shadow-sm cursor-pointer"
+            >
+              <span>새로운 인연방 만들기</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Card 2: Join by Code */}
+          <div className="bg-[#FAF8F5] p-6 rounded-2xl flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#5A524A] font-serif bg-white px-2.5 py-1 rounded-lg shadow-2xs">
+                  <KeyRound className="w-3.5 h-3.5 text-[#C0392B]" />
+                  초대 코드 입장
+                </span>
+                <span className="text-[11px] text-[#8C827A]">공유받은 6자리</span>
+              </div>
+              <h2 className="text-base sm:text-lg font-serif font-bold text-[#1E293B]">
+                전달받은 코드로 바로 참여
+              </h2>
+              <p className="text-xs text-[#64748B] leading-relaxed">
+                단톡방에서 공유받은 영문/숫자 6자리 코드를 입력하여 모임 궁합 명부에 이름을 올리세요.
+              </p>
+            </div>
+
+            <form id="join-code-form" onSubmit={handleJoinByCode} className="space-y-2.5">
+              <div className="flex space-x-2">
+                <input
+                  id="join-code-input"
+                  type="text"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="예: AF7X29"
+                  className="flex-grow px-3.5 py-2.5 bg-white border border-[#D6CCBC] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C0392B]/20 focus:border-[#C0392B] text-sm text-[#1E293B] placeholder:text-[#B0A69B] uppercase font-mono tracking-widest font-bold"
+                />
+                <button
+                  id="join-code-submit"
+                  type="submit"
+                  className="px-5 py-2.5 bg-[#1E293B] text-white rounded-xl text-xs font-serif font-bold hover:bg-[#0F172A] active:scale-[0.98] transition-all cursor-pointer whitespace-nowrap shadow-2xs"
+                >
+                  입장하기
+                </button>
+              </div>
+              {error && (
+                <p className="text-[11px] text-[#C0392B] font-medium">⚠️ {error}</p>
+              )}
+            </form>
+          </div>
+        </div>
+
+        {/* ========================================================================= */}
+        {/* MY REGISTERED ROOMS LIST (나의 인연 사주방 기록서 - 회원 전용) */}
+        {/* ========================================================================= */}
+        {currentUser && !currentUser.isAnonymous && (
+          <div className="border-t border-[#EFE9DF] pt-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EFE9DF] pb-3">
+              <div className="flex items-center space-x-2 text-[#1E293B]">
+                <BookOpen className="w-4 h-4 text-[#C0392B]" />
+                <h3 className="font-serif text-sm font-bold tracking-tight">
+                  나의 인연방 목록
+                </h3>
+                <span className="text-[11px] font-mono text-[#8C827A] bg-[#FAF8F5] px-2 py-0.5 rounded-full font-bold">
+                  {historyRooms.length}개
+                </span>
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    {currentUser?.displayName || currentUser?.email}
                   </span>
                   <button
                     type="button"
@@ -239,420 +422,459 @@ export default function LandingView() {
                         console.error("Sign-out error:", err);
                       }
                     }}
-                    className="flex items-center space-x-0.5 text-[9px] font-bold text-[#C0392B] hover:bg-[#C0392B] hover:text-[#FAF7F2] px-1.5 py-0.5 rounded border border-[#C0392B] bg-[#FAF7F2] transition duration-150 cursor-pointer"
+                    className="inline-flex items-center space-x-1 text-[10px] font-bold text-[#C0392B] hover:bg-[#C0392B] hover:text-white px-2 py-0.5 rounded border border-[#C0392B]/40 bg-white transition duration-150 cursor-pointer"
                   >
-                    <LogOut className="w-2.5 h-2.5" />
+                    <LogOut className="w-3 h-3" />
                     <span>로그아웃</span>
                   </button>
                 </div>
-              )}
+              </div>
             </div>
 
-            {currentUser?.email === "lhs41977@gmail.com" && (
-              <div className="bg-purple-50 border border-purple-200 p-3.5 rounded-xl text-[11px] text-purple-800 space-y-2">
-                <p className="font-bold flex items-center">
-                  <span className="mr-1">👑</span>
-                  <span>최고 관리 권한 (Master Administrator) 활성화</span>
-                </p>
-                <p className="text-purple-700/90 leading-relaxed font-semibold">
-                  lhs41977@gmail.com 계정으로 접속하셨습니다. 데이터베이스 내의 모든 생성된 사주 인연방 원격 모니터링 및 실시간 설문 & BM 정책 관리를 지원합니다.
-                </p>
-                <a
-                  href="#/admin"
-                  className="block w-full py-2 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-lg text-center text-xs tracking-wider transition shadow-sm cursor-pointer"
+            {/* Filter Chips */}
+            {historyRooms.length > 0 && (
+              <div className="flex items-center gap-1.5 text-xs font-medium">
+                <button
+                  type="button"
+                  onClick={() => setRoomFilter("all")}
+                  className={`px-2.5 py-1 rounded-lg transition-all text-[11px] font-serif font-bold cursor-pointer ${
+                    roomFilter === "all"
+                      ? "bg-[#1E293B] text-white shadow-2xs"
+                      : "bg-[#FAF8F5] text-[#64748B] hover:bg-[#F4EFE6] border border-[#E7E1D6]"
+                  }`}
                 >
-                  🔒 실시간 설문 & BM 관리자 콘솔 입장
-                </a>
+                  전체 ({historyRooms.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRoomFilter("owner")}
+                  className={`px-2.5 py-1 rounded-lg transition-all text-[11px] font-serif font-bold cursor-pointer ${
+                    roomFilter === "owner"
+                      ? "bg-[#C0392B] text-white shadow-2xs"
+                      : "bg-[#FAF8F5] text-[#64748B] hover:bg-[#F4EFE6] border border-[#E7E1D6]"
+                  }`}
+                >
+                  내가 방장 ({historyRooms.filter(r => r.role === "owner" || r.role === "admin").length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRoomFilter("member")}
+                  className={`px-2.5 py-1 rounded-lg transition-all text-[11px] font-serif font-bold cursor-pointer ${
+                    roomFilter === "member"
+                      ? "bg-blue-600 text-white shadow-2xs"
+                      : "bg-[#FAF8F5] text-[#64748B] hover:bg-[#F4EFE6] border border-[#E7E1D6]"
+                  }`}
+                >
+                  참여한 모임 ({historyRooms.filter(r => r.role === "member").length})
+                </button>
               </div>
             )}
 
             {roomsLoading ? (
-              <div className="py-6 text-center text-xs text-[#8C7B6E] flex justify-center items-center space-x-2 animate-pulse">
+              <div className="py-8 text-center text-xs text-[#8C827A] flex justify-center items-center space-x-2 animate-pulse">
                 <Compass className="w-4 h-4 animate-spin text-[#C0392B]" />
-                <span>사주 명부를 살피는 중...</span>
+                <span>사주 인연 명부를 동기화하는 중...</span>
               </div>
             ) : historyRooms.length > 0 ? (
-              <div className="space-y-2">
-                <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                  {historyRooms.map((room) => (
-                    <div
-                      key={room.code}
-                      className="flex items-center justify-between p-3 rounded-xl border border-[#E8E0D0]/70 bg-white hover:bg-[#F2ECE0]/20 transition-all group duration-150"
-                    >
-                      <a
-                        href={`#/room/${room.code}`}
-                        className="flex-grow space-y-1 block"
-                      >
-                        <div className="flex items-center space-x-1.5">
-                          <span
-                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
-                              room.role === "admin"
-                                ? "bg-purple-50 text-purple-700 border-purple-200"
-                                : room.role === "owner"
-                                  ? "bg-red-50 text-red-700 border-red-200"
-                                  : "bg-blue-50 text-blue-700 border-blue-200"
-                            }`}
-                          >
-                            {room.role === "admin" ? "운영자" : room.role === "owner" ? "방장" : "참가"}
-                          </span>
-                          <h4 className="text-xs font-bold text-[#2C3E50] group-hover:text-[#C0392B] transition-colors line-clamp-1">
-                            {room.title}
-                          </h4>
-                        </div>
-                        <p className="text-[10px] text-[#8C7B6E] font-mono tracking-wider">
-                          코드: {room.code}
-                        </p>
-                      </a>
-                      <div className="flex items-center space-x-1.5 ml-2 shrink-0">
-                        <button
-                          type="button"
-                          title="목록에서 삭제"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            if (confirm(`'${room.title}' 방을 목록에서 제외하시겠습니까?\n\n(참고사항: 실제 데이터가 삭제되는 것은 아니며, 본인의 브라우저 목록에서만 제외됩니다. 초대 코드를 입력해 언제든 재참여할 수 있습니다)`)) {
-                              await removeRoomFromHistory(room.code);
-                              setHistoryRooms((prev) => prev.filter((r) => r.code !== room.code));
-                            }
-                          }}
-                          className="p-1.5 text-gray-300 hover:text-[#C0392B] rounded-lg hover:bg-red-50 transition duration-150 cursor-pointer"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                        <ChevronRight className="w-4 h-4 text-[#8C7B6E] group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="space-y-3">
+                {(() => {
+                  const filtered = historyRooms.filter((r) => {
+                    if (roomFilter === "owner") return r.role === "owner" || r.role === "admin";
+                    if (roomFilter === "member") return r.role === "member";
+                    return true;
+                  });
+                  const displayed = isRoomsExpanded ? filtered : filtered.slice(0, 3);
 
-                {/* Local Storage / Cache Troubleshooting Support Footer */}
-                <div className="pt-2.5 mt-2 border-t border-[#E8E0D0]/50 flex justify-between items-center text-[10px] text-[#8C7B6E]">
-                  <span>방 목록이 안 보이시나요?</span>
-                  <div className="flex items-center space-x-2 font-semibold">
+                  return (
+                    <>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {displayed.map((room) => (
+                          <div
+                            key={room.code}
+                            className="flex items-center justify-between p-3.5 rounded-xl border border-[#E7E1D6] bg-[#FAF8F5] hover:bg-[#F4EFE6] hover:border-[#D6CCBC] transition-all group"
+                          >
+                            <a
+                              href={`#/room/${room.code}`}
+                              className="flex-grow space-y-1 block min-w-0 pr-2"
+                            >
+                              <div className="flex items-center space-x-2">
+                                <span
+                                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                                    room.role === "admin"
+                                      ? "bg-[#1E293B]/10 text-[#1E293B] border-[#1E293B]/20"
+                                      : room.role === "owner"
+                                        ? "bg-red-50 text-red-700 border-red-200"
+                                        : "bg-blue-50 text-blue-700 border-blue-200"
+                                  }`}
+                                >
+                                  {room.role === "admin" ? "운영자" : room.role === "owner" ? "방장" : "참가"}
+                                </span>
+                                <h4 className="text-xs font-bold text-[#1E293B] group-hover:text-[#C0392B] transition-colors truncate" title={room.title}>
+                                  {room.title}
+                                </h4>
+                              </div>
+                              <p className="text-[10px] text-[#8C827A] font-mono tracking-wider">
+                                코드: <strong className="text-[#1E293B]">{room.code}</strong>
+                              </p>
+                            </a>
+
+                            <div className="flex items-center space-x-1 shrink-0">
+                              <button
+                                type="button"
+                                title={room.role === "admin" ? "인연방 데이터 영구 삭제" : "목록에서 제외"}
+                                aria-label={room.role === "admin" ? "인연방 데이터 영구 삭제" : "목록에서 제외"}
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  
+                                  const targetTitle = room.title || "인연 사주방";
+                                  if (!confirm(`정말로 '${targetTitle}' 방을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다`)) {
+                                    return;
+                                  }
+
+                                  // Commit any previously pending deletion immediately to keep action stack consistent
+                                  if (pendingDeleteRoom) {
+                                    await handleImmediateCommit(pendingDeleteRoom);
+                                  }
+
+                                  const isSystemAdmin = currentUser?.email?.toLowerCase() === "lhs41977@gmail.com";
+                                  const actionType = (isSystemAdmin && room.role === "admin") ? "delete_db" : "exclude_list";
+
+                                  // Optimistically hide from UI immediately
+                                  setHistoryRooms((prev) => prev.filter((r) => r.code !== room.code));
+
+                                  // Queue delayed backend operation
+                                  const timeoutId = setTimeout(async () => {
+                                    try {
+                                      if (actionType === "delete_db") {
+                                        const idToken = await currentUser?.getIdToken();
+                                        if (idToken) {
+                                          await fetch(`/api/admin/rooms/${room.code}`, {
+                                            method: "DELETE",
+                                            headers: {
+                                              Authorization: `Bearer ${idToken}`
+                                            }
+                                          });
+                                        }
+                                      } else {
+                                        await removeRoomFromHistory(room.code);
+                                      }
+                                    } catch (err) {
+                                      console.error("Delayed execution failed:", err);
+                                    } finally {
+                                      setPendingDeleteRoom(null);
+                                    }
+                                  }, 5000);
+
+                                  setPendingDeleteRoom({
+                                    code: room.code,
+                                    title: targetTitle,
+                                    role: room.role,
+                                    actionType,
+                                    roomObj: room,
+                                    timeoutId
+                                  });
+                                }}
+                                className="min-w-[40px] min-h-[40px] flex items-center justify-center text-gray-300 hover:text-[#C0392B] rounded-lg hover:bg-white transition cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                              <ChevronRight className="w-4 h-4 text-[#8C827A] group-hover:translate-x-0.5 transition-transform" />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {filtered.length > 3 && (
+                        <div className="pt-2 text-center">
+                          <button
+                            type="button"
+                            onClick={() => setIsRoomsExpanded(!isRoomsExpanded)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#FAF8F5] hover:bg-[#F2ECE0] border border-[#E7E1D6] text-xs font-serif font-bold text-[#1E293B] rounded-xl transition cursor-pointer shadow-3xs active:scale-98"
+                          >
+                            <span>
+                              {isRoomsExpanded
+                                ? "인연방 목록 접기 ▲"
+                                : `외 ${filtered.length - 3}개 인연방 더보기 (전체 ${filtered.length}개) ▼`}
+                            </span>
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+
+                {/* Troubleshooting Footer */}
+                <div className="pt-3 border-t border-[#EFE9DF] flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[#8C827A]">
+                  <span>방 목록이 누락되었나요?</span>
+                  <div className="flex items-center space-x-3 font-medium">
                     <button
                       type="button"
                       onClick={() => {
                         setRoomsLoading(true);
-                        setTimeout(() => {
-                          window.location.reload();
-                        }, 400);
+                        setTimeout(() => window.location.reload(), 300);
                       }}
-                      className="inline-flex items-center space-x-1 text-[#2C3E50] hover:text-[#C0392B] transition cursor-pointer"
+                      className="inline-flex items-center space-x-1 text-[#1E293B] hover:text-[#C0392B] transition cursor-pointer"
                     >
-                      <RefreshCw className="w-2.5 h-2.5" />
-                      <span>목록 동기화</span>
+                      <RefreshCw className="w-3 h-3" />
+                      <span>목록 새로고침</span>
                     </button>
                     <span className="text-gray-300">|</span>
                     <button
                       type="button"
                       onClick={() => {
-                        if (confirm("⚠️ 모든 로컬 방 참여 기록 및 캐시를 완전히 비우시겠습니까?\n\n(방 자체가 삭제되지는 않으나, 다시 들어가기 위해서는 방의 6자리 초대 코드를 입력하셔야 합니다. 목록을 깨끗하게 정리할 때 아주 유용합니다)")) {
+                        if (confirm("⚠️ 브라우저 로컬 방 참여 기록과 캐시를 초기화하시겠습니까?\n\n초대 코드로 언제든 재참여할 수 있습니다.")) {
                           clearAllLocalCache();
-                          alert("브라우저 로컬 데이터가 안전하게 모두 정제되었습니다. 첫 페이지로 이동합니다.");
                           window.location.reload();
                         }
                       }}
-                      className="text-[#8C7B6E] hover:text-red-600 transition cursor-pointer"
+                      className="text-[#8C827A] hover:text-red-600 transition cursor-pointer"
                     >
-                      전체 캐시 비우기
+                      캐시 초기화
                     </button>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="py-7 text-center space-y-2">
-                <p className="text-[11px] text-[#8C7B6E] leading-loose">
-                  아직 가입했거나 개설한 모임방 인연이 없습니다.<br />
+              <div className="py-8 text-center space-y-2">
+                <p className="text-xs text-[#8C827A] leading-relaxed">
+                  아직 가입하거나 개설한 인연방이 없습니다.<br />
                   새로운 방을 세우거나 초대 코드로 참례해 보세요.
                 </p>
-                {!isGoogleUser && (
-                  <div className="pt-1.5 max-w-xs mx-auto">
-                    <button
-                      type="button"
-                      disabled={loginLoading}
-                      onClick={async () => {
-                        try {
-                          setLoginLoading(true);
-                          await signInWithGoogle();
-                        } catch (err) {
-                          console.error("Popup login failed:", err);
-                        } finally {
-                          setLoginLoading(false);
-                        }
-                      }}
-                      className="inline-flex items-center justify-center space-x-1 py-1.5 px-3 bg-white border border-[#D6CCBC] text-[10px] text-[#2C3E50] font-bold rounded-lg hover:bg-slate-50 transition-all cursor-pointer shadow-2xs"
-                    >
-                      <LogIn className="w-3 h-3 text-[#C0392B]" />
-                      <span>{loginLoading ? "로그인 중..." : "구글 로그인으로 방 목록 복구하기"}</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* Local Storage / Cache Troubleshooting Support Footer for Empty list */}
-                <div className="pt-2.5 mt-2 border-t border-[#E8E0D0]/50 flex justify-end text-[10px]">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (confirm("⚠️ 모든 로컬 방 참여 기록 및 캐시를 완전히 비우시겠습니까?\n\n(기록 정리 및 캐시 불일치 해결 시 유용합니다)")) {
-                        clearAllLocalCache();
-                        alert("브라우저 캐시 데이터가 정제되었습니다.");
-                        window.location.reload();
-                      }
-                    }}
-                    className="font-semibold text-[#8C7B6E] hover:text-red-600 transition cursor-pointer"
-                  >
-                    브라우저 캐시 비우기
-                  </button>
-                </div>
               </div>
             )}
           </div>
+        )}
 
-          {/* Real-time Google Ads Slot / Fallback Premium Promo - Removed on landing page to strictly adhere to AdSense Policy */}
+        {/* ========================================================================= */}
+        {/* 4 CORE ANALYSIS MODULES (Bento Feature Showcase) */}
+        {/* ========================================================================= */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2 border-b border-[#EFE9DF] pb-2">
+            <span className="text-xs font-serif font-bold text-[#1E293B] uppercase tracking-wider">
+              ✦ 인연사주 4대 핵심 분석 영역
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Feature 1 */}
+            <div className="p-4 bg-[#FAF8F5] rounded-xl space-y-1.5">
+              <span className="text-base font-serif text-[#C0392B] font-bold">01</span>
+              <h4 className="text-xs font-serif font-bold text-[#1E293B]">음양오행 생극제화</h4>
+              <p className="text-[11px] text-[#64748B] leading-relaxed">
+                목·화·토·금·수 오행의 분포와 모임 내 결핍/과다 기운을 진단하여 상생의 흐름을 밝힙니다.
+              </p>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="p-4 bg-[#FAF8F5] rounded-xl space-y-1.5">
+              <span className="text-base font-serif text-[#C0392B] font-bold">02</span>
+              <h4 className="text-xs font-serif font-bold text-[#1E293B]">자미두수 12궁 명반</h4>
+              <p className="text-[11px] text-[#64748B] leading-relaxed">
+                북극성과 108개 성좌 배치를 기반으로 명궁과 부처궁, 노복궁의 인연 지형도를 정밀 해독합니다.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="p-4 bg-[#FAF8F5] rounded-xl space-y-1.5">
+              <span className="text-base font-serif text-[#C0392B] font-bold">03</span>
+              <h4 className="text-xs font-serif font-bold text-[#1E293B]">현대 MBTI 성향 융합</h4>
+              <p className="text-[11px] text-[#64748B] leading-relaxed">
+                동양 철학과 현대 성격 심리학(MBTI)을 교차 분석하여 소통 방식과 가치관 호환도를 측정합니다.
+              </p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="p-4 bg-[#FAF8F5] rounded-xl space-y-1.5">
+              <span className="text-base font-serif text-[#C0392B] font-bold">04</span>
+              <h4 className="text-xs font-serif font-bold text-[#1E293B]">맞춤형 상생 처방전</h4>
+              <p className="text-[11px] text-[#64748B] leading-relaxed">
+                갈등이 우려되는 관계라도 오행 보완 및 대화 행동 수칙을 제공하여 원만한 시너지를 돕습니다.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* PUBLISHER CONTENT & MYUNGRIHAK EDUCATIONAL GUIDE (Google AdSense Compliant) */}
+        {/* ACADEMIC ARCHIVE & FAQ CONSOLIDATED SECTION (Google AdSense Quality Content) */}
         {/* ========================================================================= */}
-        <div className="w-full mt-8 text-left space-y-6 border-t border-[#D6CCBC] pt-8">
-          
-          {/* Section 1: Introduction to Myungrihak & Group Chemistry */}
-          <section className="bg-[#FCFAF6] border border-[#D6CCBC] p-5 rounded-2xl shadow-xs space-y-3">
-            <div className="flex items-center space-x-2 border-b border-[#E8E0D0] pb-2">
-              <span className="text-lg">📜</span>
-              <h3 className="font-serif text-sm font-bold text-[#2C3E50]">
-                동양 전통 명리학(命理學)과 모임 궁합의 원리
+        <div className="border-t border-[#EFE9DF] pt-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EFE9DF] pb-3">
+            <div className="flex items-center space-x-2">
+              <BookOpen className="w-4 h-4 text-[#C0392B]" />
+              <h3 className="font-serif text-sm font-bold text-[#1E293B]">
+                인연 연구소 · 학술 칼럼 & FAQ
               </h3>
             </div>
-            <p className="text-xs text-[#5A4D41] leading-relaxed">
-              <strong>인연사주</strong>는 태어난 연·월·일·시의 음양오행(陰陽五行) 생극제화(生克制化) 원리와 자미두수(紫微斗數) 명반을 종합적으로 분석하여, 단톡방, 동호회, 회사 팀 등 여러 사람이 모였을 때 발생하는 <strong>그룹 케미스트리(Group Chemistry)</strong>를 측정하는 혁신적인 동양학 서비스입니다.
-            </p>
-            <p className="text-xs text-[#5A4D41] leading-relaxed">
-              수천 년 역사의 정통 만세력(萬歲曆) 알고리즘을 바탕으로 태어난 날의 천간(日干)을 중심으로 본연의 성향을 진단하며, 모임 내 구성원 간 1:1 상생(相生)·상극(相剋) 관계 및 십성(十星) 대운의 조화를 다각도로 규명합니다.
-            </p>
-          </section>
 
-          {/* Section 2: Five Elements (오행: 木 火 土 金 水) Explanation */}
-          <section className="bg-white border border-[#D6CCBC] p-5 rounded-2xl shadow-xs space-y-3">
-            <h3 className="font-serif text-xs font-bold text-[#2C3E50] border-b border-[#E8E0D0] pb-2 uppercase tracking-wider flex items-center">
-              <span className="text-[#C0392B] mr-1.5 font-bold">☯</span>
-              음양오행(陰陽五行)의 상생과 상극 구조
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-[#5A4D41]">
-              <div className="p-3 bg-[#FCFAF6] rounded-xl border border-[#E8E0D0]">
-                <h4 className="font-bold text-[#C0392B] mb-1">🌿 목(木) & 화(火) 기운</h4>
-                <p className="text-[11px] leading-relaxed">
-                  <strong>목(木)</strong>은 창의성과 성장을, <strong>화(火)</strong>는 열정과 추진력을 상징합니다. 목생화(木生火) 원리로 목 기운이 화 기운을 뒷받침할 때 그룹 내 아이디어 발상과 기획력이 극대화됩니다.
-                </p>
-              </div>
-              <div className="p-3 bg-[#FCFAF6] rounded-xl border border-[#E8E0D0]">
-                <h4 className="font-bold text-[#8C6D31] mb-1">⛰️ 토(土) 기운</h4>
-                <p className="text-[11px] leading-relaxed">
-                  <strong>토(土)</strong>는 신뢰와 중재, 포용력을 의미합니다. 대립하는 기운을 완충하여 모임의 중심을 잡아주고 구성원 간 갈등을 조율하는 핵심적인 중재자 역할을 수행합니다.
-                </p>
-              </div>
-              <div className="p-3 bg-[#FCFAF6] rounded-xl border border-[#E8E0D0]">
-                <h4 className="font-bold text-[#4A6B82] mb-1">⚔️ 금(金) 기운</h4>
-                <p className="text-[11px] leading-relaxed">
-                  <strong>금(金)</strong>은 결단력과 규율, 결실을 상징합니다. 단호한 규칙 제정과 결단으로 모임의 실행력을 높이며 과감한 목표 달성을 이끌어냅니다.
-                </p>
-              </div>
-              <div className="p-3 bg-[#FCFAF6] rounded-xl border border-[#E8E0D0]">
-                <h4 className="font-bold text-[#2C3E50] mb-1">🌊 수(水) 기운</h4>
-                <p className="text-[11px] leading-relaxed">
-                  <strong>수(水)</strong>는 지혜, 유연성, 소통 능력을 뜻합니다. 수생목(水生木) 원리로 상대를 적시며 차분하게 아이디어를 심화시키고 공감대를 형성합니다.
-                </p>
-              </div>
+            {/* Archive Tab Switcher */}
+            <div className="flex bg-[#FAF7F2] p-1 rounded-xl text-xs font-bold self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={() => setArchiveTab("columns")}
+                className={`px-3 py-1.5 rounded-lg transition text-center flex items-center gap-1.5 cursor-pointer ${
+                  archiveTab === "columns"
+                    ? "bg-white text-[#2C3E50] shadow-2xs font-serif"
+                    : "text-[#64748B] hover:text-[#2C3E50]"
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#C0392B]" />
+                <span>명리학 학술 칼럼 (4편)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setArchiveTab("faq")}
+                className={`px-3 py-1.5 rounded-lg transition text-center flex items-center gap-1.5 cursor-pointer ${
+                  archiveTab === "faq"
+                    ? "bg-white text-[#2C3E50] shadow-2xs font-serif"
+                    : "text-[#64748B] hover:text-[#2C3E50]"
+                }`}
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-[#C0392B]" />
+                <span>자주 묻는 질문 FAQ</span>
+              </button>
             </div>
-          </section>
+          </div>
 
-          {/* Section 3: Key Features & Usage Guide */}
-          <section className="bg-[#FCFAF6] border border-[#D6CCBC] p-5 rounded-2xl shadow-xs space-y-3">
-            <h3 className="font-serif text-xs font-bold text-[#2C3E50] border-b border-[#E8E0D0] pb-2 uppercase tracking-wider flex items-center">
-              <span className="text-[#C0392B] mr-1.5 font-bold">✦</span>
-              인연사주 핵심 가이드 및 활용법
-            </h3>
-            <ol className="list-decimal pl-4 space-y-2 text-xs text-[#5A4D41] leading-relaxed font-medium">
-              <li>
-                <strong>초대 링크 기반 그룹 참여:</strong> 카카오톡 단톡방이나 모임에 6자리 초대 코드를 공유하여 손쉽게 동료들을 초대할 수 있습니다.
-              </li>
-              <li>
-                <strong>정밀한 음양오행 및 캐릭터 입명:</strong> 양력/음력 출생 정보와 정확한 시(時)를 입력하여 12간지 소동물 캐릭터와 개인 오행 분포를 도출합니다.
-              </li>
-              <li>
-                <strong>1:1 궁합 매칭 및 시너지 매트릭스:</strong> 두 명씩 짝지은 속궁합, 대운 흐름, 성격 상충 및 상생 지수를 인공지능 명리학 엔진으로 상세히 분석합니다.
-              </li>
-              <li>
-                <strong>개인정보 철저 보호:</strong> 모든 사주 정보는 안전하게 암호화 관리되며 언제든 방 탈퇴 및 데이터 삭제가 가능합니다.
-              </li>
-            </ol>
-          </section>
-
-          {/* Section 4: Comprehensive FAQ (자주 묻는 질문) */}
-          <section className="bg-white border border-[#D6CCBC] p-5 rounded-2xl shadow-xs space-y-3">
-            <h3 className="font-serif text-xs font-bold text-[#2C3E50] border-b border-[#E8E0D0] pb-2 uppercase tracking-wider flex items-center">
-              <span className="text-[#C0392B] mr-1.5 font-bold">❓</span>
-              자주 묻는 질문 (FAQ)
-            </h3>
-
-            <div className="space-y-3 text-xs text-[#5A4D41]">
-              <div className="border-b border-[#F2ECE0] pb-2.5">
-                <h4 className="font-bold text-[#2C3E50] mb-1">Q1. 출생 시(時)를 모르는 경우에도 사주 분석이 가능한가요?</h4>
-                <p className="text-[11px] text-[#7A6B5D] leading-relaxed">
-                  네, 출생 시를 모를 경우 '삼주(연·월·일)' 만으로도 음양오행과 일간(日干) 본질 분석을 기본 수행합니다. 다만, 더 정밀한 자미두수 명반과 1:1 속궁합 정밀 분석을 위해 가급적 태어난 시각을 확인하여 입력하시는 것을 권장합니다.
-                </p>
-              </div>
-
-              <div className="border-b border-[#F2ECE0] pb-2.5">
-                <h4 className="font-bold text-[#2C3E50] mb-1">Q2. 음력 생일 및 윤달 처리는 어떻게 이루어지나요?</h4>
-                <p className="text-[11px] text-[#7A6B5D] leading-relaxed">
-                  인연사주는 천문학 정통 만세력 데이터베이스를 탑재하고 있어 음력 생일 및 윤달(潤月) 날짜를 양력 정밀 시각으로 자동 전환하여 정확한 절기(節氣) 기준 사주 팔자를 도출합니다.
-                </p>
-              </div>
-
-              <div className="border-b border-[#F2ECE0] pb-2.5">
-                <h4 className="font-bold text-[#2C3E50] mb-1">Q3. 모임방에는 최대 몇 명까지 참여할 수 있나요?</h4>
-                <p className="text-[11px] text-[#7A6B5D] leading-relaxed">
-                  기본적으로 인원 제한 없이 여러 지인이 자유롭게 참여할 수 있으며, 2명 이상의 멤버가 모이면 1:1 사주 궁합과 그룹 오행 조화도가 실시간 업데이트됩니다.
-                </p>
-              </div>
-
-              <div className="border-b border-[#F2ECE0] pb-2.5">
-                <h4 className="font-bold text-[#2C3E50] mb-1">Q4. 작성한 개인 생년월일 정보는 어떻게 관리되나요?</h4>
-                <p className="text-[11px] text-[#7A6B5D] leading-relaxed">
-                  입력된 사주 및 운세 정보는 오직 궁합 리포트 생성 목적으로만 활용되며 외부 제3자에게 절대 제공되지 않습니다. 개인 프로필 수정 또는 방 삭제를 통해 언제든 완전 삭제할 수 있습니다.
-                </p>
-              </div>
-            </div>
-          </section>
-
-          {/* Section 5: Myungrihak Academic Column Archive (AdSense High Quality Publisher Content) */}
-          <section className="bg-white border border-[#D6CCBC] p-5 rounded-2xl shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-[#E8E0D0] pb-2">
-              <div className="flex items-center space-x-2">
-                <BookOpen className="w-4 h-4 text-[#C0392B]" />
-                <h3 className="font-serif text-xs font-bold text-[#2C3E50] uppercase tracking-wider">
-                  명리학 학술 칼럼 & 인연 연구소
-                </h3>
-              </div>
-              <span className="text-[10px] text-[#8C7B6E] font-medium">정통 명리 칼럼 4편</span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {archiveTab === "columns" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 animate-fade-in">
               {/* Column 1 */}
               <div 
-                onClick={() => setPolicyModal("column1")}
-                className="p-3.5 bg-[#FCFAF6] hover:bg-[#F7F2EA] border border-[#E8E0D0] rounded-xl cursor-pointer transition-all space-y-1.5 group"
+                onClick={() => { 
+                  setPolicyModal("column1");
+                  window.location.hash = "#/column/1"; 
+                }}
+                className="p-4 bg-[#FAF8F5] hover:bg-[#F4EFE6] rounded-xl cursor-pointer transition-all space-y-1.5 group shadow-2xs"
               >
                 <div className="flex items-center justify-between text-[10px] text-[#C0392B] font-bold">
-                  <span>칼럼 01</span>
+                  <span>학술 칼럼 01</span>
                   <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
-                <h4 className="text-xs font-bold text-[#2C3E50] group-hover:text-[#C0392B] transition-colors">
-                  십성(十星)으로 해석하는 사회적 관계와 팀워크
+                <h4 className="text-xs font-serif font-bold text-[#1E293B] group-hover:text-[#C0392B] transition-colors">
+                  십성(十星)으로 해석하는 사회적 관계와 팀워크 심리학
                 </h4>
-                <p className="text-[11px] text-[#7A6B5D] line-clamp-2 leading-relaxed">
-                  비견, 겁재, 식신, 상관, 편재, 정재, 편관, 정관, 편인, 정인 십성 체계가 조직과 모임 구성원의 행동 양식에 미치는 영향을 학술적으로 고찰합니다.
+                <p className="text-[11px] text-[#64748B] truncate leading-relaxed">
+                  십성 체계가 조직과 모임 구성원의 행동 방식에 미치는 영향 분석.
                 </p>
               </div>
 
               {/* Column 2 */}
               <div 
-                onClick={() => setPolicyModal("column2")}
-                className="p-3.5 bg-[#FCFAF6] hover:bg-[#F7F2EA] border border-[#E8E0D0] rounded-xl cursor-pointer transition-all space-y-1.5 group"
+                onClick={() => { 
+                  setPolicyModal("column2");
+                  window.location.hash = "#/column/2"; 
+                }}
+                className="p-4 bg-[#FAF8F5] hover:bg-[#F4EFE6] rounded-xl cursor-pointer transition-all space-y-1.5 group shadow-2xs"
               >
                 <div className="flex items-center justify-between text-[10px] text-[#C0392B] font-bold">
-                  <span>칼럼 02</span>
+                  <span>학술 칼럼 02</span>
                   <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
-                <h4 className="text-xs font-bold text-[#2C3E50] group-hover:text-[#C0392B] transition-colors">
+                <h4 className="text-xs font-serif font-bold text-[#1E293B] group-hover:text-[#C0392B] transition-colors">
                   자미두수(紫微斗數) 명반과 대운의 인연 지형도
                 </h4>
-                <p className="text-[11px] text-[#7A6B5D] line-clamp-2 leading-relaxed">
-                  북극성과 12궁 명반 배치, 그리고 10년 대운(大運)의 주기적 변화가 사람 사이의 궁합과 협력 시기에 미치는 파급력을 다룹니다.
+                <p className="text-[11px] text-[#64748B] truncate leading-relaxed">
+                  북극성과 12궁 명반 및 대운 주기가 궁합에 미치는 파급력 연구.
                 </p>
               </div>
 
               {/* Column 3 */}
               <div 
-                onClick={() => setPolicyModal("column3")}
-                className="p-3.5 bg-[#FCFAF6] hover:bg-[#F7F2EA] border border-[#E8E0D0] rounded-xl cursor-pointer transition-all space-y-1.5 group"
+                onClick={() => { 
+                  setPolicyModal("column3");
+                  window.location.hash = "#/column/3"; 
+                }}
+                className="p-4 bg-[#FAF8F5] hover:bg-[#F4EFE6] rounded-xl cursor-pointer transition-all space-y-1.5 group shadow-2xs"
               >
                 <div className="flex items-center justify-between text-[10px] text-[#C0392B] font-bold">
-                  <span>칼럼 03</span>
+                  <span>학술 칼럼 03</span>
                   <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
-                <h4 className="text-xs font-bold text-[#2C3E50] group-hover:text-[#C0392B] transition-colors">
+                <h4 className="text-xs font-serif font-bold text-[#1E293B] group-hover:text-[#C0392B] transition-colors">
                   음양오행(陰陽五行) 생극제화와 스트레스 완화
                 </h4>
-                <p className="text-[11px] text-[#7A6B5D] line-clamp-2 leading-relaxed">
-                  목·화·토·금·수 오행의 치우침을 진단하고, 모임 구성원 상호 간 부족한 기운을 보완하는 오행 균형 조화 방법론입니다.
+                <p className="text-[11px] text-[#64748B] truncate leading-relaxed">
+                  오행의 치우침을 진단하고 상호 부족한 기운을 보완하는 방법론.
                 </p>
               </div>
 
               {/* Column 4 */}
               <div 
-                onClick={() => setPolicyModal("column4")}
-                className="p-3.5 bg-[#FCFAF6] hover:bg-[#F7F2EA] border border-[#E8E0D0] rounded-xl cursor-pointer transition-all space-y-1.5 group"
+                onClick={() => { 
+                  setPolicyModal("column4");
+                  window.location.hash = "#/column/4"; 
+                }}
+                className="p-4 bg-[#FAF8F5] hover:bg-[#F4EFE6] rounded-xl cursor-pointer transition-all space-y-1.5 group shadow-2xs"
               >
                 <div className="flex items-center justify-between text-[10px] text-[#C0392B] font-bold">
-                  <span>칼럼 04</span>
+                  <span>학술 칼럼 04</span>
                   <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
-                <h4 className="text-xs font-bold text-[#2C3E50] group-hover:text-[#C0392B] transition-colors">
+                <h4 className="text-xs font-serif font-bold text-[#1E293B] group-hover:text-[#C0392B] transition-colors">
                   정통 만세력 알고리즘과 절기(節氣) 도출 고찰
                 </h4>
-                <p className="text-[11px] text-[#7A6B5D] line-clamp-2 leading-relaxed">
-                  입춘, 경칩, 청명 등 절기 시각의 정밀 변환 알고리즘과 태어난 시간대별 자시(子時) 구분 기준을 상세 고찰합니다.
+                <p className="text-[11px] text-[#64748B] truncate leading-relaxed">
+                  절기 시각 정밀 변환 알고리즘과 자시 구분 기준 상세 고찰.
                 </p>
               </div>
             </div>
-          </section>
-
-          {/* Section 6: Legal & Policy Footer Links (AdSense Strictly Compliant) */}
-          <div className="text-[11px] text-[#8C7B6E] leading-relaxed text-center py-4 border-t border-[#E8E0D0] space-y-2">
-            <div className="flex flex-wrap items-center justify-center gap-3 font-semibold text-[#5A4D41]">
-              <button 
-                onClick={() => setPolicyModal("privacy")}
-                className="hover:text-[#C0392B] underline decoration-[#D6CCBC] underline-offset-2 transition cursor-pointer"
-              >
-                개인정보처리방침
-              </button>
-              <span className="text-[#D6CCBC]">|</span>
-              <button 
-                onClick={() => setPolicyModal("terms")}
-                className="hover:text-[#C0392B] underline decoration-[#D6CCBC] underline-offset-2 transition cursor-pointer"
-              >
-                이용약관
-              </button>
-              <span className="text-[#D6CCBC]">|</span>
-              <button 
-                onClick={() => setPolicyModal("cookies")}
-                className="hover:text-[#C0392B] underline decoration-[#D6CCBC] underline-offset-2 transition cursor-pointer"
-              >
-                광고 및 쿠키 정책
-              </button>
+          ) : (
+            <div className="space-y-2.5 animate-fade-in">
+              {[
+                {
+                  q: "Q1. 태어난 시(時)를 몰라도 사주 분석이 가능한가요?",
+                  a: "네, 태어난 연·월·일만 아셔도 전체 운세와 타고난 성향의 약 80% 이상을 정밀하게 추출해낼 수 있습니다. 사주학에서 연월일은 한 사람의 사회적 성향과 대인 관계의 큰 틀을 상징하기 때문입니다. 물론, 태어난 시각까지 정확히 입력하시면 더욱 세밀한 자미두수 12궁 명반과 상대방과의 1:1 심층 케미스트리 및 시너지 리포트가 100% 온전하게 완성되어 최상의 정밀도를 제공합니다."
+                },
+                {
+                  q: "Q2. 음력 생일 및 윤달도 오차 없이 정확히 계산되나요?",
+                  a: "물론입니다. 저희 시스템은 대한민국 기상청 및 국립천문대 천문 우주 데이터를 기반으로 한 정통 학술 만세력 데이터베이스가 완벽하게 내장되어 있습니다. 이에 따라 일반적인 인터넷 음양력 변환기에서는 흔히 놓치기 쉬운 '평달/윤달 구분'은 물론, 태양의 황경을 15도 간격으로 쪼갠 24절기(節氣) 입기 시각을 분 단위까지 정밀 계산하여 어떠한 생년월일이라도 단 1초의 오차도 없이 완벽하게 변환해 드립니다."
+                },
+                {
+                  q: "Q3. 모임방에는 최대 몇 명까지 참여할 수 있나요?",
+                  a: "인원 제한 없이 카카오톡 단톡방 멤버 전체나 사내 프로젝트 팀원 전원이 동시에 참여하실 수 있습니다. 방을 개설한 후 부여받은 6자리 초대 코드를 공유하기만 하면 되며, 2명 이상의 구성원이 모이는 순간부터 서로 간의 모든 1:1 상성 등급(S~F) 매트릭스와 모임 전체의 균형도를 나타내는 그룹 조화도가 실시간으로 자동 산출되어 역동적으로 변화합니다."
+                },
+                {
+                  q: "Q4. 입력한 생년월일 등 개인정보의 보안은 안전한가요?",
+                  a: "저희는 회원님의 소중한 개인정보 보호를 최우선 가치로 삼고 있습니다. 입력하신 이름과 생년월일 등의 명식 데이터는 전송 즉시 비대칭 암호화 기술을 거쳐 안전하게 보호됩니다. 또한, 방을 만든 지 30일이 지나거나 방장이 방을 해체하는 즉시 관련된 모든 구성원의 사주 기록은 시스템 상에서 복구 불가능한 형태로 영구 파기되어 흔적조차 남지 않습니다."
+                }
+              ].map((faq, index) => {
+                const isOpen = openFaq === index;
+                return (
+                  <div key={index} className="bg-white rounded-xl border border-[#E7E1D6] overflow-hidden transition-all duration-200">
+                    <button
+                      type="button"
+                      onClick={() => setOpenFaq(isOpen ? null : index)}
+                      className="w-full px-4 py-3.5 flex justify-between items-center text-left text-xs font-serif font-bold text-[#1E293B] hover:bg-[#FAF8F5] transition cursor-pointer"
+                    >
+                      <span>{faq.q}</span>
+                      <span 
+                        className="text-[#8C827A] text-[9px] transition-transform duration-200" 
+                        style={{ transform: isOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+                      >
+                        ▼
+                      </span>
+                    </button>
+                    {isOpen && (
+                      <div className="px-4 pb-4 pt-1 text-[11px] text-[#64748B] leading-relaxed border-t border-dashed border-[#EFE9DF] bg-[#FAF8F5]/30 animate-fade-in">
+                        {faq.a}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
-            <p className="text-[10px] text-[#8C7B6E]">
-              인연사주는 정통 명리학 알고리즘과 자미두수 명반 분석을 결합한 인연 및 성향 리포트 서비스입니다.
-            </p>
-            <p className="text-[10px] text-[#8C7B6E]">
-              Copyright © 인연사주 (Inyeon Saju). All Rights Reserved.
-            </p>
-          </div>
-
+          )}
         </div>
+
       </div>
 
       {/* Floating Premium Shop Trigger */}
       <button
         type="button"
-        onClick={() => {
-          setIsShopOpen(true);
-        }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-1.5 px-4 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white font-serif font-extrabold text-[11px] tracking-wider rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-[0.97] transition-all cursor-pointer ring-4 ring-amber-100/50"
+        onClick={() => setIsShopOpen(true)}
+        className="fixed bottom-6 right-6 z-50 flex items-center gap-1.5 px-4 py-3 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-serif font-bold text-xs tracking-wider rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-[0.97] transition-all cursor-pointer ring-4 ring-amber-100/60"
       >
-        <Crown className="w-3.5 h-3.5 fill-amber-300 animate-pulse text-amber-200" />
+        <Crown className="w-4 h-4 fill-amber-300 text-amber-200" />
         <span>인연 상점</span>
       </button>
 
@@ -664,176 +886,179 @@ export default function LandingView() {
         />
       )}
 
-      {/* ========================================================================= */}
-      {/* POLICY & ACADEMIC COLUMN MODALS (Google AdSense Mandatory Policy Compliance) */}
-      {/* ========================================================================= */}
+      {/* Policy & Column Modals */}
       {policyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-white border border-[#D6CCBC] rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 shadow-2xl text-left space-y-4 relative text-[#2C3E50]">
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          onClick={() => {
+            setPolicyModal(null);
+            window.location.hash = "#/";
+          }}
+        >
+          <div 
+            className="bg-white border border-[#D6CCBC] rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 sm:p-8 shadow-2xl text-left space-y-5 relative text-[#1E293B]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button 
-              onClick={() => setPolicyModal(null)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition"
+              onClick={() => { 
+                setPolicyModal(null);
+                window.location.hash = "#/"; 
+              }}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-lg font-bold w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition cursor-pointer"
+              aria-label="닫기"
             >
               ✕
             </button>
 
-            {/* Modal Content: Privacy Policy */}
-            {policyModal === "privacy" && (
-              <div className="space-y-3 text-xs leading-relaxed">
-                <h2 className="text-base font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#C0392B]">
-                  개인정보처리방침 (Privacy Policy)
-                </h2>
-                <p className="text-[#5A4D41]">
-                  인연사주(이하 '회사' 또는 '서비스')는 이용자의 개인정보를 중요시하며, 「개인정보 보호법」 등 관련 법령을 준수합니다. 본 방침은 이용자가 제공하는 개인정보가 어떠한 용도와 방식으로 이용되고 있으며, 개인정보보호를 위해 어떠한 조치가 취해지고 있는지 알려드립니다.
-                </p>
-                <h3 className="font-bold text-[#2C3E50] mt-2">1. 수집하는 개인정보 항목 및 수집방법</h3>
-                <p className="text-[#5A4D41]">
-                  - 수집 항목: 성명(닉네임), 생년월일, 양력/음력 구분, 출생시각, 성별, 서비스 이용 기록, 접속 로그, 쿠키, IP 주소.<br />
-                  - 수집 방법: 모임방 생성 및 참가 시 이용자 직접 입력.
-                </p>
-                <h3 className="font-bold text-[#2C3E50] mt-2">2. 개인정보의 수집 및 이용목적</h3>
-                <p className="text-[#5A4D41]">
-                  - 사주 명리학 알고리즘 분석, 오행 및 자미두수 리포트 제공, 1:1 속궁합 및 그룹 케미스트리 분석.<br />
-                  - 서비스 이용에 따른 본인 확인 및 부정 이용 방지.
-                </p>
-                <h3 className="font-bold text-[#2C3E50] mt-2">3. Google AdSense 및 쿠키(Cookie) 관련 고지 (필수 항목)</h3>
-                <div className="p-3 bg-[#FFFDF9] border border-[#E8E0D0] rounded-xl text-[#2C3E50] space-y-1">
-                  <p className="font-bold text-[#C0392B]">[Google AdSense 맞춤형 광고 안내]</p>
-                  <p className="text-[11px] leading-relaxed">
-                    본 웹사이트는 구글(Google Inc.)을 포함한 제3자 광고 사업자의 Google AdSense 광고 서비스를 제공합니다. 구글 및 제3자 제공업체는 쿠키(Cookie) 기술을 활용하여 사용자의 과거 방문 기록 및 웹 검색 내역에 기반한 맞춤형 광고를 게재합니다. 사용자는 구글 광고 설정(<a href="https://adssettings.google.com" target="_blank" rel="noreferrer" className="text-blue-600 underline">https://adssettings.google.com</a>)에서 맞춤형 광고 수신을 거부할 수 있습니다.
-                  </p>
-                </div>
-                <h3 className="font-bold text-[#2C3E50] mt-2">4. 개인정보의 보유 및 파기</h3>
-                <p className="text-[#5A4D41]">
-                  이용자의 개인정보는 서비스 목적이 달성되거나 이용자가 방 탈퇴 및 데이터 삭제 요청 시 즉시 완전 파기됩니다.
-                </p>
-              </div>
-            )}
-
-            {/* Modal Content: Terms of Service */}
-            {policyModal === "terms" && (
-              <div className="space-y-3 text-xs leading-relaxed">
-                <h2 className="text-base font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#C0392B]">
-                  서비스 이용약관 (Terms of Service)
-                </h2>
-                <p className="text-[#5A4D41]">
-                  본 약관은 인연사주 서비스가 제공하는 동양 명리학 기반 콘텐츠 및 모임 궁합 서비스의 이용조건 및 절차, 권리와 의무에 관한 사항을 규정합니다.
-                </p>
-                <h3 className="font-bold text-[#2C3E50] mt-2">제 1 조 (목적)</h3>
-                <p className="text-[#5A4D41]">
-                  본 서비스는 정통 동양 만세력 및 오행 생극제화 알고리즘에 기초하여 재미와 친목을 유도하는 그룹 케미스트리 정보 서비스를 제공함을 목적으로 합니다.
-                </p>
-                <h3 className="font-bold text-[#2C3E50] mt-2">제 2 조 (서비스의 제공 및 변경)</h3>
-                <p className="text-[#5A4D41]">
-                  서비스는 365일 24시간 제공을 원칙으로 하며, 시스템 점검 및 서버 개선이 필요한 경우 사전 고지 후 일시 중지될 수 있습니다. 본 서비스의 분석 결과는 명리학적 참고 자료이며 절대적 신념이나 법적 판단 근거가 될 수 없습니다.
-                </p>
-              </div>
-            )}
-
-            {/* Modal Content: Cookie & Ad Policy */}
-            {policyModal === "cookies" && (
-              <div className="space-y-3 text-xs leading-relaxed">
-                <h2 className="text-base font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#C0392B]">
-                  광고 및 쿠키(Cookie) 운영 정책
-                </h2>
-                <p className="text-[#5A4D41]">
-                  인연사주는 사용자경험 개선 및 무료 서비스 유지를 위해 쿠키 기술과 구글 에드센스(Google AdSense) 플랫폼을 운용합니다.
-                </p>
-                <h3 className="font-bold text-[#2C3E50] mt-2">쿠키란 무엇인가요?</h3>
-                <p className="text-[#5A4D41]">
-                  쿠키는 사용자가 웹사이트 방문 시 브라우저에 저장되는 소규모 텍스트 파일로, 빠른 로그인 상태 유지 및 맞춤형 콘텐츠 제공에 활용됩니다.
-                </p>
-                <h3 className="font-bold text-[#2C3E50] mt-2">쿠키 제어 방법</h3>
-                <p className="text-[#5A4D41]">
-                  사용자는 웹브라우저 옵션 설정을 통해 쿠키 허용 여부를 선택하거나 모든 쿠키 저장 시마다 확인을 거치도록 설정할 수 있습니다.
-                </p>
-              </div>
-            )}
-
-            {/* Modal Content: Column 1 */}
             {policyModal === "column1" && (
-              <div className="space-y-3 text-xs leading-relaxed">
-                <span className="text-[10px] font-bold text-[#C0392B] bg-[#FCFAF6] px-2 py-0.5 border border-[#E8E0D0] rounded-sm">
+              <div className="space-y-4 text-xs leading-relaxed">
+                <span className="text-[10px] font-bold text-[#C0392B] bg-[#FCFAF6] px-2.5 py-1 border border-[#E8E0D0] rounded-full inline-block">
                   명리학 학술 칼럼 #01
                 </span>
-                <h2 className="text-base font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#2C3E50]">
+                <h2 className="text-lg font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#1E293B]">
                   십성(十星)으로 해석하는 사회적 관계와 팀워크 심리학
                 </h2>
-                <p className="text-[#5A4D41]">
-                  동양명리학의 십성(十星)은 일간(日干)을 기준으로 타 오행과의 음양 관계를 분류한 10가지 성향 지표입니다.
-                </p>
-                <p className="text-[#5A4D41]">
-                  - <strong>비견(比肩) & 겁재(劫財):</strong> 주관이 뚜렷하고 동료와의 선의의 경쟁을 즐기는 리더십 및 도전 정신.<br />
-                  - <strong>식신(食神) & 상관(傷官):</strong> 풍부한 표현력과 기획력, 창의적인 브레인스토밍을 이끄는 아이디어 생산자.<br />
-                  - <strong>편재(偏財) & 정재(正財):</strong> 치밀한 재무 감각, 계획성, 현실적인 리소스 분배 능력.<br />
-                  - <strong>편관(偏官) & 정관(正官):</strong> 규율 준수, 조직적 결속력, 과감한 결단과 실행력.<br />
-                  - <strong>편인(偏印) & 정인(正印):</strong> 원리 탐구, 깊은 공감력, 지속적인 학습과 멘토링 역량.
-                </p>
-                <p className="text-[#5A4D41]">
-                  모임 내 십성의 균형이 이루어질 때 아이디어(식상) → 결실(재성) → 규율(관성) → 학습(인성)으로 이어지는 이상적인 팀 시너지가 발휘됩니다.
-                </p>
+                <div className="space-y-3 text-[#4A4036] leading-relaxed">
+                  <p>
+                    동양명리학의 <strong>십성(十星, 또는 십신)</strong>은 사주의 기준점인 일간(日干, 태어난 날의 천간)과 다른 글자들과의 음양오행 생극 관계를 10가지 성향과 사회적 기제로 체계화한 고도의 인간관계 분류학입니다.
+                  </p>
+                  <div className="bg-[#FAF8F5] border border-[#E8E0D0] rounded-xl p-4 space-y-2.5">
+                    <h3 className="font-serif font-bold text-xs text-[#1E293B]">팀 내 5대 십성 군집의 역할 역학</h3>
+                    <ul className="space-y-2 text-[11px]">
+                      <li>
+                        <strong>1. 비겁(비견·겁재) - [주도 & 경쟁]:</strong> 확고한 주관과 강한 실행력. 동료들과의 선의의 경쟁을 통해 프로젝트를 앞장서 견인하는 추진형 리더의 기질입니다.
+                      </li>
+                      <li>
+                        <strong>2. 식상(식신·상관) - [창의 & 표현]:</strong> 풍부한 아이디어와 기획력, 막힘없는 커뮤니케이션. 모임의 분위기를 띄우고 혁신적인 제안을 내놓는 브레인스토머입니다.
+                      </li>
+                      <li>
+                        <strong>3. 재성(편재·정재) - [실용 & 결실]:</strong> 치밀한 자원 관리, 일정 준수, 현실적인 손익 계산 능력. 모임과 비즈니스의 최종 결과물을 확실하게 만들어내는 실행가입니다.
+                      </li>
+                      <li>
+                        <strong>4. 관성(편관·정관) - [규율 & 책임]:</strong> 조직의 원칙 준수, 책임감 있는 조율과 위기관리. 모임의 신뢰성과 구조를 탄탄하게 지탱하는 버팀목입니다.
+                      </li>
+                      <li>
+                        <strong>5. 인성(편인·정인) - [통찰 & 수용]:</strong> 깊은 학문적 탐구, 타인에 대한 공감과 지혜로운 조언. 갈등 상황에서 팀원들을 보듬고 해결책을 제시하는 멘토입니다.
+                      </li>
+                    </ul>
+                  </div>
+                  <p>
+                    인연사주는 모임 구성원들의 십성 구성을 종합 분석하여, 누가 전략을 세우고 누가 실행하며 누가 조직을 화합으로 이끌어야 하는지 최적의 시너지 지도를 제시합니다.
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* Modal Content: Column 2 */}
             {policyModal === "column2" && (
-              <div className="space-y-3 text-xs leading-relaxed">
-                <span className="text-[10px] font-bold text-[#C0392B] bg-[#FCFAF6] px-2 py-0.5 border border-[#E8E0D0] rounded-sm">
+              <div className="space-y-4 text-xs leading-relaxed">
+                <span className="text-[10px] font-bold text-[#C0392B] bg-[#FCFAF6] px-2.5 py-1 border border-[#E8E0D0] rounded-full inline-block">
                   명리학 학술 칼럼 #02
                 </span>
-                <h2 className="text-base font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#2C3E50]">
+                <h2 className="text-lg font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#1E293B]">
                   자미두수(紫微斗數) 명반과 대운의 인연 지형도
                 </h2>
-                <p className="text-[#5A4D41]">
-                  자미두수(紫微斗數)는 북극성과 108개 별의 배치를 기반으로 인군의 운명을 조망하는 정통 동양 점성학 체계입니다. 명궁(命宮), 형제궁(兄弟宮), 부처궁(夫妻宮), 노복궁(奴僕宮)의 주성 배치는 타인과의 연대 방식과 소통 유형을 극명하게 보여줍니다.
-                </p>
-                <p className="text-[#5A4D41]">
-                  특히 10년 단위 대운(大運)의 흐름 속에서 화록(化祿), 화권(化權), 화과(化科), 화기(化忌) 사화(四化)의 변화는 특정 시기에 모임 내에서 협업이 번창하거나 오해가 생기는 원인을 명확하게 설명해 줍니다.
-                </p>
+                <div className="space-y-3 text-[#4A4036] leading-relaxed">
+                  <p>
+                    <strong>자미두수(紫微斗數)</strong>는 북극성과 14대 주성을 중심으로 108개의 별을 12개 궁(宮)에 배치하여 인간의 운명과 인간관계의 결을 입체적으로 조망하는 동양의 최고급 성학(星學)입니다.
+                  </p>
+                  <div className="bg-[#FAF8F5] border border-[#E8E0D0] rounded-xl p-4 space-y-2.5">
+                    <h3 className="font-serif font-bold text-xs text-[#1E293B]">대인관계와 인연을 주관하는 핵심 4궁</h3>
+                    <ul className="space-y-2 text-[11px]">
+                      <li>
+                        <strong>• 명궁(命宮):</strong> 타고난 본질과 자아상, 세상을 바라보는 제1렌즈.
+                      </li>
+                      <li>
+                        <strong>• 형제궁(兄弟宮) & 노복궁(奴僕宮):</strong> 친구, 동료, 비즈니스 파트너와의 상호작용 방식과 협력의 신뢰도.
+                      </li>
+                      <li>
+                        <strong>• 부처궁(夫妻宮):</strong> 1:1 친밀한 관계에서 추구하는 가치관과 이상적인 파트너십 형태.
+                      </li>
+                      <li>
+                        <strong>• 천이궁(遷移宮):</strong> 낯선 환경이나 새로운 그룹에 들어갔을 때 발현되는 사회적 적응력.
+                      </li>
+                    </ul>
+                  </div>
+                  <p>
+                    인연사주는 사주의 4기둥 8글자 분석과 더불어, 자미두수의 궁위별 조화도를 함께 산출하여 겉으로 드러나는 행동뿐 아니라 내면의 깊은 심리적 공명까지 정확하게 풀어냅니다.
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* Modal Content: Column 3 */}
             {policyModal === "column3" && (
-              <div className="space-y-3 text-xs leading-relaxed">
-                <span className="text-[10px] font-bold text-[#C0392B] bg-[#FCFAF6] px-2 py-0.5 border border-[#E8E0D0] rounded-sm">
+              <div className="space-y-4 text-xs leading-relaxed">
+                <span className="text-[10px] font-bold text-[#C0392B] bg-[#FCFAF6] px-2.5 py-1 border border-[#E8E0D0] rounded-full inline-block">
                   명리학 학술 칼럼 #03
                 </span>
-                <h2 className="text-base font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#2C3E50]">
+                <h2 className="text-lg font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#1E293B]">
                   음양오행(陰陽五行) 생극제화와 스트레스 완화
                 </h2>
-                <p className="text-[#5A4D41]">
-                  우주 자연의 기본 다섯 기운인 목(木), 화(火), 토(土), 금(金), 수(水)는 서로를 돕는 상생(相生)과 서로를 견제하는 상극(相剋)의 유기적 순환 고리를 형성합니다.
-                </p>
-                <p className="text-[#5A4D41]">
-                  어느 한 오행이 과다하거나 결핍될 경우 관계의 불균형이 발생할 수 있습니다. 수(水) 기운이 부족하여 건조하고 과열된 조직에는 유연성과 소통 능력을 지닌 수 기운의 인재가 완충 역할을 수행하며, 금(金) 기운이 과다하여 지나치게 엄격한 분위기에는 화(火) 및 수(水) 기운이 부드러운 조화를 가져다줍니다.
-                </p>
+                <div className="space-y-3 text-[#4A4036] leading-relaxed">
+                  <p>
+                    자연의 모든 생명 현상은 <strong>목(木)·화(火)·토(土)·금(金)·수(水)</strong> 다섯 원소의 상생(相生, 돕고 북돋움)과 상극(相剋, 견제하고 단련함)의 역동적인 순환 속에서 균형을 찾아갑니다.
+                  </p>
+                  <div className="bg-[#FAF8F5] border border-[#E8E0D0] rounded-xl p-4 space-y-2.5">
+                    <h3 className="font-serif font-bold text-xs text-[#1E293B]">오행 과다·결핍 시 나타나는 관계 스트레스와 처방</h3>
+                    <ul className="space-y-2 text-[11px]">
+                      <li>
+                        <strong>• 목(木) 과다 / 금(金) 부족:</strong> 추진력은 강하나 마무리가 흐려질 수 있음 ➔ 금(金) 성향의 결단력 있는 파트너와 협업.
+                      </li>
+                      <li>
+                        <strong>• 화(火) 과다 / 수(水) 부족:</strong> 열정적이나 쉽게 피로하고 감정 기복 ➔ 차분한 수(水) 기운의 동료를 통해 이성적 완충.
+                      </li>
+                      <li>
+                        <strong>• 토(土) 과다 / 목(木) 부족:</strong> 신중하나 변화에 둔감 ➔ 생기 있는 목(木) 기운으로 새로운 활력을 충전.
+                      </li>
+                    </ul>
+                  </div>
+                  <p>
+                    그룹 내 특정 오행이 결핍되거나 과도할 때 발생하는 마찰을 사전에 파악하면, 서로를 탓하는 대신 상호보완적 역할을 부여함으로써 갈등을 창조적 에너지로 승화시킬 수 있습니다.
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* Modal Content: Column 4 */}
             {policyModal === "column4" && (
-              <div className="space-y-3 text-xs leading-relaxed">
-                <span className="text-[10px] font-bold text-[#C0392B] bg-[#FCFAF6] px-2 py-0.5 border border-[#E8E0D0] rounded-sm">
+              <div className="space-y-4 text-xs leading-relaxed">
+                <span className="text-[10px] font-bold text-[#C0392B] bg-[#FCFAF6] px-2.5 py-1 border border-[#E8E0D0] rounded-full inline-block">
                   명리학 학술 칼럼 #04
                 </span>
-                <h2 className="text-base font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#2C3E50]">
+                <h2 className="text-lg font-serif font-bold border-b border-[#E8E0D0] pb-2 text-[#1E293B]">
                   정통 만세력 알고리즘과 절기(節氣) 도출 고찰
                 </h2>
-                <p className="text-[#5A4D41]">
-                  사주팔자를 판단할 때 가장 핵심이 되는 부분은 태양이 경도 15도 간격으로 지나가는 24절기(節氣)의 정밀 시각을 정확히 도출하는 것입니다.
-                </p>
-                <p className="text-[#5A4D41]">
-                  인연사주는 한국천문연구원 표준시 데이터 및 정통 천문 만세력 공식을 탑재하여 음력 생일 및 윤달을 명확하게 환산합니다. 야자시(夜子時) 및 조자시(朝子時) 구분 로직까지 정밀 계산하여 태어난 날의 일간(日干) 오행을 오차 없이 특정합니다.
-                </p>
+                <div className="space-y-3 text-[#4A4036] leading-relaxed">
+                  <p>
+                    사주명리학의 기초는 단순한 달력 날짜가 아니라, 태양의 황도 좌표(황경 15도 간격)에 따라 정확하게 결정되는 <strong>24절기(節氣)</strong>의 입기 시각(時刻)입니다.
+                  </p>
+                  <div className="bg-[#FAF8F5] border border-[#E8E0D0] rounded-xl p-4 space-y-2.5">
+                    <h3 className="font-serif font-bold text-xs text-[#1E293B]">인연사주 정밀 천문 엔진의 3대 보정 원칙</h3>
+                    <ul className="space-y-2 text-[11px]">
+                      <li>
+                        <strong>1. 진태양시(True Solar Time) 경도 보정:</strong> 대한민국 표준시(동경 135도 기준)와 서울 실제 경도(동경 126.97도) 사이의 약 32분 시차를 정밀하게 보정합니다.
+                      </li>
+                      <li>
+                        <strong>2. 절기 입기 시각 분 단위 정밀 계산:</strong> 입춘(立春), 입하(立夏) 등 절기가 바뀌는 당일 태어난 경우에도 몇 시 몇 분에 태어났는지에 따라 정확한 월주(月柱)를 판별합니다.
+                      </li>
+                      <li>
+                        <strong>3. 야자시(夜子時) / 조자시(朝子時) 명확한 기준:</strong> 밤 11시 30분 이후 출생 시 자시(子時)의 일주 변경 논쟁을 표준 명리학 정설에 맞춰 명확하게 처리합니다.
+                      </li>
+                    </ul>
+                  </div>
+                  <p>
+                    이를 통해 사용자가 어떤 연도나 절기 경계선에 태어났더라도 단 1초의 오차 없이 신뢰할 수 있는 정확한 간지(干支)를 도출합니다.
+                  </p>
+                </div>
               </div>
             )}
 
             <div className="pt-3 border-t border-[#E8E0D0] flex justify-end">
               <button
                 type="button"
-                onClick={() => setPolicyModal(null)}
-                className="px-4 py-2 bg-[#2C3E50] text-white text-xs font-bold rounded-lg hover:bg-slate-800 transition"
+                onClick={() => { 
+                  setPolicyModal(null);
+                  window.location.hash = "#/"; 
+                }}
+                className="px-5 py-2 bg-[#1E293B] text-white text-xs font-serif font-bold rounded-xl hover:bg-slate-800 transition cursor-pointer"
               >
                 닫기
               </button>
@@ -841,7 +1066,80 @@ export default function LandingView() {
           </div>
         </div>
       )}
+
+      {/* Auth Modal for Sign In / Sign Up */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSuccess={() => {
+          const currentMem = getUserMembershipInfo(auth.currentUser);
+          if (currentMem.canCreateRoom) {
+            window.location.hash = "#/create";
+          }
+        }}
+      />
+
+      {/* Upgrade to Social Modal for Regular Email Members trying to Create Room */}
+      <UpgradeToSocialModal
+        isOpen={isUpgradeModalOpen}
+        onClose={() => setIsUpgradeModalOpen(false)}
+        triggerReason="create_room"
+        onSuccess={() => {
+          window.location.hash = "#/create";
+        }}
+      />
+
+      {/* Elegant Delayed Undo Deletion Toast */}
+      {pendingDeleteRoom && (
+        <div className="fixed bottom-6 right-6 z-[100] max-w-sm w-full bg-[#1E293B] text-white border border-slate-700 rounded-xl shadow-2xl p-4 animate-slide-up">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              <span className="text-xs font-serif font-bold truncate max-w-[180px]">
+                '{pendingDeleteRoom.title}' 방이 {pendingDeleteRoom.actionType === "delete_db" ? "삭제" : "제외"}되었습니다
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                // Clear countdown, restore list item
+                clearTimeout(pendingDeleteRoom.timeoutId);
+                setHistoryRooms(prev => {
+                  if (prev.some(r => r.code === pendingDeleteRoom.code)) return prev;
+                  return [pendingDeleteRoom.roomObj, ...prev];
+                });
+                setPendingDeleteRoom(null);
+              }}
+              className="px-2.5 py-1.5 bg-[#C0392B] hover:bg-[#A93226] text-white rounded-lg text-[10px] font-bold transition flex items-center gap-1 cursor-pointer shrink-0"
+              title="삭제 취소"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>되돌리기 (Undo)</span>
+            </button>
+          </div>
+          {/* Animated remaining progress countdown */}
+          <div className="mt-2.5 h-1 bg-slate-700 rounded-full overflow-hidden">
+            <div className="h-full bg-amber-500 animate-[countdown_5s_linear_forwards]" />
+          </div>
+        </div>
+      )}
+
+      {/* Local custom keyframes injection */}
+      <style>{`
+        @keyframes countdown {
+          from { width: 100%; }
+          to { width: 0%; }
+        }
+        .animate-slide-up {
+          animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes slideUp {
+          from { transform: translateY(16px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
     </Layout>
   );
 }
+
 

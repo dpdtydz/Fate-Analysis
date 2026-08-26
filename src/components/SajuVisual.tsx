@@ -9,6 +9,9 @@ interface SajuVisualProps {
   showOnlyMix?: boolean;
   isPremium?: boolean;
   showOnlyDaewoon?: boolean;
+  selectedTab?: "mix" | "saju" | "ziwei";
+  hideTabNav?: boolean;
+  onTabChange?: (tab: "mix" | "saju" | "ziwei") => void;
 }
 
 const starMeanings: Record<string, string> = {
@@ -38,7 +41,7 @@ const starMeanings: Record<string, string> = {
   "타라": "끈질긴 인내력과 극복 능력을 요구하는 은근한 지체",
   "화성": "급격한 기회나 열정을 품은 강렬하고 빠른 행동 원천",
   "영성": "은밀하게 누적되는 자극이자 차분한 내공 극복의 정신력",
-  "지공": "물질을 비우고 우주적 철학 및 독창적 발상을 불어넣음",
+  "지공": "물질을 비우고 독창적 발상 및 심오한 통찰을 불어넣음",
   "지겁": "기발한 번뜩임, 재물 소모와 함께 기형적 창작 아이디어를 선물함"
 };
 
@@ -290,81 +293,22 @@ const getStarMeaningInPalace = (starName: string, palaceName: string): string =>
       "兄弟": "학업 및 연구에서 의견이 아주 잘 맞는 명철하고 합리적인 지적 파트너들과 호흡합니다.",
       "夫妻": "학식이 높고 교양이 넘쳐 문학적 향취를 함께 즐길 기품 있는 정갈한 배우자와 인연을 맺습니다.",
       "子女": "공부를 열심히 하고 예의가 바르며 장차 우수한 학위 문서를 안겨다 줄 똑똑한 자녀를 둡니다.",
-      "財帛": "논리적인 지적 문서, 계약 체결, 라이선스 권리를 통해 안정적이고 명예로운 소득을 다집니다.",
-      "疾厄": "신경성 피로 해소를 위해 정기적인 허브티 음용 및 눈의 긴장 정화 휴식을 지향하십시오.",
-      "遷移": "대외적으로 품격 있는 발표나 전문적인 자격을 뽐낼 때 인기가 수직 상승합니다.",
-      "交友": "책을 좋아하거나 정갈하고 학구적인 우수한 지인들과 명예로운 교류를 적극 공유합니다.",
-      "官祿": "집필 능력, 국가 공인 시험 합격, 정교한 라이선스 획득에 탁월한 명예적 전성기 기운입니다.",
-      "田宅": "학업 분위기가 좋은 교육 역세권에 보금자리를 틀며 서재가 탄탄한 공간을 구축합니다.",
-      "福德": "책을 집필하거나 깊이 있는 지적 공부에 몰두할 때 가장 고귀한 행복과 기쁨을 얻습니다.",
-      "父母": "지적인 수준이 높은 고귀한 부모/상사와 연이 닿아, 시험 기획이나 공식 합격 문서운이 완벽히 작용합니다."
-    },
-    "문곡": {
-      "命宮": "임기응변과 기발한 예술 기예, 세련된 대인 소통력을 품어 대중을 매료시키는 끼를 발휘합니다.",
-      "兄弟": "예체능 지식이나 기획 감각이 뛰어난 똑똑하고 감각적인 동료들과 함께 발맞춰 일합니다.",
-      "夫妻": "개성이 수려하고 예체능이나 인문 예술적 향취를 다채롭게 소유한 유쾌한 배우자를 맞이합니다.",
-      "子女": "음악, 미술, 혹은 언어 분야에 감각이 독보적인 총명한 자녀나 귀염성 있는 후배를 둡니다.",
-      "財帛": "기획력과 트렌디한 마케팅 소통, 아이디어 제안을 무기로 삼아 실속 있는 알짜 자금을 굴립니다.",
-      "疾厄": "충분한 수분 섭취와 규칙적인 요가/스트레칭을 통해 신체 에너지 순환을 차분히 유도하세요.",
-      "遷移": "외교적인 중재력과 사교력을 밖에서 멋지게 뽐내며 타지에서도 인기를 한몸에 모읍니다.",
-      "交友": "문화, 예술, 패션 등 다채로운 감각을 지닌 사람들과 교류하며 매 순간 활력을 충전합니다.",
-      "官祿": "독창적인 프레젠테이션, 미적 연출 기획 분야의 최고 적합성을 보이며 커리어 평판을 드높입니다.",
-      "田宅": "인테리어를 세련되게 꾸며 감수성이 깃든 아기자기하고 예쁜 안전 가정을 다듬습니다.",
-      "福德": "감각적인 음악 감상, 미술품 전시 관람 등 미적 라이프스타일을 통해 스트레스를 치유하십니다.",
-      "父母": "말과 글이 세련되고 지혜로운 부모/상사의 도움을 얻어 기발한 기획 계약서 체결에 성공합니다."
-    },
-    "천괴": {
-      "命宮": "일생 위기에 직면할 때마다 예상치 못한 수호천사(천괴 귀인)가 기적처럼 찾아옵니다.",
-      "兄弟": "어려울 때 가장 먼저 달려와 구원의 도움을 건넬 정의롭고 믿음직한 파트너와 연대합니다.",
-      "夫妻": "내가 힘들고 방황할 때 나침반처럼 바른 이정표를 당당하게 제공할 듬직한 배우자를 둡니다.",
-      "子女": "품행이 단정하고 예의가 매우 바라 윗사람과 학교 상장의 혜택을 수시로 낚아챌 든든한 자녀입니다.",
-      "財帛": "투자나 비즈니스의 중대한 결단 국면에서 올바른 방향을 조언해 줄 최상급 멘토 귀인이 붙습니다.",
-      "疾厄": "선천적 저항력이 강하며 질병을 얻더라도 명의를 신속히 소개받아 완벽히 치유해내는 복록입니다.",
-      "遷移": "타지에 진출하거나 야외 활동 시 나를 정당하게 지지해 줄 영향력 있는 귀인의 엄호를 얻습니다.",
-      "交友": "사회적으로 존경받는 스승이나 멘토들이 내 주변에 상주하며, 바른 성장을 지속적으로 이끕니다.",
-      "官祿": "상사들의 전폭적 이끎을 한몸에 독차지하여, 승진 관문에서 경쟁자를 가볍게 꺾고 주역이 됩니다.",
-      "田宅": "가문의 상징이나 든든한 기틀이 잘 닦인 실질적 자산 복을 보유하며 가정 내에 풍요가 깃듭니다.",
-      "福德": "정신적 품격과 신앙심이 깊어, 어떤 난관에서도 바른 양심을 바탕으로 결국 최후의 상서로운 결실을 완성합니다.",
-      "父母": "존경스럽고 명망 있는 상사/부모의 서포트를 입어 공적인 라이선스 성취와 우수한 추천을 받습니다."
-    },
-    "천월": {
-      "命宮": "인자하고 온화하여 흉한 기운도 따스한 귀인의 인맥 조력을 받아 금방 상서롭게 녹여냅니다.",
-      "兄弟": "갈등이 생겨도 대화로 둥글둥글하게 극복하는 온화한 성향의 우수한 협력 파트너들과 일합니다.",
-      "夫妻": "성품이 온화하고 배려가 깊어 갈등이 생겨도 대화로 기분 좋게 치유하는 부드러운 동반자를 뜻합니다.",
-      "子女": "심성이 착하고 다정다감하여 부모를 깊이 헤아려줄 사려 깊은 자녀 및 귀여운 후배와 교감합니다.",
-      "財帛": "자금 흐름이 정체될 때마다 신뢰 깊은 지인들이 따뜻한 통로를 열어 주어 극복하게 됩니다.",
-      "疾厄": "체력 관리에 온화함을 부여하며 기분이 우울해질 땐 삼림욕과 꽃차 요법으로 상쾌함을 되찾으십시오.",
-      "遷移": "대외적으로 친근한 사교 예절을 보여 주어 누구에게나 인자하고 편안한 인상을 남깁니다.",
-      "交友": "내 어려움을 자기 일처럼 소중하게 듣고 비책을 제시해 줄 고마운 귀인 인맥을 자랑합니다.",
-      "官祿": "마찰을 일으키지 않고 주변 조율을 완벽히 해내는 온화한 지위를 획득하여 평화롭게 복을 쌓습니다.",
-      "田宅": "햇살이 평화롭게 비쳐 들며 주거 환경이 대단히 평온하여 가족들의 마음 쉼터를 완성합니다.",
-      "福德": "매사 긍정적이고 은혜로운 시각을 보유해 정신적인 번민을 최소화하며 온전한 평화를 수호합니다.",
-      "父母": "자애롭고 넉넉한 부모/상사의 비호를 받아, 복잡한 문서 권한 관계도 수월하게 양도받습니다."
+      "財帛": "논리적인 지적 문서, 계약 체결, 라이선스 기반의 전문 지식 자산으로 재물을 풍성히 축적합니다.",
+      "疾厄": "정신적 스트레스 관리와 명상, 서적 탐독을 통하여 마음의 웰니스를 건강하게 지켜냅니다.",
+      "遷移": "대외 학술 발표, 출장, 원거리 계약에서 총명한 지적 능력을 널리 인정받습니다.",
+      "交友": "지적 소양이 높고 학구적인 친구들과 교류하며 건설적인 정보를 나눕니다.",
+      "官祿": "국가 공인 자격, 논문, 정규 시험, 공직 진출 등 문서 커리어에서 빛나는 성취를 달성합니다.",
+      "田宅": "서재가 갖추어진 품격 있는 주거 환경에서 지적 자산을 불려 나갑니다.",
+      "福德": "책과 예술을 즐기며 고결한 정신적 안락과 높은 심미안을 누립니다.",
+      "父母": "학자풍의 부모님이나 훌륭한 은사의 가르침을 받아 올바른 가치관을 정립합니다."
     }
   };
 
-  const matchedAux = auxiliaryExplanations[starName];
-  if (matchedAux && matchedAux[normPal]) {
-    return matchedAux[normPal];
+  if (auxiliaryExplanations[starName] && auxiliaryExplanations[starName][normPal]) {
+    return auxiliaryExplanations[starName][normPal];
   }
 
-  const palaceNameKr = palaceDescriptions[cleanPal]?.kr || palaceName;
-  return `${palaceNameKr}에 이 별의 성질이 깃드니, ${starMeanings[starName] || "우주적 기운"} 성향이 이 영역에 스며들어 귀하의 입체적인 인생 설계도를 아름답게 가이드합니다.`;
-};
-
-const palaceDescriptions: Record<string, { desc: string, kr: string }> = {
-  "命宮": { kr: "명궁 (命宮)", desc: "나의 선천적 성격, 타고난 그릇, 일생을 이끌어 나가는 기본 주관과 기질을 관장합니다." },
-  "兄弟": { kr: "형제궁 (兄弟)", desc: "형제자매, 가까운 동료, 인생 파트너와의 신뢰와 은덕 관계를 의미합니다." },
-  "夫妻": { kr: "부처궁 (夫妻)", desc: "배우자운, 연애 방식, 본인의 이상형 스타일과 부부간의 정서적 교감을 주도합니다." },
-  "子女": { kr: "자녀궁 (子女)", desc: "자녀와의 인연, 아랫사람이나 부하 직원들과의 소통 및 사회적 협조력을 나타냅니다." },
-  "財帛": { kr: "재백궁 (財帛)", desc: "돈을 모으고 활용하는 수완, 직업적 자금 흐름, 재물 창출의 기회를 상징합니다." },
-  "疾厄": { kr: "질액궁 (疾厄)", desc: "기초 체력적 특징, 건강 상 유의해야 할 요소 및 일생의 시련을 다스리는 단서입니다." },
-  "遷移": { kr: "천이궁 (遷移)", desc: "이동, 여행, 유학, 독립적 야외 활동 및 타인이 느끼는 나의 사회적 첫인상입니다." },
-  "交友": { kr: "교우궁 (交友)", desc: "대인관계, 인맥, 귀인과의 조화, 직장 내 부하 직원들과의 사회적 신뢰를 나타냅니다." },
-  "官祿": { kr: "관록궁 (官祿)", desc: "직장에서의 잠재력, 성공을 위한 명예욕, 가장 적합한 진로 방향을 보여줍니다." },
-  "田宅": { kr: "전택궁 (田宅)", desc: "상속 및 부동산 기운, 가족들의 보금자리가 지닌 화평함과 가문의 기세를 뜻합니다." },
-  "福德": { kr: "복덕궁 (福德)", desc: "정신적인 안정감, 스트레스 회복력, 영혼의 기쁨을 주는 취미와 보이지 않는 행운입니다." },
-  "父母": { kr: "부모궁 (父母)", desc: "부모님과의 인덕, 스승 및 상사와의 정서적 연대, 공식 계약과 같은 문서운을 뜻합니다." }
+  return "고유한 길성과 성좌의 에너지가 해당 영역에서 조화로운 기운과 기회를 창출합니다.";
 };
 
 const friendlyPalaceNames: Record<string, string> = {
@@ -452,26 +396,26 @@ const shinsalExplanations: Record<string, { label: string, emoji: string, desc: 
   "문창귀인": {
     label: "문창귀인 (학문과 두뇌 총명)",
     emoji: "✍️",
-    desc: "학문, 문장력, 두뇌 회전이 우수한 학문신",
-    detail: "창의력과 예술성이 뛰어나고 말과 글에 품격이 흐르게 만드는 두뇌 천재의 별입니다. 지식을 습득하는 능력이 매우 뛰어나며 학술, 집필, 연구, 아이디어 창출에 뛰어난 두뇌총명을 부여합니다."
+    desc: "글과 학습 감각이 뛰어난 길신",
+    detail: "학술, 기획, 집필, 연구 및 창의적 아이디어 도출에 탁월한 두뇌 총명과 문장력을 부여합니다."
   },
   "hongyeom": {
     label: "홍염살 (치명적인 붉은 매력)",
     emoji: "🍒",
-    desc: "상대방의 마음을 무장해제시키는 붉은 눈빛",
-    detail: "도화살보다 은밀하면서도 한층 치명적인 미소를 의미합니다. 상대방으로 하여금 다가가고 싶게 만드는 선천적인 친화력과 귀여우면서도 도발적인 독보적 분위기를 줍니다."
+    desc: "상대방의 마음을 무장해제시키는 독보적 친화력",
+    detail: "도화살보다 은근하면서도 강렬한 매력을 의미하며, 다가가고 싶게 만드는 친화력과 호감도를 높여줍니다."
   },
   "홍염살": {
     label: "홍염살 (치명적인 붉은 매력)",
     emoji: "🍒",
-    desc: "상대방의 마음을 무장해제시키는 붉은 눈빛",
-    detail: "도화살보다 은밀하면서도 한층 치명적인 미소를 의미합니다. 상대방으로 하여금 다가가고 싶게 만드는 선천적인 친화력과 귀여우면서도 도발적인 독보적 분위기를 줍니다."
+    desc: "상대방의 마음을 무장해제시키는 독보적 친화력",
+    detail: "도화살보다 은근하면서도 강렬한 매력을 의미하며, 다가가고 싶게 만드는 친화력과 호감도를 높여줍니다."
   },
   "금여성": {
     label: "금여성 (황금 마차를 타는 복록)",
     emoji: "💝",
-    desc: "황금 가마를 타고 부귀와 온화한 안락을 누림",
-    detail: "품위 있고 온화한 배우자를 만나거나 신분이 높은 집안과 인연이 닿으며, 평생 재물의 풍요 속에서 몸과 마음이 안락하고 편안하게 살아가는 상류 사회의 귀인 기운을 뜻합니다."
+    desc: "안락한 환경과 물질적 풍요를 돕는 귀인",
+    detail: "품위 있고 온화한 인연을 만나거나, 일상에서 평화롭고 안정적인 복록을 유지하도록 돕는 길운입니다."
   }
 };
 
@@ -561,13 +505,78 @@ const ziweiStarDetails: Record<string, { title: string, desc: string, emoji: str
   "천기": { title: "신출귀몰한 두뇌의 지략가 (천기)", emoji: "⚙️", desc: "쉴 틈 없이 돌아가는 명석한 두뇌와 아이디어 창출의 달인입니다. 기획력과 분석력이 타의 추종을 불허하여 남들이 생각하지 못한 묘책을 제시하며, 변화무쌍한 환경 속에서 최고의 책사 역할을 해냅니다." },
   "천동": { title: "축복을 품은 소년 같은 평화 수호자 (천동)", emoji: "🎈", desc: "낙천적이고 온화하며 일상의 소박한 즐거움과 행복을 가꾸는 복덕의 별입니다. 다정다감하고 대인관계가 수려하여 주변의 도움(인덕)을 자연스레 얻으며, 편안하고 힐링 가득한 성취 환경을 만드는 기운입니다." },
   "염정": { title: "도전적인 카리스마와 뜨거운 예술성 (염정)", emoji: "🔥", desc: "강한 독립심과 풍부한 끼, 그리고 사람을 사로잡는 카리스마를 함께 품은 별입니다. 신념이 확실하며 주관대로 당당하게 밀고 나가며, 현대 사회에서 문화예술, 영업, 비즈니스 경쟁에서 강점을 보입니다." },
-  "칠살": { title: "거친 파도를 정면 돌파하는 장군 (칠살)", emoji: "🛡️", desc: "용맹무쌍하며 기득권에 순종하기보다 독립된 영역을 개척하는 혁신과 변혁의 별입니다. 난관이 닥쳐도 결연하게 정면 승부를 던져 뜻밖의 대성공이나 전환점을 마련하는 선두 개척자의 심장입니다." },
-  "파군": { title: "구습을 파괴하고 새로운 길을 트는 개척가 (파군)", emoji: "🌪️", desc: "안주하지 않고 판을 깨뜨려 무에서 유를 조련해내는 과감한 모험과 변화의 아이콘입니다. 강렬한 에너지와 개성을 지녀 매사 트렌드를 파괴하고 새로운 가치와 흐름을 발명하는 남다른 개척력이 흐릅니다." },
-  "탐랑": { title: "팔색조 매력을 품은 사교와 욕망의 기획자 (탐랑)", emoji: "🐺", desc: "예술, 인문학, 기호, 대인관계 조율에 무궁무진한 재능을 보이며 욕망을 현실로 구현하는 에너지입니다. 호기심이 매우 많고 기발하여 사람을 순식간에 매료시키는 남다른 매력 사교 기운을 발휘합니다." },
-  "천상": { title: "신의와 도리를 지키는 조화로운 재상 (천상)", emoji: "⚖️", desc: "치우침 없이 보좌하며 중간에서 균형을 잡아주는 신뢰 깊은 재상의 별입니다. 온화하고 단정하며 정직함을 원칙으로 삼아 중개, 외교, 계약 관계에서 독보적 신용과 가치적 품격을 보장받습니다." },
-  "천량": { title: "세상을 살피고 비호해주는 인자한 지도자 (천량)", emoji: "🦌", desc: "부모나 스승처럼 아랫사람을 감싸 안고 돌봐주는 의협심 강한 어른의 별입니다. 학구열이 높고 위기 대처력과 액운 예방 복록이 뛰어나, 법조, 의료, 교육, 상담 분야에서 존경받는 사표가 되기 쉽습니다." },
-  "태음": { title: "달빛처럼 부드러운 내면의 예술가 (태음)", emoji: "🌙", desc: "섬세하고 서정적이며 가슴속에 깊고 푸른 로망을 간직한 사색의 별입니다. 재산 축적 능력이 은근하고 굳세며 가정을 아끼고, 문화, 부동산, 지적재산 자산을 탄탄하게 설계하고 소유해 평화를 얻습니다." },
-  "거문": { title: "세상의 진실을 캐는 연구가이자 달변가 (거문)", emoji: "🗣️", desc: "의심하고 탐색하여 참과 거짓을 완벽하게 식별해내는 분석과 구설의 별입니다. 분석력과 말의 설득력이 매우 막강하여 학술, 연구, 미디어, 언론, 교육 등 말과 글을 다스리는 자리에서 두각을 켭니다." }
+  "칠살": { title: "거친 파도를 정면 돌파하는 장군 (칠살)", emoji: "🛡️", desc: "용맹무쌍하며 위기일수록 번뜩이는 기지를 발휘하는 최전선의 선봉장입니다. 주저함 없는 결단력과 강인한 승부사 기질로 독자적인 승리를 쟁취합니다." },
+  "파군": { title: "낡은 판을 뒤엎고 새 길을 여는 혁신가 (파군)", emoji: "🌊", desc: "새로운 패러다임을 열어젖히는 개척과 파격의 별입니다. 남들이 가지 않은 미지의 영역에 과감히 뛰어들어 낡은 질서를 새롭게 혁신합니다." },
+  "탐랑": { title: "풍류와 다재다능한 팔방미인 (탐랑)", emoji: "✨", desc: "화려한 친화력과 팔방미인의 매력을 지닌 다재다능한 별입니다. 트렌드를 읽는 직관과 풍부한 인간적 매력으로 기회를 포착합니다." },
+  "거문": { title: "진실을 밝히는 정밀한 분석가 (거문)", emoji: "🔍", desc: "예리한 관찰력과 정교한 언변을 갖춘 분석의 별입니다. 깊이 있는 통찰과 비판적 사고로 본질을 파악해 냅니다." },
+  "천상": { title: "신뢰와 원칙을 지키는 명재상 (천상)", emoji: "📜", desc: "공정함과 신의를 바탕으로 조화로운 중재를 이끄는 인장의 별입니다. 성실함과 균형 감각으로 조직과 사람들의 두터운 신망을 얻습니다." },
+  "천량": { title: "어려움을 슬기롭게 풀어내는 원로 (천량)", emoji: "🌿", desc: "온화한 지혜와 보호 본능을 지닌 어른의 별입니다. 위기 상황을 길함으로 전환시키는 남다른 통솔력과 인덕을 발휘합니다." },
+  "태음": { title: "은은한 달빛처럼 섬세한 감성가 (태음)", emoji: "🌙", desc: "차분하고 정갈하며 깊은 감수성을 지닌 달의 별입니다. 세심한 관찰력과 안정적인 자산 관리 능력으로 내실 있는 번영을 이룹니다." }
+};
+
+const elementColors: Record<string, { bg: string; border: string; text: string }> = {
+  "목": { bg: "bg-[#E8F8F5]", border: "border-[#A3E4D7]", text: "text-[#117A65]" },
+  "화": { bg: "bg-[#FDEDEC]", border: "border-[#FADBD8]", text: "text-[#C0392B]" },
+  "토": { bg: "bg-[#FEF9E7]", border: "border-[#F9E79F]", text: "text-[#B7950B]" },
+  "금": { bg: "bg-[#F2F4F4]", border: "border-[#D5D8DC]", text: "text-[#707B7C]" },
+  "수": { bg: "bg-[#EBF5FB]", border: "border-[#AED6F1]", text: "text-[#2980B9]" },
+  "木": { bg: "bg-[#E8F8F5]", border: "border-[#A3E4D7]", text: "text-[#117A65]" },
+  "火": { bg: "bg-[#FDEDEC]", border: "border-[#FADBD8]", text: "text-[#C0392B]" },
+  "土": { bg: "bg-[#FEF9E7]", border: "border-[#F9E79F]", text: "text-[#B7950B]" },
+  "金": { bg: "bg-[#F2F4F4]", border: "border-[#D5D8DC]", text: "text-[#707B7C]" },
+  "水": { bg: "bg-[#EBF5FB]", border: "border-[#AED6F1]", text: "text-[#2980B9]" },
+};
+
+const elementNames: Record<string, string> = {
+  "목": "목(木)",
+  "화": "화(火)",
+  "토": "토(土)",
+  "금": "금(金)",
+  "수": "수(水)",
+};
+
+const ganElements: Record<string, string> = {
+  "甲": "목", "乙": "목", "丙": "화", "丁": "화", "戊": "토", "己": "토", "庚": "금", "辛": "금", "壬": "수", "癸": "수"
+};
+
+const jiElements: Record<string, string> = {
+  "寅": "목", "卯": "목", "巳": "화", "午": "화", "辰": "토", "戌": "토", "丑": "토", "未": "토", "申": "금", "酉": "금", "亥": "수", "子": "수"
+};
+
+const getGanElementStyle = (gan: string) => {
+  const elem = ganElements[gan] || "목";
+  return elementColors[elem] || elementColors["목"];
+};
+
+const getJiElementStyle = (ji: string) => {
+  const elem = jiElements[ji] || "목";
+  return elementColors[elem] || elementColors["목"];
+};
+
+const getSipseongExplanation = (name: string): string => {
+  const map: Record<string, string> = {
+    "비겁": "주체성과 자존감, 동료와의 경쟁과 협력 에너지를 다스립니다.",
+    "식상": "창의적인 표현력, 실행력, 재능 발현 및 아이디어 창출을 뜻합니다.",
+    "재성": "실리적인 재물 감각, 사업적 기회 포착 및 결과 완성력입니다.",
+    "관성": "사회적 명예, 원칙과 규율 준수, 리더십과 직업적 성취를 의미합니다.",
+    "인성": "학문적 탐구, 지혜와 통찰, 윗사람의 후원 및 자격 문서를 뜻합니다."
+  };
+  return map[name] || "인생의 균형과 잠재 역량을 발휘하는 핵심 십신 기운입니다.";
+};
+
+const palaceDescriptions: Record<string, { kr: string; desc: string }> = {
+  "명궁": { kr: "명궁 (命宮)", desc: "천명과 본질적 성격, 인생 전반의 운명적 지향점을 결정하는 핵심 궁위입니다." },
+  "형제궁": { kr: "형제궁 (兄弟宮)", desc: "형제자매, 소중한 동료, 가까운 파트너와의 협력 및 상생 관계를 나타냅니다." },
+  "부처궁": { kr: "부처궁 (夫妻宮)", desc: "배우자운, 연애 성향, 이상형 및 소중한 동반자와의 정서적 교감을 관장합니다." },
+  "자녀궁": { kr: "자녀궁 (子女宮)", desc: "자녀와의 인연, 후배 양성, 창의적 프로젝트 탄생 및 새로운 시작을 뜻합니다." },
+  "재백궁": { kr: "재백궁 (財帛宮)", desc: "재물 축적 경로, 경제적 수완, 금융 및 실질적 자산 운용 방식을 관장합니다." },
+  "질액궁": { kr: "질액궁 (疾厄宮)", desc: "신체 건강 밸런스, 체질적 취약점, 내면의 스트레스 해소 및 웰니스를 관장합니다." },
+  "천이궁": { kr: "천이궁 (遷移宮)", desc: "대외 활동 무대, 이직 및 여행, 외부 사람들에게 비치는 사회적 인상을 나타냅니다." },
+  "교우궁": { kr: "교우궁 (交友宮)", desc: "사회적 인맥, 직장 부하직원, 대중적 평판 및 협력 네트워크를 상징합니다." },
+  "관록궁": { kr: "관록궁 (官祿宮)", desc: "직업적 명예, 커리어 성취도, 승진 및 공직/전문직 역량을 관장합니다." },
+  "전택궁": { kr: "전택궁 (田宅宮)", desc: "부동산 자산, 주거 환경의 안락함, 가문의 뿌리와 보금자리의 번영을 상징합니다." },
+  "복덕궁": { kr: "복덕궁 (福德宮)", desc: "정신적 풍요로움, 영적 힐링, 취미 생활 및 내면의 행복 체감도를 관장합니다." },
+  "부모궁": { kr: "부모궁 (父母宮)", desc: "부모님과의 인연, 은사 및 상사의 후원, 공적 문서 계약운을 주관합니다." }
 };
 
 export default function SajuVisual({
@@ -575,255 +584,102 @@ export default function SajuVisual({
   hideMix = false,
   showOnlyMix = false,
   isPremium = false,
-  showOnlyDaewoon = false
+  showOnlyDaewoon = false,
+  selectedTab,
+  hideTabNav = false,
+  onTabChange
 }: SajuVisualProps) {
-  const [activeTab, setActiveTab] = useState<"saju" | "ziwei" | "mix">(
-    showOnlyMix ? "mix" : hideMix ? "saju" : "mix"
-  );
-  const [selectedPalace, setSelectedPalace] = useState<string>("命宮");
-  const [selectedDaXianIdx, setSelectedDaXianIdx] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<"mix" | "saju" | "ziwei">(showOnlyMix ? "mix" : "mix");
+  const currentTab = selectedTab !== undefined ? selectedTab : activeTab;
+  const handleTabSelect = (tab: "mix" | "saju" | "ziwei") => {
+    setActiveTab(tab);
+    onTabChange?.(tab);
+  };
   const [selectedDaewoonIdx, setSelectedDaewoonIdx] = useState<number | null>(null);
+  const [selectedPalace, setSelectedPalace] = useState<string>("명궁");
+  const [expandedBlocks, setExpandedBlocks] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    if (showOnlyMix) {
-      setActiveTab("mix");
-    } else if (hideMix && activeTab === "mix") {
-      setActiveTab("saju");
-    }
-  }, [showOnlyMix, hideMix]);
-
-  const {
-    pillars,
-    daymaster,
-    ohaeng_count,
-    birthplace,
-    solar_birth_time,
-    solar_correction_minutes,
-    daewoon,
-    sipseong_strength,
-    pillars_detail,
-    special_sals_list,
-    ziwei
-  } = saju;
-
-  const elementNames: Record<string, string> = {
-    "목": "목 (나무)",
-    "화": "화 (불)",
-    "토": "토 (흙)",
-    "금": "금 (쇠)",
-    "수": "수 (물)"
+  const toggleBlock = (key: string) => {
+    setExpandedBlocks(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const daymasterMeta = daymasterMap[daymaster.gan];
-
-  const currentAge = ziwei ? (2026 - ziwei.solarYear + 1) : 30;
+  const { pillars, daymaster, ohaeng_count, special_sals_list, daewoon, ziwei, birthplace, solar_birth_time, solar_correction_minutes, pillars_detail, sipseong_strength } = saju;
+  const currentAge = 35;
+  const daymasterMeta = daymasterMap[daymaster?.gan || "甲"];
 
   const findMatchingDaxian = (sajuAge: number) => {
-    if (!ziwei?.daXianList) return null;
-    return ziwei.daXianList.find(
-      (dx) => Math.abs(dx.ageStart - sajuAge) <= 3
-    );
-  };
-
-  useEffect(() => {
-    if (ziwei && ziwei.daXianList && selectedDaXianIdx === null) {
-      const idx = ziwei.daXianList.findIndex(dx => currentAge >= dx.ageStart && currentAge <= dx.ageEnd);
-      setSelectedDaXianIdx(idx !== -1 ? idx : 0);
-    }
-  }, [ziwei, currentAge, selectedDaXianIdx]);
-
-  useEffect(() => {
-    if (daewoon && selectedDaewoonIdx === null) {
-      const idx = daewoon.findIndex((item, index) => {
-        const nextItem = daewoon[index + 1];
-        const endAge = nextItem ? nextItem.age - 1 : item.age + 9;
-        return currentAge >= item.age && currentAge <= endAge;
-      });
-      setSelectedDaewoonIdx(idx !== -1 ? idx : 0);
-    }
-  }, [daewoon, currentAge, selectedDaewoonIdx]);
-
-  // Element colors for badges and texts
-  const elementColors: Record<string, { bg: string, border: string, text: string, darkText: string }> = {
-    "목": { bg: "bg-[#E8F8F5]", border: "border-[#A3E4D7]", text: "text-[#117A65]", darkText: "#117A65" },
-    "화": { bg: "bg-[#FDEDEC]", border: "border-[#FADBD8]", text: "text-[#C0392B]", darkText: "#C0392B" },
-    "토": { bg: "bg-[#F5EEF8]", border: "border-[#EBDEF0]", text: "text-[#7D3C98]", darkText: "#7D3C98" },
-    "금": { bg: "bg-[#EBF5FB]", border: "border-[#D6EAF8]", text: "text-[#2471A3]", darkText: "#2471A3" },
-    "수": { bg: "bg-[#EAF2F8]", border: "border-[#D4E6F1]", text: "text-[#2E4053]", darkText: "#2E4053" }
-  };
-
-  const getGanElementStyle = (gan: string) => {
-    const ganToElement: Record<string, string> = {
-      "甲": "목", "乙": "목",
-      "丙": "화", "丁": "화",
-      "戊": "토", "己": "토",
-      "庚": "금", "辛": "금",
-      "壬": "수", "癸": "수"
-    };
-    const element = ganToElement[gan] || "목";
-    return elementColors[element] || elementColors["목"];
-  };
-
-  const getJiElementStyle = (ji: string) => {
-    let element = "목";
-    if (ji === "寅" || ji === "卯") element = "목";
-    else if (ji === "巳" || ji === "午") element = "화";
-    else if (ji === "辰" || ji === "戌" || ji === "丑" || ji === "未") element = "토";
-    else if (ji === "申" || ji === "酉") element = "금";
-    else if (ji === "亥" || ji === "子") element = "수";
-    return elementColors[element] || elementColors["목"];
-  };
-
-  const getSipseongExplanation = (name: string) => {
-    const exps: Record<string, string> = {
-      "비겁": "주체성, 독립심, 자존감",
-      "식상": "재능 발휘, 표현력, 창의성",
-      "재성": "목표 달성, 현실 감각, 재물운",
-      "관성": "조직 적응력, 책임감, 규율",
-      "인성": "지식 습득, 수용력, 정신력"
-    };
-    return exps[name] || "";
-  };
-
-  // Traditional Clockwise 4x4 Ring Position Definition
-  const indexToZhi: Record<number, string> = {
-    0: "巳", 1: "午", 2: "未", 3: "申",
-    4: "辰",                       7: "酉",
-    8: "卯",                       11: "戌",
-    12: "寅", 13: "丑", 14: "子", 15: "亥"
+    if (!ziwei || !ziwei.daXianList) return null;
+    return ziwei.daXianList.find(dx => sajuAge >= dx.ageStart && sajuAge <= dx.ageEnd) || null;
   };
 
   const renderZiweiGridCells = () => {
-    if (!ziwei) return null;
-    const cells = [];
+    if (!ziwei || !ziwei.palaces) return null;
     
-    // Build row-by-row mapping list
-    const sequence = [
-      { type: "palace", zhi: "巳" }, // r0 c0
-      { type: "palace", zhi: "午" }, // r0 c1
-      { type: "palace", zhi: "未" }, // r0 c2
-      { type: "palace", zhi: "申" }, // r0 c3
-      
-      { type: "palace", zhi: "辰" }, // r1 c0
-      { type: "center" },           // r1 c1 (merged 2x2 placeholder)
-      { type: "palace", zhi: "酉" }, // r1 c3
-      
-      { type: "palace", zhi: "卯" }, // r2 c0
-      { type: "palace", zhi: "戌" }, // r2 c3
-      
-      { type: "palace", zhi: "寅" }, // r3 c0
-      { type: "palace", zhi: "丑" }, // r3 c1
-      { type: "palace", zhi: "子" }, // r3 c2
-      { type: "palace", zhi: "亥" }, // r3 c3
-    ];
+    const zhiOrder = ["巳", "午", "未", "申", "辰", "", "", "酉", "卯", "", "", "戌", "寅", "丑", "子", "亥"];
+    const palaceByZhi: Record<string, any> = {};
+    Object.values(ziwei.palaces).forEach(p => {
+      palaceByZhi[p.zhi] = p;
+    });
 
-    return sequence.map((cell, idx) => {
-      if (cell.type === "center") {
-        // Inner center card
-        const lunarStr = `음력 ${ziwei.lunarYear}년 ${ziwei.isLeapMonth ? '윤' : ''}${ziwei.lunarMonth}월 ${ziwei.lunarDay}일`;
-        return (
-          <div
-            key="center-panel"
-            className="col-span-2 row-span-2 bg-[#FAF6F0] border border-[#E8E0D0] rounded-xl p-2.5 sm:p-4 flex flex-col justify-center items-center text-center space-y-1 select-none shadow-inner"
-          >
-            <div className="font-serif text-[11px] sm:text-xs font-bold text-[#C0392B] tracking-tight">
-              ☯️ 자미두수 천반 (天盤)
+    return zhiOrder.map((zhi, idx) => {
+      if (zhi === "") {
+        if (idx === 5) {
+          return (
+            <div key="center" className="col-span-2 row-span-2 bg-[#FAF8F5] border border-[#E8E0D0] rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-xs">
+              <span className="font-serif font-bold text-xs text-[#2C3E50] mb-0.5">자미두수 원명반</span>
+              <span className="text-[10px] text-[#5C5046] font-medium leading-relaxed">
+                천상 14정성과 은하수 성좌가<br/>조화롭게 배치된 천명도(天命圖)
+              </span>
             </div>
-            <div className="text-[9px] sm:text-[11px] text-[#5A4D41] font-medium leading-relaxed">
-              {ziwei.isMale ? "乾命 (남성)" : "坤命 (여성)"} • {ziwei.wuXingJu.name}
-            </div>
-            <div className="text-[8px] sm:text-[10px] text-[#8C7B6E] leading-normal font-sans">
-              {lunarStr}
-            </div>
-            <div className="text-[8px] sm:text-[10px] bg-[#C0392B]/5 border border-[#C0392B]/15 px-2 py-0.5 rounded-full font-bold text-[#C0392B]">
-              대운 {ziwei.daXianStartAge}세 시작
-            </div>
-          </div>
-        );
+          );
+        }
+        if (idx === 6 || idx === 9 || idx === 10) return null;
       }
 
-      // Find the palace matching this branch zhi
-      const zhiVal = cell.zhi;
-      const palaceEntry = Object.values(ziwei.palaces).find(p => p.zhi === zhiVal);
-      if (!palaceEntry) return <div key={idx} className="bg-white border border-gray-100" />;
+      const pal = palaceByZhi[zhi];
+      if (!pal) {
+        return <div key={idx} className="bg-white border border-[#E8E0D0] rounded-lg p-2 min-h-[70px]" />;
+      }
 
-      const isCurrentSelected = selectedPalace === palaceEntry.name;
-      const isMingGong = palaceEntry.name === "命宮";
-      
-      // Separate stars by type for distinct coloration
-      const mainStars = palaceEntry.stars.filter(s => s.type === "main");
-      const auxStars = palaceEntry.stars.filter(s => s.type === "lucky" || s.type === "sha");
+      const isSelected = selectedPalace === pal.name || selectedPalace === pal.nameKr;
+      const mainStars = pal.stars?.filter((s: any) => s.type === "main") || [];
+      const luckyStars = pal.stars?.filter((s: any) => s.type === "lucky") || [];
 
       return (
         <button
-          key={palaceEntry.name}
+          key={zhi}
           type="button"
-          onClick={() => setSelectedPalace(palaceEntry.name)}
-          className={`h-24 sm:h-28 text-left p-1.5 sm:p-2 rounded-xl flex flex-col justify-between transition-all relative border focus:outline-none select-none cursor-pointer ${
-            isCurrentSelected
-              ? "bg-[#FDEDEC]/80 border-2 border-[#C0392B] ring-2 ring-[#C0392B]/10 z-10 shadow-xs"
-              : isMingGong
-              ? "bg-[#F5EEF8] border-[#EBDEF0] hover:border-[#7D3C98]/40"
-              : "bg-white border-[#E8E0D0] hover:border-[#C0392B]/40"
+          onClick={() => setSelectedPalace(pal.nameKr || pal.name)}
+          className={`p-2 rounded-xl border text-left flex flex-col justify-between min-h-[78px] transition-all cursor-pointer ${
+            isSelected
+              ? "bg-[#FDEDEC] border-[#C0392B] ring-2 ring-[#C0392B]/20 shadow-xs"
+              : "bg-white border-[#E8E0D0] hover:border-[#C0392B]/50 hover:bg-[#FAF8F5]"
           }`}
         >
-          {/* Top segment: Palace Name & Badges */}
-          <div className="w-full flex items-start justify-between">
-            <span className={`text-[10px] sm:text-xs font-bold leading-none ${isMingGong ? "text-[#7D3C98]" : "text-[#5A4D41]"}`}>
-              {palaceDescriptions[palaceEntry.name]?.kr || palaceEntry.nameKr}
+          <div className="flex items-center justify-between w-full">
+            <span className="font-bold text-[10px] text-[#2C3E50]">
+              {pal.nameKr || pal.name}
             </span>
-            {palaceEntry.isShenGong && (
-              <span className="text-[8px] font-bold bg-[#3498DB]/10 text-[#2980B9] px-1 py-0.5 rounded leading-none">
-                [身]
-              </span>
-            )}
+            <span className="text-[9px] text-gray-500 font-medium">
+              {pal.zhi}
+            </span>
           </div>
 
-          {/* Middle segment: Star List */}
-          <div className="flex flex-col gap-0.5 my-1 overflow-hidden">
-            {/* Main Stars */}
-            {mainStars.map(s => (
-              <div key={s.name} className="flex items-center gap-0.5 leading-none">
-                <span className="text-[9px] sm:text-[11px] font-bold text-[#C0392B] tracking-tight">
-                  {s.nameKr}
-                </span>
-                {s.brightness && (
-                  <span className="text-[7px] text-[#8C7B6E] scale-90">
-                    {s.brightness}
-                  </span>
-                )}
-                {s.siHua && (
-                  <span className={`text-[7px] font-bold px-0.5 rounded scale-90 ${
-                    s.siHua === "化忌" ? "bg-red-500 text-white" : "bg-[#C0392B]/10 text-[#C0392B]"
-                  }`}>
-                    {s.siHua.slice(-1)}
-                  </span>
-                )}
+          <div className="my-1 space-y-0.5">
+            {mainStars.map((s: any) => (
+              <div key={s.nameKr} className="text-[9px] font-bold text-[#C0392B] leading-tight">
+                ★ {s.nameKr}
               </div>
             ))}
-            
-            {/* Aux/Lucky/Sha Stars */}
-            <div className="flex flex-wrap gap-0.5 mt-0.5">
-              {auxStars.map(s => {
-                const isLucky = s.type === "lucky";
-                return (
-                  <span
-                    key={s.name}
-                    className={`text-[8px] font-medium leading-none ${isLucky ? "text-[#117A65]" : "text-gray-500"}`}
-                  >
-                    {s.nameKr}
-                    {s.siHua && `(${s.siHua.slice(-1)})`}
-                  </span>
-                );
-              })}
-            </div>
+            {luckyStars.slice(0, 2).map((s: any) => (
+              <div key={s.nameKr} className="text-[8.5px] text-[#117A65] leading-tight">
+                {s.nameKr}
+              </div>
+            ))}
           </div>
 
-          {/* Bottom segment: Palace GanZhi */}
-          <div className="w-full text-right">
-            <span className="text-[7px] sm:text-[9px] font-mono text-[#8C7B6E] leading-none">
-              {palaceEntry.ganZhi}
-            </span>
+          <div className="text-[8px] text-gray-500">
+            {pal.ganZhi}
           </div>
         </button>
       );
@@ -832,282 +688,282 @@ export default function SajuVisual({
 
   if (showOnlyDaewoon) {
     return (
-      <div className="space-y-4">
-        {/* Daewoon Scroll Grid */}
-        {daewoon && (
-          <div className="space-y-4 text-left">
-            <div className="text-[11px] font-semibold text-[#8C7B6E] text-center tracking-tight flex items-center justify-between">
-              <span>📅 평생 대운(大運) 흐름도 (10년 주기)</span>
-              <span className="text-[9px] font-normal text-[#8C7B6E]">* 대운 카드를 탭하시면 아래에 상세한 10개년 비책을 보여드립니다.</span>
-            </div>
-            <div className="flex gap-2.5 overflow-x-auto pb-2.5 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-              {daewoon.map((item, idx) => {
-                const isCurrent = currentAge >= item.age && currentAge <= (daewoon[idx+1] ? daewoon[idx+1].age - 1 : item.age + 9);
-                const isSelected = selectedDaewoonIdx === idx;
-                return (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setSelectedDaewoonIdx(idx)}
-                    className={`min-w-[105px] flex-shrink-0 border p-3 rounded-xl text-center space-y-1 transition-all duration-200 cursor-pointer ${
-                      isSelected
-                        ? "bg-[#C0392B] border-[#C0392B] text-white shadow-md scale-102"
-                        : isCurrent
-                        ? "bg-[#FAF6F0] border-[#C0392B] text-[#5A4D41] shadow-2xs hover:bg-[#FAF6F0]/80"
-                        : "bg-white border-[#E8E0D0] text-[#5A4D41] hover:border-[#C0392B]/50 hover:bg-[#FAF8F5]"
-                    }`}
-                  >
-                    <div className="relative">
-                      {isCurrent && (
-                        <span className={`text-[8px] px-1.5 py-0.2 rounded-full font-bold shadow-2xs whitespace-nowrap inline-block ${
-                          isSelected ? "bg-white text-[#C0392B]" : "bg-[#C0392B] text-white"
-                        }`}>
-                          현재 대운
-                        </span>
-                      )}
-                      <div className={`text-[10px] font-bold ${isSelected ? "text-white/80" : "text-[#C0392B]"} ${isCurrent ? "" : "mt-1"}`}>
-                        {item.age}세 대운
-                      </div>
-                    </div>
-                    <div className="font-serif text-base font-bold">{item.ganzi}</div>
-                    <div className={`text-[9px] font-medium leading-none ${isSelected ? "text-white/80" : "text-[#5A4D41]"}`}>
-                      {item.stemSipsin}/{item.branchSipsin}
-                    </div>
-                    <div className={`text-[9px] rounded py-0.5 font-bold ${
-                      isSelected ? "bg-white/20 text-white" : "bg-gray-50 border border-gray-100 text-[#8C7B6E]"
-                    }`}>
-                      {item.unseong}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+      <div className="space-y-4 text-left">
+        <div className="bg-[#FAF8F5] border border-[#E8E0D0] p-4 rounded-xl space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-serif font-bold text-[#2C3E50]">
+              🛣️ 10년 주기 대운(大運) 순환표
+            </span>
+            <span className="text-[10px] text-gray-500">
+              현재 만 {currentAge}세
+            </span>
+          </div>
 
-            {/* Saju Decadal Luck Detailed Guide */}
-            {selectedDaewoonIdx !== null && daewoon[selectedDaewoonIdx] && (() => {
-              const item = daewoon[selectedDaewoonIdx];
-              const isCurrent = currentAge >= item.age && currentAge <= (daewoon[selectedDaewoonIdx + 1] ? daewoon[selectedDaewoonIdx + 1].age - 1 : item.age + 9);
-              
-              if (!isPremium) {
-                return (
-                  <div className="bg-white border border-amber-200 p-5 rounded-xl text-center space-y-3 shadow-2xs relative overflow-hidden">
-                    <div className="absolute top-2 right-2 bg-amber-50 text-amber-700 border border-amber-200 text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-                      <Crown className="w-2.5 h-2.5 fill-amber-300 text-amber-600" /> Premium
-                    </div>
-                    <div className="py-6 space-y-2">
-                      <div className="text-2xl text-amber-600">🔒</div>
-                      <h4 className="font-serif text-xs font-bold text-amber-900">
-                        {item.age}세 {item.ganzi} 대운 ({item.stemSipsin}/{item.branchSipsin}) 상세 해독 비책
-                      </h4>
-                      <p className="text-[10px] text-amber-800/80 leading-relaxed max-w-sm mx-auto font-medium">
-                        해당 10년 구간의 십성 우주 에너지 흐름, 12운성 생리 활력 지표, 그리고 인생 로드맵 맞춤형 해독 비책은 프리미엄 평생 감정서에서 해금할 수 있습니다.
-                      </p>
-                    </div>
-                  </div>
-                );
-              }
-
-              // Detailed interpretation generation based on Sipsin and 12unseong
-              const activeSipsinTheme = item.stemSipsin === "비견" || item.stemSipsin === "겁재" || item.branchSipsin === "비견" || item.branchSipsin === "겁재" ? "비겁" :
-                                        item.stemSipsin === "식신" || item.stemSipsin === "상관" || item.branchSipsin === "식신" || item.branchSipsin === "상관" ? "식상" :
-                                        item.stemSipsin === "정재" || item.stemSipsin === "편재" || item.branchSipsin === "정재" || item.branchSipsin === "편재" ? "재성" :
-                                        item.stemSipsin === "정관" || item.stemSipsin === "편관" || item.branchSipsin === "정관" || item.branchSipsin === "편관" ? "관성" : "인성";
-
-              const sipsinText = 
-                activeSipsinTheme === "비겁" ? "나 자신의 독립심과 주체성이 극대화되어 스스로 무언가를 창조하고 뚝심 있게 관철시키는 리더십의 10년입니다. 동업이나 경쟁 등 인간관계의 조율을 잘 다스리면 엄청난 자립 성과를 얻게 됩니다." :
-                activeSipsinTheme === "식상" ? "나의 천재성과 창의력, 기획 능력이 날개를 달아 거침없이 세상에 표현되는 아주 역동적인 10년입니다. 배움과 연구, 새로운 일을 벌이거나 사업을 확장해나가기에 가장 매끄러운 에너지입니다." :
-                activeSipsinTheme === "재성" ? "풍성한 재물과 가시적인 결과물이 실속 있게 영그는 일생일대의 황금기입니다. 비즈니스적 통찰이 늘고 노련한 현금 흐름 창출을 이뤄내며, 성실하게 부의 도약을 축적하기에 안성맞춤입니다." :
-                activeSipsinTheme === "관성" ? "사회적인 명예와 책임 있는 높은 지위, 탄탄한 조직 내의 인정을 거머쥐는 최고의 커리어 성공 흐름입니다. 중요한 라이선스를 따내거나 승진, 임용 등 정당하고 공적인 명예를 굳세게 지켜냅니다." :
-                "내적인 공부와 지혜를 듬뿍 쌓고, 귀인의 무조건적인 원조와 도움을 받아 탄탄하게 문서를 확보하는 실속 내실기입니다. 조급하게 행동하기보다 실력을 성숙하게 가다듬어 한 단계 인생 품격을 끌어올립니다.";
-
-              const unseongText = 
-                item.unseong === "장생" || item.unseong === "목욕" ? "마치 주변의 따뜻한 관심과 큰 인덕 속에 화려하게 주목받으며, 기분 좋고 트렌디하게 나 자신을 발산하는 쾌활하고 발랄한 생명 주기입니다." :
-                item.unseong === "관대" || item.unseong === "건록" || item.unseong === "제왕" ? "사주 기운 중 기세가 가장 단단하고 위세 높은 전성기로, 강력한 주관과 굳건한 추진력을 통하여 높은 사회적 빌딩을 일구는 당찬 추진 시기입니다." :
-                item.unseong === "쇠" || item.unseong === "양" || item.unseong === "태" ? "무리한 대외적 충돌을 피하고 주변과 부드럽게 상생하며, 지혜롭고 영민한 지혜와 통찰력으로 내실을 조화롭게 확보하는 안정 지향적 시기입니다." :
-                item.unseong === "병" || item.unseong === "사" || item.unseong === "묘" ? "생각과 깊이가 아주 깊어져서 학문적/예술적 창조성을 드높이고, 불필요한 지출 대신 철저한 실속 저축을 통하여 비공개적 자산 가치를 완벽히 다져놓는 알짜배기 시기입니다." :
-                "기존의 어수선한 껍질을 말끔히 허물어내고, 백지 위에서 완전히 신선한 새출발의 큰 꿈과 장기 기획을 안전하게 설계하기에 제격인 소중한 기획 시기입니다.";
-
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+            {daewoon && daewoon.map((item, idx) => {
+              const isSelected = selectedDaewoonIdx === idx;
+              const isCurrent = currentAge >= item.age && currentAge <= (daewoon[idx + 1] ? daewoon[idx + 1].age - 1 : item.age + 9);
               return (
-                <div className="bg-[#FAF8F5] border border-[#E8E0D0] p-4.5 rounded-xl space-y-3 text-left shadow-2xs">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E0D0]/60 pb-2.5">
-                    <div>
-                      <span className="text-[10px] bg-[#C0392B]/10 text-[#C0392B] border border-[#C0392B]/20 px-2 py-0.5 rounded-full font-bold">
-                        🔮 {item.age}세 ~ {item.age + 9}세 10년 대운 종합 분석
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSelectedDaewoonIdx(isSelected ? null : idx)}
+                  className={`p-2 rounded-xl border text-center transition-all cursor-pointer space-y-1 ${
+                    isSelected
+                      ? "bg-[#C0392B] text-white border-[#C0392B] shadow-xs"
+                      : isCurrent
+                      ? "bg-amber-50 border-amber-300 text-amber-900"
+                      : "bg-white border-[#E8E0D0] text-[#2C3E50] hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="text-[9px] font-bold">
+                    {isCurrent && (
+                      <span className="bg-amber-200 text-amber-900 px-1 rounded text-[8px] block mb-0.5">
+                        현재
                       </span>
-                      <h4 className="font-serif text-sm font-bold text-[#2C3E50] mt-1.5">
-                        {item.ganzi} 대운 : <span className="text-[#C0392B]">{item.stemSipsin} / {item.branchSipsin} 기운 ({item.unseong})</span>
-                      </h4>
+                    )}
+                    <div className={`${isCurrent ? "" : "mt-1"}`}>
+                      {item.age}세 대운
                     </div>
-                    <div className="text-left sm:text-right">
-                      {isCurrent && (
-                        <span className="inline-block text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/55 px-1.5 py-0.5 rounded">
-                          ✓ 현재 지나고 있는 귀하의 10년 구간
-                        </span>
-                      )}
+                  </div>
+                  <div className="font-serif text-base font-bold">{item.ganzi}</div>
+                  <div className={`text-[9px] font-medium leading-none ${isSelected ? "text-white/80" : "text-[#5A4D41]"}`}>
+                    {item.stemSipsin}/{item.branchSipsin}
+                  </div>
+                  <div className={`text-[9px] rounded py-0.5 font-bold ${
+                    isSelected ? "bg-white/20 text-white" : "bg-gray-50 border border-gray-100 text-[#5C5046]"
+                  }`}>
+                    {item.unseong}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Saju Decadal Luck Detailed Guide */}
+        {selectedDaewoonIdx !== null && daewoon[selectedDaewoonIdx] && (() => {
+          const item = daewoon[selectedDaewoonIdx];
+          const isCurrent = currentAge >= item.age && currentAge <= (daewoon[selectedDaewoonIdx + 1] ? daewoon[selectedDaewoonIdx + 1].age - 1 : item.age + 9);
+          
+          if (!isPremium) {
+            return (
+              <div className="bg-white border border-amber-200 p-5 rounded-xl text-center space-y-3 shadow-2xs relative overflow-hidden">
+                <div className="absolute top-2 right-2 bg-amber-50 text-amber-700 border border-amber-200 text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                  <Crown className="w-2.5 h-2.5 fill-amber-300 text-amber-600" /> Premium
+                </div>
+                <div className="py-6 space-y-2">
+                  <div className="text-2xl text-amber-600">🔒</div>
+                  <h4 className="font-serif text-xs font-bold text-amber-900">
+                    {item.age}세 {item.ganzi} 대운 ({item.stemSipsin}/{item.branchSipsin}) 상세 해독 비책
+                  </h4>
+                  <p className="text-[10px] text-amber-800/80 leading-relaxed max-w-sm mx-auto font-medium">
+                    해당 10년 구간의 십성 에너지 흐름, 12운성 생리 활력 지표, 그리고 인생 로드맵 맞춤형 해독 비책은 프리미엄 평생 감정서에서 해금할 수 있습니다.
+                  </p>
+                </div>
+              </div>
+            );
+          }
+
+          // Detailed interpretation generation based on Sipsin and 12unseong
+          const activeSipsinTheme = item.stemSipsin === "비견" || item.stemSipsin === "겁재" || item.branchSipsin === "비견" || item.branchSipsin === "겁재" ? "비겁" :
+                                    item.stemSipsin === "식신" || item.stemSipsin === "상관" || item.branchSipsin === "식신" || item.branchSipsin === "상관" ? "식상" :
+                                    item.stemSipsin === "정재" || item.stemSipsin === "편재" || item.branchSipsin === "정재" || item.branchSipsin === "편재" ? "재성" :
+                                    item.stemSipsin === "정관" || item.stemSipsin === "편관" || item.branchSipsin === "정관" || item.branchSipsin === "편관" ? "관성" : "인성";
+
+          const sipsinText = 
+            activeSipsinTheme === "비겁" ? "나 자신의 독립심과 주체성이 극대화되어 스스로 무언가를 창조하고 뚝심 있게 관철시키는 리더십의 10년입니다. 동업이나 경쟁 등 인간관계의 조율을 잘 다스리면 엄청난 자립 성과를 얻게 됩니다." :
+            activeSipsinTheme === "식상" ? "나의 천재성과 창의력, 기획 능력이 날개를 달아 거침없이 세상에 표현되는 아주 역동적인 10년입니다. 배움과 연구, 새로운 일을 벌이거나 사업을 확장해나가기에 가장 매끄러운 에너지입니다." :
+            activeSipsinTheme === "재성" ? "풍성한 재물과 가시적인 결과물이 실속 있게 영그는 일생일대의 황금기입니다. 비즈니스적 통찰이 늘고 노련한 현금 흐름 창출을 이뤄내며, 성실하게 부의 도약을 축적하기에 안성맞춤입니다." :
+            activeSipsinTheme === "관성" ? "사회적인 명예와 책임 있는 높은 지위, 탄탄한 조직 내의 인정을 거머쥐는 최고의 커리어 성공 흐름입니다. 중요한 라이선스를 따내거나 승진, 임용 등 정당하고 공적인 명예를 굳세게 지켜냅니다." :
+            "내적인 공부와 지혜를 듬뿍 쌓고, 귀인의 무조건적인 원조와 도움을 받아 탄탄하게 문서를 확보하는 실속 내실기입니다. 조급하게 행동하기보다 실력을 성숙하게 가다듬어 한 단계 인생 품격을 끌어올립니다.";
+
+          const unseongText = 
+            item.unseong === "장생" || item.unseong === "목욕" ? "마치 주변의 따뜻한 관심과 큰 인덕 속에 화려하게 주목받으며, 기분 좋고 트렌디하게 나 자신을 발산하는 쾌활하고 발랄한 생명 주기입니다." :
+            item.unseong === "관대" || item.unseong === "건록" || item.unseong === "제왕" ? "사주 기운 중 기세가 가장 단단하고 위세 높은 전성기로, 강력한 주관과 굳건한 추진력을 통하여 높은 사회적 빌딩을 일구는 당찬 추진 시기입니다." :
+            item.unseong === "쇠" || item.unseong === "양" || item.unseong === "태" ? "무리한 대외적 충돌을 피하고 주변과 부드럽게 상생하며, 지혜롭고 영민한 지혜와 통찰력으로 내실을 조화롭게 확보하는 안정 지향적 시기입니다." :
+            item.unseong === "병" || item.unseong === "사" || item.unseong === "묘" ? "생각과 깊이가 아주 깊어져서 학문적/예술적 창조성을 드높이고, 불필요한 지출 대신 철저한 실속 저축을 통하여 비공개적 자산 가치를 완벽히 다져놓는 알짜배기 시기입니다." :
+            "기존의 어수선한 껍질을 말끔히 허물어내고, 백지 위에서 완전히 신선한 새출발의 큰 꿈과 장기 기획을 안전하게 설계하기에 제격인 소중한 기획 시기입니다.";
+
+          return (
+            <div className="bg-[#FAF8F5] border border-[#E8E0D0] p-4.5 rounded-xl space-y-3 text-left shadow-2xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E0D0]/60 pb-2.5">
+                <div>
+                  <span className="text-[10px] bg-[#C0392B]/10 text-[#C0392B] border border-[#C0392B]/20 px-2 py-0.5 rounded-full font-bold">
+                    🔮 {item.age}세 ~ {item.age + 9}세 10년 대운 종합 분석
+                  </span>
+                  <h4 className="font-serif text-sm font-bold text-[#2C3E50] mt-1.5">
+                    {item.ganzi} 대운 : <span className="text-[#C0392B]">{item.stemSipsin} / {item.branchSipsin} 기운 ({item.unseong})</span>
+                  </h4>
+                </div>
+                <div className="text-left sm:text-right">
+                  {isCurrent && (
+                    <span className="inline-block text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/55 px-1.5 py-0.5 rounded">
+                      ✓ 현재 지나고 있는 귀하의 10년 구간
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3 text-xs leading-relaxed text-[#5A4D41]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  <div className="space-y-1">
+                    <span className="font-bold text-[#C0392B] text-[11px] block font-serif">✨ 명리학 십성 에너지 흐름 ({item.stemSipsin}/{item.branchSipsin})</span>
+                    <div className="bg-white p-3.5 border border-[#E8E0D0]/50 rounded-xl text-[#5A4D41] font-sans min-h-[110px] flex flex-col justify-between">
+                      <p>{sipsinText}</p>
                     </div>
                   </div>
 
-                  <div className="space-y-3 text-xs leading-relaxed text-[#5A4D41]">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                      <div className="space-y-1">
-                        <span className="font-bold text-[#C0392B] text-[11px] block font-serif">✨ 명리학 십성 에너지 흐름 ({item.stemSipsin}/{item.branchSipsin})</span>
-                        <div className="bg-white p-3.5 border border-[#E8E0D0]/50 rounded-xl text-[#5A4D41] font-sans min-h-[110px] flex flex-col justify-between">
-                          <p>{sipsinText}</p>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <span className="font-bold text-[#C0392B] text-[11px] block font-serif">🌌 명리학 12운성 생리 활력 지표 ({item.unseong})</span>
-                        <div className="bg-white p-3.5 border border-[#E8E0D0]/50 rounded-xl text-[#5A4D41] font-sans min-h-[110px] flex flex-col justify-between">
-                          <p>{unseongText}</p>
-                        </div>
-                      </div>
+                  <div className="space-y-1">
+                    <span className="font-bold text-[#C0392B] text-[11px] block font-serif">🌌 명리학 12운성 생리 활력 지표 ({item.unseong})</span>
+                    <div className="bg-white p-3.5 border border-[#E8E0D0]/50 rounded-xl text-[#5A4D41] font-sans min-h-[110px] flex flex-col justify-between">
+                      <p>{unseongText}</p>
                     </div>
-
-                    {/* Synchronized Ziwei Daxian Section - UPGRADE STRATEGY */}
-                    {(() => {
-                      const matchedDx = findMatchingDaxian(item.age);
-                      if (!matchedDx) return null;
-                      const rawPalName = matchedDx.palaceName;
-                      const cleanPalName = rawPalName.endsWith("궁") ? rawPalName : (rawPalName + "궁");
-                      const friendlyTheme = friendlyPalaceNames[cleanPalName] || cleanPalName;
-                      const friendlyExplanation = friendlyPalaceExplanations[cleanPalName] || "일생의 다방면적인 기운과 인연의 매듭을 매끄럽게 가다듬고 정립해 나가는 귀중한 10년입니다.";
-                      
-                      const getResonanceInfo = (unseong: string, stars: string[]) => {
-                        const hasHighUnseong = ["제왕", "건록", "관대"].includes(unseong);
-                        const hasGentleUnseong = ["장생", "목욕", "쇠"].includes(unseong);
-                        const hasIntellectualStars = stars.some(s => ["천기", "태음", "천상", "천동", "거문"].includes(s));
-                        const hasHighEnergyStars = stars.some(s => ["무곡", "칠살", "파군", "태양", "염정"].includes(s));
-                        const hasLeadershipStars = stars.some(s => ["자미", "천부", "천량"].includes(s));
-
-                        if (hasHighUnseong && hasHighEnergyStars) {
-                          return {
-                            title: "⚔️ 천하를 개척하는 무관의 폭발적 기세 공명",
-                            score: 98,
-                            desc: "명리학의 강인한 실천 활력과 자미두수의 개척 장군 성좌가 뜨겁게 결합한 최상급 번영 운세입니다. 망설임 없는 과감한 도전과 주도적 실행력이 성공의 가도를 엽니다."
-                          };
-                        }
-                        if (hasGentleUnseong && hasIntellectualStars) {
-                          return {
-                            title: "🎨 깊은 지혜와 예술적 영감이 만나는 학사 공명",
-                            score: 96,
-                            desc: "명리학의 유연한 활력과 자미두수의 섬세한 지략/문창 성좌가 온화하게 어우러져 기획, 공부, 예술적 창출, 정서적 힐링에서 뛰어난 성과와 명예를 약속합니다."
-                          };
-                        }
-                        if (hasHighUnseong && hasLeadershipStars) {
-                          return {
-                            title: "👑 만인을 통솔하는 백관 제왕의 묵직한 조화",
-                            score: 97,
-                            desc: "명리학의 최고조에 달한 전성기적 기운과 자미두수의 황제/지도자 별자리가 만나 든든한 커리어의 기품을 세우고, 견고한 사회적 명예와 탄탄한 신용을 확보합니다."
-                          };
-                        }
-                        return {
-                          title: "☯️ 음양조화를 채워나가는 안락한 상생 공명",
-                          score: 93,
-                          desc: "명리학의 10년 대운과 자미두수 대한의 음양 및 오행이 상호보완적으로 상생 작용하여, 흔들림 없이 편안하고 실속 있게 나만의 탄탄한 터전과 내실을 다져나가는 풍요의 해입니다."
-                        };
-                      };
-
-                      const resonance = getResonanceInfo(item.unseong, matchedDx.mainStars || []);
-
-                      return (
-                        <div className="mt-4 pt-4 border-t border-[#E8E0D0] space-y-2.5 animate-fade-in text-left">
-                          <span className="font-bold text-[#C0392B] text-[11px] block flex items-center gap-1.5 font-serif">
-                            🪐 자미두수 동양천문 10년 대한(大限) 조화 해독
-                          </span>
-                          <div className="bg-amber-50/15 border border-amber-500/20 rounded-xl p-4.5 space-y-3.5 shadow-2xs">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E0D0]/40 pb-2.5">
-                              <div>
-                                <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded-full font-bold">
-                                  {matchedDx.ageStart}세 ~ {matchedDx.ageEnd}세 {cleanPalName}
-                                </span>
-                                <h5 className="font-serif font-black text-xs text-[#2C3E50] mt-1.5">
-                                  🔑 핵심 테마 : <span className="text-[#C0392B]">{friendlyTheme}</span>
-                                </h5>
-                              </div>
-                              <div className="text-left sm:text-right">
-                                <span className="text-[9px] font-mono text-[#8C7B6E]">
-                                  대한 간지: <strong className="text-[#5A4D41]">{matchedDx.ganZhi}</strong>
-                                </span>
-                              </div>
-                            </div>
-                            
-                            <p className="text-[11px] text-[#5A4D41] leading-relaxed">
-                              {friendlyExplanation}
-                            </p>
-
-                            {/* Resonance Visualization Box */}
-                            <div className="bg-white/95 border border-amber-500/15 rounded-xl p-3.5 space-y-2.5 shadow-3xs">
-                              <div className="flex items-center justify-between text-[11px]">
-                                <span className="font-serif font-bold text-[#C0392B] flex items-center gap-1.5">
-                                  ✦ {resonance.title}
-                                </span>
-                                <span className="font-mono font-black text-[#C0392B] bg-[#C0392B]/5 px-2 py-0.5 rounded text-[10px]">
-                                  공명도 {resonance.score}%
-                                </span>
-                              </div>
-                              <div className="w-full h-2 bg-amber-100/35 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-linear-to-r from-amber-500 to-[#C0392B] rounded-full transition-all duration-1000" 
-                                  style={{ width: `${resonance.score}%` }} 
-                                />
-                              </div>
-                              <p className="text-[10px] text-[#5A4D41] leading-relaxed font-sans font-medium">
-                                {resonance.desc}
-                              </p>
-                            </div>
-
-                            {/* Active Celestial Stars in this Daxian */}
-                            {matchedDx.mainStars && matchedDx.mainStars.length > 0 && (
-                              <div className="space-y-2 pt-3 border-t border-dashed border-[#E8E0D0]">
-                                <span className="text-[10px] font-bold text-[#8C7B6E] block font-sans">✨ 이 10년 동안 동양 천문 주관하는 수호 성좌</span>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  {matchedDx.mainStars.map((star, sIdx) => {
-                                    const sInfo = ziweiStarDetails[star] || { title: `${star}의 기운`, emoji: "⭐", desc: "나만의 고유한 우주 기운을 수호해 줍니다." };
-                                    return (
-                                      <div key={sIdx} className="bg-white/80 p-3 rounded-lg border border-[#E8E0D0]/40 flex items-start gap-1.5 text-[10px] text-[#5A4D41] shadow-3xs">
-                                        <span className="text-xs shrink-0">{sInfo.emoji}</span>
-                                        <div>
-                                          <strong className="text-[#C0392B] block">{sInfo.title}</strong>
-                                          <span className="text-gray-500 leading-normal">{sInfo.desc}</span>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    <p className="text-[10px] text-[#8C7B6E] italic font-sans pt-1">
-                      * 대운(大運)은 10년마다 우주가 주는 큰 도로 환경입니다. 귀하의 본 그릇(사주원국)이 이 도로를 신나게 달릴 수 있도록 항상 중심을 다잡고 기운을 맞이하세요.
-                    </p>
                   </div>
                 </div>
-              );
-            })()}
-          </div>
-        )}
+
+                {/* Synchronized Ziwei Daxian Section - UPGRADE STRATEGY */}
+                {(() => {
+                  const matchedDx = findMatchingDaxian(item.age);
+                  if (!matchedDx) return null;
+                  const rawPalName = matchedDx.palaceName;
+                  const cleanPalName = rawPalName.endsWith("궁") ? rawPalName : (rawPalName + "궁");
+                  const friendlyTheme = friendlyPalaceNames[cleanPalName] || cleanPalName;
+                  const friendlyExplanation = friendlyPalaceExplanations[cleanPalName] || "일생의 다방면적인 기운과 인연의 매듭을 매끄럽게 가다듬고 정립해 나가는 귀중한 10년입니다.";
+                  
+                  const getResonanceInfo = (unseong: string, stars: string[]) => {
+                    const hasHighUnseong = ["제왕", "건록", "관대"].includes(unseong);
+                    const hasGentleUnseong = ["장생", "목욕", "쇠"].includes(unseong);
+                    const hasIntellectualStars = stars.some(s => ["천기", "태음", "천상", "천동", "거문"].includes(s));
+                    const hasHighEnergyStars = stars.some(s => ["무곡", "칠살", "파군", "태양", "염정"].includes(s));
+                    const hasLeadershipStars = stars.some(s => ["자미", "천부", "천량"].includes(s));
+
+                    if (hasHighUnseong && hasHighEnergyStars) {
+                      return {
+                        title: "⚔️ 천하를 개척하는 무관의 폭발적 기세 공명",
+                        score: 98,
+                        desc: "명리학의 강인한 실천 활력과 자미두수의 개척 장군 성좌가 뜨겁게 결합한 최상급 번영 운세입니다. 망설임 없는 과감한 도전과 주도적 실행력이 성공의 가도를 엽니다."
+                      };
+                    }
+                    if (hasGentleUnseong && hasIntellectualStars) {
+                      return {
+                        title: "🎨 깊은 지혜와 예술적 영감이 만나는 학사 공명",
+                        score: 96,
+                        desc: "명리학의 유연한 활력과 자미두수의 섬세한 지략/문창 성좌가 온화하게 어우러져 기획, 공부, 예술적 창출, 정서적 힐링에서 뛰어난 성과와 명예를 약속합니다."
+                      };
+                    }
+                    if (hasHighUnseong && hasLeadershipStars) {
+                      return {
+                        title: "👑 만인을 통솔하는 백관 제왕의 묵직한 조화",
+                        score: 97,
+                        desc: "명리학의 최고조에 달한 전성기적 기운과 자미두수의 황제/지도자 별자리가 만나 든든한 커리어의 기품을 세우고, 견고한 사회적 명예와 탄탄한 신용을 확보합니다."
+                      };
+                    }
+                    return {
+                      title: "☯️ 음양조화를 채워나가는 안락한 상생 공명",
+                      score: 93,
+                      desc: "명리학의 10년 대운과 자미두수 대한의 음양 및 오행이 상호보완적으로 상생 작용하여, 흔들림 없이 편안하고 실속 있게 나만의 탄탄한 터전과 내실을 다져나가는 풍요의 해입니다."
+                    };
+                  };
+
+                  const resonance = getResonanceInfo(item.unseong, matchedDx.mainStars || []);
+
+                  return (
+                    <div className="mt-4 pt-4 border-t border-[#E8E0D0] space-y-2.5 animate-fade-in text-left">
+                      <span className="font-bold text-[#C0392B] text-[11px] block flex items-center gap-1.5 font-serif">
+                        🪐 자미두수 동양천문 10년 대한(大限) 조화 해독
+                      </span>
+                      <div className="bg-amber-50/15 border border-amber-500/20 rounded-xl p-4.5 space-y-3.5 shadow-2xs">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E0D0]/40 pb-2.5">
+                          <div>
+                            <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200/60 px-2 py-0.5 rounded-full font-bold">
+                              {matchedDx.ageStart}세 ~ {matchedDx.ageEnd}세 {cleanPalName}
+                            </span>
+                            <h5 className="font-serif font-black text-xs text-[#2C3E50] mt-1.5">
+                              🔑 핵심 테마 : <span className="text-[#C0392B]">{friendlyTheme}</span>
+                            </h5>
+                          </div>
+                          <div className="text-left sm:text-right">
+                            <span className="text-[9px] font-mono text-[#5C5046]">
+                              대한 간지: <strong className="text-[#5A4D41]">{matchedDx.ganZhi}</strong>
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <p className="text-[11px] text-[#5A4D41] leading-relaxed">
+                          {friendlyExplanation}
+                        </p>
+
+                        {/* Resonance Visualization Box */}
+                        <div className="bg-white/95 border border-amber-500/15 rounded-xl p-3.5 space-y-2.5 shadow-3xs">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="font-serif font-bold text-[#C0392B] flex items-center gap-1.5">
+                              ✦ {resonance.title}
+                            </span>
+                            <span className="font-mono font-black text-[#C0392B] bg-[#C0392B]/5 px-2 py-0.5 rounded text-[10px]">
+                              공명도 {resonance.score}%
+                            </span>
+                          </div>
+                          <div className="w-full h-2 bg-amber-100/35 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-linear-to-r from-amber-500 to-[#C0392B] rounded-full transition-all duration-1000" 
+                              style={{ width: `${resonance.score}%` }} 
+                            />
+                          </div>
+                          <p className="text-[10px] text-[#5A4D41] leading-relaxed font-sans font-medium">
+                            {resonance.desc}
+                          </p>
+                        </div>
+
+                        {/* Active Celestial Stars in this Daxian */}
+                        {matchedDx.mainStars && matchedDx.mainStars.length > 0 && (
+                          <div className="space-y-2 pt-3 border-t border-dashed border-[#E8E0D0]">
+                            <span className="text-[10px] font-bold text-[#5C5046] block font-sans">✨ 이 10년 동안 동양 천문 주관하는 수호 성좌</span>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {matchedDx.mainStars.map((star, sIdx) => {
+                                const sInfo = ziweiStarDetails[star] || { title: `${star}의 기운`, emoji: "⭐", desc: "나만의 고유한 기운과 복록을 수호해 줍니다." };
+                                return (
+                                  <div key={sIdx} className="bg-white/80 p-3 rounded-lg border border-[#E8E0D0]/40 flex items-start gap-1.5 text-[10px] text-[#5A4D41] shadow-3xs">
+                                    <span className="text-xs shrink-0">{sInfo.emoji}</span>
+                                    <div>
+                                      <strong className="text-[#C0392B] block">{sInfo.title}</strong>
+                                      <span className="text-gray-500 leading-normal">{sInfo.desc}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                <p className="text-[10px] text-[#5C5046] italic font-sans pt-1">
+                  * 대운(大運)은 10년마다 주어지는 인생의 큰 환경입니다. 귀하의 본 그릇(사주원국)이 이 도로를 순조롭게 달릴 수 있도록 항상 중심을 다잡고 기운을 맞이하세요.
+                </p>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 bg-[#FAF8F5] p-4 sm:p-5 border border-[#D6CCBC] rounded-2xl shadow-xs">
+    <div className="space-y-4 bg-[#FAF8F5] p-4 sm:p-5 rounded-2xl shadow-xs">
       {/* Dynamic Tactile Tab Switcher */}
-      {!showOnlyMix && (
-        <div className="flex bg-[#FAF6F0] p-1 border border-[#E8E0D0] rounded-xl max-w-sm sm:max-w-md mx-auto">
+      {!showOnlyMix && !hideTabNav && (
+        <div className="flex bg-[#FAF6F0] p-1 rounded-xl max-w-sm sm:max-w-md mx-auto">
           {!hideMix && (
             <button
               type="button"
-              onClick={() => setActiveTab("mix")}
+              onClick={() => handleTabSelect("mix")}
               className={`flex-1 py-1.5 text-[11px] sm:text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                activeTab === "mix"
+                currentTab === "mix"
                   ? "bg-white text-[#C0392B] shadow-xs"
-                  : "text-[#8C7B6E] hover:text-[#5A4D41]"
+                  : "text-[#5C5046] hover:text-[#5A4D41]"
               }`}
             >
               ✨ 통합 조화 총평
@@ -1115,22 +971,22 @@ export default function SajuVisual({
           )}
           <button
             type="button"
-            onClick={() => setActiveTab("saju")}
+            onClick={() => handleTabSelect("saju")}
             className={`flex-1 py-1.5 text-[11px] sm:text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              activeTab === "saju"
+              currentTab === "saju"
                 ? "bg-white text-[#C0392B] shadow-xs"
-                : "text-[#8C7B6E] hover:text-[#5A4D41]"
+                : "text-[#5C5046] hover:text-[#5A4D41]"
             }`}
           >
             ☯️ 사주 만세력
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab("ziwei")}
+            onClick={() => handleTabSelect("ziwei")}
             className={`flex-1 py-1.5 text-[11px] sm:text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              activeTab === "ziwei"
+              currentTab === "ziwei"
                 ? "bg-white text-[#C0392B] shadow-xs"
-                : "text-[#8C7B6E] hover:text-[#5A4D41]"
+                : "text-[#5C5046] hover:text-[#5A4D41]"
             }`}
           >
             🔮 자미두수 명반
@@ -1138,30 +994,30 @@ export default function SajuVisual({
         </div>
       )}
 
-      {activeTab === "mix" ? (
+      {currentTab === "mix" ? (
         <div className="space-y-6">
           {/* Section A: Title Banner */}
-          <div className="text-center space-y-1.5 bg-gradient-to-br from-[#FAF6F0] to-[#FAF8F5] border border-[#E8E0D0] p-5 rounded-2xl shadow-2xs relative overflow-hidden">
+          <div className="text-center space-y-1.5 bg-gradient-to-br from-[#FAF6F0] to-[#FAF8F5] p-5 rounded-2xl shadow-2xs relative overflow-hidden">
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#C0392B]/5 to-transparent rounded-full pointer-events-none" />
             <div className="text-xs font-bold text-[#C0392B] tracking-widest uppercase">Destiny Synthesis</div>
             <h2 className="font-serif text-base sm:text-lg font-bold text-[#5A4D41] tracking-tight text-center">
               ☯️ 사주 명리 & 자미두수 통합 조화 총평
             </h2>
-            <p className="text-[11px] text-[#8C7B6E] max-w-lg mx-auto leading-relaxed text-center">
+            <p className="text-[11px] text-[#5C5046] max-w-lg mx-auto leading-relaxed text-center">
               사주만세력의 <strong>지상의 계절적 기운(음양오행)</strong>과 자미두수 명반의 <strong>천상의 별자리(성좌 수리학)</strong>를 하나로 융합하여, 귀하의 입체적인 인생 설계도와 총평을 조화롭게 해설해 드립니다.
             </p>
           </div>
 
           {/* Section B: Innate Destiny Blueprint */}
           <div className="space-y-3.5">
-            <div className="text-[11px] font-bold text-[#8C7B6E] tracking-tight text-left">
+            <div className="text-[11px] font-bold text-[#5C5046] tracking-tight text-left">
               🌌 천생의 성품 그릇 & 기질 조화
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Saju Daymaster card */}
               {daymaster && (
-                <div className="bg-white border border-[#E8E0D0] p-4.5 rounded-2xl shadow-2xs flex flex-col justify-between">
+                <div className="bg-white p-4.5 rounded-2xl shadow-2xs flex flex-col justify-between">
                   <div className="space-y-2.5">
                     <div className="flex items-center gap-2.5">
                       <span className="text-3xl">
@@ -1188,7 +1044,7 @@ export default function SajuVisual({
               )}
 
               {/* Ziwei Ming Gong Star card */}
-              <div className="bg-white border border-[#E8E0D0] p-4.5 rounded-2xl shadow-2xs flex flex-col justify-between">
+              <div className="bg-white p-4.5 rounded-2xl shadow-2xs flex flex-col justify-between">
                 <div className="space-y-2.5">
                   <div className="flex items-center gap-2.5">
                     <span className="text-3xl">🌌</span>
@@ -1220,7 +1076,7 @@ export default function SajuVisual({
                             핵심 키워드: 온화한 환경 적응 및 자급자족력
                           </p>
                           <p className="text-[11px] text-[#5A4D41] leading-relaxed font-sans">
-                            명궁에 주성이 없는 명반(무정지격)은 오히려 우주 대자연의 에너지를 유연하게 받아안는 특별한 사교성과 흡수력을 가집니다. 상대방의 매력을 거울처럼 흡수해 내 것으로 다듬는 능력이 일품입니다.
+                            명궁에 주성이 없는 명반(무정지격)은 오히려 대자연의 에너지를 유연하게 받아안는 특별한 사교성과 흡수력을 가집니다. 상대방의 매력을 거울처럼 흡수해 내 것으로 다듬는 능력이 일품입니다.
                           </p>
                         </div>
                       );
@@ -1248,171 +1104,98 @@ export default function SajuVisual({
             </div>
 
             {/* Harmonious Synthesis Paragraph */}
-            <div className="bg-[#FAF8F5] border border-[#E8E0D0] p-4.5 rounded-2xl text-left space-y-2">
-              <span className="font-bold text-xs text-[#C0392B] flex items-center gap-1">
-                ⚖️ 융합 진단 : 조화의 미학
-              </span>
-              <p className="text-xs text-[#5A4D41] leading-relaxed font-sans">
-                {daymaster && daymaster.gan === "辛" ? (
-                  <>
-                    귀하의 중심 기운인 <strong>신금(辛金)</strong>은 본디 맑고 아름답게 씻겨 찬란한 광채를 내뿜는 완성된 다이아몬드 보석입니다. 
-                    자미두수의 하늘 기운{ziwei && (() => {
-                      const mingGong = Object.values(ziwei.palaces).find(p => p.name === "命宮");
-                      if (!mingGong) return "";
-                      const hasZiwei = mingGong.stars.some(s => s.nameKr === "자미");
-                      const hasTianfu = mingGong.stars.some(s => s.nameKr === "천부");
-                      if (hasZiwei || hasTianfu) return "인 '제왕·황실 성좌'와 결합하여 고결한 품위와 도덕적 자존심이 남달리 탄탄하게 흘러갑니다.";
-                      return "과 결합하여 감수성이 섬세하고 아름다움을 탐닉하는 미적 안목이 극도로 세련되게 꽃피는 형세입니다.";
-                    })()}
-                    불필요한 구습에 얽매이지 않고 세련되게 가치를 창출하며, 사소한 오차를 용납하지 않는 명확성으로 인해 전문 지식 및 고부가가치 비즈니스, 기획 창작 무대에서 사람들의 찬탄을 한몸에 자아내는 운명적 격을 지니고 계십니다.
-                  </>
-                ) : (
-                  <>
-                    지상에 내린 귀하 고유의 오행 본질과 천상의 별자리 성질이 서로를 따뜻하게 보완해 주어, 세련된 대인관계 속에서 스스로 주체성을 확고히 지켜냅니다. 
-                    주변 사람들에게 긍정적이고 기품 있는 영향력을 미치며, 감정적 조율과 이성적 통찰의 완벽한 밸런스를 다듬어 평생의 안락과 품격을 지혜롭게 수호하는 아름다운 흐름이 장엄하게 지속됩니다.
-                  </>
-                )}
+            <div className="bg-white p-4 rounded-2xl text-left space-y-2 shadow-2xs">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-xs text-[#C0392B] flex items-center gap-1">
+                  ⚖️ 융합 진단 : 조화의 미학
+                </span>
+                <button
+                  type="button"
+                  onClick={() => toggleBlock("synthesis_detail")}
+                  className="text-[11px] font-serif font-bold text-[#5C5046] hover:text-[#C0392B] flex items-center gap-1 cursor-pointer"
+                >
+                  <span>{expandedBlocks["synthesis_detail"] ? "접기 ▲" : "심층 해설 더보기 ▼"}</span>
+                </button>
+              </div>
+              <p className="text-xs text-[#5A4D41] leading-relaxed font-sans font-medium">
+                {daymaster && daymaster.gan === "辛"
+                  ? "사주의 날카롭고 섬세한 신금(辛)과 자미두수 명궁의 기운이 결합하여, 높은 미적 안목과 전문적 성취력을 발휘하는 운명적 조화입니다."
+                  : "지상의 오행 본질과 천상의 별자리 성질이 서로를 보완하여, 균형 잡힌 대인관계 속에서 확고한 주체성을 지켜냅니다."}
               </p>
-            </div>
-          </div>
-
-          {/* Section C: Five Elements & Wellness */}
-          <div className="space-y-3.5 pt-1">
-            <div className="text-[11px] font-bold text-[#8C7B6E] tracking-tight text-left">
-              🌱 오행(五行) 분포 및 신체·정서 웰니스 비결
-            </div>
-
-            <div className="bg-white border border-[#E8E0D0] p-4.5 rounded-2xl shadow-2xs space-y-4">
-              {/* Simple and elegant horizontal ohaeng bars */}
-              {ohaeng_count && (
-                <div className="space-y-2.5">
-                  <span className="text-[10px] font-bold text-[#8C7B6E] block text-left">📊 나의 오행 에너지 밸런스</span>
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {Object.entries(ohaeng_count).map(([key, val]) => {
-                      const maxVal = Math.max(...Object.values(ohaeng_count), 1);
-                      const percentage = Math.min((val / maxVal) * 100, 100);
-                      const color = key === "목" ? "bg-[#117A65]" :
-                                    key === "화" ? "bg-[#C0392B]" :
-                                    key === "토" ? "bg-[#D4AC0D]" :
-                                    key === "금" ? "bg-[#7F8C8D]" : "bg-[#2980B9]";
-                      const textCol = key === "목" ? "text-[#117A65]" :
-                                      key === "화" ? "text-[#C0392B]" :
-                                      key === "토" ? "text-[#B7950B]" :
-                                      key === "금" ? "text-[#707B7C]" : "text-[#2980B9]";
-                      return (
-                        <div key={key} className="space-y-1">
-                          <div className="flex justify-between text-[10px] font-bold px-0.5">
-                            <span className={textCol}>{key}</span>
-                            <span className="text-gray-500">{val}개</span>
-                          </div>
-                          <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div className={`h-full ${color} rounded-full transition-all duration-500`} style={{ width: `${percentage || 5}%` }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+              {expandedBlocks["synthesis_detail"] && (
+                <div className="pt-2 border-t border-dashed border-[#E8E0D0] text-xs text-[#5C5046] leading-relaxed animate-fade-in font-sans">
+                  {daymaster && daymaster.gan === "辛" ? (
+                    <>
+                      귀하의 중심 기운인 <strong>신금(辛金)</strong>은 본디 맑고 찬란한 광채를 내뿜는 완성된 보석입니다. 
+                      불필요한 구습에 얽매이지 않고 세련되게 가치를 창출하며, 사소한 오차를 용납하지 않는 명확성으로 인해 전문 지식 및 기획 창작 무대에서 사람들의 신뢰를 한몸에 받는 운명적 격을 지니고 있습니다.
+                    </>
+                  ) : (
+                    <>
+                      주변 사람들에게 긍정적인 영향력을 미치며, 감정적 조율과 이성적 통찰의 밸런스를 다듬어 평생의 안락과 품격을 지혜롭게 수호하는 흐름이 지속됩니다.
+                    </>
+                  )}
                 </div>
               )}
-
-              {/* Dynamic Analysis of Strongest and Weakest Ohaeng */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1 text-left">
-                {/* Abundant energy */}
-                <div className="bg-[#FAF8F5] p-3.5 rounded-xl border border-[#E8E0D0]/50 space-y-1">
-                  <span className="text-[10px] font-bold text-emerald-700 flex items-center gap-1">
-                    🟢 활기 넘치는 나의 핵심 자산
-                  </span>
-                  <p className="text-xs text-[#5A4D41] leading-relaxed font-sans">
-                    {(() => {
-                      if (!ohaeng_count) return "";
-                      const maxKey = Object.entries(ohaeng_count).reduce((a, b) => a[1] > b[1] ? a : b)[0];
-                      if (maxKey === "목") return "🌱 목(木) 기운이 탄탄하여 성장을 꿈꾸는 강인한 동력과 주체적인 창의 설계 능력을 갖추셨습니다. 늘 새로움을 개척해 나가는 활기가 최고의 비즈니스 원천입니다.";
-                      if (maxKey === "화") return "🔥 화(火) 기운이 활발하여 솔직하고 정열적인 행동력과 남을 이끄는 화려한 스타성을 뽐냅니다. 표현력과 설득력이 뛰어나 사교의 중심에 서기 좋습니다.";
-                      if (maxKey === "토") return "⛰️ 토(土) 기운이 묵직하여 탁월한 중개 및 수용력, 흔들리지 않는 듬직한 신용을 누리십니다. 수많은 이들의 고민을 들어주고 안정을 주는 조율자입니다.";
-                      if (maxKey === "금") return "💎 금(金) 기운이 강하여 한 치 오차 없는 명확한 결단력과 세련된 완벽주의, 예리한 통찰력을 자랑하십니다. 고도의 명성과 정밀한 성과를 다지는 주무기입니다.";
-                      return "🌊 수(水) 기운이 풍부하여 바다와 같은 깊고 지혜로운 성찰 능력과 뛰어난 임기응변, 학문과 문화예술 분야의 탁월한 직관적 통찰력을 발휘하십니다.";
-                    })()}
-                  </p>
-                </div>
-
-                {/* Insufficient or cautionary energy */}
-                <div className="bg-[#FAF8F5] p-3.5 rounded-xl border border-[#E8E0D0]/50 space-y-1">
-                  <span className="text-[10px] font-bold text-[#C0392B] flex items-center gap-1">
-                    🔴 보완과 힐링이 필요한 기운
-                  </span>
-                  <p className="text-xs text-[#5A4D41] leading-relaxed font-sans">
-                    {(() => {
-                      if (!ohaeng_count) return "";
-                      const minKey = Object.entries(ohaeng_count).reduce((a, b) => a[1] < b[1] ? a : b)[0];
-                      if (minKey === "목") return "🌱 목(木) 기운의 보완이 필요하니, 일상에서 신선한 숲길을 걷거나 창의적인 일탈을 통해 경직된 생각을 풀어주고 정서적인 유연성을 자주 충전해 주시는 것이 좋습니다.";
-                      if (minKey === "화") return "🔥 화(火) 기운을 다듬어야 하니, 지나친 고민으로 가슴을 졸이기보다 따뜻한 반신욕이나 정열적인 취미 활동을 통해 에너지를 유연하게 발산하고 혈행 건강을 돌보세요.";
-                      if (minKey === "토") return "⛰️ 토(土) 기운 보완을 위해 든든하게 땅의 질감을 밟아보거나, 한 자리에 오래 머물며 규칙적이고 균형 잡힌 식습관과 위장 웰니스를 편안하게 수호하시는 것을 권합니다.";
-                      if (minKey === "금") return "💎 금(金) 기운을 채워주기 위해, 결단을 미루기보다 거절할 때는 확실하게 거절하는 단호한 습관을 연습하고 폐와 호흡기 정화를 위한 심호흡을 기분 좋게 누리세요.";
-                      return "🌊 수(水) 기운의 쉼이 요구되니, 밤늦게 스마트폰을 보는 대신 충분한 숙면과 수분 보충을 선사하고 신장 및 방광의 활력을 위해 몸을 따스하게 보호해 주는 것이 비결입니다.";
-                    })()}
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
 
           {/* Section D: Three Shields & Protectors */}
           <div className="space-y-3.5 pt-1">
-            <div className="text-[11px] font-bold text-[#8C7B6E] tracking-tight text-left">
+            <div className="text-[11px] font-bold text-[#5C5046] tracking-tight text-left">
               ✨ 평생 나를 지켜주는 3대 수호 기운 & 행운의 보물
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               {/* Protector 1: Saju Noble/Sal */}
-              <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl shadow-2xs flex flex-col justify-between text-left space-y-2">
+              <div className="bg-white p-4 rounded-xl shadow-2xs flex flex-col justify-between text-left space-y-2">
                 <div>
                   <div className="text-[9px] font-bold text-[#C0392B] bg-[#FDEDEC] px-2 py-0.5 rounded-full inline-block">
                     지상의 수호신
                   </div>
                   <h4 className="font-serif font-bold text-xs text-[#2C3E50] mt-1.5">
-                    {special_sals_list && special_sals_list.length > 0 ? special_sals_list[0] : "천을귀인 (하늘의 도움)"}
+                    {special_sals_list && special_sals_list.length > 0 ? special_sals_list[0] : "천을귀인"}
                   </h4>
-                  <p className="text-[10px] text-[#8C7B6E] leading-relaxed mt-1 font-sans">
-                    위기의 순간마다 예상치 못한 조력자나 기회가 기적처럼 찾아와 불운을 복덕으로 단숨에 돌려세우는 상서로운 수호의 기세입니다.
+                  <p className="text-[11px] text-[#5C5046] leading-relaxed mt-1 font-sans">
+                    위기 때마다 뜻밖의 조력자나 기회가 찾아와 복덕으로 돌려세우는 길운.
                   </p>
                 </div>
                 <span className="text-2xl text-right leading-none">💝</span>
               </div>
 
               {/* Protector 2: Ziwei Lucky Star */}
-              <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl shadow-2xs flex flex-col justify-between text-left space-y-2">
+              <div className="bg-white p-4 rounded-xl shadow-2xs flex flex-col justify-between text-left space-y-2">
                 <div>
                   <div className="text-[9px] font-bold text-[#117A65] bg-[#E8F8F5] px-2 py-0.5 rounded-full inline-block">
                     천상의 지원군
                   </div>
                   <h4 className="font-serif font-bold text-xs text-[#2C3E50] mt-1.5">
                     {(() => {
-                      if (!ziwei || !ziwei.palaces) return "좌보·우필 (든든한 인덕)";
+                      if (!ziwei || !ziwei.palaces) return "좌보·우필 귀인";
                       const mingGong = Object.values(ziwei.palaces).find(p => p.name === "命宮");
-                      if (!mingGong) return "좌보·우필 (든든한 인덕)";
+                      if (!mingGong) return "좌보·우필 귀인";
                       const lucky = mingGong.stars.filter(s => s.type === "lucky").map(s => s.nameKr);
                       if (lucky.length > 0) return lucky.slice(0, 2).join("과 ") + " 귀인";
-                      return "천괴·천월 (뜻밖의 수혜)";
+                      return "천괴·천월 귀인";
                     })()}
                   </h4>
-                  <p className="text-[10px] text-[#8C7B6E] leading-relaxed mt-1 font-sans">
-                    하늘의 빛나는 성좌들이 명궁을 조화롭게 비춰주니 대인관계가 수려해지고 귀중한 멘토의 이끎을 받아 커리어 장벽을 손쉽게 뛰어넘습니다.
+                  <p className="text-[11px] text-[#5C5046] leading-relaxed mt-1 font-sans">
+                    별자리의 수호로 귀중한 멘토와 협력자의 지원을 받는 인덕.
                   </p>
                 </div>
                 <span className="text-2xl text-right leading-none">🌟</span>
               </div>
 
               {/* Protector 3: Lucky Elements */}
-              <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl shadow-2xs flex flex-col justify-between text-left space-y-2">
+              <div className="bg-white p-4 rounded-xl shadow-2xs flex flex-col justify-between text-left space-y-2">
                 <div>
                   <div className="text-[9px] font-bold text-[#7D3C98] bg-[#F5EEF8] px-2 py-0.5 rounded-full inline-block">
-                    개운(開運)의 매개체
+                    개운(開運) 매개체
                   </div>
                   <h4 className="font-serif font-bold text-xs text-[#2C3E50] mt-1.5">
                     {daymaster && daymaster.gan === "辛" ? "수(水)와 토(土)의 조화" : "상생의 자연물과 공간"}
                   </h4>
-                  <p className="text-[10px] text-[#8C7B6E] leading-relaxed mt-1 font-sans">
-                    맑고 청결한 물을 가까이하고 묵직한 서재나 온화한 흙의 기운을 담은 인테리어, 정밀한 독서 등을 통해 운의 성취를 최대치로 증폭시킵니다.
+                  <p className="text-[11px] text-[#5C5046] leading-relaxed mt-1 font-sans">
+                    차분한 독서와 온화한 인테리어, 정갈한 생활 습관으로 운을 강화.
                   </p>
                 </div>
                 <span className="text-2xl text-right leading-none">🔮</span>
@@ -1422,7 +1205,7 @@ export default function SajuVisual({
 
           {/* Section E: Life Flow Synthesis */}
           <div className="space-y-3.5 pt-1">
-            <div className="text-[11px] font-bold text-[#8C7B6E] tracking-tight text-left">
+            <div className="text-[11px] font-bold text-[#5C5046] tracking-tight text-left">
               🛣️ 현재 나의 10년 인생 대운(大運) 통합 로드맵
             </div>
 
@@ -1439,14 +1222,14 @@ export default function SajuVisual({
                                         currentDaewoon.stemSipsin === "정관" || currentDaewoon.stemSipsin === "편관" || currentDaewoon.branchSipsin === "정관" || currentDaewoon.branchSipsin === "편관" ? "관성" : "인성";
 
               const synthesisFortuneDesc = 
-                activeSipsinTheme === "비겁" ? "현재 구간은 나 자신의 고유한 주체성과 영적 파워가 힘차게 영그는 자립과 자수성가의 시기입니다. 굳은 뚝심으로 오랜 기획을 과감히 실행에 옮기기에 최적입니다." :
-                activeSipsinTheme === "식상" ? "현재 구간은 나의 표현력, 창의 설계력, 그리고 다재다능한 아이디어가 드넓은 세상에 널리 소문나고 활발히 활용되는 가치 확장의 황금기입니다." :
-                activeSipsinTheme === "재성" ? "현재 구간은 실속 있는 자산 획득과 현실적인 비즈니스 성과를 풍성하게 거머쥐며, 재물 그릇을 한 단계 더 단단히 키워가는 최고의 풍요 축적기입니다." :
-                activeSipsinTheme === "관성" ? "현재 구간은 직장에서 막강한 중책을 맡아 공로를 인정받고, 대중 앞이나 소속 조직 내에서 드높은 명예와 입지를 굳건히 다져나가는 커리어 전성기입니다." :
-                "현재 구간은 깊고 학구적인 지식 성숙을 도모하고, 귀인의 무조건적인 이끎과 문서운의 수혜를 입어 내면의 도약과 든든한 알짜 자산을 확보하는 탄탄한 기획 준비기입니다.";
+                activeSipsinTheme === "비겁" ? "현재 구간은 나 자신의 고유한 주체성과 추진력이 영그는 자립의 시기입니다. 굳은 뚝심으로 오랜 계획을 실행에 옮기기에 좋습니다." :
+                activeSipsinTheme === "식상" ? "현재 구간은 창의력과 다재다능한 아이디어가 세상에 널리 활용되는 가치 확장의 황금기입니다." :
+                activeSipsinTheme === "재성" ? "현재 구간은 실속 있는 자산 획득과 현실적 결실을 맺는 최고의 풍요 축적기입니다." :
+                activeSipsinTheme === "관성" ? "현재 구간은 조직과 사회에서 공로를 인정받고 확고한 입지와 명예를 다지는 전성기입니다." :
+                "현재 구간은 깊이 있는 지식을 쌓고 귀인의 도움과 문서운의 수혜를 얻어 내실을 탄탄히 다지는 준비기입니다.";
 
               return (
-                <div className="bg-[#FAF6F0] border-2 border-[#C0392B]/20 p-5 rounded-2xl text-left space-y-4">
+                <div className="bg-[#FAF6F0] border-2 border-[#C0392B]/20 p-5 rounded-2xl text-left space-y-3.5">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-[#E8E0D0] pb-3">
                     <div>
                       <span className="text-[10px] bg-[#C0392B] text-white px-2 py-0.5 rounded-full font-bold shadow-2xs">
@@ -1460,8 +1243,8 @@ export default function SajuVisual({
                       const currentDaxian = ziwei.daXianList.find(dx => currentAge >= dx.ageStart && currentAge <= dx.ageEnd);
                       if (!currentDaxian) return null;
                       return (
-                        <div className="text-left sm:text-right bg-white border border-[#E8E0D0] px-3 py-1.5 rounded-xl">
-                          <p className="text-[9px] text-[#8C7B6E] font-bold leading-none">자미두수 대한 (10년)</p>
+                        <div className="text-left sm:text-right bg-white px-3 py-1.5 rounded-xl shadow-2xs">
+                          <p className="text-[9px] text-[#5C5046] font-bold leading-none">자미두수 대한 (10년)</p>
                           <p className="font-serif font-bold text-xs text-[#7D3C98] mt-1">
                             {currentDaxian.ageStart}-{currentDaxian.ageEnd}세 {currentDaxian.palaceName} 대운
                           </p>
@@ -1470,18 +1253,31 @@ export default function SajuVisual({
                     })()}
                   </div>
 
-                  <div className="space-y-3.5 text-xs text-[#5A4D41] leading-relaxed">
-                    <p className="font-sans">
-                      <strong className="text-[#C0392B] text-[13px] block mb-1">🔮 명리와 천반의 조화로운 인생 가이드</strong>
+                  <div className="space-y-3 text-xs text-[#5A4D41] leading-relaxed">
+                    <p className="font-sans font-medium">
+                      <strong className="text-[#C0392B] text-[12px] block mb-1">🔮 명리와 천반의 조화로운 인생 가이드</strong>
                       {synthesisFortuneDesc}
                     </p>
 
-                    <div className="bg-white p-3.5 border border-[#E8E0D0]/60 rounded-xl space-y-2">
-                      <span className="font-bold text-[11px] text-[#2C3E50] block">💡 개운을 위한 지혜로운 조언 (Action Plan)</span>
+                    <div className="bg-white p-3.5 rounded-xl space-y-1.5 shadow-2xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-[11px] text-[#2C3E50]">💡 개운을 위한 지혜로운 조언</span>
+                        <button
+                          type="button"
+                          onClick={() => toggleBlock("daewoon_action_plan")}
+                          className="text-[10px] font-bold text-[#C0392B] cursor-pointer"
+                        >
+                          {expandedBlocks["daewoon_action_plan"] ? "접기 ▲" : "자세히 보기 ▼"}
+                        </button>
+                      </div>
                       <p className="text-[11px] text-[#5A4D41] leading-relaxed font-sans">
-                        Saju와 Ziwei DouShu가 전하는 가장 귀중한 조화의 비결은 <strong>"흐름에 몸을 싣되, 나의 단단한 보석(辛)을 결코 잃지 않는 것"</strong>입니다. 
-                        올해는 조급하게 외연 확장을 추구하기보다 내실 있는 자격증 획득, 브랜드 명예 강화, 깊이 있는 지적 자산 취득에 힘쓰면, 평생 무너지지 않는 장엄하고 탄탄한 부와 평화의 기초를 완성하시게 될 것입니다.
+                        조급하게 외연을 넓히기보다 내실 있는 역량과 전문 자산을 차분히 쌓아가면 안정적인 성취를 완성하게 됩니다.
                       </p>
+                      {expandedBlocks["daewoon_action_plan"] && (
+                        <p className="text-[10px] text-[#5C5046] leading-relaxed pt-1.5 border-t border-dashed border-[#E8E0D0] animate-fade-in font-sans">
+                          Saju와 Ziwei DouShu가 전하는 비결은 흐름에 순응하되 본연의 주체성을 잃지 않는 것입니다. 올해는 자격증 획득, 브랜드 명예 강화, 깊이 있는 지적 자산 취득에 힘쓰면 단단한 성과를 다질 수 있습니다.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1489,7 +1285,7 @@ export default function SajuVisual({
             })()}
           </div>
         </div>
-      ) : activeTab === "saju" ? (
+      ) : currentTab === "saju" ? (
         <>
           {/* Title */}
           <div className="text-center font-serif text-sm font-bold tracking-tight text-[#5A4D41] border-b border-[#E8E0D0] pb-2">
@@ -1507,7 +1303,7 @@ export default function SajuVisual({
                   진태양시 {solar_correction_minutes && solar_correction_minutes >= 0 ? `+${solar_correction_minutes}` : solar_correction_minutes}분 조정완료
                 </span>
               </div>
-              <p className="text-[11px] text-[#8C7B6E] leading-relaxed">
+              <p className="text-[11px] text-[#5C5046] leading-relaxed">
                 {birthplace.name} 출생 (경도: {birthplace.lon.toFixed(2)}°) • 조정 전 시각 대비 <strong>실제 태양 정밀시(태양시: {solar_birth_time})</strong> 기준으로 사주를 한 치 오차 없이 보정 계산했습니다.
               </p>
             </div>
@@ -1518,7 +1314,7 @@ export default function SajuVisual({
             {/* HOUR PILLAR */}
             {pillars.hour ? (
               <div className="flex flex-col items-center">
-                <span className="text-[10px] text-[#8C7B6E] font-bold mb-1.5 bg-white px-2 py-0.5 rounded-full border border-[#E8E0D0]">시주</span>
+                <span className="text-[10px] text-[#5C5046] font-bold mb-1.5 bg-white px-2 py-0.5 rounded-full border border-[#E8E0D0]">시주</span>
                 <div className={`w-14 h-14 border rounded-xl flex flex-col items-center justify-center font-bold relative shadow-xs ${getGanElementStyle(pillars.hour.gan).bg} ${getGanElementStyle(pillars.hour.gan).border}`}>
                   <span className="font-serif text-xl">{pillars.hour.gan}</span>
                   <span className={`text-[8px] absolute bottom-0.5 font-bold ${getGanElementStyle(pillars.hour.gan).text}`}>
@@ -1531,8 +1327,8 @@ export default function SajuVisual({
               </div>
             ) : (
               <div className="flex flex-col items-center justify-start opacity-60">
-                <span className="text-[10px] text-[#8C7B6E] font-bold mb-1.5 bg-white px-2 py-0.5 rounded-full border border-[#E8E0D0]">시주</span>
-                <div className="w-14 h-[118px] bg-[#FAF8F5] border border-dashed border-[#D6CCBC] rounded-xl flex items-center justify-center text-[10px] font-serif text-[#8C7B6E] leading-normal text-center p-1">
+                <span className="text-[10px] text-[#5C5046] font-bold mb-1.5 bg-white px-2 py-0.5 rounded-full border border-[#E8E0D0]">시주</span>
+                <div className="w-14 h-[118px] bg-[#FAF8F5] border border-dashed border-[#D6CCBC] rounded-xl flex items-center justify-center text-[10px] font-serif text-[#5C5046] leading-normal text-center p-1">
                   시간<br/>미입력
                 </div>
               </div>
@@ -1557,7 +1353,7 @@ export default function SajuVisual({
 
             {/* MONTH PILLAR */}
             <div className="flex flex-col items-center">
-              <span className="text-[10px] text-[#8C7B6E] font-bold mb-1.5 bg-white px-2 py-0.5 rounded-full border border-[#E8E0D0]">월주</span>
+              <span className="text-[10px] text-[#5C5046] font-bold mb-1.5 bg-white px-2 py-0.5 rounded-full border border-[#E8E0D0]">월주</span>
               <div className={`w-14 h-14 border rounded-xl flex flex-col items-center justify-center font-bold relative shadow-xs ${getGanElementStyle(pillars.month.gan).bg} ${getGanElementStyle(pillars.month.gan).border}`}>
                 <span className="font-serif text-xl">{pillars.month.gan}</span>
                 <span className={`text-[8px] absolute bottom-0.5 font-bold ${getGanElementStyle(pillars.month.gan).text}`}>
@@ -1571,7 +1367,7 @@ export default function SajuVisual({
 
             {/* YEAR PILLAR */}
             <div className="flex flex-col items-center">
-              <span className="text-[10px] text-[#8C7B6E] font-bold mb-1.5 bg-white px-2 py-0.5 rounded-full border border-[#E8E0D0]">연주</span>
+              <span className="text-[10px] text-[#5C5046] font-bold mb-1.5 bg-white px-2 py-0.5 rounded-full border border-[#E8E0D0]">연주</span>
               <div className={`w-14 h-14 border rounded-xl flex flex-col items-center justify-center font-bold relative shadow-xs ${getGanElementStyle(pillars.year.gan).bg} ${getGanElementStyle(pillars.year.gan).border}`}>
                 <span className="font-serif text-xl">{pillars.year.gan}</span>
                 <span className={`text-[8px] absolute bottom-0.5 font-bold ${getGanElementStyle(pillars.year.gan).text}`}>
@@ -1585,7 +1381,7 @@ export default function SajuVisual({
           </div>
 
           {/* Saju character detail box */}
-          <div className="bg-white border border-[#E8E0D0] p-3 rounded-xl text-center shadow-xs">
+          <div className="bg-white p-3 rounded-xl text-center shadow-xs">
             <div className="text-xs text-[#5A4D41] flex flex-col sm:flex-row justify-center items-center gap-1.5 font-medium">
               <span>나를 상징하는 일간(본원) : </span>
               <span className="font-serif font-bold text-sm text-[#C0392B]">
@@ -1600,12 +1396,12 @@ export default function SajuVisual({
           {/* Premium Pillars Detail Table */}
           {pillars_detail && (
             <div className="space-y-4 text-left">
-              <div className="text-[11px] font-semibold text-[#8C7B6E] text-center tracking-tight">
+              <div className="text-[11px] font-semibold text-[#5C5046] text-center tracking-tight">
                 📌 각 주별 십신 및 12운성 (생명주기) 상세 풀이
               </div>
               <div className="grid grid-cols-1 gap-3">
                 {pillars_detail.map((p, idx) => (
-                  <div key={idx} className="bg-white border border-[#E8E0D0] p-4 rounded-xl flex flex-col gap-2.5 shadow-2xs">
+                  <div key={idx} className="bg-white p-4 rounded-xl flex flex-col gap-2.5 shadow-2xs">
                     <div className="flex justify-between items-center border-b border-gray-100 pb-2">
                       <div>
                         <span className={`inline-block px-2 py-0.5 rounded-[4px] text-[10px] font-bold mr-2 ${
@@ -1626,7 +1422,7 @@ export default function SajuVisual({
                     </div>
 
                     {/* Highly descriptive interpretation of what this pillar means for the user */}
-                    <div className="bg-[#FAF8F5]/80 border border-[#E8E0D0]/50 p-3 rounded-lg text-xs text-[#5A4D41] leading-relaxed">
+                    <div className="bg-[#FAF8F5] p-3 rounded-lg text-xs text-[#5A4D41] leading-relaxed">
                       <p className="font-medium text-slate-700">
                         <span className="font-bold text-[#C0392B] mr-1">💡 해설:</span>
                         {p.type === "일주" ? (
@@ -1651,7 +1447,7 @@ export default function SajuVisual({
                               p.unseong === "장생" ? "세상의 큰 축복을 받으며 막 태어난 어린아이처럼 귀인의 풍성한 사랑과 물질적 인덕이 끊임없는 행운입니다." :
                               "원숙하고 차분한 지혜와 탁월한 위기관리력으로 세상을 깊이 관조하며 내적 자산을 두터이 쌓는 깊은 상태입니다."
                             }
-                            {p.jigang && <span className="block mt-1.5 text-[11px] text-[#8C7B6E] font-sans">✓ 지장간 ({p.jigang}) : 지장간이란 내면 깊숙이 숨어있는 보물 상자 같은 잠재의식적 욕구와 재능 기운들을 뜻합니다.</span>}
+                            {p.jigang && <span className="block mt-1.5 text-[11px] text-[#5C5046] font-sans">✓ 지장간 ({p.jigang}) : 지장간이란 내면 깊숙이 숨어있는 보물 상자 같은 잠재의식적 욕구와 재능 기운들을 뜻합니다.</span>}
                           </>
                         ) : p.type === "월주" ? (
                           <>
@@ -1696,15 +1492,15 @@ export default function SajuVisual({
           {/* Sipseong Strength */}
           {sipseong_strength && (
             <div className="space-y-2 text-left pt-2 border-t border-[#E8E0D0]">
-              <div className="text-[11px] font-semibold text-[#8C7B6E] text-center tracking-tight">
+              <div className="text-[11px] font-semibold text-[#5C5046] text-center tracking-tight">
                 📊 오행별 십성 강약 (나의 기질적 힘분배)
               </div>
-              <div className="grid grid-cols-1 gap-2.5 bg-white p-3 border border-[#E8E0D0] rounded-xl shadow-xs">
+              <div className="grid grid-cols-1 gap-2.5 bg-white p-3.5 rounded-xl shadow-xs">
                 {Object.entries(sipseong_strength).map(([name, val]) => (
                   <div key={name} className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-[#5A4D41]">
-                        {name} <span className="text-[10px] font-normal text-[#8C7B6E] ml-1">({getSipseongExplanation(name)})</span>
+                        {name} <span className="text-[10px] font-normal text-[#5C5046] ml-1">({getSipseongExplanation(name)})</span>
                       </span>
                       <span className="font-bold text-[#C0392B] font-sans">{val}%</span>
                     </div>
@@ -1723,7 +1519,7 @@ export default function SajuVisual({
           {/* Special Shinsal */}
           {special_sals_list && special_sals_list.length > 0 && (
             <div className="space-y-3 text-left pt-3 border-t border-[#E8E0D0]">
-              <div className="text-[11px] font-semibold text-[#8C7B6E] text-center tracking-tight">
+              <div className="text-[11px] font-semibold text-[#5C5046] text-center tracking-tight">
                 ✨ 나에게 탑재된 주요 신살 & 귀인 기운 상세 해설
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1732,7 +1528,7 @@ export default function SajuVisual({
                   const info = matchedKey ? shinsalExplanations[matchedKey] : null;
 
                   return (
-                    <div key={idx} className="bg-white border border-[#E8E0D0] p-3.5 rounded-xl flex items-start gap-3 shadow-2xs">
+                    <div key={idx} className="bg-white p-3.5 rounded-xl flex items-start gap-3 shadow-2xs">
                       <span className="text-2xl mt-0.5">
                         {info ? info.emoji : "✦"}
                       </span>
@@ -1743,7 +1539,7 @@ export default function SajuVisual({
                         <p className="text-[10px] text-[#C0392B] font-semibold">
                           {info ? info.desc : "나의 삶에 특별한 복록을 돕는 아름다운 기운입니다."}
                         </p>
-                        <p className="text-[10px] text-[#8C7B6E] leading-relaxed font-sans">
+                        <p className="text-[10px] text-[#5C5046] leading-relaxed font-sans">
                           {info ? info.detail : "인생의 여정에서 훌륭한 길잡이 역할을 하며 예상치 못한 축복과 번영을 불러옵니다."}
                         </p>
                       </div>
@@ -1757,10 +1553,10 @@ export default function SajuVisual({
           {/* Daewoon Scroll Grid */}
           {daewoon && !hideMix && (
             <div className="space-y-4 text-left pt-3 border-t border-[#E8E0D0]">
-              <div className="text-[11px] font-semibold text-[#8C7B6E] text-center tracking-tight flex items-center justify-between">
+              <div className="text-[11px] font-semibold text-[#5C5046] text-center tracking-tight flex items-center justify-between">
                 <span>📅 평생 대운(大運) 흐름도 (10년 주기)</span>
                 {isPremium && (
-                  <span className="text-[9px] font-normal text-[#8C7B6E]">* 대운 카드를 탭하시면 아래에 상세한 10개년 비책을 보여드립니다.</span>
+                  <span className="text-[9px] font-normal text-[#5C5046]">* 대운 카드를 탭하시면 아래에 상세한 10개년 비책을 보여드립니다.</span>
                 )}
               </div>
               
@@ -1815,7 +1611,7 @@ export default function SajuVisual({
                             {item.stemSipsin}/{item.branchSipsin}
                           </div>
                           <div className={`text-[9px] rounded py-0.5 font-bold ${
-                            isSelected ? "bg-white/20 text-white" : "bg-gray-50 border border-gray-100 text-[#8C7B6E]"
+                            isSelected ? "bg-white/20 text-white" : "bg-gray-50 border border-gray-100 text-[#5C5046]"
                           }`}>
                             {item.unseong}
                           </div>
@@ -1850,7 +1646,7 @@ export default function SajuVisual({
                       "기존의 어수선한 껍질을 말끔히 허물어내고, 백지 위에서 완전히 신선한 새출발의 큰 꿈과 장기 기획을 안전하게 설계하기에 제격인 소중한 기획 시기입니다.";
 
                     return (
-                      <div className="bg-[#FAF8F5] border border-[#E8E0D0] p-4.5 rounded-xl space-y-3 text-left shadow-2xs">
+                      <div className="bg-white p-4.5 rounded-xl space-y-3 text-left shadow-2xs">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E8E0D0]/60 pb-2.5">
                           <div>
                             <span className="text-[10px] bg-[#C0392B]/10 text-[#C0392B] border border-[#C0392B]/20 px-2 py-0.5 rounded-full font-bold">
@@ -1872,20 +1668,20 @@ export default function SajuVisual({
                         <div className="space-y-3 text-xs leading-relaxed text-[#5A4D41]">
                           <div className="space-y-1">
                             <span className="font-bold text-[#C0392B] text-[11px] block">✨ 십성 에너지 흐름 ({item.stemSipsin}/{item.branchSipsin} 테마)</span>
-                            <p className="bg-white p-3 border border-[#E8E0D0]/50 rounded-lg text-[#5A4D41] font-sans">
+                            <p className="bg-[#FAF8F5] p-3 rounded-lg text-[#5A4D41] font-sans">
                               {sipsinText}
                             </p>
                           </div>
 
                           <div className="space-y-1">
-                            <span className="font-bold text-[#C0392B] text-[11px] block">🌌 12운성 생리 활력 지표 ({item.unseong}의 성질)</span>
-                            <p className="bg-white p-3 border border-[#E8E0D0]/50 rounded-lg text-[#5A4D41] font-sans">
+                            <span className="font-bold text-[#C0392B] text-[11px] block">12운성 생리 활력 지표 ({item.unseong}의 성질)</span>
+                            <p className="bg-[#FAF8F5] p-3 rounded-lg text-[#5A4D41] font-sans">
                               {unseongText}
                             </p>
                           </div>
 
-                          <p className="text-[10px] text-[#8C7B6E] italic font-sans">
-                            * 대운(大運)은 10년마다 우주가 주는 큰 도로 환경입니다. 귀하의 본 그릇(사주원국)이 이 도로를 신나게 달릴 수 있도록 항상 중심을 다잡고 기운을 맞이하세요.
+                          <p className="text-[10px] text-[#5C5046] italic font-sans">
+                            * 대운(大運)은 10년마다 주어지는 인생의 큰 환경입니다. 귀하의 본 그릇(사주원국)이 이 도로를 순조롭게 달릴 수 있도록 항상 중심을 다잡고 기운을 맞이하세요.
                           </p>
                         </div>
                       </div>
@@ -1898,7 +1694,7 @@ export default function SajuVisual({
 
           {/* Five Elements count dashboard */}
           <div className="mt-4 pt-3 border-t border-[#E8E0D0]">
-            <div className="text-[11px] font-semibold text-[#8C7B6E] text-center mb-2 tracking-tight">
+            <div className="text-[11px] font-semibold text-[#5C5046] text-center mb-2 tracking-tight">
               내 사주의 원초 오행 기운 집계
             </div>
             <div className="grid grid-cols-5 gap-1.5 text-center">
@@ -1926,7 +1722,7 @@ export default function SajuVisual({
           </div>
 
           {!ziwei ? (
-            <div className="bg-white border border-[#E8E0D0] p-6 rounded-xl text-center text-sm text-[#8C7B6E] space-y-2">
+            <div className="bg-white border border-[#E8E0D0] p-6 rounded-xl text-center text-sm text-[#5C5046] space-y-2">
               <span className="text-3xl block">⏳</span>
               <p className="font-serif font-bold text-sm text-[#C0392B]">태어난 시간을 입력해야 조회할 수 있습니다</p>
               <p className="text-xs">자미두수 정밀 명식 계산을 위해서는 출생 시각이 꼭 필요합니다. 회원 가입/참여 시 태어난 시간을 선택해 주세요.</p>
@@ -1934,7 +1730,7 @@ export default function SajuVisual({
           ) : (
             <div className="space-y-4">
               {/* Palace selection instruction */}
-              <p className="text-[10px] text-center text-[#8C7B6E] font-medium leading-none">
+              <p className="text-[10px] text-center text-[#5C5046] font-medium leading-none">
                 * 각 궁성 칸을 탭하시면 아래에 상세한 별 해석과 인생 안내를 보여드립니다.
               </p>
 
@@ -1945,13 +1741,13 @@ export default function SajuVisual({
 
               {/* Selected Palace Interpretation Card */}
               {selectedPalace && ziwei.palaces[selectedPalace] && (
-                <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl text-left space-y-3.5 shadow-xs">
+                <div className="bg-white p-4 rounded-xl text-left space-y-3.5 shadow-xs">
                   <div className="border-b border-[#FAF6F0] pb-2 flex items-center justify-between">
                     <div>
                       <h4 className="font-serif text-sm font-bold text-[#C0392B] flex items-center gap-1">
                         ✨ {palaceDescriptions[selectedPalace]?.kr || selectedPalace} 해석
                       </h4>
-                      <p className="text-[11px] text-[#8C7B6E] mt-0.5">
+                      <p className="text-[11px] text-[#5C5046] mt-0.5">
                         경도 보정 궁위 : <strong>{ziwei.palaces[selectedPalace].ganZhi} ({ziwei.palaces[selectedPalace].zhi}궁)</strong>
                       </p>
                     </div>
@@ -1963,13 +1759,13 @@ export default function SajuVisual({
                   </div>
 
                   {/* Palace Description */}
-                  <p className="text-xs text-[#5A4D41] bg-[#FAF8F5] p-3 border border-[#E8E0D0] rounded-lg leading-relaxed">
+                  <p className="text-xs text-[#5A4D41] bg-[#FAF8F5] p-3 rounded-lg leading-relaxed">
                     <strong>궁성 설명:</strong> {palaceDescriptions[selectedPalace]?.desc}
                   </p>
 
                   {/* Stars in this Palace */}
                   <div className="space-y-2">
-                    <div className="text-[11px] font-semibold text-[#8C7B6E] tracking-tight">
+                    <div className="text-[11px] font-semibold text-[#5C5046] tracking-tight">
                       🌌 배치된 은하수 핵심 별 정보 ({ziwei.palaces[selectedPalace].stars.length}개)
                     </div>
                     {ziwei.palaces[selectedPalace].stars.length === 0 ? (
@@ -2017,8 +1813,8 @@ export default function SajuVisual({
                                 </div>
                               </div>
                               <div className="space-y-1 mt-1">
-                                <p className="text-[11px] text-[#8C7B6E] leading-relaxed">
-                                  <strong className="text-gray-600">성질:</strong> {starMeanings[s.nameKr] || "사방의 우주적 길흉화복을 보조해 나가는 성질을 지닙니다."}
+                                <p className="text-[11px] text-[#5C5046] leading-relaxed">
+                                  <strong className="text-gray-600">성질:</strong> {starMeanings[s.nameKr] || "사방의 길흉화복을 보조해 나가는 성질을 지닙니다."}
                                 </p>
                                 <p className="text-[11.5px] text-[#C0392B] leading-relaxed bg-[#FFF9F6] p-2.5 rounded-lg border border-[#FADBD8]/60 font-sans">
                                   <strong className="text-[#C0392B]">💡 {palaceDescriptions[selectedPalace]?.kr?.split(" ")[0] || selectedPalace}에서의 작용:</strong> {getStarMeaningInPalace(s.nameKr, selectedPalace)}
@@ -2043,13 +1839,13 @@ export default function SajuVisual({
                   const friendlyExplanation = friendlyPalaceExplanations[cleanPalName] || "내 인생의 다방면적인 조화와 성취가 어우러지는 중요한 해입니다.";
 
                   return (
-                    <div className="bg-white border border-[#E8E0D0] p-4.5 rounded-2xl text-xs space-y-3 shadow-xs">
+                    <div className="bg-white p-4.5 rounded-2xl text-xs space-y-3 shadow-xs">
                       <div className="font-serif text-sm font-bold text-[#C0392B] flex items-center gap-1.5 border-b border-[#FAF6F0] pb-2">
                         📅 금년 유년운세 (2026년 흐름)
                       </div>
                       <div className="p-4 bg-[#FAF6F0]/70 rounded-xl space-y-2 font-medium text-left">
                         <p className="text-[#2C3E50] font-serif text-sm font-bold">
-                          올해는 <span className="text-[#C0392B]">{ziwei.liunian.gan}{ziwei.liunian.zhi} (병오)년</span>으로, 나를 움직이는 우주적 흐름이 <span className="text-[#C0392B] font-bold">'{cleanPalName} ({friendlyName})'</span> 영역에 머물러 있습니다.
+                          올해는 <span className="text-[#C0392B]">{ziwei.liunian.gan}{ziwei.liunian.zhi} (병오)년</span>으로, 나를 움직이는 한 해의 기류가 <span className="text-[#C0392B] font-bold">'{cleanPalName} ({friendlyName})'</span> 영역에 머물러 있습니다.
                         </p>
                         <p className="text-xs text-[#5A4D41] leading-relaxed">
                           {friendlyExplanation}
@@ -2058,7 +1854,7 @@ export default function SajuVisual({
 
                       {Object.keys(ziwei.liunian.siHuaPalaces).length > 0 && (
                         <div className="space-y-3.5">
-                          <div className="text-[11px] font-bold text-[#8C7B6E] tracking-tight text-left">
+                          <div className="text-[11px] font-bold text-[#5C5046] tracking-tight text-left">
                             ✨ 올해의 네 가지 특별 에너지 흐름 (유년 사화작용)
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

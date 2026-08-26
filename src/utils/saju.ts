@@ -126,11 +126,11 @@ export function calculateSaju(
   
   let h = 12;
   let min = 0;
-  const unknownTime = !birthTime;
-  if (birthTime) {
+  const unknownTime = !birthTime || birthTime === "unknown" || !birthTime.includes(':');
+  if (birthTime && !unknownTime) {
     const [hr, mn] = birthTime.split(':').map(Number);
-    h = hr;
-    min = mn;
+    h = isNaN(hr) ? 12 : hr;
+    min = isNaN(mn) ? 0 : mn;
   }
 
   // Calculate Solar Time Correction (진태양시 보정)
@@ -166,9 +166,9 @@ export function calculateSaju(
     day: adjustedDay,
     hour: correctedHour,
     minute: correctedMinute,
-    gender: 'F',
+    gender: (genderStr === "남성" || genderStr === "male" || genderStr === "M") ? 'M' : 'F',
     unknownTime,
-    jasiMethod: 'standard' as any,
+    jasiMethod: 'unified' as any,
   });
 
   const yearPillar = orreryResult.pillars[3].pillar;
@@ -534,3 +534,80 @@ export function getDynamicCharacter(gan: string, ji: string): DynamicCharacter {
     keyword: `${stem.desc} • ${branch.desc}`
   };
 }
+
+export interface TodayFortuneResult {
+  score: number;
+  level: string;
+  title: string;
+  advice: string;
+  luckColor: string;
+  luckDirection: string;
+  luckItem: string;
+  luckyNumber: string;
+  luckyTime: string;
+  todayDateStr: string;
+}
+
+export function calculateTodayFortune(
+  daymasterGan: string,
+  daymasterElement: string,
+  targetDate?: Date
+): TodayFortuneResult {
+  const today = targetDate || new Date();
+  const dateStr = today.toISOString().slice(0, 10);
+  
+  // Deterministic daily score between 75 and 98 based on daymaster and date
+  let seed = 0;
+  const cleanGan = daymasterGan || "갑목";
+  const cleanElem = daymasterElement || "목";
+  const combinedStr = cleanGan + cleanElem + dateStr;
+  
+  for (let i = 0; i < combinedStr.length; i++) {
+    seed = (seed << 5) - seed + combinedStr.charCodeAt(i);
+    seed |= 0;
+  }
+  const score = 75 + Math.abs(seed % 24);
+
+  // Five Elements Luck Configuration
+  const ELEMENT_LUCK: Record<string, { color: string; direction: string; item: string; number: string; time: string }> = {
+    "목": { color: "청색·에메랄드 그린", direction: "동쪽", item: "나무 소재 소품, 푸른 식물", number: "3, 8", time: "오전 7시 ~ 9시 (진시)" },
+    "화": { color: "붉은색·코랄 오렌지", direction: "남쪽", item: "따뜻한 차, 밝은 조명", number: "2, 7", time: "오전 11시 ~ 오후 1시 (오시)" },
+    "토": { color: "황금색·베이지 브라운", direction: "중앙", item: "도자기, 흙 테라코타 소품", number: "5, 10", time: "오후 1시 ~ 3시 (미시)" },
+    "금": { color: "백색·메탈릭 실버", direction: "서쪽", item: "금속 액세서리, 클래식 시계", number: "4, 9", time: "오후 3시 ~ 5시 (신시)" },
+    "수": { color: "검정색·딥 네이비", direction: "북쪽", item: "충분한 수분 섭취, 차분한 음악", number: "1, 6", time: "오후 9시 ~ 11시 (해시)" },
+  };
+
+  const luck = ELEMENT_LUCK[cleanElem] || ELEMENT_LUCK["토"];
+
+  let fortuneLevel = "대길(大吉)";
+  let fortuneTitle = "생기가 넘치고 귀인의 도움이 따르는 조화로운 하루";
+  let fortuneAdvice = "오행의 기운이 순조롭게 순환하여 계획했던 일을 차분히 추진하기에 매우 길합니다. 주변 사람들과 따뜻한 덕담을 나누세요.";
+
+  if (score >= 90) {
+    fortuneLevel = "특길(特吉) - 최상의 운기";
+    fortuneTitle = "마음먹은 뜻이 막힘없이 술술 풀리는 황금빛 하루";
+    fortuneAdvice = "자신감을 갖고 중요한 결정을 내리거나 새로운 인연을 맺기에 가장 이상적인 시기입니다. 긍정적인 에너지를 주저 없이 발산하세요.";
+  } else if (score >= 82) {
+    fortuneLevel = "대길(大吉) - 순탄한 조화";
+    fortuneTitle = "노력한 만큼 알찬 결실과 보람이 깃드는 날";
+    fortuneAdvice = "성실하게 본인의 자리를 지키면 뜻밖의 호재나 따뜻한 인정을 받게 됩니다. 주변 동료나 친구에게 먼저 손을 내밀어 보세요.";
+  } else {
+    fortuneLevel = "평길(平吉) - 차분한 내실";
+    fortuneTitle = "무리한 확장보다 내실을 다지며 힘을 비축하는 날";
+    fortuneAdvice = "감정적인 충동을 가라앉히고 차분하게 한 템포 쉬어가는 지혜가 필요합니다. 충분한 휴식과 재정비가 더 큰 도약을 부릅니다.";
+  }
+
+  return {
+    score,
+    level: fortuneLevel,
+    title: fortuneTitle,
+    advice: fortuneAdvice,
+    luckColor: luck.color,
+    luckDirection: luck.direction,
+    luckItem: luck.item,
+    luckyNumber: luck.number,
+    luckyTime: luck.time,
+    todayDateStr: `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`,
+  };
+}
+

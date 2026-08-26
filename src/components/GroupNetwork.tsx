@@ -275,17 +275,17 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
           <Sparkles className="w-3.5 h-3.5 text-[#C0392B]" />
           <span>{selectedMember ? `${selectedMember.nickname}의 인연 관계도` : "우리의 궁합 지형도"}</span>
         </h4>
-        <p className="text-[10px] text-[#8C7B6E] font-semibold max-w-sm mx-auto leading-relaxed">
+        <p className="text-[10px] text-[#5C5046] font-semibold max-w-sm mx-auto leading-relaxed">
           {selectedMember 
             ? `선택된 ${selectedMember.nickname}님을 중심으로 각 상대방과의 주고받는 양방향 기운과 친밀도 점수가 표시됩니다.`
-            : "모임 전체에서 우주의 운명적 기운이 깃든 최고의 명품 케미 4쌍이 실시간으로 연결되어 보여집니다."}
+            : "모임 전체에서 오행 상생 조화가 가장 뛰어난 대표 케미 4쌍이 연결되어 표시됩니다."}
         </p>
       </div>
 
       {/* FILTER BUTTONS: Solves clutter by letting users filter high/low connections */}
       {selectedNodeId && (
         <div className="flex items-center justify-center space-x-1.5 text-[10px]">
-          <span className="text-[#8C7B6E] font-bold flex items-center space-x-0.5 mr-1">
+          <span className="text-[#5C5046] font-bold flex items-center space-x-0.5 mr-1">
             <Filter className="w-3 h-3 text-[#C0392B]" />
             <span>관계 필터:</span>
           </span>
@@ -519,7 +519,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                 setSelectedNodeId(null);
                 setRelationFilter("all");
               }}
-              className="text-[9px] text-[#8C7B6E] hover:text-[#C0392B] font-bold border border-[#D6CCBC] px-2 py-0.5 rounded-md hover:bg-gray-50 transition-colors"
+              className="text-[9px] text-[#5C5046] hover:text-[#C0392B] font-bold border border-[#D6CCBC] px-2 py-0.5 rounded-md hover:bg-gray-50 transition-colors"
             >
               전체 4쌍 보기
             </button>
@@ -537,9 +537,9 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                 if (relationFilter === "good" && avgScore < 70) return null;
                 if (relationFilter === "bad" && avgScore >= 50) return null;
 
-                let relationalPhrase = "4대 우주 영역(사주, 자미두수, 별자리, MBTI)이 조화롭게 평화로운 조율력을 이루는 보완 관계입니다.";
+                let relationalPhrase = "4대 영역(사주, 자미두수, 별자리, MBTI)이 조화롭게 균형을 이루는 상생 관계입니다.";
                 if (score1to2 >= 88 && score2to1 >= 88) {
-                  relationalPhrase = "🌌 4대 영역 모두 완벽한 공명을 이루는 우주가 내린 최고의 영혼의 동반자입니다!";
+                  relationalPhrase = "4대 영역 모두에서 최상의 화합과 시너지를 발휘하는 최고의 동반자 궁합입니다.";
                 } else if (Math.abs(score1to2 - score2to1) >= 15) {
                   if (score1to2 > score2to1) {
                     relationalPhrase = `💛 ${selectedMember.nickname}님이 4대 영역 전반에서 상대방에게 긍정적 시너지를 아낌없이 이끌어주는 배려형 구도입니다.`;
@@ -566,18 +566,18 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                       <div className="flex items-center space-x-1.5 font-bold text-[#2C3E50] text-xs">
                         <span>{other.emoji}</span>
                         <span>{other.nickname}님과의 인연</span>
-                        <span className="text-[9px] px-1.5 py-0.5 bg-[#FAF8F3] border border-[#E8E0D0] text-[#8C7B6E] rounded-md font-medium">
+                        <span className="text-[9px] px-1.5 py-0.5 bg-[#FAF8F3] border border-[#E8E0D0] text-[#5C5046] rounded-md font-medium">
                           {other.element} 기운 | {other.rawMember.mbti || "MBTI 없음"}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <div className="flex items-center space-x-1 text-[10px]">
-                          <span className="text-[#8C7B6E] font-medium">{selectedMember.nickname}님은 {other.nickname}님에게</span>
+                          <span className="text-[#5C5046] font-medium">{selectedMember.nickname}님은 {other.nickname}님에게</span>
                           <span className="font-bold text-[#C0392B] bg-red-50/80 px-2 py-0.5 rounded border border-red-100">{score1to2}점</span>
                         </div>
                         <span className="text-gray-300 text-[9px]">|</span>
                         <div className="flex items-center space-x-1 text-[10px]">
-                          <span className="text-[#8C7B6E] font-medium">{other.nickname}님은 {selectedMember.nickname}님에게</span>
+                          <span className="text-[#5C5046] font-medium">{other.nickname}님은 {selectedMember.nickname}님에게</span>
                           <span className="font-bold text-green-600 bg-green-50/80 px-2 py-0.5 rounded border border-green-100">{score2to1}점</span>
                         </div>
                       </div>
@@ -594,7 +594,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                           </div>
                         )}
 
-                        <p className="text-[10px] text-[#8C7B6E] font-medium leading-relaxed pl-1.5 border-l-2 border-amber-400 ml-0.5">
+                        <p className="text-[10px] text-[#5C5046] font-medium leading-relaxed pl-1.5 border-l-2 border-amber-400 ml-0.5">
                           {relationalPhrase}
                         </p>
 
@@ -609,11 +609,11 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                                     {Math.round((basePair.saju.score_1_to_2 + basePair.saju.score_2_to_1) / 2)}점
                                   </span>
                                 </div>
-                                <div className="text-[8.5px] text-[#8C7B6E] flex justify-between">
+                                <div className="text-[8.5px] text-[#5C5046] flex justify-between">
                                   <span>나의 기운 ➔ 상대:</span>
                                   <span className="font-bold text-red-500">{isM1First ? basePair.saju.score_1_to_2 : basePair.saju.score_2_to_1}점</span>
                                 </div>
-                                <div className="text-[8.5px] text-[#8C7B6E] flex justify-between">
+                                <div className="text-[8.5px] text-[#5C5046] flex justify-between">
                                   <span>상대 기운 ➔ 나:</span>
                                   <span className="font-bold text-green-600">{isM1First ? basePair.saju.score_2_to_1 : basePair.saju.score_1_to_2}점</span>
                                 </div>
@@ -626,11 +626,11 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                                     {Math.round((basePair.ziwei.score_1_to_2 + basePair.ziwei.score_2_to_1) / 2)}점
                                   </span>
                                 </div>
-                                <div className="text-[8.5px] text-[#8C7B6E] flex justify-between">
+                                <div className="text-[8.5px] text-[#5C5046] flex justify-between">
                                   <span>나의 명궁 ➔ 상대:</span>
                                   <span className="font-bold text-red-500">{isM1First ? basePair.ziwei.score_1_to_2 : basePair.ziwei.score_2_to_1}점</span>
                                 </div>
-                                <div className="text-[8.5px] text-[#8C7B6E] flex justify-between">
+                                <div className="text-[8.5px] text-[#5C5046] flex justify-between">
                                   <span>상대 명궁 ➔ 나:</span>
                                   <span className="font-bold text-green-600">{isM1First ? basePair.ziwei.score_2_to_1 : basePair.ziwei.score_1_to_2}점</span>
                                 </div>
@@ -639,27 +639,27 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                               {isMbtiRegistered(selectedMember) && isMbtiRegistered(other.rawMember) ? (
                                 <div className="bg-white/60 p-2 rounded-lg border border-[#FAF0DE] text-[9px] space-y-1">
                                   <div className="font-bold text-[#2C3E50] flex justify-between">
-                                    <span>🧠 MBTI 성향</span>
+                                    <span>MBTI 성향</span>
                                     <span className="text-emerald-700 font-bold">
                                       {Math.round((basePair.mbti.score_1_to_2 + basePair.mbti.score_2_to_1) / 2)}점
                                     </span>
                                   </div>
-                                  <div className="text-[8.5px] text-[#8C7B6E] flex justify-between">
+                                  <div className="text-[8.5px] text-[#5C5046] flex justify-between">
                                     <span>나의 성정 ➔ 상대:</span>
                                     <span className="font-bold text-red-500">{isM1First ? basePair.mbti.score_1_to_2 : basePair.mbti.score_2_to_1}점</span>
                                   </div>
-                                  <div className="text-[8.5px] text-[#8C7B6E] flex justify-between">
+                                  <div className="text-[8.5px] text-[#5C5046] flex justify-between">
                                     <span>상대 성정 ➔ 나:</span>
                                     <span className="font-bold text-green-600">{isM1First ? basePair.mbti.score_2_to_1 : basePair.mbti.score_1_to_2}점</span>
                                   </div>
                                 </div>
                               ) : (
                                 <div className="bg-white/40 p-2 rounded-lg border border-[#FAF0DE] text-[9px] space-y-1">
-                                  <div className="font-bold text-[#8C7B6E] flex justify-between">
-                                    <span>🧠 MBTI 성향</span>
+                                  <div className="font-bold text-[#5C5046] flex justify-between">
+                                    <span>MBTI 성향</span>
                                     <span className="text-gray-400 font-normal">미등록</span>
                                   </div>
-                                  <div className="text-[8px] text-[#8C7B6E] italic leading-tight">
+                                  <div className="text-[8px] text-[#5C5046] italic leading-tight">
                                     {!isMbtiRegistered(selectedMember) && !isMbtiRegistered(other.rawMember)
                                       ? "두 사람 모두 MBTI 미등록"
                                       : !isMbtiRegistered(selectedMember)
@@ -671,17 +671,17 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                               {/* Zodiac */}
                               <div className="bg-white/60 p-2 rounded-lg border border-[#FAF0DE] text-[9px] space-y-1">
                                 <div className="font-bold text-[#2C3E50] flex justify-between">
-                                  <span>⭐ 별자리 궁합</span>
+                                  <span>성좌 조화</span>
                                   <span className="text-rose-700 font-bold">
                                     {Math.round((basePair.zodiac.score_1_to_2 + basePair.zodiac.score_2_to_1) / 2)}점
                                   </span>
                                 </div>
-                                <div className="text-[8.5px] text-[#8C7B6E] flex justify-between">
-                                  <span>나의 별자리 ➔ 상대:</span>
+                                <div className="text-[8.5px] text-[#5C5046] flex justify-between">
+                                  <span>나의 성좌 ➔ 상대:</span>
                                   <span className="font-bold text-red-500">{isM1First ? basePair.zodiac.score_1_to_2 : basePair.zodiac.score_2_to_1}점</span>
                                 </div>
-                                <div className="text-[8.5px] text-[#8C7B6E] flex justify-between">
-                                  <span>상대 별자리 ➔ 나:</span>
+                                <div className="text-[8.5px] text-[#5C5046] flex justify-between">
+                                  <span>상대 성좌 ➔ 나:</span>
                                   <span className="font-bold text-green-600">{isM1First ? basePair.zodiac.score_2_to_1 : basePair.zodiac.score_1_to_2}점</span>
                                 </div>
                               </div>
@@ -689,10 +689,10 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
 
                             {/* 4-Area Detailed Accordion/Disclosure */}
                             <details className="mt-1 group bg-white/40 border border-[#FAF0DE] rounded-lg p-2">
-                              <summary className="text-[9px] font-extrabold text-[#8C7B6E] hover:text-[#C0392B] cursor-pointer list-none flex items-center justify-between select-none">
+                              <summary className="text-[9px] font-extrabold text-[#5C5046] hover:text-[#C0392B] cursor-pointer list-none flex items-center justify-between select-none">
                                 <span className="flex items-center gap-1">
                                   <span className="transition-transform group-open:rotate-90">▶</span>
-                                  <span>🔍 4대 영역별 상세 텍스트 감정 분석 해설 보기</span>
+                                  <span>4대 영역별 상세 감정 해설</span>
                                 </span>
                                 <span className="text-[8px] bg-amber-100 text-amber-800 px-1 py-0.2 rounded font-mono">열기/닫기</span>
                               </summary>
@@ -700,7 +700,8 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                                 {/* Saju desc */}
                                 <div className="space-y-0.5 text-left">
                                   <div className="font-bold text-[9px] text-[#2C3E50] flex items-center gap-1">
-                                    <span>☯️ 사주 궁합:</span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600 inline-block" />
+                                    <span>사주 궁합:</span>
                                     <span className="text-amber-800 font-extrabold">{Math.round((basePair.saju.score_1_to_2 + basePair.saju.score_2_to_1) / 2)}점</span>
                                   </div>
                                   <p className="text-[#5A4D41] text-[8.5px] leading-relaxed pl-1.5 border-l border-amber-400 font-medium whitespace-pre-wrap">{basePair.saju.description}</p>
@@ -708,7 +709,8 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                                 {/* Ziwei desc */}
                                 <div className="space-y-0.5 text-left">
                                   <div className="font-bold text-[9px] text-[#2C3E50] flex items-center gap-1">
-                                    <span>🔮 자미두수 궁합:</span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-600 inline-block" />
+                                    <span>자미두수 궁합:</span>
                                     <span className="text-indigo-800 font-extrabold">{Math.round((basePair.ziwei.score_1_to_2 + basePair.ziwei.score_2_to_1) / 2)}점</span>
                                   </div>
                                   <p className="text-[#5A4D41] text-[8.5px] leading-relaxed pl-1.5 border-l border-indigo-400 font-medium whitespace-pre-wrap">{basePair.ziwei.description}</p>
@@ -716,7 +718,8 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                                 {/* Mbti desc */}
                                 <div className="space-y-0.5 text-left">
                                   <div className="font-bold text-[9px] text-[#2C3E50] flex items-center gap-1">
-                                    <span>🧠 MBTI 성향 궁합:</span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
+                                    <span>MBTI 성향 궁합:</span>
                                     {isMbtiRegistered(selectedMember) && isMbtiRegistered(other.rawMember) ? (
                                       <span className="text-emerald-800 font-extrabold">{Math.round((basePair.mbti.score_1_to_2 + basePair.mbti.score_2_to_1) / 2)}점</span>
                                     ) : (
@@ -726,7 +729,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                                   {isMbtiRegistered(selectedMember) && isMbtiRegistered(other.rawMember) ? (
                                     <p className="text-[#5A4D41] text-[8.5px] leading-relaxed pl-1.5 border-l border-emerald-400 font-medium whitespace-pre-wrap">{basePair.mbti.description}</p>
                                   ) : (
-                                    <p className="text-[#8C7B6E] text-[8.5px] leading-relaxed pl-1.5 border-l border-gray-300 font-medium italic whitespace-pre-wrap">
+                                    <p className="text-[#5C5046] text-[8.5px] leading-relaxed pl-1.5 border-l border-gray-300 font-medium italic whitespace-pre-wrap">
                                       {!isMbtiRegistered(selectedMember) && !isMbtiRegistered(other.rawMember)
                                         ? "두 사람 모두 MBTI를 등록하지 않아 성향 궁합을 볼 수 없습니다."
                                         : !isMbtiRegistered(selectedMember)
@@ -738,7 +741,8 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                                 {/* Zodiac desc */}
                                 <div className="space-y-0.5 text-left">
                                   <div className="font-bold text-[9px] text-[#2C3E50] flex items-center gap-1">
-                                    <span>⭐ 별자리 궁합:</span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-600 inline-block" />
+                                    <span>성좌 조화:</span>
                                     <span className="text-rose-800 font-extrabold">{Math.round((basePair.zodiac.score_1_to_2 + basePair.zodiac.score_2_to_1) / 2)}점</span>
                                   </div>
                                   <p className="text-[#5A4D41] text-[8.5px] leading-relaxed pl-1.5 border-l border-rose-400 font-medium whitespace-pre-wrap">{basePair.zodiac.description}</p>
@@ -754,7 +758,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                           <Crown className="w-3.5 h-3.5 fill-amber-300" />
                           <span>개별 상세 인연 해설 & 피방처방 잠겨있음</span>
                         </div>
-                        <p className="text-[9.5px] text-[#8C7B6E] leading-relaxed">
+                        <p className="text-[9.5px] text-[#5C5046] leading-relaxed">
                           두 분의 4대 영역 종합 감정 해설과 사주/자미/성향/별자리 1:1 정밀 텍스트 처방전은 <strong>'모임 전체 인원의 오행 상생 궁합 총괄 보고서'</strong> 또는 <strong>'비밀 인연 등급 해독권'</strong> 구매 후 즉시 무제한 개방됩니다.
                         </p>
                         <button
@@ -777,7 +781,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
               })}
             {nodes.filter((n) => n.id !== selectedNodeId).length > 0 &&  
              lines.length === 0 && (
-              <div className="text-center py-6 text-xs text-[#8C7B6E] font-medium">
+              <div className="text-center py-6 text-xs text-[#5C5046] font-medium">
                 선택한 필터 기준에 부합하는 인연이 없습니다. 다른 필터를 선택해보세요!
               </div>
             )}
@@ -785,7 +789,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
         </div>
       ) : (
         <div className="mt-4 pt-2 border-t border-[#E8E0D0] w-full">
-          <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1.5 text-[9px] text-[#8C7B6E] font-bold">
+          <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1.5 text-[9px] text-[#5C5046] font-bold">
             <div className="flex items-center space-x-1">
               <span className="w-2.5 h-2.5 bg-[#f97316] rounded-full inline-block" />
               <span>수려한 케미 (90+)</span>

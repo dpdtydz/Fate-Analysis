@@ -61,9 +61,64 @@
         "createdBy": { "type": "string" }
       },
       "required": ["code", "productType", "maxUses", "usedCount", "createdAt", "createdBy"]
+    },
+    "AppConfig": {
+      "title": "AppConfig",
+      "description": "Global application configuration for shop toggle, beta mode, and announcements",
+      "type": "object",
+      "properties": {
+        "shop_enabled": { "type": "boolean" },
+        "beta_free_mode": { "type": "boolean" },
+        "announcement": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["shop_enabled", "beta_free_mode", "updatedAt"]
+    },
+    "AnalyticsEvent": {
+      "title": "AnalyticsEvent",
+      "description": "User interaction and traffic analytics event log",
+      "type": "object",
+      "properties": {
+        "eventName": { "type": "string" },
+        "category": { "type": "string" },
+        "userTier": { "type": "string", "enum": ["free", "coupon", "paid"] },
+        "metadata": { "type": "object" },
+        "userUid": { "type": "string" },
+        "roomCode": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["eventName", "timestamp"]
+    },
+    "UserTicketAccount": {
+      "title": "UserTicketAccount",
+      "description": "Single-use tickets and invitation rewards per user",
+      "type": "object",
+      "properties": {
+        "userUid": { "type": "string" },
+        "referralCode": { "type": "string" },
+        "invitedCount": { "type": "integer" },
+        "tickets": { "type": "object" },
+        "consumedHistory": { "type": "array" },
+        "userTier": { "type": "string", "enum": ["free", "coupon", "paid"] },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userUid", "referralCode", "tickets"]
     }
   },
   "firestore": {
+    "/user_tickets/{userId}": {
+      "schema": "UserTicketAccount",
+      "description": "User's remaining single-use tickets and consumption records"
+    },
+    "/app_config/{configId}": {
+      "schema": "AppConfig",
+      "description": "Global app config controlling paid shop on/off and beta mode"
+    },
+    "/analytics_events/{eventId}": {
+      "schema": "AnalyticsEvent",
+      "description": "Event logs for user traffic, retention, and conversion metrics"
+    },
     "/coupons/{code}": {
       "schema": "Coupon",
       "description": "Coupons matching products"

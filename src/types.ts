@@ -191,3 +191,88 @@ export interface CachedAnalysisResult {
   group: GroupAnalysis;
   created_at: any;
 }
+
+export interface AppConfig {
+  shop_enabled: boolean;
+  beta_free_mode: boolean;
+  real_payment_enabled?: boolean;
+  payment_notice?: string;
+  announcement?: string;
+  updatedAt: string;
+  updatedBy?: string;
+}
+
+export type TicketProductType = "pdf" | "secret" | "group" | "all";
+export type UserTierType = "free" | "coupon" | "paid";
+
+export interface TicketConsumptionRecord {
+  timestamp: string;
+  productType: TicketProductType;
+  roomCode?: string;
+  pairKey?: string;
+  label?: string;
+}
+
+export interface TicketGrantRecord {
+  id: string;
+  timestamp: string;
+  sourceType: "coupon" | "referral" | "manual_admin" | "promotion" | "system";
+  couponCode?: string;
+  productType: TicketProductType;
+  amount: number;
+  reason: string;
+  adminUid?: string;
+}
+
+export interface CouponRecord {
+  code: string;
+  maxUses: number;
+  usedCount: number;
+  usedUsers: string[];
+  usedDetails?: Array<{
+    uid: string;
+    redeemedAt: string;
+    productType?: string;
+    userEmail?: string;
+  }>;
+  productType: TicketProductType;
+  description?: string;
+  campaignSource?: string; // e.g. "인스타그램 이벤트", "카카오톡 채널", "오픈 프로모션", "관리자 직접발급"
+  isActive: boolean;
+  createdAt: string;
+  lastUsedAt?: string;
+}
+
+export interface UserTicketAccount {
+  userUid: string;
+  userEmail?: string | null;
+  referralCode: string;
+  invitedCount: number;
+  invitedBy?: string;
+  tickets: {
+    pdf: number;
+    secret: number;
+    group: number;
+    all: number;
+  };
+  grantHistory?: TicketGrantRecord[];
+  consumedHistory: TicketConsumptionRecord[];
+  userTier: UserTierType;
+  updatedAt: string;
+}
+
+export type MembershipTier = "social_verified" | "regular_email" | "guest";
+
+export interface UserMembershipInfo {
+  tier: MembershipTier;
+  isSocialVerified: boolean; // Google SNS 연동 완료 (정회원)
+  isEmailOnly: boolean;      // 이메일/비밀번호 일반회원 (준회원)
+  isGuest: boolean;          // 미로그인 게스트
+  canCreateRoom: boolean;    // 방 개설 가능 여부 (오직 정회원만 true)
+  canUseCoupon: boolean;     // 쿠폰 사용 가능 여부 (오직 정회원만 true)
+  canAccessShop: boolean;    // 유료 상점 이용 가능 여부 (오직 정회원만 true)
+  label: string;             // 한글 등급명
+  email?: string | null;
+  displayName?: string | null;
+}
+

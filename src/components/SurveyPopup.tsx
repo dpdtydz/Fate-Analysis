@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { db, auth } from "../lib/firebase";
+import { db, auth, sanitizeFirestoreData } from "../lib/firebase";
 import { doc, getDoc, addDoc, collection } from "firebase/firestore";
 import { MessageSquare, X, Check, ArrowRight, Loader2, Award } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -220,13 +220,14 @@ export default function SurveyPopup() {
     try {
       // Save response to Firestore
       const user = auth.currentUser;
-      await addDoc(collection(db, "survey_responses"), {
+      const surveyPayload = sanitizeFirestoreData({
         answers,
         submittedAt: new Date().toISOString(),
         userEmail: user?.email || null,
         userUid: user?.uid || null,
         nickname: user?.displayName || localStorage.getItem("saju_nickname") || "익명 참가자"
       });
+      await addDoc(collection(db, "survey_responses"), surveyPayload);
 
       // Mark as submitted locally
       localStorage.setItem("saju_survey_submitted", "true");
@@ -273,7 +274,7 @@ export default function SurveyPopup() {
       <AnimatePresence>
         {isOpen && (
           <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 cursor-pointer"
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[90] flex items-center justify-center p-4 cursor-pointer"
             onClick={(e) => {
               if (e.target === e.currentTarget) {
                 setIsOpen(false);
@@ -297,7 +298,7 @@ export default function SurveyPopup() {
                   setIsOpen(false);
                   setIsMinimized(true);
                 }}
-                className="absolute top-4 right-4 p-1 rounded-full text-[#8C7B6E] hover:bg-[#E8E0D0]/40 transition duration-150 cursor-pointer"
+                className="absolute top-4 right-4 p-1 rounded-full text-[#5C5046] hover:bg-[#E8E0D0]/40 transition duration-150 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -312,7 +313,7 @@ export default function SurveyPopup() {
                         ☯
                       </div>
                       <h3 className="font-serif text-lg font-bold text-[#C0392B]">인연사주 개선 사용성 설문</h3>
-                      <p className="text-xs text-[#8C7B6E] leading-relaxed">
+                      <p className="text-xs text-[#5C5046] leading-relaxed">
                         더 나은 서비스 디벨롭 방향성과 BM(유료 정책) 구상을 위해 소중한 한 표를 남겨주세요!
                       </p>
                     </div>
@@ -424,7 +425,7 @@ export default function SurveyPopup() {
                     </div>
                     <div className="space-y-1.5">
                       <h3 className="font-serif text-lg font-bold text-[#2C3E50]">설문 작성이 완료되었습니다!</h3>
-                      <p className="text-xs text-[#8C7B6E] leading-loose">
+                      <p className="text-xs text-[#5C5046] leading-loose">
                         귀하께서 보내주신 고견은 인연사주의 향후 빌링 정책 및<br />
                         AI 기능 고도화에 절대적인 기준서가 될 것입니다.<br />
                         <span className="font-bold text-[#C0392B]">lhs41977@gmail.com</span>로 잘 취합되어 전달되었습니다.

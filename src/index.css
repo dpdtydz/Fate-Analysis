@@ -4,6 +4,7 @@
 @theme {
   --font-sans: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Hahmlet", "Noto Serif KR", Georgia, serif;
+  --color-slate-500: #475569;
 }
 
 body {
@@ -16,15 +17,14 @@ body {
 }
 
 @media print {
-  /* Hide all buttons, navigation elements, overlays, and modals */
+  /* Hide UI elements on print */
   button, 
   nav, 
   footer, 
-  .no-print, 
+  .no-print,
+  .print-hidden,
   [id^="quick-demo-"], 
   [id$="-btn"], 
-  .fixed,
-  .modal-overlay,
   #premium-zone-tab {
     display: none !important;
   }
@@ -34,18 +34,23 @@ body {
     color: #1a1a1a !important;
   }
 
-  /* Make sure the main scroll container expands fully */
-  .overflow-y-auto {
+  /* Make sure scroll containers expand fully */
+  .overflow-y-auto,
+  .overflow-hidden {
     overflow: visible !important;
     height: auto !important;
+    max-height: none !important;
   }
 
   /* Focus solely on the print container */
+  .print-container,
   #print-section {
+    position: static !important;
+    display: block !important;
     background: #FAF8F5 !important;
-    padding: 2rem !important;
+    padding: 1.5rem !important;
     border: 1px solid #D6CCBC !important;
-    border-radius: 24px !important;
+    border-radius: 16px !important;
     box-shadow: none !important;
     width: 100% !important;
     max-width: 100% !important;

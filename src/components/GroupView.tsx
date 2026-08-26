@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import Layout from "./Layout";
 import GroupNetwork from "./GroupNetwork";
 import LoadingOverlay from "./LoadingOverlay";
-import { db, getAnonymousUser, auth, checkPremiumStatus, checkProductUnlock } from "../lib/firebase";
+import { db, getAnonymousUser, auth, checkPremiumStatus, checkProductUnlock, redeemCoupon, getUserMembershipInfo } from "../lib/firebase";
 import { doc, getDoc, setDoc, collection, getDocs, onSnapshot, deleteDoc } from "firebase/firestore";
 import { Member, Room, CachedAnalysisResult } from "../types";
-import { Sparkles, MessageSquare, TrendingUp, Download, Share2, Award, Heart, HelpCircle, ArrowLeft, RefreshCw, Crown, Smile, Users, Check } from "lucide-react";
-import html2canvas from "html2canvas";
+import { Sparkles, MessageSquare, TrendingUp, Download, Share2, Award, Heart, HelpCircle, ArrowLeft, RefreshCw, Crown, Smile, Users, Check, Lock, KeyRound, Ticket } from "lucide-react";
+import html2canvas from "html2canvas-pro";
 import PremiumPaywall from "./PremiumPaywall";
 import GoogleAds from "./GoogleAds";
+import { logAnalyticsEvent } from "../lib/analytics";
 
 const isMbtiRegistered = (m?: any): boolean => {
   if (!m || !m.mbti) return false;
@@ -69,88 +70,88 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
   let sajuDesc = "";
   let sajuRemedy = "";
 
-  // Saju Relations computation with 3 varied templates per category
+  // Saju Relations computation: Grounded in authentic Myeongri Tong-gwan (通關) & realistic interpersonal psychology
   if ((elem1 === "금" && elem2 === "목") || (elem1 === "목" && elem2 === "금")) {
-    sajuTitle = "⚔️ 금목상쟁(金木相爭) - 현실주의와 영감의 긴장 기류";
+    sajuTitle = "⚔️ 금목상쟁(金木相爭) - 명확한 기준과 진취적 성장의 조율";
     const descOptions = [
-      `${m1.nickname}님의 단호하고 칼같이 예리한 안목(${gp1.name})과 ${m2.nickname}님의 진취적으로 뻗어 오르는 생명력(${gp2.name})이 만났습니다. 한쪽은 현실성이나 꼼꼼함을 먼저 보고, 다른 한쪽은 큰 흐름의 비전과 도전을 보기에 피드백 과정에서 예기치 못한 차가운 지적이나 자존심 충돌이 생길 수 있습니다.`,
-      `${m1.nickname}님의 확실한 현실 기준과 규칙(${gp1.name})이 ${m2.nickname}님의 아이디어와 비전 탐색력(${gp2.name})과 다소 긴장을 형성합니다. 소통 시 한쪽은 디테일을 따지고 다른 한쪽은 맥락을 전수하려 하여, 가벼운 대화법의 마찰이 불현듯 생겨날 수 있는 조합입니다.`,
-      `${m1.nickname}님의 빈틈없는 완벽주의적 조언(${gp1.name})이 ${m2.nickname}님의 활기차고 주도적인 실행력(${gp2.name})에 간섭하며 팽팽한 힘을 겨릅니다. 서로 바라보는 속도가 다르다 보니, 선의의 격려가 의도치 않은 잔소리나 차가운 간섭으로 오독되기도 합니다.`
+      `${m1.nickname}님의 냉철하고 명확한 기준(${gp1.name})과 ${m2.nickname}님의 진취적인 기획력(${gp2.name})이 만났습니다. 한쪽은 현실적인 실현 가능성과 완성도를 중시하고, 다른 한쪽은 새로운 가능성과 확장을 우선하기에 피드백을 주고받는 과정에서 기준 충돌이 발생하기 쉽습니다.`,
+      `${m1.nickname}님의 꼼꼼한 현실 감각과 원칙(${gp1.name})이 ${m2.nickname}님의 유연한 발상과 도전 정신(${gp2.name})과 부딪힐 수 있습니다. 서로의 관점이 다르다 보니, 상대방의 발전적 조언이 지나치게 비판적이거나 간섭으로 느껴질 수 있는 구조입니다.`,
+      `${m1.nickname}님의 빈틈없는 분석력(${gp1.name})과 ${m2.nickname}님의 주도적인 실행력(${gp2.name})이 팽팽한 균형을 이룹니다. 의사결정의 속도와 우선순위가 달라, 의도치 않게 서로의 의욕을 꺾거나 서운함을 남길 수 있습니다.`
     ];
     const remedyOptions = [
-      `💧 흘려보내는 물(수)의 완충 윤활유 작용이 필수입니다. 차가운 아이스 음료를 곁들이거나 수변을 조망할 수 있는 통유리 카페에서 소통하면 서로의 날카로운 텐션이 온화하게 풀려 영감을 공유하는 완벽한 추진력으로 승화됩니다.`,
-      `💧 차가운 금(金)의 칼날과 마찰하는 목(木)의 소통을 돕기 위해 수(水) 기운의 윤활이 시급합니다. 차분한 감성 음악을 흐르게 하거나, 대화 중 달콤하고 시원한 에이드를 나누며 가볍고 촉촉한 어조로 이야기를 건네 보세요. 날카로움이 봄눈 녹듯 부드럽게 풀립니다.`,
-      `💧 예리한 이성(금)과 자율적 의지(목)가 평화를 찾도록 돕는 수(水) 기운 처방이 해답입니다. 피드백 전 "정말 대단한 생각이다!"라는 포근한 칭찬의 보충제를 건네고 소통하세요. 사소한 이견이 예상을 뛰어넘는 최고의 실무적 동지로 거듭납니다.`
+      `💧 [수(水) 기운 통관 처방: 맥락 경청법] 금(金)의 예리함과 목(木)의 추진력을 잇는 핵심은 수(水), 즉 '깊은 경청과 수용'입니다. 피드백을 전달하기 전에 상대방의 기획 의도와 고민을 5분간 먼저 온전히 들은 뒤 보완점을 제시하면, 서로를 가장 강력하게 보완해 주는 최고의 파트너가 됩니다.`,
+      `💧 [수(水) 기운 통관 처방: 공감 후 대안 제시] 결론을 먼저 재단하기보다 상대의 아이디어가 가진 강점을 먼저 인정한 후 현실적 디테일을 조율해 보세요. '지적'이 아닌 '협력적 다듬기'로 프레임을 전환할 때 놀라운 시너지가 발휘됩니다.`,
+      `💧 [수(水) 기운 통관 처방: 사전 질문 중심 소통] 단정적인 조언 대신 "이 방향으로 실행할 때 가장 고민되는 지점은 무엇인가요?"와 같이 질문으로 대화를 열어보세요. 불필요한 자존심 마찰을 사전에 방지할 수 있습니다.`
     ];
     sajuDesc = descOptions[variationIndex];
     sajuRemedy = remedyOptions[variationIndex];
   } else if ((elem1 === "화" && elem2 === "금") || (elem1 === "금" && elem2 === "화")) {
-    sajuTitle = "🔥 화극금(火剋金) - 열정과 규율의 템포 마찰";
+    sajuTitle = "🔥 화극금(火剋金) - 추진 속도와 디테일 완성도의 마찰";
     const descOptions = [
-      `${m1.nickname}님의 화끈하고 거침없는 사교적 기상(${gp1.name})과 ${m2.nickname}님의 정확하고 한 치 오차 없는 신중함(${gp2.name})이 대조를 이룹니다. 일의 타임라인을 당기려 하거나 마감의 완성도를 독촉할 때 불꽃 튀는 자존심 마찰이나 생각의 속도차가 부각될 수 있습니다.`,
-      `${m1.nickname}님의 뜨겁고 역동적인 에너지(${gp1.name})가 ${m2.nickname}님의 정교하고 세련된 단호함(${gp2.name})을 용해하고 통제하려는 흐름입니다. 서로 주도권을 지키려 할 때 일시적으로 소통 템포가 과열되거나 침묵의 피로를 느낄 수 있습니다.`,
-      `${m1.nickname}님의 신속한 결단과 실행 속도(${gp1.name})와 ${m2.nickname}님의 냉철하고 원칙을 수호하는 스타일(${gp2.name})이 마주합니다. 일할 때 적극적인 추진 요구가 지나치게 단호하게 반려되는 듯한 차가움을 선사하여 은연중에 섭섭함이 피어날 여지가 있습니다.`
+      `${m1.nickname}님의 거침없는 추진력과 열정(${gp1.name})과 ${m2.nickname}님의 신중하고 치밀한 완벽주의(${gp2.name})가 대조를 이룹니다. 일정이나 마감을 조율할 때 한쪽은 빠른 결단을 원하고 다른 한쪽은 충분한 검토를 필요로 하여 속도 차이에 따른 답답함이 생길 수 있습니다.`,
+      `${m1.nickname}님의 역동적인 실행 에너지(${gp1.name})가 ${m2.nickname}님의 정교한 원칙(${gp2.name})을 앞서 나가려는 흐름입니다. 서로 주도권을 지키려 할 때 일시적으로 대화가 과열되거나 피로감을 느낄 수 있습니다.`,
+      `${m1.nickname}님의 빠른 직관(${gp1.name})과 ${m2.nickname}님의 논리적 검증 스타일(${gp2.name})이 조우합니다. 상대의 신중함이 소극적으로 보이거나, 상대의 적극성이 성급함으로 오해될 소지가 있습니다.`
     ];
     const remedyOptions = [
-      `⛰️ 뜨거운 열기를 품어 안정적으로 식혀줄 묵직한 흙(토) 기운을 채용하십시오. 차분한 황색 조명의 따뜻한 우드 인테리어 공간에서 소통하거나, 한식 디저트를 웃으며 건네며 소통의 호흡을 아늑하게 조율하면 갈등이 말끔히 해소됩니다.`,
-      `⛰️ 화극금의 격렬한 불꽃을 길들이는 대지의 흙(토) 기운이 정답입니다. 함께 차분한 베이지톤 카페나 숲뷰가 있는 쉼터를 방문해 소통의 압력을 낮춰 보세요. 긴밀한 조율이 서로를 가장 위로해주는 영혼의 안식처가 될 수 있습니다.`,
-      `⛰️ 급한 열정(화)과 칼날 기질(금)을 중화할 흙(토)의 너그러운 기운이 비책입니다. 마찰을 빚기 전 "우선 맛있는 밥부터 한끼 든든히 먹고 얘기하자"며 푸근한 식사 시간을 배치해 보세요. 식사 후에 진행하는 대화는 더없이 매끄럽고 신사적으로 진행됩니다.`
+      `⛰️ [토(土) 기운 통관 처방: 중간 완충 단계 설정] 불(火)의 뜨거운 열정과 쇠(金)의 냉철함을 융합하려면 토(土), 즉 '안정적인 중간 검토 시간'이 필요합니다. 즉석에서 결론을 내기보다 "초안 검토 후 내일 오후에 최종 확정하자"는 식의 완충 타임라인을 두는 것이 가장 현명합니다.`,
+      `⛰️ [토(土) 기운 통관 처방: 역할 명확화] 추진과 실행의 큰 틀은 화(火) 성향이 이끌고, 리스크 관리와 최종 감수는 금(金) 성향이 맡는 분업 구조를 명확히 세우면 갈등이 곧바로 최적의 협업 엔진으로 바뀝니다.`,
+      `⛰️ [토(土) 기운 통관 처방: 사실 중심의 피드백] 감정적 표현을 배제하고 일정과 객관적인 데이터를 기준으로 소통해 보세요. 불필요한 오해 없이 명쾌하게 합의점에 도달할 수 있습니다.`
     ];
     sajuDesc = descOptions[variationIndex];
     sajuRemedy = remedyOptions[variationIndex];
   } else if ((elem1 === "수" && elem2 === "화") || (elem1 === "화" && elem2 === "수")) {
-    sajuTitle = "🌊 수화상쟁(水火相爭) - 사색과 리액션의 감정 엇박자";
+    sajuTitle = "🌊 수화기제(水火旣濟) - 신중한 사색과 열정적 표현의 간극";
     const descOptions = [
-      `${m1.nickname}님의 사색적이고 차분히 가라앉는 신비로움(${gp1.name})과 ${m2.nickname}님의 즉흥적이고 솔직하며 밝은 표현력(${gp2.name})이 마주 보고 있습니다. 서로가 조율할 때 한쪽은 너무 즉흥적이고 리액션이 과하다 생각하고, 다른 한쪽은 너무 소극적이고 생각을 숨긴다 느껴 속마음 오해가 깃들기 쉽습니다.`,
-      `${m1.nickname}님의 깊고 웅장한 사유의 흐름(${gp1.name})과 ${m2.nickname}님의 시원하고 거침없이 분출하는 리액션(${gp2.name})이 마주하고 있습니다. 서로 다른 마음의 온도 때문에 한쪽은 표현의 성급함을, 다른 한쪽은 생각의 고요함을 어색해하며 벽을 느끼기 쉽습니다.`,
-      `${m1.nickname}님의 차분하고 논리적인 쉼표 조절(${gp1.name})이 ${m2.nickname}님의 뜨겁게 발설하는 정열(${gp2.name})에 찬물을 끼얹는 모양새가 될 수 있습니다. 각자의 방식대로 감정을 분출하여 말 한마디에 소통의 서운한 균열이 생길 수 있습니다.`
+      `${m1.nickname}님의 깊이 있는 사색과 신중함(${gp1.name})과 ${m2.nickname}님의 솔직하고 즉각적인 표현력(${gp2.name})이 마주하고 있습니다. 한쪽은 충분히 생각한 뒤 말하길 원하고, 다른 한쪽은 대화 속에서 생각을 정리하길 원하여 감정의 템포가 어긋날 수 있습니다.`,
+      `${m1.nickname}님의 차분한 관조적 태도(${gp1.name})와 ${m2.nickname}님의 역동적인 열정(${gp2.name})이 대조를 이룹니다. 서로의 반응 방식을 이해하지 못하면 한쪽은 무관심하다 느끼고, 다른 한쪽은 지나치게 서두른다고 느낄 수 있습니다.`,
+      `${m1.nickname}님의 신중한 현실 검토(${gp1.name})가 ${m2.nickname}님의 즉각적인 제안(${gp2.name})에 찬물을 끼얹는 모양새가 되지 않도록 배려가 필요합니다.`
     ];
     const remedyOptions = [
-      `🌳 물과 불 사이를 연결하는 싱그러운 나무(목) 기운의 그리너리 처방이 적합합니다. 식물이 가득한 정원형 베이커리나 공원 산책을 하며 생각을 정돈해 보세요. 싱그러운 잎사귀들이 서로의 감정적 텐션을 따뜻한 생명력으로 치환해 줍니다.`,
-      `🌳 차가운 바다(수)와 뜨거운 태양(화)이 절묘하게 이어지기 위해서는 생명의 성장력인 나무(목) 기운이 중간 다리가 되어야 합니다. 싱그러운 화초나 화분이 가득한 자연주의 복합 문화공간에서 마주앉거나 가벼운 숲길 산책을 즐겨보십시오. 엇박자 소통이 따사롭고 포근한 상호 격려로 변화됩니다.`,
-      `🌳 감정의 극과 극인 수화 기류를 이어주기 위해 초록색 생명력(목)을 동원하는 것이 비법입니다. 대화 전 서로 산뜻한 야외 산책을 곁들이며 "가끔은 이런 다른 관점을 듣는 게 머리를 맑게 한다"고 서로를 칭찬해 보십시오. 오해가 최고의 조력으로 급반전합니다.`
+      `🌳 [목(木) 기운 통관 처방: 단계적 생각 공유] 수(水)와 화(火)를 잇는 통관은 목(木), 즉 '성장과 과정에 대한 공감'입니다. 즉각적인 찬반을 내놓기보다 "흥미로운 생각인데, 구체적으로 어떤 방식으로 발전시킬 수 있을지 함께 단계별로 짚어보자"는 대화법이 서로의 열정을 유지해 줍니다.`,
+      `🌳 [목(木) 기운 통관 처방: 반응 시간 인정] 외향적 표현과 내면적 숙고의 차이를 존중해 주세요. 제안을 받은 쪽에게 1~2일 정도 정리할 여유를 주면 훨씬 깊이 있고 완성도 높은 피드백이 돌아옵니다.`,
+      `🌳 [목(木) 기운 통관 처방: 긍정적 의도 재확인] 의견 차이가 생길 때 "결국 우리는 더 좋은 결과를 만들기 위해 논의하고 있다"는 공통의 목표를 먼저 짚고 시작하세요.`
     ];
     sajuDesc = descOptions[variationIndex];
     sajuRemedy = remedyOptions[variationIndex];
   } else if ((elem1 === "목" && elem2 === "토") || (elem1 === "토" && elem2 === "목")) {
-    sajuTitle = "🌲 목극토(木剋土) - 거침없는 질주와 경계 수호의 마찰";
+    sajuTitle = "🌲 목극토(木剋土) - 새로운 변화와 안정적 체계의 조화";
     const descOptions = [
-      `${m1.nickname}님의 속도감 넘치는 아이디어(${gp1.name})가 ${m2.nickname}님의 굳건하고 변함없는 원칙과 넓은 영토(${gp2.name})를 뚫고 진입하려는 모양새입니다. 상대방이 성실히 정립해 놓은 영역이나 일정 기준을 무심코 건드리거나, 주도권을 쥐려 할 때 은근한 대치 상태를 부를 소지가 있습니다.`,
-      `${m1.nickname}님의 창조적으로 성장하려는 목(木) 기운(${gp1.name})이 ${m2.nickname}님의 단단하게 터를 일구는 흙(토) 기운(${gp2.name})에 자극을 가합니다. 질서와 새로운 아이디어의 주권 대립이 미묘하게 교차하며 의견 다툼을 보이기 쉬운 조건입니다.`,
-      `${m1.nickname}님의 유연하고 신속하게 방향을 바꾸는 기동성(${gp1.name})과 ${m2.nickname}님의 듬직하고 흔들리지 않는 묵직함(${gp2.name})이 조우합니다. 서로에게 너무 경솔하다거나 반대로 지나치게 융통성 없이 굼뜨다고 느껴 마음의 거리가 생길 수 있습니다.`
+      `${m1.nickname}님의 새로운 시도와 변화 추진력(${gp1.name})이 ${m2.nickname}님의 안정적인 체계와 원칙(${gp2.name})과 만났습니다. 기존의 틀을 유지하려는 신중함과 새로운 시도를 원하는 진취성이 맞부딪힐 수 있습니다.`,
+      `${m1.nickname}님의 확장하려는 의지(${gp1.name})와 ${m2.nickname}님의 기반을 단단히 지키려는 태도(${gp2.name})가 소통에서 긴장을 부를 수 있습니다. 한쪽은 답답함을, 다른 한쪽은 불안정함을 호소할 수 있습니다.`,
+      `${m1.nickname}님의 빠른 방향 전환(${gp1.name})과 ${m2.nickname}님의 진중한 속도(${gp2.name})가 마주할 때, 업무와 소통의 리듬을 조율하는 지혜가 요구됩니다.`
     ];
     const remedyOptions = [
-      `🔥 나무가 흙을 다치지 않고 든든히 생해주게 이끄는 불(화)의 활력이 필요합니다. 조명이 활발하고 이국적인 맛집에서 가벼운 식사를 나누거나 화사한 공간에서 수다를 나눠 보세요. 붉고 밝은 에너지가 서로의 방어벽을 기적처럼 허물어 줍니다.`,
-      `🔥 목극토의 답답한 긴장 지대를 따뜻한 모닥불처럼 녹여줄 불(화) 기운이 해답입니다. 활력이 가득하고 화사한 무드의 레스토랑에서 만나 경쾌한 음식을 즐기며 이야기하세요. 따뜻하고 활달한 화(火) 에너지가 감춰진 동료애를 기적적으로 키워냅니다.`,
-      `🔥 고집 세게 흙을 파고드는 나무와 이를 수호하는 대지의 마찰을 누그러뜨리는 예의와 축제(화)의 처방이 약효입니다. 소통 전 밝게 먼저 웃음을 건네며 "늘 제 곁에서 기둥이 되어주어 감사해요"라고 인사를 건네십시오. 이견이 일순간에 정복됩니다.`
+      `🔥 [화(火) 기운 통관 처방: 인정과 따뜻한 소통] 나무(木)가 흙(土)을 해치지 않고 옥토로 바꾸는 매개는 화(火), 즉 '인정과 예의'입니다. 변화를 제안할 때 상대방이 지금까지 일구어 놓은 체계와 노고를 먼저 진심으로 인정한 뒤 새 제안을 건네보세요.`,
+      `🔥 [화(火) 기운 통관 처방: 안전장치가 있는 점진적 실험] 전체를 한 번에 바꾸려 하지 말고, "작은 범위에서 1차 테스트를 해본 뒤 효과를 검증하자"는 점진적 제안 방식을 취하면 토(土) 성향도 안심하고 적극 협력합니다.`,
+      `🔥 [화(火) 기운 통관 처방: 정기적인 감사 표현] 상대방의 묵묵한 서포트와 체계 관리에 대해 구체적인 감사의 말을 자주 전하세요. 신뢰의 토양이 단단해집니다.`
     ];
     sajuDesc = descOptions[variationIndex];
     sajuRemedy = remedyOptions[variationIndex];
   } else if ((elem1 === "토" && elem2 === "수") || (elem1 === "수" && elem2 === "토")) {
-    sajuTitle = "⛰️ 토극수(土剋水) - 정밀한 가이드라인과 자율성의 대립";
+    sajuTitle = "⛰️ 토극수(土剋水) - 명확한 가이드라인과 유연한 자율성의 조화";
     const descOptions = [
-      `${m1.nickname}님의 무겁고 흔들림 없는 계획과 규칙론(${gp1.name})이 ${m2.nickname}님의 자유롭게 넘실거리며 지혜를 도모하려는 자율 기류(${gp2.name})를 제한하고 통제하려는 구도입니다. 소통할 때 한쪽은 답답한 구속감을, 다른 한쪽은 질서 없음에 불안정함을 표출하기 쉽습니다.`,
-      `${m1.nickname}님의 신중하게 설계된 마감 기준과 안목(${gp1.name})이 ${m2.nickname}님의 넘쳐나는 영민함과 지혜의 흐름(${gp2.name})을 막아 세워 갈등을 부추깁니다. 이로 인해 한쪽은 통제를 싫어하고 다른 한쪽은 경박함을 경계하여 미묘한 자존심 충돌이 예상됩니다.`,
-      `${m1.nickname}님의 묵직하고 완고한 기준 수립(${gp1.name})과 ${m2.nickname}님의 다방면으로 유연하게 물길을 대려는 순발력(${gp2.name})이 대치합니다. 통제와 자율의 경계선에서 가벼운 카톡 문자나 연락에도 일순간 차가운 피로감을 호소하게 만듭니다.`
+      `${m1.nickname}님의 명확한 원칙과 경계선 설정(${gp1.name})이 ${m2.nickname}님의 유연하고 다각적인 임기응변(${gp2.name})을 통제하려는 구도가 될 수 있습니다. 한쪽은 엄격한 기준을 원하고 다른 한쪽은 자율성을 선호하여 미묘한 피로감이 생길 수 있습니다.`,
+      `${m1.nickname}님의 보수적인 리스크 관리(${gp1.name})가 ${m2.nickname}님의 창의적이고 자율적인 접근(${gp2.name})과 부딪힐 때, 불필요한 감정 소모가 발생할 우려가 있습니다.`,
+      `${m1.nickname}님의 체계적인 규정 중심 소통(${gp1.name})과 ${m2.nickname}님의 상황 적응형 소통(${gp2.name})의 차이를 인정하는 배려가 필요합니다.`
     ];
     const remedyOptions = [
-      `💎 흙과 물을 정화하고 정교하게 여과해 줄 맑은 바위인 쇠(금) 기운이 시급합니다. 세련되고 시크한 메탈릭 인테리어 공간에서 조율하거나, 애매한 구두 약속 대신 구체적인 숫자와 확실한 약속 문항을 텍스트로 깔끔하게 정리해 공지하는 것이 서로의 오해를 완벽하게 차단하는 비방입니다.`,
-      `💎 탁해지기 쉬운 토극수 대결 구도를 맑고 품격 있게 여과해 줄 쇠(금)의 세련됨이 해결방안입니다. 모던한 그레이나 메탈릭 톤의 시크한 미팅룸에서 대화하세요. 구두 조율보다는 기록으로 정돈해 투명한 체크리스트를 공유하면 갈등이 영리하게 예방됩니다.`,
-      `💎 흙의 구속과 물의 범람을 스마트하게 여과하는 단단한 원석(금) 기운을 보강해야 합니다. 메탈릭 조명이 돋보이는 모던하고 현대적인 카페에서 미팅을 추진하며, 상호 "오직 정확한 팩트와 수치만 얘기하자"는 합의점을 정해 대화해 보십시오. 효율이 최정상에 도달합니다.`
+      `💎 [금(金) 기운 통관 처방: 명확한 기준과 자율 영역의 분리] 흙(土)과 물(水)의 조화는 금(金), 즉 '명문화된 기준과 상호 신뢰'에서 옵니다. 마감일과 핵심 필수 기준만 명확히 합의하고 세부 실행 방식은 자율에 맡기는 '선(先) 기준 합의, 후(後) 자율 위임' 방식을 도입하세요.`,
+      `💎 [금(金) 기운 통관 처방: 텍스트 기반의 명확한 기록] 모호한 구두 약속보다는 핵심 합의 사항을 텍스트나 체크리스트로 정리해 공유하면 서로에 대한 불필요한 의구심이 완전히 해소됩니다.`,
+      `💎 [금(金) 기운 통관 처방: 객관적 데이터 중심 논의] 개인적 느낌이 아닌 객관적 지표와 데이터를 기준으로 진행 상황을 점검하세요.`
     ];
     sajuDesc = descOptions[variationIndex];
     sajuRemedy = remedyOptions[variationIndex];
   } else if (elem1 === elem2) {
-    sajuTitle = `🤝 비겁(比劫) 공명 - 같은 '${elem1}' 기운을 나누는 의리 콤비`;
+    sajuTitle = `🤝 비겁(比劫) 상조 - 동일한 '${elem1}' 기운이 만들어내는 깊은 공감과 의리`;
     const descOptions = [
-      `${m1.nickname}님과 ${m2.nickname}님은 동일한 '${elem1}'의 오행 원소(${gp1.name}와 ${gp2.name})를 지녀, 굳이 많은 설명을 늘어놓지 않아도 서로가 왜 그렇게 행동하고 판단하는지 직관적으로 깊게 이해하는 유대감과 의리를 지니고 있습니다.`,
-      `${m1.nickname}님과 ${m2.nickname}님은 한 우물에서 자라난 듯 완벽히 동일한 '${elem1}' 기운의 결(${gp1.name}와 ${gp2.name})을 공유합니다. 가치관과 삶의 원칙이 서로 거울을 보듯 완벽히 닮아, 어색함 없이 깊고 편안하게 속마음을 전수하는 아름다운 유대감을 가집니다.`,
-      `${m1.nickname}님과 ${m2.nickname}님은 서로 같은 '${elem1}' 오행의 파동(${gp1.name}와 ${gp2.name})을 고스란히 맞물리고 있습니다. 설명이 생략된 텔레파시 소통이 통할 정도로 서로의 성정과 버릇을 단번에 이해하는 최상의 의리 콤비입니다.`
+      `${m1.nickname}님과 ${m2.nickname}님은 동일한 '${elem1}'의 오행 원소(${gp1.name}와 ${gp2.name})를 지녀, 별도의 긴 설명 없이도 상대방의 생각과 행동 동기를 직관적으로 깊이 이해하는 강한 유대감을 공유합니다.`,
+      `${m1.nickname}님과 ${m2.nickname}님은 가치관과 삶의 우선순위가 거울처럼 닮아 있어 편안하고 진솔한 대화를 나누기에 최적의 조건입니다.`,
+      `${m1.nickname}님과 ${m2.nickname}님은 서로의 장단점을 본인 일처럼 잘 이해하는 막역한 동지적 관계를 형성합니다.`
     ];
     const remedyOptions = [
-      `📢 같은 기운이라 편안하지만 한편으론 자존심 대립 시 정면충돌할 수 있으니, 대화 전에 반드시 상대의 노고를 먼저 치하하는 "칭찬 선제권"을 발휘해 보십시오. 의리가 두 배로 증폭됩니다.`,
-      `📢 너무 똑같이 닮은 성향 탓에 한 번 의견 대립이 시작되면 누구 한 명도 지지 않으려는 미묘한 침묵 기싸움이 벌어질 수 있습니다. 평소에 "역시 너밖에 없다"며 상대의 능력을 아낌없이 추켜세워 주면 부작용 없이 동지애가 두 배로 무제한 커집니다.`,
-      `📢 똑같은 성정의 두 사람이라 좋으면서도 사소한 일에 마음을 걸어 삐치는 흐름까지 닮을 염려가 있습니다. 회의 전 "우리 둘의 닮은 꼴 시너지는 진짜 최고야"라고 기분 좋은 말로 분위기를 따스하게 살려보십시오. 시너지가 무한대로 솟구칩니다.`
+      `📢 [상호 존중 수칙: 자존심 대립 예방] 성향이 비슷한 만큼 한 번 의견 대립이 생기면 자존심 싸움으로 번질 수 있습니다. 논쟁이 시작될 조짐이 보이면 즉시 결론을 내리려 하지 말고 한 템포 쉬어가는 유연함이 필요합니다.`,
+      `📢 [상호 존중 수칙: 명확한 역할 분담] 같은 영역에서 경쟁하기보다는 각자의 장점을 살릴 수 있도록 역할을 분리하면 시너지가 배가됩니다.`,
+      `📢 [상호 존중 수칙: 상호 칭찬과 지지] "역시 당신의 판단이 정확했다"는 식의 지지적 피드백을 자주 나누면 평생의 든든한 아군이 됩니다.`
     ];
     sajuDesc = descOptions[variationIndex];
     sajuRemedy = remedyOptions[variationIndex];
@@ -166,30 +167,30 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
       const receiver = giver === m1.nickname ? m2.nickname : m1.nickname;
       const gElem = giver === m1.nickname ? elem1 : elem2;
       const rElem = giver === m1.nickname ? elem2 : elem1;
-      sajuTitle = `✨ 오행 상생(${elem1}생${elem2}) - 무한한 자양분의 순환 지대`;
+      sajuTitle = `✨ 오행 상생(${elem1}생${elem2}) - 자연스러운 에너지 순환과 상호 발전`;
       const descOptions = [
-        `${giver}님의 넘쳐나는 천연 자양분(${gElem} 기운)이 ${receiver}님의 원대한 꿈과 결실(${rElem} 기운)에 끊임없이 땔감이나 수분을 부어주는 환상적인 우주적 순환 배합입니다. 두 분이 대화할수록 사기가 솟구치고 서로의 잠재력이 최고조로 꽃을 피우게 됩니다.`,
-        `${giver}님의 따뜻하고 깊은 격려와 자양분(${gElem} 기운)이 ${receiver}님의 지칠 수 있는 기지(${rElem} 기운)에 끊임없이 신선한 자극과 에너지를 조달하는 최고의 조력입니다. 든든한 등대를 마주한 듯, 함께하는 대화가 늘 새로운 용기와 기운을 북돋아 줍니다.`,
-        `${giver}님이 말없이 건네는 든든한 신의와 후원(${gElem} 기운)을 발판 삼아 ${receiver}님이 넓고 눈부신 날개(${rElem} 기운)를 힘차게 펴는 형국입니다. 서로 완벽한 조타수와 엔진의 결합으로, 어떤 역경 속에서도 끝까지 서로를 밀어주는 완벽한 상생 조력 관계입니다.`
+        `${giver}님의 든든한 지원(${gElem} 기운)이 ${receiver}님의 비전과 결실(${rElem} 기운)을 자연스럽게 꽃피우게 돕는 상생의 흐름입니다. 함께 대화할수록 새로운 아이디어가 샘솟고 서로에게 큰 동기부여가 됩니다.`,
+        `${giver}님의 따뜻한 격려와 현실적 조력이 ${receiver}님의 잠재력을 이끌어내는 이상적인 조합입니다. 서로에게 든든한 조력자이자 멘토가 되어주는 관계입니다.`,
+        `서로의 강점이 상대방의 부족한 부분을 자연스럽게 보완해 주는 축복받은 상생 파트너십입니다.`
       ];
       const remedyOptions = [
-        `🚀 서로의 재능을 빛내는 공동의 역할을 분담해 보세요. "네 비전 덕분에 더 용기를 낼 수 있었어"라는 솔직하고 명확한 존중의 감사를 자주 발설하는 것이 이 상생 흐름을 평생의 든든한 궤도로 고정해 줍니다.`,
-        `🚀 이 든든한 에너지를 오랫동안 고정하기 위해 공동의 구체적 목표를 정해 소통해 보세요. 가벼운 성공이라도 함께 달성하며 "네가 곁에 있어서 정말 다행이야"라고 서로 고마움을 소리내 표현하는 것이 이 관계의 원동력이 됩니다.`,
-        `🚀 무결점에 가까운 축복받은 상생의 순환 관계입니다. 서로 "너의 아이디어와 나의 노하우가 엮이면 두려울 게 없다"는 확신의 응원을 일상에 버릇처럼 보태어 보세요. 상생의 에너지가 평생의 영원한 수호 기류로 굳어집니다.`
+        `🚀 [상생 유지 수칙: 감사의 명시적 표현] 받는 쪽에서는 상대방의 배려와 조력을 당연하게 여기지 않고, "당신의 도움 덕분에 해낼 수 있었다"는 구체적인 감사를 표현하는 것이 상생의 선순환을 영구히 유지하는 열쇠입니다.`,
+        `🚀 [상생 유지 수칙: 공동 목표 설정] 함께 달성할 수 있는 프로젝트나 취미를 공유하면 유대감이 더욱 깊어집니다.`,
+        `🚀 [상생 유지 수칙: 균형 있는 배려] 일방적인 헌신이 되지 않도록 서로 주고받는 배려의 균형을 꾸준히 점검하세요.`
       ];
       sajuDesc = descOptions[variationIndex];
       sajuRemedy = remedyOptions[variationIndex];
     } else {
-      sajuTitle = "🍀 오행의 온화한 흐름 - 유기적 수평 공존";
+      sajuTitle = "🍀 오행의 온화한 흐름 - 편안하고 자율적인 수평 공존";
       const descOptions = [
-        `${m1.nickname}님의 ${gp1.name}과 ${m2.nickname}님의 ${gp2.name}이 서로 자극이나 마찰 없이 물 흐르듯 잔잔하게 어우러지는 수평적이고 담백한 역학적 배치입니다. 가만히 있어도 내어주는 심리적 편안함과 든든한 동반자적 신뢰를 맛볼 수 있습니다.`,
-        `${m1.nickname}님의 부드러운 기류(${gp1.name})가 ${m2.nickname}님의 무던하고 따사로운 기운(${gp2.name})과 만나, 모나지 않고 수평적인 소통을 도모합니다. 서로 간섭을 최소화하는 고도의 존중심이 깔려 있어 오랜 동반자로 담백하게 지내기 좋은 소통 흐름입니다.`,
-        `${m1.nickname}님의 수호 파동(${gp1.name})과 ${m2.nickname}님의 편안한 성정(${gp2.name})이 결합해 무겁지도 가볍지도 않은 쾌적하고 맑은 소통 지대를 형성합니다. 마찰을 자초하는 격정 대신 가만히 곁에만 있어도 안락함과 고요함을 선사하는 평화로운 인연입니다.`
+        `${m1.nickname}님의 성향(${gp1.name})과 ${m2.nickname}님의 성향(${gp2.name})이 불필요한 마찰 없이 잔잔하고 담백하게 어우러지는 수평적 관계입니다. 서로에게 과도한 기대를 하지 않고 편안한 신뢰를 형성합니다.`,
+        `서로의 독립성과 사생활을 온전히 존중해 주는 담백한 인연입니다. 적당한 거리감을 유지하며 오래도록 안정적으로 지속되는 동반자적 관계입니다.`,
+        `갈등 요인이 적고 서로에게 편안한 심리적 안식처가 되어주는 무던하고 평화로운 궁합입니다.`
       ];
       const remedyOptions = [
-        `🍵 기분 좋은 힐링 가득한 소소한 티타임이나 일상의 가벼운 취미를 함께 공유하며 결속력을 더해 보세요. 잔잔하게 깔려 있는 우주의 온화한 행운이 두 분의 앞길을 안전하고 따스하게 지켜줍니다.`,
-        `🍵 소란스러운 번화가보다는 아늑하고 조용히 정원을 바라볼 수 있는 소박한 한옥 다도 공간이나 골목 맛집을 활용해 보세요. 담백하게 나눈 사소한 일상의 안부가 서로에게 가장 무거운 힐링의 처방전으로 기능합니다.`,
-        `🍵 서로 부담을 지우지 않는 최적의 수평적 관계입니다. 가끔 맛있는 과자나 간식을 서로 가볍게 챙겨주며 미소 띤 고마움을 전하는 것으로 충분히 좋습니다. 우주의 온화한 수호 흐름이 평화의 영구 궤도를 단단히 수립해 줍니다.`
+        `🍵 [관계 심화 수칙: 공통 관심사 확장] 잔잔한 흐름인 만큼 가끔 새로운 경험이나 취미 활동을 함께하며 대화의 폭을 넓히면 더욱 돈독해집니다.`,
+        `🍵 [관계 심화 수칙: 정기적인 안부 소통] 부담 없는 가벼운 대화와 일상 공유를 통해 친밀감을 꾸준히 이어가세요.`,
+        `🍵 [관계 심화 수칙: 상호 경계 존중] 지금처럼 서로의 시간과 공간을 존중해 주는 태도를 유지하는 것이 최상의 관계 유지법입니다.`
       ];
       sajuDesc = descOptions[variationIndex];
       sajuRemedy = remedyOptions[variationIndex];
@@ -208,49 +209,49 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
       if (!hasM1Mbti) unreg.push(m1.nickname);
       if (!hasM2Mbti) unreg.push(m2.nickname);
       return {
-        desc: `멤버(${unreg.join(", ")})님이 현대 심리 성향(MBTI)을 등록하지 않았으므로, 본 탭의 현대 성향심리 해독 부분은 활성화되지 않습니다. 프로필에서 MBTI를 등록하시면 두 분의 오행 충합과 1:1 성향 성정(T-F, J-P 대립과 완화 방안)이 이곳에 완전한 해독서로 자동 조립됩니다.`,
-        remedy: `💡 [MBTI 등록 시 활성화] 두 분 모두 성향 프로필(MBTI) 정보를 등록한 후 해독을 진행하시면, 행동과학 관점의 정교한 1:1 대화 조율 비법과 상생 수칙이 이 자리에 자동으로 완벽 수록됩니다.`
+        desc: `멤버(${unreg.join(", ")})님이 성향(MBTI) 정보를 등록하지 않아 기초 성향 비교만 제공됩니다. 프로필에서 MBTI를 등록하시면 인지 양식과 갈등 조율법이 상세히 분석됩니다.`,
+        remedy: `💡 [MBTI 등록 시 맞춤 분석 제공] 두 분 모두 성향 정보를 등록하시면 행동심리학 관점의 정교한 1:1 대화 조율 비법이 자동으로 연계됩니다.`
       };
     }
 
     if (code1.length !== 4 || code2.length !== 4) {
       return {
-        desc: "두 사람의 성향 프로필이 서로를 향해 자연스레 열려 있어 부드럽게 대화를 이어가기 좋은 구조입니다.",
-        remedy: "서로 다른 소통 템포를 인정하고 대화를 한 템포 부드럽게 이어가는 자세가 상생을 가속화합니다."
+        desc: "두 사람의 성향 프로필이 서로를 향해 열려 있어 부드럽게 대화를 이어가기 좋은 구조입니다.",
+        remedy: "서로 다른 소통 템포를 인정하고 경청하는 자세가 상생을 가속화합니다."
       };
     }
 
     if (code1[2] !== code2[2]) {
       return {
-        desc: `한쪽은 객관적 인과관계와 팩트 중심의 이성적 사고형(T)이고, 다른 한쪽은 관계적 화합과 감정적 가치 중심의 공감형(F)입니다. 소통할 때 한쪽은 '너무 차가워서 내 편을 안 들어준다'고 서운해하고, 한쪽은 '감정에 치우쳐 비합리적인 대화를 한다'고 답답해할 우려가 있습니다.`,
-        remedy: `💬 [MBTI T-F 완화] 사고형(T)은 상대방이 제안이나 속상함을 토로할 때 즉각적인 분석이나 충고보다는 "많이 수고했다", "그럴 만하다"는 정서적 공감을 선제적으로 보충하고, 감정형(F)은 사고형의 이성적 솔루션을 본인에 대한 비난이 아니라 오직 더 나은 결과를 향한 애정의 보완책으로 유연하게 넘겨받는 조율법이 효과적입니다.`
+        desc: `한쪽은 객관적 인과관계와 팩트 중심의 이성적 사고형(T)이고, 다른 한쪽은 관계적 화합과 정서적 가치를 중시하는 공감형(F)입니다. 소통할 때 한쪽은 냉철한 피드백에 서운함을 느끼고, 다른 한쪽은 문제 해결보다 감정에 치우친다고 답답해할 수 있습니다.`,
+        remedy: `💬 [MBTI 사고(T)-감정(F) 조율법] 사고형(T)은 해결책을 제시하기 전에 "정말 고생 많았다"는 정서적 공감을 한 문장 먼저 건네고, 감정형(F)은 사고형의 피드백을 감정적 비판이 아닌 '과정 개선을 위한 실무적 제안'으로 담백하게 받아들이는 상호 연습이 중요합니다.`
       };
     }
 
     if (code1[3] !== code2[3]) {
       return {
-        desc: `한쪽은 정교한 타임라인과 명확한 결론을 선호하는 체계적 판단형(J)이고, 다른 한쪽은 자율성과 임기응변, 새로운 대안의 자유로움을 사랑하는 유연한 인식형(P)입니다. 일을 전개하거나 일정을 정할 때 한쪽은 '불안정하고 무계획하다'고 우려하고, 다른 한쪽은 '지나치게 숨 막히게 숨 쉴 틈 없이 조인다'며 답답해할 수 있습니다.`,
-        remedy: `💬 [MBTI J-P 완화] 판단형(J)은 상대에게 1분 단위의 촘촘한 가이드라인을 요구하지 않고 큰 마감 기한과 목표만 설정해 주어 상대의 즉흥적 시너지를 보장하고, 인식형(P)은 계획이 중간에 변경되거나 딜레이가 우려되면 즉시 카톡이나 공지 등을 통해 투명하게 중간 진척 상황을 전달해 예측 가능성을 더해주어야 합니다.`
+        desc: `한쪽은 명확한 일정과 결론을 선호하는 체계적 판단형(J)이고, 다른 한쪽은 상황에 따른 자율성과 유연한 대안을 중시하는 인식형(P)입니다. 계획을 세우거나 실행할 때 일정의 엄격성과 융통성 사이에서 마찰이 생길 수 있습니다.`,
+        remedy: `💬 [MBTI 판단(J)-인식(P) 조율법] 판단형(J)은 세부 방식까지 통제하려 하지 말고 '최종 마감 기한과 핵심 목표'만 명확히 제시하고, 인식형(P)은 계획 변경이나 지연이 예상될 때 즉시 진행 상황을 투명하게 공유해 주는 소통 에티켓이 필요합니다.`
       };
     }
 
     if (code1[1] !== code2[1]) {
       return {
-        desc: `한쪽은 구체적인 데이터와 과거의 풍부한 실무 경험을 신뢰하는 현실 감각형(S)이고, 다른 한쪽은 거시적인 맥락과 보이지 않는 가능성, 아이디어를 중시하는 통찰 직관형(N)입니다. 의견을 논할 때 한쪽은 '숲만 보느라 눈앞의 디테일과 현실성이 떨어진다'고 하고, 한쪽은 '너무 현실에 갇혀 새 도전의 스케일을 막는다'며 마찰할 소지가 존재합니다.`,
-        remedy: `💬 [MBTI S-N 완화] 직관형(N)은 매력적인 아이디어를 선포할 때 반드시 구체적이고 바로 이행할 수 있는 '1차 실행안과 간단한 수치'를 보태어 말해주고, 감각형(S)은 상대의 영감에 대해 무조건 칼을 대기 전에 "비전의 스케일이 대단하네요!"라며 영감의 방향을 먼저 흔쾌히 승인해 주는 것이 좋습니다.`
+        desc: `한쪽은 구체적인 데이터와 과거의 실무 경험을 중시하는 감각형(S)이고, 다른 한쪽은 거시적인 맥락과 새로운 가능성을 중시하는 직관형(N)입니다. 논의 시 한쪽은 현실성이 부족하다고 느끼고, 다른 한쪽은 시야가 좁다고 답답해할 수 있습니다.`,
+        remedy: `💬 [MBTI 감각(S)-직관(N) 조율법] 직관형(N)은 아이디어를 제안할 때 '구체적인 1차 실행 방안과 예상 수치'를 덧붙여 설명하고, 감각형(S)은 상대방의 큰 그림과 비전을 먼저 긍정적으로 검토한 뒤 보완점을 논의하는 방식이 효과적입니다.`
       };
     }
 
     if (code1[0] !== code2[0]) {
       return {
-        desc: `한쪽은 외부와의 적극적인 반응 속에서 생기를 얻는 활발한 외향형(E)이고, 다른 한쪽은 자기 내면의 사색과 조용히 충전되는 독립적인 내향형(I)입니다. 함께 지낼 때 소극적으로 보이거나, 너무 에너지를 많이 뺏겨 탈진되는 피로감을 느낄 수 있습니다.`,
-        remedy: `💬 [MBTI E-I 완화] 외향형(E)은 상대가 말이 줄어들거나 독립적인 힐링의 태도를 취할 때 서운해하는 일 없이 '일시적 정돈 구간'임을 따뜻하게 보장해 주고, 내향형(I)은 한계가 오기 전에 "기운을 살짝만 충전한 뒤 다시 즐겁게 대화할게요!"라며 정중한 안내 템포를 지켜보세요.`
+        desc: `한쪽은 활발한 외부 교류를 통해 에너지를 얻는 외향형(E)이고, 다른 한쪽은 차분한 사색과 독립적 시간을 통해 충전하는 내향형(I)입니다. 대화의 빈도와 사교적 활동 범위에서 템포 차이를 느낄 수 있습니다.`,
+        remedy: `💬 [MBTI 외향(E)-내향(I) 조율법] 외향형(E)은 상대방이 조용히 생각을 정리할 시간과 공간을 배려해 주고, 내향형(I)은 에너지가 소진되었을 때 "잠시 정리 후 다시 이야기하자"고 미리 신호를 주는 배려가 원만한 관계를 유지해 줍니다.`
       };
     }
 
     return {
-      desc: `두 분은 주요 심리 소통 방식이 고도로 일치하여, 구태여 많은 조율이나 피로감 없이 서로의 마음과 감정 궤적을 단번에 이해하는 아름다운 공감 코드를 공유하고 있습니다.`,
-      remedy: `💬 [MBTI 동조화 수칙] 너무 닮은 탓에 가끔 예기치 않은 자존심 대립이 있을 때 정면충돌할 수 있으니, 평소 일상적인 유머 코드를 아낌없이 표출하고 애교 있는 리액션을 건네주어 편안함을 유지하세요.`
+      desc: `두 분은 핵심 심리 기능이 일치하여 상대방의 의도와 행동 패턴을 직관적으로 이해하는 뛰어난 공감대를 형성하고 있습니다.`,
+      remedy: `💬 [MBTI 동조화 수칙] 생각이 너무 비슷한 만큼 중요한 결정 시 놓치는 맹점이 없는지 제3자의 시각이나 객관적 데이터를 한 번 더 점검하는 습관이 도움이 됩니다.`
     };
   };
 
@@ -295,7 +296,7 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
   const zStar1 = getZStar(m1, 101);
   const zStar2 = getZStar(m2, 202);
 
-  const ziweiDesc = `🌌 명궁을 수호하는 주성 ${zStar1.name}(${zStar1.desc})과 ${zStar2.name}(${zStar2.desc})의 하늘 별자리 결합은 서로가 지닌 정신적 가치와 수완을 정중히 예우하라는 메세지를 품고 있습니다. 비합리적인 언쟁 대신 상대방의 독립성과 전문성을 깍듯이 인정해 주는 지적인 에티켓을 지킬 때, 이 성좌 조합은 일상뿐만 아니라 공동의 목표를 이룩해 주는 막강한 동료애(의리)로 급부상하게 됩니다.`;
+  const ziweiDesc = `🏛️ 자미두수 명궁의 주성인 ${zStar1.name}(${zStar1.desc})과 ${zStar2.name}(${zStar2.desc})의 조합은 서로의 전문성과 영역을 상호 존중할 때 가장 큰 결실을 맺는 구조입니다. 일방적인 간섭보다는 각자의 역할과 권한을 명확히 인정해 주는 수평적 에티켓을 지킬 때, 든든한 신뢰와 강력한 동료애가 형성됩니다.`;
 
   // 4. Western Zodiac analysis and its element pairing
   const zod1 = getWesternZodiac(m1.birth_date);
@@ -306,7 +307,7 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
     if (["황소자리", "처녀자리", "염소자리"].includes(sign)) return "흙(土) 원소";
     if (["쌍둥이자리", "천칭자리", "물병자리"].includes(sign)) return "공기(風) 원소";
     if (["게자리", "전갈자리", "물고기자리"].includes(sign)) return "물(水) 원소";
-    return "에테르 원소";
+    return "기타 원소";
   };
 
   const ze1 = getZodiacElement(zod1.name);
@@ -315,52 +316,52 @@ function generateCustomPrescription(m1: Member, m2: Member, score: number) {
   const getZodiacRelation = (e1: string, e2: string, s1: string, s2: string, vIdx: number) => {
     if (e1 === e2) {
       const descOptions = [
-        `서로 같은 황도 12궁의 '${e1}'를 공유하고 있습니다. ${s1}와 ${s2}의 동조 공명은 서로가 세상을 받아들이는 감성과 유머 코드가 완벽히 흡사함을 가리킵니다.`,
-        `우주 원소 기질상 같은 '${e1}'를 나란히 공유하는 쌍둥이 같은 구성입니다. ${s1}와 ${s2}가 자아내는 아름다운 정서적 일치도는 깊은 대화 없이도 소통의 정밀 템포가 한 번에 맞아떨어지게 만듭니다.`,
-        `황도대에서 동일한 원소 영역인 '${e1}'를 정중앙에서 맞물리고 있습니다. ${s1}와 ${s2}의 신비로운 텔레파시 결합은 생각과 일상적 생활관이 아주 똑 닮아 편안한 대화의 소울 메이트가 되기 좋은 조건을 자랑합니다.`
+        `동일한 '${e1}'를 공유하고 있어 세상을 바라보는 감성과 가치관의 결이 매우 흡사합니다. ${s1}와 ${s2}의 만남은 긴 설명 없이도 직관적인 공감대를 형성하기에 유리합니다.`,
+        `기질적으로 같은 '${e1}'를 지닌 구성으로, 정서적 반응과 일상적 생활관이 자연스럽게 맞아떨어집니다.`,
+        `동일한 원소 영역을 바탕으로 하여 깊은 대화 없이도 편안함을 느끼며, 서로에게 좋은 이해자가 되어줄 수 있습니다.`
       ];
       const remedyOptions = [
-        `🌌 [우주 별자리 처방] 서로 주파수가 같은 만큼 은은한 밤바다, 노을 뷰가 비치는 테라스나 모던하고 세련된 야간 분위기 속에서 대화해 보세요. 우주의 정서적 친밀도가 비약적으로 향상됩니다.`,
-        `🌌 [우주 별자리 처방] 닮은꼴의 시너지를 극대화하기 위해 레트로풍 감성이 가득한 은은한 엘피바나 무드 있는 가구 쇼룸, 미술관을 방문해 보십시오. 공유하는 감수성이 두 배로 따스하게 빛을 발합니다.`,
-        `🌌 [우주 별자리 처방] 가끔 너무 닮은 탓에 침묵이 무거워지면 밝은 조명의 경쾌한 브런치 카페나 활기찬 테마 공원을 찾아 대화의 에너지를 환기시키세요. 우주 지표의 힐링 지수가 최고조로 상승합니다.`
+        `⭐ [조화 가이드] 공감대가 높은 만큼 편안함이 자칫 매너리즘으로 흐르지 않도록, 새로운 취미나 대화 주제를 주기적으로 함께 시도해 보세요.`,
+        `⭐ [조화 가이드] 생각이 닮아 있는 장점을 살려 공동의 목표를 설정하고 협력하면 훨씬 빠르고 일관된 성과를 낼 수 있습니다.`,
+        `⭐ [조화 가이드] 편안한 분위기 속에서 서로의 생각과 감정을 진솔하게 나누는 정기적인 티타임이 관계를 더욱 풍요롭게 만듭니다.`
       ];
       return { desc: descOptions[vIdx], remedy: remedyOptions[vIdx] };
     }
     if ((e1 === "불(火) 원소" && e2 === "공기(風) 원소") || (e2 === "불(火) 원소" && e1 === "공기(風) 원소")) {
       const descOptions = [
-        `열정의 불꽃(${e1 === "불(火) 원소" ? s1 : s2})과 불꽃을 자유롭게 번지게 이끄는 바람(${e1 === "공기(風) 원소" ? s1 : s2})의 배합입니다. 대화할수록 아이디어가 꼬리를 물며 창조적 에너지를 터뜨립니다.`,
-        `타오르는 뜨거운 태양과 같은 열정(${e1 === "불(火) 원소" ? s1 : s2})과 신선하게 영감을 공급하는 바람(${e1 === "공기(風) 원소" ? s1 : s2})이 만났습니다. 머릿속의 어렴풋한 생각들이 서로의 화법을 타고 거대한 창조적 시너지 불빛으로 확산되는 명랑한 궁합입니다.`,
-        `서로 불과 바람처럼 영감의 촉매가 되어주는 별자리 궤도 배치입니다. ${s1}의 주도력과 ${s2}의 뛰어난 정보력이 시너지를 내어, 대화하고 나면 없던 추진력과 놀라운 실행 의욕이 가득 채워지는 축복받은 역동적 배치입니다.`
+        `열정적인 불 원소(${e1 === "불(火) 원소" ? s1 : s2})와 아이디어를 확산시키는 바람 원소(${e1 === "공기(風) 원소" ? s1 : s2})의 만남입니다. 대화를 나눌수록 생각과 실행의 영감이 빠르게 번져나갑니다.`,
+        `행동력(${e1 === "불(火) 원소" ? s1 : s2})과 기획·정보력(${e1 === "공기(風) 원소" ? s1 : s2})이 결합하여 창의적인 시너지를 발휘하는 역동적인 조합입니다.`,
+        `서로에게 영감과 추진력을 불어넣어 주는 조화로운 배치로, 새로운 프로젝트나 도전을 함께할 때 큰 힘을 발휘합니다.`
       ];
       const remedyOptions = [
-        `🌌 [우주 별자리 처방] 활기찬 아이디어 회동을 위해 넓은 통창이 있는 개방적인 대형 카페나 도심 야외 명소를 활용해 소통해 보십시오. 무한한 아이디어가 시너지로 불타오릅니다.`,
-        `🌌 [우주 별자리 처방] 활기찬 아이디어를 결실로 이끌기 위해 현대적이고 힙한 루프탑 바나 감각적인 야외 카페를 추천합니다. 확 트인 바람의 기운이 마음의 열정을 무한대로 해방시켜 줄 것입니다.`,
-        `🌌 [우주 별자리 처방] 서로 대화 텐션이 높을 때 가끔 사소한 의견차로 뜨거워질 수 있으니, 시원한 얼음 에이드 음료를 곁들이며 "네 생각이 참 기발하다!"는 산뜻한 감탄을 주기적으로 건네 보십시오.`
+        `⭐ [조화 가이드] 아이디어가 넘칠 때 이를 실행 가능한 구체적 계획으로 정리하는 마감 기준을 함께 세우면 이상적인 결실을 맺습니다.`,
+        `⭐ [조화 가이드] 의견 교환 시 서로의 기발한 발상을 적극적으로 칭찬하고 지지해 주는 태도가 시너지를 극대화합니다.`,
+        `⭐ [조화 가이드] 추진 속도가 붙을 때 사소한 이견이 생기더라도 차분하게 핵심 목표에 집중하여 조율해 나가세요.`
       ];
       return { desc: descOptions[vIdx], remedy: remedyOptions[vIdx] };
     }
     if ((e1 === "흙(土) 원소" && e2 === "물(水) 원소") || (e2 === "흙(土) 원소" && e1 === "물(水) 원소")) {
       const descOptions = [
-        `묵직하고 비옥한 대지(${e1 === "흙(土) 원소" ? s1 : s2})와 그 땅을 비옥하게 살려주는 단비(${e1 === "물(水) 원소" ? s1 : s2})의 만남입니다. 신뢰도가 최고 수준으로 정서적 깊이감이 대단히 깊습니다.`,
-        `단단하고 성실한 대지(${e1 === "흙(土) 원소" ? s1 : s2})에 생기를 부어 촉촉이 적셔주는 생명의 물(${e1 === "물(水) 원소" ? s1 : s2})의 행복한 배합입니다. 서로의 마음속 가장 외롭거나 어두운 자리를 말없이 가장 포근하게 위로해 주고 지켜주는 소울 메이트의 흐름입니다.`,
-        `별자리 원소 중 영양 가득한 흙과 투명한 샘물의 수려한 융합 관계입니다. ${s1}와 ${s2}의 교감은 어떤 화려한 리액션보다도 신뢰의 깊이가 최고이며, 서로에게 세상 그 누구보다 편안한 심리적 방파제이자 완벽한 대피소가 되어 줍니다.`
+        `안정적이고 묵직한 흙 원소(${e1 === "흙(土) 원소" ? s1 : s2})와 감수성이 풍부한 물 원소(${e1 === "물(水) 원소" ? s1 : s2})의 배합입니다. 신뢰의 깊이가 깊고 정서적 안정감이 뛰어납니다.`,
+        `성실함(${e1 === "흙(土) 원소" ? s1 : s2})과 따뜻한 포용력(${e1 === "물(水) 원소" ? s1 : s2})이 어우러져 서로에게 든든한 심리적 방파제이자 안식처가 되어주는 관계입니다.`,
+        `현실적 지지 기반과 정서적 공감이 조화를 이루어, 시간이 지날수록 서로에 대한 신뢰가 더욱 두터워지는 성숙한 조합입니다.`
       ];
       const remedyOptions = [
-        `🌌 [우주 별자리 처방] 조용히 속마음을 나눌 수 있는 따스하고 아늑한 자연 친화적 찻집이나 프라이빗 다도 공간에서 대화해 보세요. 서로에게 그 어떤 곳보다 훌륭한 평화의 심리적 대피소가 마련됩니다.`,
-        `🌌 [우주 별자리 처방] 한적하고 고즈넉한 사찰이나 조용히 흐르는 물소리를 감상할 수 있는 한적한 강변 카페에서 대화하세요. 깊숙한 속내가 거름망 없이 흘러나와 평생의 소중한 연을 두텁게 다질 수 있습니다.`,
-        `🌌 [우주 별자리 처방] 서로 깊은 안정감을 나누도록 은은한 허브티나 국산 차를 내리는 프라이빗한 차실이나 공원 산책길을 애용해 보세요. 정서적인 우주의 친밀 주파수가 완벽한 평온에 연착륙합니다.`
+        `⭐ [조화 가이드] 조용하고 차분한 공간에서 속마음을 터놓고 나누는 시간이 두 사람의 유대감을 한층 견고하게 만듭니다.`,
+        `⭐ [조화 가이드] 서로의 진심 어린 지지와 격려를 아끼지 않고 표현해 주는 것이 장기적인 신뢰의 바탕이 됩니다.`,
+        `⭐ [조화 가이드] 일상의 사소한 고민을 나누며 서로의 현실적 해결책과 감정적 위로를 자연스럽게 주고받으세요.`
       ];
       return { desc: descOptions[vIdx], remedy: remedyOptions[vIdx] };
     }
     const descOptions = [
-      `서로 사뭇 다른 궤도의 우주 원소(${e1}의 ${s1}와 ${e2}의 ${s2})가 새로운 가치 조율을 꾀하는 흥미진진한 교차 배치입니다. 다소의 관점 차이가 도리어 독특하고 신선한 대안과 참신한 피드백을 이끌어냅니다.`,
-      `황도 상 다른 축에 상주하는 우주 원소(${e1}의 ${s1}와 ${e2}의 ${s2})의 신선한 조우입니다. 처음에는 이해가 필요하지만, 마음을 열면 내가 미처 보지 못한 사각지대를 예리하고 현명하게 짚어주는 최고의 나침반이자 멋진 영감의 구원투수가 됩니다.`,
-      `우주의 서로 다른 행성 궤도를 회전하는 독창적인 원소의 결합(${e1}의 ${s1}와 ${e2}의 ${s2})입니다. 서로 지닌 일상 궤도가 달라 색다른 자극과 신선함을 선물해 주며, 평소의 좁은 시야를 획기적으로 넓혀주는 훌륭한 지적 파트너입니다.`
+      `서로 다른 기질의 원소(${e1}의 ${s1}와 ${e2}의 ${s2})가 만나 신선한 관점과 배움을 나누는 보완적 조합입니다.`,
+      `접근 방식이 달라 처음에는 조율이 필요하지만, 서로가 보지 못하는 사각지대를 보완해 주는 훌륭한 파트너가 될 수 있습니다.`,
+      `서로의 다른 시각이 새로운 영감과 균형 감각을 제공하며, 함께할 때 더 넓은 시야를 확보할 수 있습니다.`
     ];
     const remedyOptions = [
-      `🌌 [우주 별자리 처방] 대화 중 이질감이 들 때 다름을 지적하기보다 "우주의 공전 주기가 달라 신선한 자극이 되네요!"라며 상대의 독창적인 가치관을 포용력 있게 품어내는 넓은 도량을 보충해 보세요.`,
-      `🌌 [우주 별자리 처방] 서로의 신선함을 예우하기 위해 유행하는 힙한 이국적인 식당이나 인센스 향이 매력적인 모던 쇼룸에서 이색적인 미팅을 추천합니다. 색다름이 끈끈한 호감과 탐색욕으로 영리하게 치환됩니다.`,
-      `🌌 [우주 별자리 처방] 의견 차가 들 때 "너는 어떻게 그런 기발한 생각을 다 했니?"라며 넓은 우주의 신선함을 인정해 보십시오. 단점이 완벽한 퍼즐 조각으로 탈바꿈하여 공동의 힘을 창출해 냅니다.`
+      `⭐ [조화 가이드] 다름을 틀림으로 보지 않고 "서로 다른 관점이 균형을 잡아준다"는 인식을 바탕으로 유연하게 경청하세요.`,
+      `⭐ [조화 가이드] 중요한 결정을 내릴 때 각자의 강점을 살려 한쪽은 직관과 가능성을, 다른 한쪽은 현실성을 검토하는 역할 분담을 추천합니다.`,
+      `⭐ [조화 가이드] 상대방의 독창적인 시각을 존중하고 긍정적인 호기심으로 접근할 때 최고의 협력 관계가 완성됩니다.`
     ];
     return { desc: descOptions[vIdx], remedy: remedyOptions[vIdx] };
   };
@@ -537,7 +538,7 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
   } else {
     zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 33, 68, 85);
     zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 73, 68, 85);
-    zodiacDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${zodiacScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${zodiacScore2to1}점. 서로 사뭇 다른 우주 별자리 영역에 속해 있으나, 그렇기에 더욱 신선하고 평소 생각지 못한 각도에서 독창적인 아이디어와 신선한 관점을 제공해 줍니다.`;
+    zodiacDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${zodiacScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${zodiacScore2to1}점. 서로 다른 성좌 영역에 속해 있으나, 그렇기에 더욱 신선하고 평소 생각지 못한 각도에서 독창적인 아이디어와 새로운 관점을 제공해 줍니다.`;
   }
 
   let ziweiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 44, 70, 94);
@@ -599,7 +600,7 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
     mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 55, 75, 85);
     mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 85, 75, 85);
     const unreg = !isMbti1Ok ? m1.nickname : m2.nickname;
-    mbtiDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${mbtiScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${mbtiScore2to1}점. ${unreg}님이 현대 심리 성향(MBTI)을 등록하지 않았으므로, 오직 천문 사주와 우주 별자리 데이터를 근간 삼아 입체적 관계를 다듬어 나갑니다.`;
+    mbtiDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${mbtiScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${mbtiScore2to1}점. ${unreg}님이 성향 지표(MBTI)를 등록하지 않았으므로, 정통 사주와 성좌 데이터를 근간 삼아 입체적 관계를 다듬어 나갑니다.`;
   }
 
   const avgScore = Math.round((sajuScore1to2 + sajuScore2to1 + ziweiScore1to2 + ziweiScore2to1 + zodiacScore1to2 + zodiacScore2to1 + mbtiScore1to2 + mbtiScore2to1) / 8);
@@ -652,7 +653,7 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
     const labelOptions = [
       `${nick2}과 ${nick1}의 든든한 상생 기류`,
       `따뜻한 조력과 편안한 교감`,
-      `${z2.emoji}${z2.name}가 품어주는 우주적 연대`
+      `${z2.emoji}${z2.name}가 품어주는 상생 연대`
     ];
     finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
 
@@ -693,7 +694,7 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
   } else {
     const labelOptions = [
       `온화함 속에서 은은히 피어나는 신뢰`,
-      `담백하고 편안한 우주 메이트`,
+      `담백하고 편안한 상생 파트너`,
       `${z1.emoji}${z1.name}와 ${z2.emoji}${z2.name}의 온화한 화합`
     ];
     finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
@@ -738,11 +739,25 @@ interface GroupViewProps {
   code: string;
 }
 
+// Module-level global memory cache for GroupView to prevent recurring full-screen loading on tab switching
+const groupViewCache: Record<string, {
+  room: Room | null;
+  members: Member[];
+  rawAnalysisDoc: any;
+  hasLoadedOnce: boolean;
+}> = {};
+
 export default function GroupView({ code }: GroupViewProps) {
-  const [room, setRoom] = useState<Room | null>(null);
-  const [members, setMembers] = useState<Member[]>([]);
+  const [room, setRoom] = useState<Room | null>(() => {
+    return groupViewCache[code]?.room || null;
+  });
+  const [members, setMembers] = useState<Member[]>(() => {
+    return groupViewCache[code]?.members || [];
+  });
   const [analysis, setAnalysis] = useState<CachedAnalysisResult | null>(null);
-  const [pageLoading, setPageLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(() => {
+    return !groupViewCache[code]?.hasLoadedOnce;
+  });
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
   const [shareStatus, setShareStatus] = useState("");
@@ -754,7 +769,51 @@ export default function GroupView({ code }: GroupViewProps) {
   const [isPdfUnlocked, setIsPdfUnlocked] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [shopInitialTab, setShopInitialTab] = useState<"pdf" | "secret" | "group">("group");
-  const [rawAnalysisDoc, setRawAnalysisDoc] = useState<any>(null);
+  const [rawAnalysisDoc, setRawAnalysisDoc] = useState<any>(() => {
+    return groupViewCache[code]?.rawAnalysisDoc || null;
+  });
+  const [capturedImgUrl, setCapturedImgUrl] = useState<string | null>(null);
+  const [showLongPressGuide, setShowLongPressGuide] = useState(false);
+
+  // Inline Coupon State
+  const [inlineCoupon, setInlineCoupon] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMsg, setCouponMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const handleApplyCoupon = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!inlineCoupon.trim()) {
+      setCouponMsg({ type: "error", text: "쿠폰 번호를 입력해 주세요." });
+      return;
+    }
+
+    const membership = getUserMembershipInfo(auth.currentUser);
+    if (!membership.canUseCoupon) {
+      setCouponMsg({
+        type: "error",
+        text: "🚫 쿠폰 등록은 Google 정회원 전용 기능입니다. 아래 해금창을 통해 로그인 혹은 계정을 연동해 주세요."
+      });
+      setIsShopOpen(true);
+      return;
+    }
+
+    setCouponLoading(true);
+    setCouponMsg(null);
+    try {
+      const res = await redeemCoupon(inlineCoupon.trim());
+      if (res.success) {
+        setCouponMsg({ type: "success", text: "🎉 쿠폰이 성공적으로 적용되어 전체 분석이 해금되었습니다!" });
+        setInlineCoupon("");
+        await syncUnlockStates();
+      } else {
+        setCouponMsg({ type: "error", text: res.message || "유효하지 않거나 이미 사용된 쿠폰입니다." });
+      }
+    } catch (err: any) {
+      setCouponMsg({ type: "error", text: "쿠폰 적용 중 오류가 발생했습니다." });
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const isSchemaValid = React.useMemo(() => {
     if (!rawAnalysisDoc || !rawAnalysisDoc.personal || !rawAnalysisDoc.group || !rawAnalysisDoc.pairs) return false;
@@ -950,7 +1009,10 @@ export default function GroupView({ code }: GroupViewProps) {
     let unsubscribeAnalysis: (() => void) | null = null;
 
     const startDataFetch = async () => {
-      setPageLoading(true);
+      const isFirstLoad = !groupViewCache[code]?.hasLoadedOnce;
+      if (isFirstLoad) {
+        setPageLoading(true);
+      }
       setError("");
       try {
         // 1. Fetch Room Info
@@ -988,6 +1050,19 @@ export default function GroupView({ code }: GroupViewProps) {
         setMembers(mList);
         console.log("Members loaded:", mList);
 
+        // Update in cache
+        if (!groupViewCache[code]) {
+          groupViewCache[code] = {
+            room: rData,
+            members: mList,
+            rawAnalysisDoc: groupViewCache[code]?.rawAnalysisDoc || null,
+            hasLoadedOnce: false,
+          };
+        } else {
+          groupViewCache[code].room = rData;
+          groupViewCache[code].members = mList;
+        }
+
         // 3. Listen to real-time analysis doc
         const analysisRef = doc(db, "rooms", code, "analysis", "result");
         unsubscribeAnalysis = onSnapshot(analysisRef, async (analysisSnap) => {
@@ -995,6 +1070,18 @@ export default function GroupView({ code }: GroupViewProps) {
             if (analysisSnap.exists()) {
               const docData = analysisSnap.data();
               setRawAnalysisDoc(docData);
+
+              if (!groupViewCache[code]) {
+                groupViewCache[code] = {
+                  room: rData,
+                  members: mList,
+                  rawAnalysisDoc: docData,
+                  hasLoadedOnce: true,
+                };
+              } else {
+                groupViewCache[code].rawAnalysisDoc = docData;
+                groupViewCache[code].hasLoadedOnce = true;
+              }
 
               // Check if another client is currently processing
               if (docData.status === "processing") {
@@ -1019,6 +1106,9 @@ export default function GroupView({ code }: GroupViewProps) {
               }
             } else {
               setRawAnalysisDoc(null);
+              if (groupViewCache[code]) {
+                groupViewCache[code].rawAnalysisDoc = null;
+              }
             }
             // Turn off initial page loading once we get snapshot
             setPageLoading(false);
@@ -1066,6 +1156,13 @@ export default function GroupView({ code }: GroupViewProps) {
     if (!captureRef.current) return;
     setShareStatus("캡처화면 준비 중...");
 
+    logAnalyticsEvent({
+      eventName: "result_capture_click",
+      category: "viral",
+      metadata: { memberCount: members.length, roomTitle: room?.title },
+      roomCode: code
+    });
+
     try {
       // Create high-contrast canvas capture
       const canvas = await html2canvas(captureRef.current, {
@@ -1073,20 +1170,75 @@ export default function GroupView({ code }: GroupViewProps) {
         backgroundColor: "#FAF7F2",
         useCORS: true,
         logging: false,
+        onclone: (clonedDoc, clonedElement) => {
+          // 1. Copy all dynamic style tags from original head to cloned head
+          try {
+            const originalStyles = document.querySelectorAll("style");
+            originalStyles.forEach((styleTag) => {
+              clonedDoc.head.appendChild(styleTag.cloneNode(true));
+            });
+          } catch (e) {
+            console.warn("Failed to clone style tags in GroupView:", e);
+          }
+
+          // 2. Explicitly serialize rules from linked stylesheets safely
+          let compiledCss = "";
+          try {
+            for (let i = 0; i < document.styleSheets.length; i++) {
+              try {
+                const sheet = document.styleSheets[i];
+                const rules = sheet.cssRules || sheet.rules;
+                if (rules) {
+                  for (let j = 0; j < rules.length; j++) {
+                    compiledCss += rules[j].cssText + "\n";
+                  }
+                }
+              } catch (sheetErr) {
+                // Ignore SecurityError
+              }
+            }
+          } catch (e) {
+            console.warn("Failed to extract stylesheet rules in GroupView:", e);
+          }
+
+          if (compiledCss) {
+            try {
+              const styleTag = clonedDoc.createElement("style");
+              styleTag.innerHTML = compiledCss;
+              clonedDoc.head.appendChild(styleTag);
+
+              const innerStyleTag = clonedDoc.createElement("style");
+              innerStyleTag.innerHTML = compiledCss;
+              clonedElement.appendChild(innerStyleTag);
+            } catch (e) {
+              console.warn("Failed to inject style blocks in GroupView:", e);
+            }
+          }
+        }
       });
 
       // Convert canvas to blob
       canvas.toBlob(async (blob) => {
         if (!blob) {
-          setError("캡처 이미지 생성에 난처함이 벌어졌습니다.");
+          setError("캡처 이미지 생성에 실패했습니다.");
           setShareStatus("");
           return;
         }
 
+        const dataUrl = canvas.toDataURL("image/png");
+        setCapturedImgUrl(dataUrl);
+
         const file = new File([blob], `saju_chemistry_${code}.png`, { type: "image/png" });
+        const isInstagramOrKakao = /instagram|kakaotalk/i.test(navigator.userAgent);
 
         // Mobile Native Share Check
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        if (
+          !isInstagramOrKakao &&
+          navigator.share && 
+          navigator.canShare && 
+          navigator.canShare({ files: [file] }) &&
+          /mobile|android|iphone|ipad/i.test(navigator.userAgent)
+        ) {
           try {
             await navigator.share({
               files: [file],
@@ -1095,12 +1247,25 @@ export default function GroupView({ code }: GroupViewProps) {
             });
             setShareStatus("인연 공유완료!");
           } catch (shareErr) {
-            console.log("Navigator share failed, fallback downloads:", shareErr);
-            triggerDownload(canvas);
+            console.log("Navigator share failed, fallback to long-press guide", shareErr);
+            setShowLongPressGuide(true);
+            setShareStatus("");
           }
         } else {
-          // Desktop Fallback: Download file directly
-          triggerDownload(canvas);
+          if (!/mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+            // Desktop: Download file directly
+            const link = document.createElement("a");
+            link.href = dataUrl;
+            link.download = `saju_group_chemistry_${code}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            setShareStatus("결과 이미지 저장됨!");
+          } else {
+            // Mobile / Kakao / Instagram in-app browser: Show long press guide
+            setShowLongPressGuide(true);
+            setShareStatus("");
+          }
         }
       }, "image/png");
 
@@ -1110,17 +1275,6 @@ export default function GroupView({ code }: GroupViewProps) {
     } finally {
       setTimeout(() => setShareStatus(""), 2000);
     }
-  };
-
-  const triggerDownload = (canvas: HTMLCanvasElement) => {
-    const dataUrl = canvas.toDataURL("image/png");
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = `saju_group_chemistry_${code}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    setShareStatus("결과 이미지 저장됨!");
   };
 
   if (pageLoading || analyzing) {
@@ -1149,7 +1303,7 @@ export default function GroupView({ code }: GroupViewProps) {
               className="flex items-center justify-center space-x-1.5 py-3.5 bg-[#C0392B] text-white rounded-xl font-serif font-bold text-xs tracking-wider cursor-pointer shadow-lg shadow-[#C0392B]/15 hover:bg-[#A93226]"
             >
               <RefreshCw className="w-4 h-4 text-white" />
-              <span>우주의 천기 다시 연결해 보기</span>
+              <span>궁합 분석 다시 시도하기</span>
             </button>
             <a
               href={`#/room/${code}`}
@@ -1218,7 +1372,7 @@ export default function GroupView({ code }: GroupViewProps) {
         <div className="flex items-center justify-between">
           <a
             href={`#/room/${code}`}
-            className="inline-flex items-center text-xs font-medium text-[#8C7B6E] hover:text-[#C0392B] transition"
+            className="inline-flex items-center text-xs font-medium text-[#5C5046] hover:text-[#C0392B] transition"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1" />
             모임방 메인 대기실로 돌아가기
@@ -1234,7 +1388,7 @@ export default function GroupView({ code }: GroupViewProps) {
             disabled={analyzing}
             className={`inline-flex items-center text-xs font-semibold transition px-3 py-1.5 rounded-xl border cursor-pointer ${
               isWithin24HoursLimit
-                ? "bg-[#FCFAF5] border-[#E6DFD3] text-[#8C7B6E]/80 cursor-not-allowed"
+                ? "bg-[#FCFAF5] border-[#E6DFD3] text-[#5C5046]/80 cursor-not-allowed"
                 : "text-[#C0392B] hover:text-[#A93226] bg-white border-[#D6CCBC] shadow-2xs hover:shadow-xs active:scale-95"
             }`}
           >
@@ -1253,7 +1407,7 @@ export default function GroupView({ code }: GroupViewProps) {
               <p className="text-[11px] text-[#5A4D41] leading-relaxed font-medium">
                 모임방의 멤버 목록에 변동(입퇴장 또는 사주 수정)이 감지되었습니다. 단, 과도한 서버 부하 방지 및 정밀 풀이 품질 보장을 위해 <strong>종합 인연 궁합서는 24시간에 단 1회만 분석</strong>할 수 있습니다. 다음 재분석 가능 시간까지는 기존 멤버 기준의 마지막 감정서가 안전하게 보존되어 노출됩니다.
               </p>
-              <div className="text-[10px] text-[#8C7B6E] font-medium flex items-center space-x-1">
+              <div className="text-[10px] text-[#5C5046] font-medium flex items-center space-x-1">
                 <span>⏱ 재해석 가능 시간까지:</span>
                 <span className="text-[#C0392B] font-serif font-bold bg-white px-1.5 py-0.5 rounded border border-[#E6DFD3] shadow-3xs">{timeLeftText}</span>
                 <span>남음</span>
@@ -1269,7 +1423,7 @@ export default function GroupView({ code }: GroupViewProps) {
             </div>
             <div className="space-y-3 max-w-sm mx-auto">
               <h4 className="font-serif text-base font-bold text-[#2C3E50]">궁합 해독 결과 대기 중</h4>
-              <p className="text-xs text-[#8C7B6E] leading-relaxed">
+              <p className="text-xs text-[#5C5046] leading-relaxed">
                 현재 모임방 전체 멤버들의 천기를 융합한 종합 인연 궁합서가 아직 발급되지 않았습니다. 아래 버튼을 클릭하여 궁합을 실시간 해독해 보세요!
               </p>
               <button
@@ -1287,67 +1441,163 @@ export default function GroupView({ code }: GroupViewProps) {
         ) : (
           <>
             {/* --- SHARING CAPTURE TARGET START --- */}
-            <div id="capture-target" ref={captureRef} className="p-5 bg-[#FAF7F2] border border-[#D6CCBC] rounded-[24px] space-y-5 shadow-sm">
+            <div id="capture-target" ref={captureRef} className="space-y-6">
               
-              {/* Group Header Title */}
-              <div className="text-center space-y-1.5 pt-1">
-                <span className="text-[9px] bg-[#C0392B] text-white px-2.5 py-0.5 rounded-full font-bold uppercase tracking-[0.2em] font-sans">
-                  인연명당
-                </span>
-                <h3 className="font-serif text-lg font-bold text-[#2C3E50] tracking-tight">
-                  {room.title}
+              {/* =========================================================================
+                  STAGE 1 (FREE): FRONT GROUP SOUL CARD (규격 380px, #FFFFFF, radius 28px)
+                 ========================================================================= */}
+              <div
+                className="w-full bg-[#FFFFFF] rounded-[28px] p-6 sm:p-7 shadow-[0_15px_40px_-15px_rgba(192,57,43,0.12)] border border-[#EFE9DF] text-left select-none"
+                style={{ fontFamily: '"Pretendard", system-ui, sans-serif' }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[11px] font-mono tracking-[0.14em] text-[#5C5046]">
+                    GROUP · {members.length}인 결속
+                  </span>
+                  <span className="text-[11px] font-bold tracking-[0.08em] text-[#C0392B] bg-[#FDEDEC] px-2.5 py-1 rounded-full">
+                    相生 SYNERGY
+                  </span>
+                </div>
+
+                {/* Circular Geometric Emblem */}
+                <div className="w-[108px] h-[108px] mx-auto mb-4 rounded-full bg-[#FDEDEC] flex items-center justify-center border border-[#F5D5D3]/60">
+                  <svg viewBox="0 0 48 48" fill="none" stroke="#C0392B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[64px] h-[64px]">
+                    <circle cx="24" cy="24" r="16" />
+                    <circle cx="24" cy="14" r="6" />
+                    <circle cx="15" cy="29" r="6" />
+                    <circle cx="33" cy="29" r="6" />
+                    <line x1="24" y1="14" x2="15" y2="29" opacity="0.4" />
+                    <line x1="24" y1="14" x2="33" y2="29" opacity="0.4" />
+                    <line x1="15" y1="29" x2="33" y2="29" opacity="0.4" />
+                  </svg>
+                </div>
+
+                <h3 className="text-center text-[24px] font-[800] tracking-[-0.02em] leading-[1.25] text-[#2C3E50] mb-2">
+                  모임 케미는 <span className="text-[#C0392B]">{analysis.group.overall_score}점</span>
                 </h3>
-                <p className="text-[10px] text-[#8C7B6E] font-medium tracking-tight">
-                  천문 조율 일자 : {analysis.created_at ? new Date(analysis.created_at).toLocaleDateString("ko-KR", { year: 'numeric', month: 'long', day: 'numeric' }) : "실시간 도출"}
+
+                <p className="text-center text-[14px] font-[500] leading-[1.5] text-[#5A4D41] max-w-[320px] mx-auto mb-5">
+                  "{analysis.group.title} · {analysis.group.atmosphere}"
                 </p>
+
+                <div className="flex flex-wrap gap-1.5 justify-center mb-6">
+                  <span className="text-[12px] font-[600] text-[#C0392B] bg-[#FDEDEC] px-3.5 py-1 rounded-full">
+                    오행 상생 순환
+                  </span>
+                  <span className="text-[12px] font-[600] text-[#C0392B] bg-[#FDEDEC] px-3.5 py-1 rounded-full">
+                    {members.length}인 결속
+                  </span>
+                  <span className="text-[12px] font-[600] text-[#C0392B] bg-[#FDEDEC] px-3.5 py-1 rounded-full">
+                    시너지 증폭
+                  </span>
+                </div>
+
+                {/* 4줄 스탯 바 */}
+                <div className="space-y-2.5 pt-2 border-t border-[#F5EFE6]">
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-[12px] font-[700] text-[#2C3E50] w-[48px] shrink-0 text-left">다양성</span>
+                    <div className="h-[7px] bg-[#F5EFE6] rounded-full overflow-hidden flex-1">
+                      <div className="h-full rounded-full bg-[#35B37E]" style={{ width: `${Math.min(98, (new Set(members.map(m => m.saju?.daymaster?.element))).size * 22)}%` }} />
+                    </div>
+                    <span className="text-[12px] font-[700] font-mono text-right text-[#5C5046] w-[30px] shrink-0">{Math.min(98, (new Set(members.map(m => m.saju?.daymaster?.element))).size * 22)}</span>
+                  </div>
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-[12px] font-[700] text-[#2C3E50] w-[48px] shrink-0 text-left">순환력</span>
+                    <div className="h-[7px] bg-[#F5EFE6] rounded-full overflow-hidden flex-1">
+                      <div className="h-full rounded-full bg-[#C0392B]" style={{ width: `${analysis.group.overall_score}%` }} />
+                    </div>
+                    <span className="text-[12px] font-[700] font-mono text-right text-[#5C5046] w-[30px] shrink-0">{analysis.group.overall_score}</span>
+                  </div>
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-[12px] font-[700] text-[#2C3E50] w-[48px] shrink-0 text-left">안정감</span>
+                    <div className="h-[7px] bg-[#F5EFE6] rounded-full overflow-hidden flex-1">
+                      <div className="h-full rounded-full bg-[#E0A82E]" style={{ width: "88%" }} />
+                    </div>
+                    <span className="text-[12px] font-[700] font-mono text-right text-[#5C5046] w-[30px] shrink-0">88</span>
+                  </div>
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-[12px] font-[700] text-[#2C3E50] w-[48px] shrink-0 text-left">소통력</span>
+                    <div className="h-[7px] bg-[#F5EFE6] rounded-full overflow-hidden flex-1">
+                      <div className="h-full rounded-full bg-[#3B5BFF]" style={{ width: "92%" }} />
+                    </div>
+                    <span className="text-[12px] font-[700] font-mono text-right text-[#5C5046] w-[30px] shrink-0">92</span>
+                  </div>
+                </div>
               </div>
 
-          {/* Group Compatibility Rating Card */}
-          <div className="bg-white border border-[#D6CCBC] p-5 rounded-2xl text-left space-y-4 relative shadow-xs">
-            <span className="text-[10px] text-[#8C7B6E] font-bold uppercase tracking-[0.15em] block text-center">우리 모임 종합 인연 지수</span>
-            
-            <div className="flex justify-center items-center space-x-4">
-              <div className={`w-20 h-20 rounded-full flex flex-col justify-center items-center text-white shrink-0 shadow-md ${getScoreBg(analysis.group.overall_score)}`}>
-                <span className="text-[9px] font-serif font-bold leading-none mb-0.5 uppercase">인연도</span>
-                <span className="text-2xl font-bold font-sans leading-none">{analysis.group.overall_score}</span>
+              {/* Free Section 1: 전체 기운 요강 & 화합 극대화 비책 */}
+              <div className="bg-white border border-[#EFE9DF] p-5 sm:p-6 rounded-2xl text-left space-y-4 shadow-xs">
+                <div className="flex items-center justify-between border-b border-[#F5EFE6] pb-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span className="text-xs font-bold text-[#2C3E50]">1단계: 기본 요강 & 화합 비책</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    무료 공개
+                  </span>
+                </div>
+
+                <div className="text-left text-xs text-[#5A4D41] leading-relaxed font-semibold">
+                  <span className="font-bold block text-[#2C3E50] mb-1 font-serif">☯ 전체 기운 요강 :</span>
+                  {analysis.group.description}
+                </div>
+
+                <div className="p-4 bg-[#FAF8F5]/80 border border-[#EFE9DF] rounded-xl text-left text-[11px] text-[#5C5046] leading-relaxed">
+                  <span className="font-bold text-[#C0392B] block mb-1 font-serif">💡 화합 극대화 비책 (시너지 팁) :</span>
+                  {analysis.group.synergy_tips}
+                </div>
               </div>
-              <div className="text-left py-1">
-                <span className="font-serif font-bold text-sm text-[#C0392B] block">
-                  🎨 {analysis.group.title}
-                </span>
-                <span className="text-[10px] text-[#8C7B6E] font-bold block mt-1">
-                  분위기 : {analysis.group.atmosphere}
-                </span>
-              </div>
-            </div>
 
-            <div className="pt-3 border-t border-[#E8E0D0] text-left text-xs text-[#5A4D41] leading-relaxed font-semibold">
-              <span className="font-bold block text-[#2C3E50] mb-1 font-serif">☯ 전체 기운 요강 :</span>
-              {analysis.group.description}
-            </div>
+              {/* Free Section 2: SVG Circular Network Graph */}
+              <GroupNetwork members={members} pairs={analysis.pairs} isPremium={isGroupUnlocked} />
 
-            <div className="p-4 bg-[#FAF8F5]/80 border border-[#D6CCBC] rounded-xl text-left text-[11px] text-[#8C7B6E] leading-relaxed">
-              <span className="font-bold text-[#C0392B] block mb-1 font-serif">💡 화합 극대화 비책 (시너지 팁) :</span>
-              {analysis.group.synergy_tips}
-            </div>
-          </div>
+              {/* =========================================================================
+                  STAGE 2 (PREMIUM / COUPON): 심층 비밀 역학 및 전수 1:1 케미 해금
+                 ========================================================================= */}
+              <div id="secret-dynamics-panel" className="bg-white border border-[#EFE9DF] p-5 sm:p-6 rounded-2xl text-left space-y-4 shadow-xs relative overflow-hidden">
+                <div className="flex items-center justify-between border-b border-[#E8E0D0] pb-2.5">
+                  <div className="flex items-center space-x-1.5">
+                    <Crown className="w-4 h-4 text-amber-600 fill-amber-300" />
+                    <h4 className="font-serif text-xs font-bold text-[#2C3E50] tracking-tight">
+                      2단계: 심층 비밀 인연 등급 & 속마음 상성 궤적도
+                    </h4>
+                  </div>
+                  <span className="text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    {isSecretUnlocked ? "👑 전수 해금 완료" : "🔒 쿠폰/프리미엄 열람"}
+                  </span>
+                </div>
 
-          {/* SVG Circular Network Graph */}
-          <GroupNetwork members={members} pairs={analysis.pairs} isPremium={isGroupUnlocked} />
-
-          {/* NEW PREMIUM FEATURE: 모임 구성원 비밀 인연 등급 & 속마음 상성 해독권 Dashboard */}
-          <div id="secret-dynamics-panel" className="bg-white border border-[#D6CCBC] p-5 rounded-2xl text-left space-y-4 shadow-xs relative overflow-hidden">
-            <div className="flex items-center justify-between border-b border-[#E8E0D0] pb-2.5">
-              <div className="flex items-center space-x-1.5">
-                <span className="text-base">🔓</span>
-                <h4 className="font-serif text-xs font-bold text-[#2C3E50] tracking-tight">
-                  👥 비밀 인연 등급 & 속마음 상성 지도 (은밀한 내면 역학 해독)
-                </h4>
-              </div>
-              <span className="text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-                {isSecretUnlocked ? "👑 PREMIUM UNLOCKED" : "🔒 PREMIUM GATED"}
-              </span>
-            </div>
+                {/* Inline Coupon Input Bar */}
+                {!isSecretUnlocked && (
+                  <div className="p-4 bg-gradient-to-r from-amber-50/90 to-orange-50/90 border border-amber-200 rounded-xl space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <Ticket className="w-4 h-4 text-amber-700" />
+                      <span className="text-xs font-bold text-amber-900">쿠폰 번호로 즉시 무료 해금하기</span>
+                    </div>
+                    <form onSubmit={handleApplyCoupon} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={inlineCoupon}
+                        onChange={(e) => setInlineCoupon(e.target.value)}
+                        placeholder="쿠폰 코드 입력 (예: INYEON2026, SECRET2026)"
+                        maxLength={20}
+                        className="flex-1 px-3 py-2 text-xs bg-white border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono uppercase"
+                      />
+                      <button
+                        type="submit"
+                        disabled={couponLoading}
+                        className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-xs font-bold transition disabled:opacity-50 cursor-pointer shrink-0"
+                      >
+                        {couponLoading ? "확인 중..." : "쿠폰 적용"}
+                      </button>
+                    </form>
+                    {couponMsg && (
+                      <p className={`text-[11px] font-medium ${couponMsg.type === "success" ? "text-emerald-700" : "text-rose-700"}`}>
+                        {couponMsg.text}
+                      </p>
+                    )}
+                  </div>
+                )}
 
             <div className={!isSecretUnlocked ? "filter blur-[3.5px] opacity-35 select-none pointer-events-none space-y-4" : "space-y-4"}>
               {/* S-등급 천생연분 짝꿍 추천 */}
@@ -1370,7 +1620,7 @@ export default function GroupView({ code }: GroupViewProps) {
                             <div key={idx} className="flex items-center justify-between p-3 bg-amber-50/50 border border-amber-200 rounded-xl">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-semibold">{m1.character_emoji} {m1.nickname}</span>
-                                <span className="text-[#8C7B6E] font-sans">↔</span>
+                                <span className="text-[#5C5046] font-sans">↔</span>
                                 <span className="text-sm font-semibold">{m2.character_emoji} {m2.nickname}</span>
                               </div>
                               <span className="text-xs font-black text-amber-700 bg-white border border-amber-200 px-2 py-0.5 rounded-lg">
@@ -1430,7 +1680,7 @@ export default function GroupView({ code }: GroupViewProps) {
                           <span className="truncate text-[#5A4D41] font-semibold">{m1.nickname} × {m2.nickname}</span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[10px] text-[#8C7B6E] font-mono">{p.score}점</span>
+                          <span className="text-[10px] text-[#5C5046] font-mono">{p.score}점</span>
                           <span className={`text-[10px] font-black w-6 h-6 rounded-full border flex items-center justify-center font-serif leading-none ${gradeColor}`}>
                             {grade}
                           </span>
@@ -1455,7 +1705,7 @@ export default function GroupView({ code }: GroupViewProps) {
                       🛡️ 성향 충돌 방지 맞춤형 비밀 완충 수칙 ({m1.nickname} × {m2.nickname} 밀착 처방)
                     </span>
                     <p className="text-[10px] text-[#5A4D41] leading-relaxed font-semibold">
-                      두 분은 우주적 천간 기류상 생각이 직접 부딪힐 수 있는 오행 대립 구간을 안고 있습니다. 
+                      두 분은 천간(天干) 및 지지(地支) 기류상 생각이 직접 부딪힐 수 있는 오행 상극 구간을 안고 있습니다. 
                       의견 조율 시 단답형 톡방 소통을 지양하고 부드럽고 예의 깊은 '음료 대화법'이나 칭찬 선행 대화를 가치있게 활용해 보세요. 
                       상대의 다른 기운을 나를 보완해주는 윤활유처럼 소중히 여김이 최상의 비밀 완충 전략입니다.
                     </p>
@@ -1475,7 +1725,7 @@ export default function GroupView({ code }: GroupViewProps) {
                     <h5 className="font-serif text-xs font-bold text-[#2C3E50]">
                       🔑 모임 구성원 비밀 인연 등급 & 속마음 상성 해독권
                     </h5>
-                    <p className="text-[10px] text-[#8C7B6E] leading-relaxed font-semibold">
+                    <p className="text-[10px] text-[#5C5046] leading-relaxed font-semibold">
                       모임 전체 멤버들의 은밀한 내면 서열 등급(S, A, B, C, D, F)과 궤적도, 그리고 성향 충돌을 완벽하게 예방하는 비밀 완충 수칙 대시보드가 즉시 영구 개방됩니다!
                     </p>
                   </div>
@@ -1498,7 +1748,7 @@ export default function GroupView({ code }: GroupViewProps) {
 
         {/* Share Action bar in Hanji style */}
         <div className="bg-white/60 backdrop-blur-xs border border-[#D6CCBC] p-5 rounded-2xl flex flex-col items-center justify-center space-y-3.5 shadow-xs text-center">
-          <p className="text-[11px] text-[#8C7B6E] font-medium leading-relaxed font-sans">
+          <p className="text-[11px] text-[#5C5046] font-medium leading-relaxed font-sans">
             명당인망도 캡처화면을 단톡방이나 지인분들께 손쉽게 보여줄 수 있습니다.
           </p>
           <button
@@ -1520,17 +1770,17 @@ export default function GroupView({ code }: GroupViewProps) {
                 {isGroupUnlocked ? `👑 멤버 간 1:1 개별 인연 케미 (전수 ${sortedPairs.length}쌍 해금됨)` : "멤버 간 1:1 개별 인연 케미 (핵심 3쌍)"}
               </h4>
             </div>
-            <p className="text-[10px] text-[#8C7B6E] font-medium leading-relaxed">
+            <p className="text-[10px] text-[#5C5046] font-medium leading-relaxed">
               {isGroupUnlocked 
                 ? `👑 프리미엄 회원 등급 혜택으로 모임 내 전체 ${sortedPairs.length}쌍의 사주/자미/MBTI 융합 궁합 해설서가 무제한 개방되었습니다.`
-                : `전체 ${sortedPairs.length}쌍 중, 우주의 흐름 상 가장 기운이 강하게 얽힌 최고 궁합 2쌍과 서로 조심과 양보가 필요한 1쌍을 엄선했습니다. (개별 멤버 정보방에서는 본인의 모든 인연 궁합을 확인할 수 있습니다.)`
+                : `전체 ${sortedPairs.length}쌍 중, 오행 상생 조화가 가장 뛰어난 대표 궁합 2쌍과 서로 조심과 양보가 필요한 1쌍을 엄선했습니다. (개별 멤버 정보방에서는 본인의 모든 인연 궁합을 확인할 수 있습니다.)`
               }
             </p>
           </div>
 
           <div id="pairs-list" className="space-y-4">
             {sortedPairs.length === 0 && (
-              <div className="text-center py-8 text-sm text-[#8C7B6E] font-medium border border-dashed border-[#D6CCBC] rounded-xl">
+              <div className="text-center py-8 text-sm text-[#5C5046] font-medium border border-dashed border-[#D6CCBC] rounded-xl">
                 분석된 인연 케미 데이터가 없습니다. (데이터 오류 가능성)
                 <button
                   onClick={() => triggerAIAnalysis(members, room.title)}
@@ -1585,7 +1835,7 @@ export default function GroupView({ code }: GroupViewProps) {
                         {m1.character_emoji}
                       </span>
                       <span className="truncate">{m1.nickname}</span>
-                      <span className="text-[#8C7B6E] font-sans font-normal shrink-0">x</span>
+                      <span className="text-[#5C5046] font-sans font-normal shrink-0">x</span>
                       <span className="p-1 rounded-full bg-[#FAF7F2] border border-[#E8E0D0] text-sm leading-none shrink-0">
                         {m2.character_emoji}
                       </span>
@@ -1712,13 +1962,20 @@ export default function GroupView({ code }: GroupViewProps) {
                                   {pair.mbti.description}
                                 </p>
                               ) : (
-                                <div className="relative pt-0.5">
+                                <div 
+                                  onClick={() => {
+                                    setShopInitialTab("secret");
+                                    setIsShopOpen(true);
+                                  }}
+                                  className="relative pt-0.5 cursor-pointer group"
+                                  title="클릭하여 쿠폰 번호로 무료 해금하기"
+                                >
                                   <p className="text-[10px] text-[#5A4D41]/30 leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/20 font-medium blur-[2.5px] select-none pointer-events-none">
                                     현대 MBTI 가치관 결합 및 커뮤니케이션 성향 호환도 해독, 갈등 발생 원인과 해결 수칙 분석 결과입니다.
                                   </p>
-                                  <div className="absolute inset-0 flex items-center justify-center bg-white/10">
-                                    <span className="text-[9px] font-black text-amber-800 bg-white border border-amber-200 px-1.5 py-0.5 rounded shadow-3xs">
-                                      🔒 프리미엄 상세 해설
+                                  <div className="absolute inset-0 flex items-center justify-center bg-white/10 group-hover:bg-white/20 transition-all">
+                                    <span className="text-[9px] font-black text-amber-800 bg-white border border-amber-300 group-hover:border-[#C0392B] group-hover:text-[#C0392B] px-2 py-0.5 rounded shadow-3xs transition-all">
+                                      🎫 쿠폰으로 즉시 해금
                                     </span>
                                   </div>
                                 </div>
@@ -1728,11 +1985,11 @@ export default function GroupView({ code }: GroupViewProps) {
                             <>
                               <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1">
                                 <span className="font-bold text-[11px] text-[#2C3E50]">🧠 MBTI 성향 궁합 분석</span>
-                                <span className="text-[9px] text-[#8C7B6E] bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                                <span className="text-[9px] text-[#5C5046] bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
                                   미등록
                                 </span>
                               </div>
-                              <p className="text-[10px] text-[#8C7B6E] leading-relaxed pl-1.5 border-l border-gray-300 font-medium italic">
+                              <p className="text-[10px] text-[#5C5046] leading-relaxed pl-1.5 border-l border-gray-300 font-medium italic">
                                 {!isMbtiRegistered(m1) && !isMbtiRegistered(m2)
                                   ? `두 멤버(${m1?.nickname}, ${m2?.nickname}) 모두 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없습니다.`
                                   : !isMbtiRegistered(m1)
@@ -1762,13 +2019,26 @@ export default function GroupView({ code }: GroupViewProps) {
                               {pair.zodiac.description}
                             </p>
                           ) : (
-                            <div className="relative pt-0.5">
+                            <div 
+                              onClick={() => {
+                                logAnalyticsEvent({
+                                  eventName: "click_locked_feature",
+                                  category: "conversion",
+                                  metadata: { feature: "secret_zodiac", pair: `${m1.nickname}-${m2.nickname}` },
+                                  roomCode: code
+                                });
+                                setShopInitialTab("secret");
+                                setIsShopOpen(true);
+                              }}
+                              className="relative pt-0.5 cursor-pointer group"
+                              title="클릭하여 쿠폰 번호로 무료 해금하기"
+                            >
                               <p className="text-[10px] text-[#5A4D41]/30 leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/20 font-medium blur-[2.5px] select-none pointer-events-none">
                                 황도 12궁 점성술 하우스 결합도를 분석하여, 두 사람이 이상적으로 공유하는 일상 및 감성 가치관 호환도 해설입니다.
                               </p>
-                              <div className="absolute inset-0 flex items-center justify-center bg-white/10">
-                                <span className="text-[9px] font-black text-amber-800 bg-white border border-amber-200 px-1.5 py-0.5 rounded shadow-3xs">
-                                  🔒 프리미엄 상세 해설
+                              <div className="absolute inset-0 flex items-center justify-center bg-white/10 group-hover:bg-white/20 transition-all">
+                                <span className="text-[9px] font-black text-amber-800 bg-white border border-amber-300 group-hover:border-[#C0392B] group-hover:text-[#C0392B] px-2 py-0.5 rounded shadow-3xs transition-all">
+                                  🎫 1회 확인권으로 즉시 해금
                                 </span>
                               </div>
                             </div>
@@ -1819,7 +2089,7 @@ export default function GroupView({ code }: GroupViewProps) {
                 </h4>
               </div>
               <span className="text-[9px] bg-amber-50 text-amber-800 font-extrabold border border-amber-200 px-1.5 py-0.5 rounded">
-                인연상점
+                쿠폰 전용 해금
               </span>
             </div>
 
@@ -1827,6 +2097,12 @@ export default function GroupView({ code }: GroupViewProps) {
               {/* Product 1: PDF */}
               <div 
                 onClick={() => {
+                  logAnalyticsEvent({
+                    eventName: "open_shop_modal",
+                    category: "conversion",
+                    metadata: { target: "pdf", source: "group_dashboard_card" },
+                    roomCode: code
+                  });
                   setShopInitialTab("pdf");
                   setIsShopOpen(true);
                 }}
@@ -1844,7 +2120,7 @@ export default function GroupView({ code }: GroupViewProps) {
                   {isPdfUnlocked ? (
                     <span className="text-[9px] font-bold text-emerald-600">🔓 해금 완료</span>
                   ) : (
-                    <span className="text-[9px] font-bold text-[#C0392B] hover:underline">🔒 미해금 (1,900원)</span>
+                    <span className="text-[9px] font-bold text-[#C0392B] hover:underline">🎫 쿠폰으로 해금하기</span>
                   )}
                 </div>
               </div>
@@ -1852,6 +2128,12 @@ export default function GroupView({ code }: GroupViewProps) {
               {/* Product 2: Secret Harmony */}
               <div 
                 onClick={() => {
+                  logAnalyticsEvent({
+                    eventName: "open_shop_modal",
+                    category: "conversion",
+                    metadata: { target: "secret", source: "group_dashboard_card" },
+                    roomCode: code
+                  });
                   setShopInitialTab("secret");
                   setIsShopOpen(true);
                 }}
@@ -1869,7 +2151,7 @@ export default function GroupView({ code }: GroupViewProps) {
                   {isSecretUnlocked ? (
                     <span className="text-[9px] font-bold text-emerald-600">🔓 해금 완료</span>
                   ) : (
-                    <span className="text-[9px] font-bold text-[#C0392B] hover:underline">🔒 미해금 (2,900원)</span>
+                    <span className="text-[9px] font-bold text-[#C0392B] hover:underline">🎫 쿠폰으로 해금하기</span>
                   )}
                 </div>
               </div>
@@ -1877,6 +2159,12 @@ export default function GroupView({ code }: GroupViewProps) {
               {/* Product 3: Group Analysis */}
               <div 
                 onClick={() => {
+                  logAnalyticsEvent({
+                    eventName: "open_shop_modal",
+                    category: "conversion",
+                    metadata: { target: "group", source: "group_dashboard_card" },
+                    roomCode: code
+                  });
                   setShopInitialTab("group");
                   setIsShopOpen(true);
                 }}
@@ -1894,7 +2182,7 @@ export default function GroupView({ code }: GroupViewProps) {
                   {isGroupUnlocked ? (
                     <span className="text-[9px] font-bold text-emerald-600">🔓 해금 완료</span>
                   ) : (
-                    <span className="text-[9px] font-bold text-[#C0392B] hover:underline">🔒 미해금 ({members.length <= 10 ? "4,900" : members.length <= 20 ? "6,900" : members.length <= 30 ? "9,900" : "14,900"}원)</span>
+                    <span className="text-[9px] font-bold text-[#C0392B] hover:underline">🎫 쿠폰으로 해금하기</span>
                   )}
                 </div>
               </div>
@@ -1905,7 +2193,7 @@ export default function GroupView({ code }: GroupViewProps) {
               className="w-full py-3 bg-[#C0392B] text-white hover:bg-[#A93226] text-xs font-serif font-black tracking-widest rounded-xl transition duration-150 cursor-pointer shadow-md text-center flex items-center justify-center gap-2"
             >
               <Crown className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
-              <span>전체 해금 상태 관리 및 프리미엄 상점 열기</span>
+              <span>🎫 1회 확인권 & 친구 초대 보상 센터 열기</span>
             </button>
           </div>
         </div>
@@ -1930,11 +2218,56 @@ export default function GroupView({ code }: GroupViewProps) {
       {isShopOpen && (
         <PremiumPaywall 
           isModal
+          roomCode={code}
           initialTab={shopInitialTab}
           onClose={() => setIsShopOpen(false)}
           onStatusChange={syncUnlockStates}
           memberCount={members.length}
         />
+      )}
+
+      {/* Kakaotalk/In-App Browser Long Press Image Sharing Overlay */}
+      {showLongPressGuide && capturedImgUrl && (
+        <div className="fixed inset-0 z-[1100] bg-[#1E293B]/80 backdrop-blur-md flex flex-col items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-[360px] w-full text-center shadow-2xl border border-[#EFE9DF] space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-bold text-[#C0392B] flex items-center gap-1.5">
+                💬 카톡 이미지 공유 도우미
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowLongPressGuide(false)}
+                className="text-slate-400 hover:text-slate-600 text-xs font-semibold cursor-pointer"
+              >
+                닫기
+              </button>
+            </div>
+            
+            <p className="text-xs text-[#5C5046] leading-relaxed">
+              카카오톡 및 인앱 브라우저 보안 제약으로 이미지를 직접 전송할 수 없습니다. 
+              <strong> 아래 이미지를 길게 누르시면(롱탭)</strong> 바로 <strong>[카카오톡 전달]</strong> 또는 <strong>[이미지 저장]</strong> 하실 수 있습니다!
+            </p>
+
+            <div className="bg-[#FAF8F5] p-2 rounded-2xl border border-[#EFE9DF] flex items-center justify-center">
+              <img
+                src={capturedImgUrl}
+                alt="Captured Saju chemistry chart"
+                referrerPolicy="no-referrer"
+                className="max-h-[320px] rounded-xl shadow-md border border-[#EFE9DF] object-contain cursor-pointer active:scale-95 transition"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowLongPressGuide(false)}
+                className="w-full py-2.5 rounded-full bg-[#C0392B] hover:bg-[#A93226] text-white text-xs font-bold shadow-sm transition"
+              >
+                닫고 돌아가기
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </Layout>
   );

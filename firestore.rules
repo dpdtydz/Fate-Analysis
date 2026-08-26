@@ -10,8 +10,8 @@ service cloud.firestore {
     match /rooms/{code} {
       // Anyone can read a room with its code
       allow read: if true;
-      // Listing rooms is allowed for authenticated users
-      allow list: if request.auth != null;
+      // Listing rooms is allowed only for administrators
+      allow list: if isAdmin();
       // Creating a room requires an authenticated session
       allow create: if request.auth != null;
       // Updating or deleting a room requires the owner or admin
@@ -64,18 +64,50 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // App Config (Shop Toggle & Global Settings)
+    match /app_config/{configId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Analytics Events (User Traffic & Interaction Logs)
+    match /analytics_events/{eventId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // User Single-Use Tickets & Referral Rewards
+    match /user_tickets/{userId} {
+      allow read: if true;
+      allow write: if isAdmin() || 
+                   (request.auth != null && request.auth.uid == userId) || 
+                   userId.startsWith("guest_") ||
+                   (resource == null) ||
+                   (
+                     request.resource.data.tickets.pdf >= resource.data.tickets.pdf &&
+                     request.resource.data.tickets.secret >= resource.data.tickets.secret &&
+                     request.resource.data.tickets.group >= resource.data.tickets.group &&
+                     request.resource.data.tickets.all >= resource.data.tickets.all
+                   );
+    }
+
     // Product Matching Coupons
     match /coupons/{code} {
-      // Anyone can read/validate a coupon if they know its code (supports iOS/Safari privacy blocks)
+      // Anyone can read/validate a coupon if they know its code
       allow get: if true;
       // Only admin can list, create or delete coupons
       allow list, create, delete: if isAdmin();
-      // Anyone can update the usedCount to register coupon usage, under strict conditions
+      // Users can redeem coupon (atomic update of usedCount & usedUsers) under strict quota constraints
       allow update: if isAdmin() || (
         request.resource.data.usedCount == resource.data.usedCount + 1 &&
-        resource.data.usedCount < resource.data.maxUses &&
+        request.resource.data.usedCount < resource.data.maxUses &&
         request.resource.data.productType == resource.data.productType &&
-        request.resource.data.maxUses == resource.data.maxUses
+        request.resource.data.maxUses == resource.data.maxUses &&
+        request.resource.data.isActive == resource.data.isActive &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        request.resource.data.createdBy == resource.data.createdBy &&
+        (!('campaignSource' in resource.data) || request.resource.data.campaignSource == resource.data.campaignSource) &&
+        (!('description' in resource.data) || request.resource.data.description == resource.data.description)
       );
     }
   }
