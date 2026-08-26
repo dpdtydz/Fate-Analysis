@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>인주 도장 12지신 — 샘플 3종</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;600&family=Noto+Sans+KR:wght@400;500;600&display=swap" />
+<style>
+  :root {
+    --paper: #FCFCFA; --surface: #FFFFFF; --sunken: #F4F4F1; --line: #E7E7E2;
+    --ink: #1C1D21; --ink-soft: #55565E; --ink-faint: #8E8F98;
+    --seal: #B3382C;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: "Noto Sans KR", sans-serif; word-break: keep-all;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 40px 20px 64px; }
+  h1 { font-family: "Hahmlet", serif; font-weight: 600; font-size: 24px; margin: 0 0 8px; }
+  .sub { font-size: 14px; color: var(--ink-soft); line-height: 1.7; margin: 0 0 32px; }
+  h2 { font-family: "Hahmlet", serif; font-weight: 600; font-size: 17px; margin: 44px 0 14px; }
+  .row { display: flex; flex-wrap: wrap; gap: 16px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px; flex: 1 1 180px; text-align: center;
+  }
+  .card svg { width: 100%; max-width: 180px; height: auto; display: block; margin: 0 auto; }
+  .card .name { font-family: "Hahmlet", serif; font-weight: 600; font-size: 15px; margin-top: 14px; }
+  .card .meta { font-size: 12px; color: var(--ink-faint); margin-top: 3px; }
+  .minirow { display: flex; align-items: flex-end; gap: 20px; }
+  .minirow figure { margin: 0; text-align: center; }
+  .minirow figcaption { font-size: 12px; color: var(--ink-faint); margin-top: 6px; }
+  .note { font-size: 13px; color: var(--ink-soft); line-height: 1.7; background: var(--sunken); border-radius: 12px; padding: 14px 16px; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>인주 도장 12지신 · 샘플 3종</h1>
+  <p class="sub">소울 카드의 동물을 전각(篆刻) 도장으로 새긴 시안입니다. 게이트웨이의 낙관과 한 몸이 되는 그림으로,
+  기본은 백문(白文, 붉은 인면에 새김) 스타일입니다.</p>
+
+  <div class="row">
+
+    <!-- ================= 호랑이 寅 ================= -->
+    <div class="card">
+      <svg viewBox="0 0 200 200" role="img" aria-label="호랑이 도장">
+        <g id="stamp-tiger">
+          <rect x="14" y="14" width="172" height="172" rx="16" fill="#B3382C"/>
+          <!-- 인주 눌림 자국 -->
+          <circle cx="14" cy="64" r="3" fill="#FCFCFA"/>
+          <circle cx="186" cy="130" r="2.6" fill="#FCFCFA"/>
+          <circle cx="96" cy="14" r="2.4" fill="#FCFCFA"/>
+          <circle cx="150" cy="186" r="2.8" fill="#FCFCFA"/>
+          <circle cx="60" cy="182" r="1.6" fill="#FCFCFA" opacity=".8"/>
+          <circle cx="178" cy="42" r="1.8" fill="#FCFCFA" opacity=".8"/>
+          <!-- 새김 테두리 -->
+          <rect x="26" y="26" width="148" height="148" rx="9" fill="none" stroke="#FCFCFA" stroke-width="3" opacity=".92"/>
+          <g stroke="#FCFCFA" fill="none" stroke-linecap="round">
+            <!-- 귀 -->
+            <path d="M62 74 A 21 21 0 0 1 90 58" stroke-width="8"/>
+            <path d="M110 58 A 21 21 0 0 1 138 74" stroke-width="8"/>
+            <!-- 얼굴 -->
+            <circle cx="100" cy="104" r="46" stroke-width="8"/>
+            <!-- 이마 王 -->
+            <path d="M88 74 H 112 M88 83 H 112 M88 92 H 112 M100 74 V 92" stroke-width="5"/>
+            <!-- 눈 -->
+            <path d="M76 108 l 14 -5 M124 108 l -14 -5" stroke-width="6.5"/>
+            <!-- 입 -->
+            <path d="M100 130 v 7" stroke-width="4.5"/>
+            <path d="M100 137 q -7 7 -15 3 M100 137 q 7 7 15 3" stroke-width="4.5"/>
+            <!-- 수염 -->
+            <path d="M58 122 h -14 M60 131 l -15 4 M140 131 l 15 4 M142 122 h 14" stroke-width="3.4"/>
+            <!-- 뺨 줄무늬 -->
+            <path d="M60 92 l 12 4 M140 92 l -12 4" stroke-width="4"/>
+          </g>
+          <!-- 코 -->
+          <path d="M93 121 h 14 l -7 9 z" fill="#FCFCFA"/>
+          <!-- 지지 글자 -->
+          <text x="44" y="164" font-family="Hahmlet, serif" font-size="19" font-weight="600" fill="#FCFCFA">寅</text>
+        </g>
+      </svg>
+      <div class="name">범 · 寅</div>
+      <div class="meta">오행 木 — 곧게 뻗은 목의 범</div>
+    </div>
+
+    <!-- ================= 토끼 卯 ================= -->
+    <div class="card">
+      <svg viewBox="0 0 200 200" role="img" aria-label="토끼 도장">
+        <g id="stamp-rabbit">
+          <rect x="14" y="14" width="172" height="172" rx="16" fill="#B3382C"/>
+          <circle cx="186" cy="76" r="3" fill="#FCFCFA"/>
+          <circle cx="14" cy="140" r="2.6" fill="#FCFCFA"/>
+          <circle cx="120" cy="186" r="2.4" fill="#FCFCFA"/>
+          <circle cx="70" cy="14" r="2.6" fill="#FCFCFA"/>
+          <circle cx="180" cy="170" r="1.7" fill="#FCFCFA" opacity=".8"/>
+          <rect x="26" y="26" width="148" height="148" rx="9" fill="none" stroke="#FCFCFA" stroke-width="3" opacity=".92"/>
+          <g stroke="#FCFCFA" fill="none" stroke-linecap="round">
+            <!-- 귀 (앞귀는 잎 모양, 뒷귀는 한 획) -->
+            <path d="M112 82 C 104 62 106 44 116 34" stroke-width="7"/>
+            <path d="M124 80 C 124 60 120 46 116 34" stroke-width="7"/>
+            <path d="M132 78 C 138 60 142 48 150 42" stroke-width="6.5"/>
+            <!-- 머리 -->
+            <circle cx="120" cy="100" r="20" stroke-width="7.5"/>
+            <!-- 몸 -->
+            <circle cx="84" cy="130" r="30" stroke-width="8"/>
+            <!-- 꼬리 -->
+            <circle cx="48" cy="140" r="7" stroke-width="5.5"/>
+            <!-- 코 · 수염 -->
+            <path d="M138 101 l 8 3" stroke-width="4.5"/>
+            <path d="M136 108 l 16 2 M134 112 l 13 6" stroke-width="3"/>
+            <!-- 앞발 -->
+            <path d="M102 146 l -3 14 M112 148 l 0 12" stroke-width="5"/>
+            <!-- 바닥 -->
+            <path d="M52 164 h 96" stroke-width="3" opacity=".55"/>
+          </g>
+          <!-- 눈 -->
+          <circle cx="126" cy="96" r="3.6" fill="#FCFCFA"/>
+          <text x="44" y="64" font-family="Hahmlet, serif" font-size="19" font-weight="600" fill="#FCFCFA">卯</text>
+        </g>
+      </svg>
+      <div class="name">토끼 · 卯</div>
+      <div class="meta">오행 木 — 여린 새순의 토끼</div>
+    </div>
+
+    <!-- ================= 용 辰 ================= -->
+    <div class="card">
+      <svg viewBox="0 0 200 200" role="img" aria-label="용 도장">
+        <g id="stamp-dragon">
+          <rect x="14" y="14" width="172" height="172" rx="16" fill="#B3382C"/>
+          <circle cx="14" cy="96" r="3" fill="#FCFCFA"/>
+          <circle cx="186" cy="58" r="2.4" fill="#FCFCFA"/>
+          <circle cx="88" cy="186" r="2.8" fill="#FCFCFA"/>
+          <circle cx="132" cy="14" r="2.2" fill="#FCFCFA"/>
+          <circle cx="20" cy="30" r="1.7" fill="#FCFCFA" opacity=".8"/>
+          <rect x="26" y="26" width="148" height="148" rx="9" fill="none" stroke="#FCFCFA" stroke-width="3" opacity=".92"/>
+          <g stroke="#FCFCFA" fill="none" stroke-linecap="round">
+            <!-- 서린 몸통 — 원형 -->
+            <path d="M 66 94 A 40 40 0 1 0 80 76" stroke-width="11"/>
+            <!-- 꼬리 — 고리 안쪽으로 말림 -->
+            <path d="M66 94 C 74 98 80 106 78 116" stroke-width="4.5"/>
+            <!-- 목 → 머리 -->
+            <path d="M80 76 C 77 68 80 62 87 58" stroke-width="8"/>
+            <!-- 주둥이 윗턱 -->
+            <path d="M92 55 C 82 49 71 45 60 46" stroke-width="5.5"/>
+            <!-- 아래턱 (벌린 입) -->
+            <path d="M90 66 C 81 66 73 64 65 60" stroke-width="5"/>
+            <!-- 송곳니 -->
+            <path d="M73 50 l 2 8" stroke-width="3.4"/>
+            <!-- 뿔 -->
+            <path d="M96 50 C 102 40 112 34 124 34" stroke-width="5"/>
+            <path d="M108 40 C 108 32 114 26 122 24" stroke-width="4"/>
+            <!-- 수염 -->
+            <path d="M60 46 C 50 48 44 54 42 62" stroke-width="3"/>
+            <!-- 등 갈기 가시 -->
+            <path d="M121 81 l 8 -10 M139 104 l 11 -3 M136 131 l 10 5" stroke-width="3.6"/>
+            <!-- 발톱 -->
+            <path d="M95 152 l -5 9 M100 154 l 0 10 M105 152 l 5 9" stroke-width="3.6"/>
+          </g>
+          <!-- 눈 -->
+          <circle cx="95" cy="49" r="5" fill="#FCFCFA"/>
+          <circle cx="95" cy="49" r="2" fill="#B3382C"/>
+          <text x="148" y="168" font-family="Hahmlet, serif" font-size="19" font-weight="600" fill="#FCFCFA">辰</text>
+        </g>
+      </svg>
+      <div class="name">용 · 辰</div>
+      <div class="meta">오행 土 — 너른 품의 용</div>
+    </div>
+  </div>
+
+  <h2>새김 방식 비교 — 백문 vs 주문</h2>
+  <div class="row">
+    <div class="card">
+      <svg viewBox="0 0 200 200"><use href="#stamp-tiger"/></svg>
+      <div class="name">백문(白文)</div>
+      <div class="meta">붉은 인면에 파냄 — 기본안</div>
+    </div>
+    <div class="card">
+      <svg viewBox="0 0 200 200" role="img" aria-label="호랑이 주문 도장">
+        <!-- 주문: 종이 바탕에 붉은 획 -->
+        <rect x="14" y="14" width="172" height="172" rx="16" fill="none" stroke="#B3382C" stroke-width="7"/>
+        <g stroke="#B3382C" fill="none" stroke-linecap="round">
+          <path d="M62 74 A 21 21 0 0 1 90 58" stroke-width="8"/>
+          <path d="M110 58 A 21 21 0 0 1 138 74" stroke-width="8"/>
+          <circle cx="100" cy="104" r="46" stroke-width="8"/>
+          <path d="M88 74 H 112 M88 83 H 112 M88 92 H 112 M100 74 V 92" stroke-width="5"/>
+          <path d="M76 108 l 14 -5 M124 108 l -14 -5" stroke-width="6.5"/>
+          <path d="M100 130 v 7" stroke-width="4.5"/>
+          <path d="M100 137 q -7 7 -15 3 M100 137 q 7 7 15 3" stroke-width="4.5"/>
+          <path d="M58 122 h -14 M60 131 l -15 4 M140 131 l 15 4 M142 122 h 14" stroke-width="3.4"/>
+          <path d="M60 92 l 12 4 M140 92 l -12 4" stroke-width="4"/>
+        </g>
+        <path d="M93 121 h 14 l -7 9 z" fill="#B3382C"/>
+        <text x="44" y="164" font-family="Hahmlet, serif" font-size="19" font-weight="600" fill="#B3382C">寅</text>
+      </svg>
+      <div class="name">주문(朱文)</div>
+      <div class="meta">종이에 붉은 획 — 밝은 카드용 대안</div>
+    </div>
+  </div>
+
+  <h2>작게 찍혔을 때 — 소울 카드·목록용</h2>
+  <div class="minirow">
+    <figure><svg viewBox="0 0 200 200" width="96" height="96"><use href="#stamp-tiger"/></svg><figcaption>96px</figcaption></figure>
+    <figure><svg viewBox="0 0 200 200" width="64" height="64"><use href="#stamp-rabbit"/></svg><figcaption>64px</figcaption></figure>
+    <figure><svg viewBox="0 0 200 200" width="40" height="40"><use href="#stamp-dragon"/></svg><figcaption>40px</figcaption></figure>
+    <figure><svg viewBox="0 0 200 200" width="28" height="28"><use href="#stamp-tiger"/></svg><figcaption>28px</figcaption></figure>
+  </div>
+
+  <p class="note">
+    오행 확장안: 도장 자체는 인주 한 색을 유지하고, 소울 카드에서 도장 아래 오행 글자(木·火·土·金·水)와
+    카드 배경의 먹 농담으로 속성을 구분합니다. 12지신 × 오행 60조합을 만들어도 도장은 12개면 충분해
+    일관성이 깨지지 않습니다.
+  </p>
+</div>
+</body>
+</html>
