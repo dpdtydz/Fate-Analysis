@@ -11,10 +11,13 @@
        python scripts/generate_zodiac.py --phase base            # 파란색 기준 12마리 (있는 건 스킵)
        python scripts/generate_zodiac.py --phase recolor         # 기준본 -> 오행 5종 테마 버전 (60장)
        python scripts/generate_zodiac.py --phase base --animals snake,tiger   # 특정 동물만 재생성
+       python scripts/generate_zodiac.py --phase space --spaces balanced      # 모임 공간 앵커 1장 먼저
+       python scripts/generate_zodiac.py --phase space           # 나머지 공간 6장 (balanced 앵커 사용)
        python scripts/generate_zodiac.py --remove-bg             # 생성 없이 배경 제거만 일괄 수행
 
 출력:
   assets/zodiac/raw/zodiac_{animal}_{element}.png   (흰 배경 원본)
+  assets/zodiac/raw/space_{key}.png                 (모임 공간 7종)
   assets/zodiac/png/zodiac_{animal}_{element}.png   (--remove-bg 시 투명 PNG)
 """
 
@@ -625,6 +628,62 @@ Now draw this character performing its role in the group:
 """
 
 
+# ── 모임 공간(space) 7종 ──────────────────────────────────────────
+# 오행 구성(uniqueElements + dominant)으로 갈리는 우리 모임 심볼.
+# 캐릭터가 아니라 "빈 공간"이므로 캐릭터 refs를 앵커로 쓰면 동물이 딸려 들어온다.
+SPACE_PREFIX = """A cute chibi cartoon ILLUSTRATION OF A PLACE — an empty inviting interior/exterior scene
+with NO characters, NO animals and NO people in it. Same art style as the reference
+character sheets: soft gradient shading, clean bold outlines, warm friendly shapes,
+simple rounded forms, no fine detail. Isometric three-quarter view, the scene sits as a
+single compact island floating on a solid pure white background (#FFFFFF) with a small
+margin. No text, no letters, no signage, no watermark. The whole scene must stay readable
+when cropped to a CIRCLE: keep the main structure centered and compact, nothing important
+in the corners.
+"""
+
+SPACES = {
+    # 대통합 광장 — 오행 4종 이상. 다섯 갈래 길이 하나의 원형 광장으로 모인다.
+    "balanced": "A round open plaza paved in warm stone, with five small paths radiating outward from it "
+                "in five directions. Each path is tinted a different colour — green, red-orange, ochre, "
+                "warm pale gold, blue — and each ends in a tiny archway. At the center of the plaza stands "
+                "a low round table with five empty cushions around it. Bright, open, welcoming daylight.",
+    # 온실 아틀리에 — 木 우세. 새 프로젝트가 계속 싹트는 곳.
+    "wood": "A cozy glass greenhouse studio filled with potted plants and climbing green vines, wooden "
+            "shelves of seedlings along the walls, a long wooden worktable in the middle with an open "
+            "notebook and empty stools around it. Soft green light filtering through the glass roof. "
+            "Everything in fresh green tones (#4CAF50) with warm wood accents.",
+    # 한밤의 캠프파이어 라운지 — 火 우세. 떠들고 웃고 밤새는 모임.
+    "fire": "A warm outdoor lounge at night gathered around a crackling campfire in a stone ring, with "
+            "low cushioned seats and a hanging string of small warm lights arching overhead. A kettle "
+            "rests on a grill beside the fire. Everything glows in warm red-orange firelight (#E53935) "
+            "against deep cozy shadow. Empty seats, waiting.",
+    # 골목 안 사랑방 툇마루 — 土 우세. 신발 벗고 눌러앉는 곳.
+    "earth": "A traditional Korean wooden veranda (numaru) of a small hanok, with a low wooden table set "
+             "with empty teacups and floor cushions, sliding paper doors open behind it, and a small "
+             "earthenware jar garden at the side. Warm ochre and earthen tones (#D4A017), afternoon sun, "
+             "deeply calm and settled.",
+    # 정밀 공방 & 연구실 — 金 우세. 파고들고 만들어내는 모임. 파랑기 금지.
+    "metal": "A tidy workshop-laboratory interior: a long metal workbench with neatly arranged precision "
+             "tools hung in perfect rows on a pegboard wall, a brass desk lamp, a magnifying stand, small "
+             "labelled drawers, and empty stools tucked under the bench. Everything in warm pale gold and "
+             "warm silver tones (#C9B896) — a warm precious-metal sheen. CRITICAL: absolutely NO blue and "
+             "NO blue-gray anywhere; keep it warm and golden.",
+    # 심야 서재 & 바다 창 — 水 우세. 깊고 조용하고 속 얘기 하는 모임.
+    "water": "A quiet late-night study room with tall bookshelves, a wide arched window looking out onto "
+             "a calm moonlit sea, a reading desk with an open book and a single small lamp, and a deep "
+             "empty armchair beside it. Cool blue tones (#5B9BD5) with soft lamplight. Still, private, "
+             "contemplative.",
+    # 순혈 성소 — 오행 1종. 뉴트럴 스톤으로 뽑고 오행 틴트는 코드(CSS)에서 입힌다.
+    "pure": "A small circular shrine platform of pale stone, open to the sky, with a single tall smooth "
+            "monolith pillar standing exactly at its center and a ring of five low identical stone markers "
+            "around the rim. Utterly symmetrical, quiet and rare. Neutral pale stone tones so it can be "
+            "tinted, soft even light.",
+}
+
+# balanced를 먼저 확정하고, 그것을 나머지 6종의 스타일 앵커로 삼는다.
+SPACE_ANCHOR = "balanced"
+
+
 def get_client():
     raw = os.environ.get("GEMINI_API_KEY", "")
     api_key = raw.strip().strip('"').strip("'").strip()
@@ -791,6 +850,42 @@ def phase_role(client, animals: list[str], roles: list[str]):
             generate(client, contents, out)
 
 
+def phase_space(client, spaces: list[str]):
+    """우리 모임 심볼 — 오행 구성으로 갈리는 빈 공간 7장.
+
+    앵커 규칙: 캐릭터 refs를 앵커로 쓰면 동물이 딸려 들어온다.
+    balanced 1장은 텍스트만으로 뽑고, 나머지 6종은 그 balanced를 스타일 앵커로 첨부한다.
+    """
+    anchor_path = RAW_DIR / f"space_{SPACE_ANCHOR}.png"
+
+    # balanced를 항상 먼저 처리해야 나머지 6종의 앵커가 생긴다
+    ordered = ([SPACE_ANCHOR] if SPACE_ANCHOR in spaces else []) + \
+              [s for s in spaces if s != SPACE_ANCHOR]
+
+    for key in ordered:
+        out = RAW_DIR / f"space_{key}.png"
+        if out.exists():
+            print(f"[space] {key}: 이미 있음 — 스킵")
+            if key == SPACE_ANCHOR:
+                anchor_path = out
+            continue
+
+        contents = []
+        if key != SPACE_ANCHOR:
+            if not anchor_path.exists():
+                print(f"[space] {key}: 스타일 앵커 space_{SPACE_ANCHOR}.png 가 없어 스킵 "
+                      f"— 먼저 balanced를 생성하세요 "
+                      f"(python scripts/generate_zodiac.py --phase space --spaces {SPACE_ANCHOR})")
+                continue
+            # 캐릭터 refs가 아니라 확정된 balanced 공간만 앵커로 쓴다
+            contents.append(image_part(anchor_path))
+
+        print(f"[space] {key} 생성 중...")
+        contents.append(SPACE_PREFIX + "\n" + SPACES[key])
+        if generate(client, contents, out) and key == SPACE_ANCHOR:
+            anchor_path = out
+
+
 def remove_backgrounds():
     try:
         from rembg import remove
@@ -815,8 +910,11 @@ def main():
     parser = argparse.ArgumentParser(description="12지신 x 오행 이미지 생성")
     parser.add_argument("--roles", default=",".join(ROLE_PALETTES),
                         help="쉼표 구분 역할 목록 (기본: spark,healer,keeper,captain)")
-    parser.add_argument("--phase", choices=["base", "recolor", "role", "all"], default=None,
-                        help="base: 기준본 12마리 / recolor: 오행 60장 / role: 역할 48장 / all: 전부")
+    parser.add_argument("--spaces", default=",".join(SPACES),
+                        help="쉼표 구분 모임 공간 목록 (기본: 전체 7종)")
+    parser.add_argument("--phase", choices=["base", "recolor", "role", "space", "all"], default=None,
+                        help="base: 기준본 12마리 / recolor: 오행 60장 / role: 역할 60장 / "
+                             "space: 모임 공간 7장 / all: 전부(space 제외, 앵커 순서 의존)")
     parser.add_argument("--animals", default=",".join(ANIMALS),
                         help="쉼표 구분 동물 목록 (기본: 전체)")
     parser.add_argument("--elements", default=",".join(ELEMENTS),
@@ -839,6 +937,10 @@ def main():
     for r in roles:
         if r not in ROLE_PALETTES:
             sys.exit(f"[ERROR] 알 수 없는 역할: {r} (가능: {', '.join(ROLE_PALETTES)})")
+    spaces = [s.strip() for s in args.spaces.split(",") if s.strip()]
+    for s in spaces:
+        if s not in SPACES:
+            sys.exit(f"[ERROR] 알 수 없는 공간: {s} (가능: {', '.join(SPACES)})")
 
     if not args.phase and not args.remove_bg:
         parser.print_help()
@@ -852,6 +954,9 @@ def main():
             phase_recolor(client, animals, elements)
         if args.phase in ("role", "all"):
             phase_role(client, animals, roles)
+        # space는 balanced -> 나머지 6종 앵커 순서에 의존하므로 all에 넣지 않는다
+        if args.phase == "space":
+            phase_space(client, spaces)
 
     if args.remove_bg:
         remove_backgrounds()
