@@ -178,52 +178,49 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
   if (testCompleted) {
     const info = MBTI_EXPLANATIONS[calculatedMbti] || { title: "매력적인 분석 성향", desc: "나만의 고유한 인생 성향이 깃든 MBTI 코드", icon: "⭐" };
     return (
-      <div className="bg-white border border-[#D6CCBC] p-6 rounded-2xl shadow-md text-center space-y-5 animate-fade-in text-left">
+      <div className="bg-surface border border-line p-6 rounded-xl space-y-5 animate-fade-in text-left">
         <div className="text-center space-y-2">
-          <div className="w-16 h-16 mx-auto rounded-full bg-[#FCFAF5] border border-[#D6CCBC] flex items-center justify-center text-4xl shadow-xs">
-            {info.icon}
-          </div>
-          <span className="text-[10px] bg-[#C0392B]/10 text-[#C0392B] border border-[#C0392B]/20 px-2.5 py-1 rounded-full font-bold">
-            성향 분석 완료 ☯
+          <span className="text-xs text-ink-faint font-medium">
+            성향 분석 완료
           </span>
-          <h3 className="font-serif text-2xl font-black text-[#2C3E50] tracking-tight">
+          <h3 className="font-serif text-2xl font-semibold text-ink tracking-tight">
             {calculatedMbti}
           </h3>
-          <h4 className="font-serif text-sm font-bold text-[#C0392B]">
+          <h4 className="text-sm font-medium text-ink-soft">
             {info.title}
           </h4>
-          <p className="text-xs text-[#5A4D41] leading-relaxed max-w-xs mx-auto pt-2">
+          <p className="text-xs text-ink-soft leading-relaxed max-w-xs mx-auto pt-2">
             {info.desc}
           </p>
         </div>
 
-        <div className="bg-[#FCFAF6] border border-[#E8E0D0] p-4 rounded-xl text-center space-y-1">
-          <p className="text-[11px] text-[#5C5046]">
-            이 MBTI 기운을 내 사주 명식에 등록하여 <br />
-            <strong>오행과의 조화 및 궁합 케미</strong>를 완성할 수 있습니다.
+        <div className="bg-sunken p-4 rounded-xl text-center space-y-1">
+          <p className="text-xs text-ink-soft leading-relaxed">
+            이 MBTI를 내 사주 명식에 등록하면 <br />
+            <strong className="font-semibold text-ink">오행과의 조화 분석</strong>에 함께 반영됩니다.
           </p>
         </div>
 
         <div className="grid grid-cols-2 gap-3 pt-2">
           <button
             onClick={resetTest}
-            className="py-3.5 bg-[#FAF7F2] border border-[#D6CCBC] hover:bg-[#F0EDE4] text-[#5C5046] font-serif font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+            className="py-3 bg-sunken hover:bg-line text-ink font-semibold text-sm rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>처음부터 다시</span>
           </button>
           <button
             onClick={() => onComplete(calculatedMbti)}
-            className="py-3.5 bg-[#C0392B] hover:bg-[#A93226] text-white font-serif font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-md shadow-[#C0392B]/10 cursor-pointer"
+            className="py-3 bg-seal hover:bg-seal-deep text-white font-semibold text-sm rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>이 기운 등록하기</span>
+            <span>이 MBTI 등록하기</span>
           </button>
         </div>
 
         <button
           onClick={onCancel}
-          className="w-full text-center text-[11px] text-[#5C5046] hover:underline pt-1"
+          className="w-full text-center text-xs text-ink-faint hover:text-ink hover:underline pt-1"
         >
           돌아가기
         </button>
@@ -234,16 +231,16 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
   const q = QUESTIONS[currentIdx];
 
   return (
-    <div className="bg-white border border-[#D6CCBC] p-6 rounded-2xl shadow-md space-y-6 text-left relative overflow-hidden">
+    <div className="bg-surface border border-line p-6 rounded-xl space-y-6 text-left relative overflow-hidden">
       {/* Progress Bar */}
       <div className="space-y-1.5">
-        <div className="flex items-center justify-between text-[10px] text-[#5C5046] font-bold">
-          <span>스피드 MBTI 테스트</span>
+        <div className="flex items-center justify-between text-xs text-ink-faint font-medium">
+          <span>MBTI 간단 테스트</span>
           <span>{currentIdx + 1} / {QUESTIONS.length} 문항</span>
         </div>
-        <div className="w-full h-1.5 bg-[#F0EDE4] rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-sunken rounded-xl overflow-hidden">
           <div
-            className="h-full bg-[#C0392B] transition-all duration-300 rounded-full"
+            className="h-full bg-seal transition-all duration-300"
             style={{ width: `${progressPercent}%` }}
           />
         </div>
@@ -251,39 +248,39 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
 
       {/* Main Question Card */}
       <div className="space-y-4 pt-1 select-none">
-        <div className="bg-[#FAF7F2] border border-[#E8E0D0] p-5 rounded-xl min-h-[100px] flex items-center justify-center text-center">
-          <h3 className="font-serif text-sm font-extrabold text-[#2C3E50] leading-relaxed">
+        <div className="bg-sunken p-5 rounded-xl min-h-[100px] flex items-center justify-center text-center">
+          <h3 className="text-sm font-semibold text-ink leading-relaxed">
             {q.text}
           </h3>
         </div>
 
         {/* Options */}
-        <div className="space-y-3.5">
+        <div className="space-y-3">
           <button
             onClick={() => handleSelectOption(q.optionA.value)}
-            className={`w-full p-4.5 rounded-xl border text-left text-xs leading-relaxed font-semibold transition-all duration-200 cursor-pointer flex items-start gap-3 bg-white border-[#E8E0D0] hover:border-[#C0392B] hover:bg-[#FFF9F6] active:scale-[0.99]`}
+            className="w-full p-4 rounded-xl text-left text-sm leading-relaxed transition-colors duration-200 cursor-pointer flex items-start gap-3 bg-sunken hover:bg-line"
           >
-            <span className="w-5 h-5 rounded-full bg-[#FCFAF5] border border-[#D6CCBC] flex items-center justify-center text-[10px] font-bold text-[#5C5046] mt-0.5 shrink-0">A</span>
-            <span className="text-[#5A4D41]">{q.optionA.text}</span>
+            <span className="w-6 h-6 rounded-md bg-surface flex items-center justify-center text-xs font-semibold text-ink-faint mt-0.5 shrink-0">A</span>
+            <span className="text-ink-soft">{q.optionA.text}</span>
           </button>
 
           <button
             onClick={() => handleSelectOption(q.optionB.value)}
-            className={`w-full p-4.5 rounded-xl border text-left text-xs leading-relaxed font-semibold transition-all duration-200 cursor-pointer flex items-start gap-3 bg-white border-[#E8E0D0] hover:border-[#C0392B] hover:bg-[#FFF9F6] active:scale-[0.99]`}
+            className="w-full p-4 rounded-xl text-left text-sm leading-relaxed transition-colors duration-200 cursor-pointer flex items-start gap-3 bg-sunken hover:bg-line"
           >
-            <span className="w-5 h-5 rounded-full bg-[#FCFAF5] border border-[#D6CCBC] flex items-center justify-center text-[10px] font-bold text-[#5C5046] mt-0.5 shrink-0">B</span>
-            <span className="text-[#5A4D41]">{q.optionB.text}</span>
+            <span className="w-6 h-6 rounded-md bg-surface flex items-center justify-center text-xs font-semibold text-ink-faint mt-0.5 shrink-0">B</span>
+            <span className="text-ink-soft">{q.optionB.text}</span>
           </button>
         </div>
       </div>
 
       {/* Footer Navigation */}
-      <div className="flex items-center justify-between pt-2 border-t border-[#F0EDE4]">
+      <div className="flex items-center justify-between pt-2 border-t border-line">
         <button
           onClick={handlePrev}
           disabled={currentIdx === 0}
-          className={`flex items-center gap-1 py-1.5 px-3 rounded text-[11px] font-bold font-serif ${
-            currentIdx === 0 ? "text-[#D6CCBC] cursor-not-allowed" : "text-[#5C5046] hover:text-[#C0392B] cursor-pointer"
+          className={`flex items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-medium ${
+            currentIdx === 0 ? "text-ink-faint cursor-not-allowed" : "text-ink-soft hover:text-ink cursor-pointer"
           }`}
         >
           <ArrowLeft className="w-3 h-3" />
@@ -292,7 +289,7 @@ export default function MbtiTest({ onComplete, onCancel }: MbtiTestProps) {
 
         <button
           onClick={onCancel}
-          className="text-[11px] text-[#5C5046] hover:underline"
+          className="text-xs text-ink-faint hover:text-ink hover:underline"
         >
           테스트 취소
         </button>

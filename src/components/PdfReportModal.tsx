@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { X, Printer, Download, Share2, Check, Sparkles, ShieldCheck, FileText, Award, Loader2 } from "lucide-react";
+import { X, Printer, Download, Share2, Check, FileText, Loader2 } from "lucide-react";
 import { Member, SajuData } from "../types";
 import { calculateSaju } from "../utils/saju";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
@@ -120,11 +120,11 @@ export default function PdfReportModal({
       const res = await exportElementToPdf(printRef.current, {
         filename: `사주명식_정밀감정서_${nickname}_${new Date().toISOString().slice(0, 10)}.pdf`,
         scale: 2,
-        backgroundColor: "#FCFAF6",
+        backgroundColor: "#FFFFFF",
       });
 
       if (res.success) {
-        setCopiedMsg("📄 PDF 파일이 성공적으로 다운로드되었습니다!");
+        setCopiedMsg("PDF 파일이 다운로드되었습니다.");
         setTimeout(() => setCopiedMsg(""), 3500);
       } else {
         alert(res.error || "PDF 생성 중 오류가 발생했습니다. 브라우저 인쇄를 이용해 주세요.");
@@ -165,11 +165,11 @@ export default function PdfReportModal({
       const res = await exportElementToImage(printRef.current, {
         filename: `사주명식_정밀감정서_${nickname}_${new Date().toISOString().slice(0, 10)}.png`,
         scale: 2,
-        backgroundColor: "#FCFAF6",
+        backgroundColor: "#FFFFFF",
       });
 
       if (res.success) {
-        setCopiedMsg("🖼️ 고화질 이미지(PNG)가 다운로드되었습니다!");
+        setCopiedMsg("이미지(PNG) 파일이 다운로드되었습니다.");
         setTimeout(() => setCopiedMsg(""), 3500);
       } else {
         alert(res.error || "이미지 저장 중 오류가 발생했습니다.");
@@ -186,34 +186,34 @@ export default function PdfReportModal({
   // Share
   const handleShare = async () => {
     const res = await shareToKakaoOrClipboard({
-      title: `[사주명당] ${nickname}님의 AI 심층 사주명식 리포트`,
-      description: `${nickname}님의 정밀 사주명식과 오행 분석 감정서를 확인해 보세요! ☯`,
+      title: `[사주명당] ${nickname}님의 사주명식 리포트`,
+      description: `${nickname}님의 사주명식과 오행 분석 감정서를 확인해 보세요.`,
       url: window.location.href
     });
     if (res.success) {
-      setCopiedMsg("공유 링크가 클립보드에 복사되었습니다!");
+      setCopiedMsg("공유 링크가 클립보드에 복사되었습니다.");
       setTimeout(() => setCopiedMsg(""), 3000);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-xs overflow-y-auto animate-fade-in print:p-0 print:bg-white print:static print-container">
-      
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-2 sm:p-4 bg-black/50 overflow-y-auto animate-fade-in print:p-0 print:bg-white print:static print-container">
+
       {/* Container Box */}
-      <div className="bg-[#FCFAF6] border border-[#E7E1D6] rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden print:max-h-none print:shadow-none print:border-none print:rounded-none">
-        
+      <div className="bg-surface rounded-xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-lg overflow-hidden print:max-h-none print:shadow-none print:rounded-none">
+
         {/* Top Control Bar (Hidden on print) */}
-        <div className="p-3 sm:p-4 bg-white border-b border-[#E7E1D6] flex items-center justify-between gap-2 shrink-0 print:hidden">
+        <div className="p-3 sm:p-4 border-b border-line flex items-center justify-between gap-2 shrink-0 print:hidden">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shadow-xs">
+            <div className="w-8 h-8 rounded-xl bg-sunken text-ink-soft flex items-center justify-center">
               <FileText className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-serif font-black text-xs sm:text-sm text-[#2C3E50]">
-                AI 심층 사주 명식 감정서 & PDF 소장본
+              <h3 className="font-semibold text-xs sm:text-sm text-ink">
+                사주 명식 감정서
               </h3>
-              <p className="text-[10px] text-[#5C5046]">
-                고품격 전통 한지 테마 · PDF 파일 저장 및 영구 보관용
+              <p className="text-xs text-ink-faint">
+                PDF 저장 및 인쇄용 문서
               </p>
             </div>
           </div>
@@ -223,7 +223,7 @@ export default function PdfReportModal({
             <button
               onClick={handleDownloadPdf}
               disabled={downloading}
-              className="px-3 py-1.5 bg-[#C0392B] hover:bg-[#A93226] disabled:opacity-50 text-white font-serif font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+              className="px-3 py-1.5 bg-seal hover:bg-seal-deep disabled:opacity-40 text-white font-semibold text-xs rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer"
               title="PDF 문서를 파일로 직접 다운로드합니다"
               aria-label="PDF 내려받기"
             >
@@ -234,7 +234,7 @@ export default function PdfReportModal({
                 </>
               ) : (
                 <>
-                  <Download className="w-3.5 h-3.5 text-amber-200" />
+                  <Download className="w-3.5 h-3.5" />
                   <span>PDF 내려받기</span>
                 </>
               )}
@@ -244,7 +244,7 @@ export default function PdfReportModal({
             <button
               onClick={handlePrint}
               disabled={downloading}
-              className="px-2.5 py-1.5 bg-[#FAF4EB] hover:bg-[#F3E8D5] text-[#7A3E2D] border border-[#E2D2B8] font-serif font-bold text-xs rounded-xl transition flex items-center gap-1 cursor-pointer active:scale-95"
+              className="px-2.5 py-1.5 bg-sunken hover:bg-line text-ink font-semibold text-xs rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
               title="브라우저 인쇄 창을 열어 출력하거나 PDF로 저장합니다"
               aria-label="인쇄하기"
             >
@@ -256,7 +256,7 @@ export default function PdfReportModal({
             <button
               onClick={handleDownloadImage}
               disabled={downloading}
-              className="px-2.5 py-1.5 bg-[#2C3E50] hover:bg-[#1A252F] disabled:opacity-50 text-white font-serif font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1 cursor-pointer active:scale-95"
+              className="px-2.5 py-1.5 bg-sunken hover:bg-line disabled:opacity-40 text-ink font-semibold text-xs rounded-xl transition-colors flex items-center gap-1 cursor-pointer"
               title="고화질 이미지(PNG) 파일로 저장합니다"
               aria-label="이미지 저장"
             >
@@ -270,7 +270,7 @@ export default function PdfReportModal({
 
             <button
               onClick={handleShare}
-              className="p-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl transition cursor-pointer"
+              className="p-1.5 bg-sunken hover:bg-line text-ink-soft rounded-xl transition-colors cursor-pointer"
               title="공유하기"
               aria-label="공유하기"
             >
@@ -279,7 +279,7 @@ export default function PdfReportModal({
 
             <button
               onClick={onClose}
-              className="p-1.5 text-gray-500 hover:text-gray-900 rounded-xl hover:bg-gray-100 transition cursor-pointer ml-1"
+              className="p-1.5 text-ink-faint hover:text-ink rounded-xl hover:bg-sunken transition-colors cursor-pointer ml-1"
               aria-label="닫기"
             >
               <X className="w-5 h-5" />
@@ -289,159 +289,152 @@ export default function PdfReportModal({
 
         {/* Share / Download Alert Toast */}
         {copiedMsg && (
-          <div className="bg-emerald-50 text-emerald-900 text-xs font-bold px-4 py-2 text-center border-b border-emerald-200 print:hidden flex items-center justify-center gap-1.5 animate-fade-in">
-            <Check className="w-4 h-4 text-emerald-600" />
+          <div className="bg-sunken text-ink text-xs font-medium px-4 py-2 text-center border-b border-line print:hidden flex items-center justify-center gap-1.5 animate-fade-in">
+            <Check className="w-4 h-4 text-ink-soft" />
             <span>{copiedMsg}</span>
           </div>
         )}
 
         {/* Scrollable Printable Report Canvas */}
-        <div className="overflow-y-auto p-4 sm:p-8 space-y-6 print:p-6 print:overflow-visible">
-          
-          <div 
-            ref={printRef} 
+        <div className="overflow-y-auto bg-sunken p-4 sm:p-8 space-y-6 print:p-6 print:bg-white print:overflow-visible">
+
+          <div
+            ref={printRef}
             id="print-section"
-            className="bg-[#FCFAF6] border-2 border-[#D4AF37]/50 p-6 sm:p-10 rounded-2xl space-y-7 shadow-xs relative print:border-none print:p-0 print:shadow-none font-serif"
-            style={{
-              backgroundImage: "radial-gradient(#EFE9DF 1px, transparent 1px)",
-              backgroundSize: "24px 24px"
-            }}
+            className="bg-surface p-6 sm:p-10 rounded-xl space-y-7 relative print:p-0"
           >
             {/* Header Stamp and Badge */}
-            <div className="border-b-2 border-[#C0392B]/80 pb-5 text-center space-y-2 relative">
-              <div className="inline-block border border-[#C0392B] px-3 py-0.5 rounded-full text-[10px] font-bold text-[#C0392B] tracking-widest uppercase mb-1">
-                전통 명리학 정통 감정본 (正統 命理學 鑑定本)
+            <div className="border-b border-line pb-5 text-center space-y-2 relative">
+              <div className="text-xs text-ink-faint tracking-wide mb-1">
+                전통 명리학 감정본
               </div>
-              <h1 className="text-xl sm:text-2xl font-black text-[#2C3E50] tracking-tight">
-                {nickname} 님의 사주 원국 심층 감정서
+              <h1 className="font-serif text-xl sm:text-2xl font-semibold text-ink tracking-tight">
+                {nickname} 님의 사주 원국 감정서
               </h1>
-              <p className="text-xs text-[#5C5046] tracking-wider">
+              <p className="text-xs text-ink-faint">
                 발급 일자: {new Date().toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })} · {roomTitle ? `소속 모임: ${roomTitle}` : "개인 소장용"}
               </p>
 
-              {/* Decorative Hanja Seal */}
-              <div className="absolute top-0 right-0 w-12 h-12 border-2 border-red-700 rounded-lg flex items-center justify-center text-red-700 font-black text-xs leading-none rotate-6 opacity-75 hidden sm:flex select-none pointer-events-none">
-                인연<br />명당
+              {/* Hanja Seal (낙관) */}
+              <div className="absolute top-0 right-0 w-12 h-12 bg-seal rounded-md items-center justify-center text-white font-serif text-2xl hidden sm:flex select-none pointer-events-none">
+                命
               </div>
             </div>
 
             {/* Profile Overview Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs text-left">
-              <div className="bg-white/90 p-3 rounded-xl border border-[#E7E1D6]">
-                <span className="text-[10px] text-[#5C5046] block font-sans">성명 / 닉네임</span>
-                <span className="font-bold text-[#2C3E50] text-sm">{nickname}</span>
+              <div className="bg-sunken p-3 rounded-xl">
+                <span className="text-xs text-ink-faint block">성명 / 닉네임</span>
+                <span className="font-semibold text-ink text-sm">{nickname}</span>
               </div>
-              <div className="bg-white/90 p-3 rounded-xl border border-[#E7E1D6]">
-                <span className="text-[10px] text-[#5C5046] block font-sans">출생 연월일</span>
-                <span className="font-bold text-[#2C3E50] text-sm">{birthDate} ({calendarType === "lunar" ? "음력" : "양력"})</span>
+              <div className="bg-sunken p-3 rounded-xl">
+                <span className="text-xs text-ink-faint block">출생 연월일</span>
+                <span className="font-semibold text-ink text-sm">{birthDate} ({calendarType === "lunar" ? "음력" : "양력"})</span>
               </div>
-              <div className="bg-white/90 p-3 rounded-xl border border-[#E7E1D6]">
-                <span className="text-[10px] text-[#5C5046] block font-sans">출생 시각</span>
-                <span className="font-bold text-[#2C3E50] text-sm">{birthTime || "시간 모름"}</span>
+              <div className="bg-sunken p-3 rounded-xl">
+                <span className="text-xs text-ink-faint block">출생 시각</span>
+                <span className="font-semibold text-ink text-sm">{birthTime || "시간 모름"}</span>
               </div>
-              <div className="bg-white/90 p-3 rounded-xl border border-[#E7E1D6]">
-                <span className="text-[10px] text-[#5C5046] block font-sans">성향(MBTI) / 성별</span>
-                <span className="font-bold text-[#C0392B] text-sm">{mbti} · {gender === "male" ? "남성" : gender === "female" ? "여성" : "미입력"}</span>
+              <div className="bg-sunken p-3 rounded-xl">
+                <span className="text-xs text-ink-faint block">성향(MBTI) / 성별</span>
+                <span className="font-semibold text-ink text-sm">{mbti} · {gender === "male" ? "남성" : gender === "female" ? "여성" : "미입력"}</span>
               </div>
             </div>
 
             {/* 1. Four Pillars (사주팔자 원국표) */}
             <div className="space-y-2.5 text-left">
-              <div className="flex items-center gap-1.5 border-b border-[#E7E1D6] pb-1.5">
-                <span className="text-sm">📜</span>
-                <h3 className="font-bold text-xs text-[#2C3E50] tracking-tight uppercase">
-                  1. 사주 원국 4주 8자 (四柱八字 原局)
+              <div className="flex items-center gap-1.5 border-b border-line pb-1.5">
+                <h3 className="font-semibold text-sm text-ink tracking-tight">
+                  1. 사주 원국 4주 8자 (四柱八字)
                 </h3>
               </div>
 
               <div className="grid grid-cols-4 gap-2 text-center text-xs">
                 {/* Hour */}
-                <div className="bg-white p-2.5 rounded-xl border border-[#E7E1D6] space-y-1">
-                  <span className="text-[10px] text-[#5C5046] font-bold block">시주(時柱)</span>
-                  <div className="text-base font-black text-amber-900 font-serif">
+                <div className="bg-sunken p-2.5 rounded-xl space-y-1">
+                  <span className="text-xs text-ink-faint font-medium block">시주(時柱)</span>
+                  <div className="text-base font-semibold text-ink font-serif">
                     {sajuData?.pillars?.hour?.gan || "무"}{sajuData?.pillars?.hour?.ji || "진"}
                   </div>
-                  <span className="text-[9px] text-[#5C5046] block">미래 / 자녀운</span>
+                  <span className="text-xs text-ink-faint block">미래 / 자녀운</span>
                 </div>
 
                 {/* Day (Daymaster) */}
-                <div className="bg-amber-50/80 p-2.5 rounded-xl border-2 border-amber-300 space-y-1 relative">
-                  <span className="text-[10px] text-amber-900 font-bold block">일주(日柱) ★본원</span>
-                  <div className="text-base font-black text-[#C0392B] font-serif">
+                <div className="bg-sunken p-2.5 rounded-xl space-y-1 relative">
+                  <span className="text-xs text-ink font-medium block">일주(日柱) 본원</span>
+                  <div className="text-base font-semibold text-seal font-serif">
                     {sajuData?.pillars?.day?.gan || "신"}{sajuData?.pillars?.day?.ji || "해"}
                   </div>
-                  <span className="text-[9px] font-bold text-amber-800 block">본인 / 배우자운</span>
+                  <span className="text-xs text-ink-soft block">본인 / 배우자운</span>
                 </div>
 
                 {/* Month */}
-                <div className="bg-white p-2.5 rounded-xl border border-[#E7E1D6] space-y-1">
-                  <span className="text-[10px] text-[#5C5046] font-bold block">월주(月柱)</span>
-                  <div className="text-base font-black text-amber-900 font-serif">
+                <div className="bg-sunken p-2.5 rounded-xl space-y-1">
+                  <span className="text-xs text-ink-faint font-medium block">월주(月柱)</span>
+                  <div className="text-base font-semibold text-ink font-serif">
                     {sajuData?.pillars?.month?.gan || "정"}{sajuData?.pillars?.month?.ji || "묘"}
                   </div>
-                  <span className="text-[9px] text-[#5C5046] block">청년 / 사회운</span>
+                  <span className="text-xs text-ink-faint block">청년 / 사회운</span>
                 </div>
 
                 {/* Year */}
-                <div className="bg-white p-2.5 rounded-xl border border-[#E7E1D6] space-y-1">
-                  <span className="text-[10px] text-[#5C5046] font-bold block">연주(年柱)</span>
-                  <div className="text-base font-black text-amber-900 font-serif">
+                <div className="bg-sunken p-2.5 rounded-xl space-y-1">
+                  <span className="text-xs text-ink-faint font-medium block">연주(年柱)</span>
+                  <div className="text-base font-semibold text-ink font-serif">
                     {sajuData?.pillars?.year?.gan || "경"}{sajuData?.pillars?.year?.ji || "오"}
                   </div>
-                  <span className="text-[9px] text-[#5C5046] block">초년 / 조상운</span>
+                  <span className="text-xs text-ink-faint block">초년 / 조상운</span>
                 </div>
               </div>
             </div>
 
             {/* 2. Daymaster & Essence (본원 성정 해설) */}
-            <div className="bg-white p-4.5 rounded-2xl border border-[#E7E1D6] space-y-3 text-left shadow-2xs">
-              <div className="flex items-center justify-between border-b border-[#F4EFE6] pb-2">
-                <span className="font-bold text-xs text-[#C0392B] flex items-center gap-1.5">
-                  <span>💎</span>
-                  <span>일간(日干) 본원 분석: {ganInfo.nick}</span>
+            <div className="bg-sunken p-4 rounded-xl space-y-3 text-left">
+              <div className="flex items-center justify-between gap-2 pb-1">
+                <span className="font-semibold text-sm text-ink">
+                  일간(日干) 본원 분석: {ganInfo.nick}
                 </span>
-                <span className="text-[10px] bg-amber-50 text-amber-900 px-2 py-0.5 rounded-full font-bold border border-amber-200">
+                <span className="text-xs text-ink-faint font-medium shrink-0">
                   {ganInfo.title}
                 </span>
               </div>
 
-              <p className="text-xs text-[#4A3E31] leading-relaxed">
+              <p className="text-sm text-ink-soft leading-relaxed">
                 {ganInfo.desc}
               </p>
 
-              <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#EFE9DF] text-[11px] text-[#5A4D41] flex items-center justify-between">
-                <span><strong>핵심 덕목:</strong> {ganInfo.virtue}</span>
-                <span className="text-[#C0392B] font-bold">오행: {daymasterElem}({daymasterGan})</span>
+              <div className="bg-surface p-3 rounded-xl text-xs text-ink-soft flex items-center justify-between">
+                <span><strong className="font-semibold text-ink">핵심 덕목:</strong> {ganInfo.virtue}</span>
+                <span className="text-ink font-semibold">오행: {daymasterElem}({daymasterGan})</span>
               </div>
             </div>
 
             {/* 3. Five Elements Balance (오행 배합 분포 분석) */}
             <div className="space-y-3 text-left">
-              <div className="flex items-center justify-between border-b border-[#E7E1D6] pb-1.5">
-                <span className="font-bold text-xs text-[#2C3E50] tracking-tight uppercase flex items-center gap-1">
-                  <span>☯️</span>
-                  <span>2. 음양오행(陰陽五行) 배합 분포</span>
+              <div className="flex items-center justify-between border-b border-line pb-1.5">
+                <span className="font-semibold text-sm text-ink tracking-tight">
+                  2. 음양오행(陰陽五行) 배합 분포
                 </span>
-                <span className="text-[10px] text-[#5C5046]">총 8글자 완벽 배합</span>
+                <span className="text-xs text-ink-faint">총 8자 기준</span>
               </div>
 
               <div className="grid grid-cols-5 gap-2 text-center text-xs">
                 {[
-                  { name: "목(木)", count: ohaengCount["목"] || 0, color: "bg-emerald-500", text: "text-emerald-800", bg: "bg-emerald-50" },
-                  { name: "화(火)", count: ohaengCount["화"] || 0, color: "bg-rose-500", text: "text-rose-800", bg: "bg-rose-50" },
-                  { name: "토(土)", count: ohaengCount["토"] || 0, color: "bg-amber-500", text: "text-amber-800", bg: "bg-amber-50" },
-                  { name: "금(金)", count: ohaengCount["금"] || 0, color: "bg-slate-500", text: "text-slate-800", bg: "bg-slate-50" },
-                  { name: "수(水)", count: ohaengCount["수"] || 0, color: "bg-blue-500", text: "text-blue-800", bg: "bg-blue-50" },
+                  { name: "목(木)", count: ohaengCount["목"] || 0, color: "var(--color-wood)" },
+                  { name: "화(火)", count: ohaengCount["화"] || 0, color: "var(--color-fire)" },
+                  { name: "토(土)", count: ohaengCount["토"] || 0, color: "var(--color-earth)" },
+                  { name: "금(金)", count: ohaengCount["금"] || 0, color: "var(--color-metal)" },
+                  { name: "수(水)", count: ohaengCount["수"] || 0, color: "var(--color-water)" },
                 ].map((item, idx) => {
                   const pct = Math.round((item.count / totalElem) * 100);
                   return (
-                    <div key={idx} className={`${item.bg} p-2.5 rounded-xl border border-[#E7E1D6] space-y-1`}>
-                      <span className={`text-[10px] font-bold block ${item.text}`}>{item.name}</span>
-                      <span className="text-sm font-black text-[#2C3E50] block font-mono">{item.count}개</span>
-                      <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                        <div className={`h-full ${item.color}`} style={{ width: `${pct}%` }} />
+                    <div key={idx} className="bg-sunken p-2.5 rounded-xl space-y-1">
+                      <span className="text-xs font-semibold block" style={{ color: item.color }}>{item.name}</span>
+                      <span className="text-sm font-semibold text-ink block">{item.count}개</span>
+                      <div className="w-full bg-line h-1.5 rounded-xl overflow-hidden">
+                        <div className="h-full" style={{ width: `${pct}%`, backgroundColor: item.color }} />
                       </div>
-                      <span className="text-[8.5px] text-[#5C5046] block font-mono">{pct}%</span>
+                      <span className="text-xs text-ink-faint block">{pct}%</span>
                     </div>
                   );
                 })}
@@ -449,29 +442,28 @@ export default function PdfReportModal({
             </div>
 
             {/* 4. Life Fortune & Harmony Guide (평생 총평 및 인연 상생 비책) */}
-            <div className="bg-white p-5 rounded-2xl border border-[#E7E1D6] space-y-3.5 text-left shadow-2xs">
-              <h4 className="font-bold text-xs text-[#2C3E50] border-b border-[#F4EFE6] pb-2 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#C0392B]" />
-                <span>3. 운명 개운(開運) 및 인연 상생 지침</span>
+            <div className="bg-sunken p-5 rounded-xl space-y-3.5 text-left">
+              <h4 className="font-semibold text-sm text-ink pb-1">
+                3. 개운(開運) 및 인연 상생 지침
               </h4>
 
-              <div className="space-y-2.5 text-xs text-[#4A3E31] leading-relaxed">
-                <div className="pl-3 border-l-2 border-[#C0392B]">
-                  <strong className="text-[#C0392B] block mb-0.5">🌟 대인관계 & 인연 화합법</strong>
-                  {nickname}님은 타고난 신뢰와 뚝심을 바탕으로 사람들과 깊은 유대를 형성합니다. 상대방의 의견을 5분간 먼저 온전히 경청한 뒤 나의 기준을 제시하면 갈등 없이 최상의 지지 기반을 다지게 됩니다.
+              <div className="space-y-2.5 text-sm text-ink-soft leading-relaxed">
+                <div className="pl-3 border-l-2 border-line">
+                  <strong className="text-ink font-semibold block mb-0.5">대인관계와 인연 화합법</strong>
+                  {nickname}님은 타고난 신뢰와 뚝심을 바탕으로 사람들과 깊은 유대를 형성합니다. 상대방의 의견을 먼저 충분히 경청한 뒤 나의 기준을 제시하면 갈등 없이 지지 기반을 다질 수 있습니다.
                 </div>
 
-                <div className="pl-3 border-l-2 border-amber-500">
-                  <strong className="text-amber-900 block mb-0.5">🌿 행운을 부르는 개운 아이템</strong>
-                  사주 오행의 순환을 촉진하기 위해 자연 친화적 소품이나 식물, 은은한 조명을 가까이 두고 차분한 명상과 규칙적인 수면 루틴을 유지하는 것이 대길합니다.
+                <div className="pl-3 border-l-2 border-line">
+                  <strong className="text-ink font-semibold block mb-0.5">개운에 도움이 되는 습관</strong>
+                  사주 오행의 순환을 돕기 위해 자연 친화적 소품이나 식물, 은은한 조명을 가까이 두고 차분한 명상과 규칙적인 수면 루틴을 유지하는 것이 도움이 됩니다.
                 </div>
               </div>
             </div>
 
             {/* Footer Certificate Seal */}
-            <div className="pt-4 border-t border-[#E7E1D6] text-center text-[10px] text-[#5C5046] space-y-1">
-              <p>본 감정서는 정통 명리학 원전(자평진전·적천수)과 현대 행동심리학 데이터를 융합하여 정밀 발급되었습니다.</p>
-              <p className="font-bold text-[#C0392B]">인연명당 (Inyeon Myungdang) · All Rights Reserved</p>
+            <div className="pt-4 border-t border-line text-center text-xs text-ink-faint space-y-1">
+              <p>본 감정서는 명리학 원전(자평진전·적천수)과 행동심리학 자료를 참고해 작성되었습니다.</p>
+              <p className="font-semibold text-ink">인연명당 (Inyeon Myungdang) · All Rights Reserved</p>
             </div>
 
           </div>

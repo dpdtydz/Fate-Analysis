@@ -9,6 +9,7 @@ import MySajuView from "./components/MySajuView";
 import GroupView from "./components/GroupView";
 import KakaoOutlinkGuide from "./components/KakaoOutlinkGuide";
 import AdminView from "./components/AdminView";
+import DevQaHarness from "./components/DevQaHarness";
 import SurveyPopup from "./components/SurveyPopup";
 import { processReferralReward } from "./lib/firebase";
 import { logAnalyticsEvent } from "./lib/analytics";
@@ -38,6 +39,9 @@ function parseRoute(hash: string): ParsedRoute {
   }
   if (cleanPath === "/admin") {
     return { path: "/admin" };
+  }
+  if (cleanPath === "/dev-qa" && (import.meta as any).env?.DEV) {
+    return { path: "/dev-qa" };
   }
 
   // Check /room/{code}/me/{id}
@@ -130,6 +134,8 @@ export default function App() {
         return <CreateView />;
       case "/admin":
         return <AdminView />;
+      case "/dev-qa":
+        return <DevQaHarness />;
       case "/room":
         return <RoomView code={route.code!} />;
       case "/room/join":

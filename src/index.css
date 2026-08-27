@@ -1,30 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Hahmlet:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hahmlet:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* 디자인 토큰 — design.md가 단일 기준. 임의 hex 사용 금지. */
 @theme {
   --font-sans: "Noto Sans KR", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Hahmlet", "Noto Serif KR", Georgia, serif;
+
+  /* 종이와 먹 */
+  --color-paper: #FCFCFA;
+  --color-surface: #FFFFFF;
+  --color-sunken: #F4F4F1;
+  --color-line: #E7E7E2;
+  --color-ink: #1C1D21;
+  --color-ink-soft: #55565E;
+  --color-ink-faint: #8E8F98;
+
+  /* 인주(印朱) — 낙관, 주 CTA, 활성 상태 전용 */
+  --color-seal: #B3382C;
+  --color-seal-deep: #98291F;
+
+  /* 오행 — 데이터 표현 전용 */
+  --color-wood: #3E7C4F;
+  --color-fire: #C24234;
+  --color-earth: #B07C3F;
+  --color-metal: #7D848E;
+  --color-water: #35597A;
+
   --color-slate-500: #475569;
 }
 
 body {
-  background-color: #FAF7F2;
+  background-color: var(--color-paper);
   font-family: var(--font-sans);
-  color: #2C3E50;
+  color: var(--color-ink);
   margin: 0;
   padding: 0;
   word-break: keep-all;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @media print {
   /* Hide UI elements on print */
-  button, 
-  nav, 
-  footer, 
+  button,
+  nav,
+  footer,
   .no-print,
   .print-hidden,
-  [id^="quick-demo-"], 
-  [id$="-btn"], 
+  [id^="quick-demo-"],
+  [id$="-btn"],
   #premium-zone-tab {
     display: none !important;
   }
@@ -47,14 +79,13 @@ body {
   #print-section {
     position: static !important;
     display: block !important;
-    background: #FAF8F5 !important;
+    background: #ffffff !important;
     padding: 1.5rem !important;
-    border: 1px solid #D6CCBC !important;
-    border-radius: 16px !important;
+    border: 1px solid #E7E7E2 !important;
+    border-radius: 12px !important;
     box-shadow: none !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
   }
 }
-

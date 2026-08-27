@@ -56,6 +56,16 @@ interface SajuFormProps {
   initialBirthplaceRegion?: string | null;
 }
 
+/** 선택 버튼 그룹의 공통 스타일 (design.md: 활성=먹, 무보더) */
+const chipBase = "py-2.5 text-sm rounded-lg transition-colors cursor-pointer";
+const chipOn = "bg-ink text-white font-semibold";
+const chipOff = "bg-surface text-ink-soft hover:text-ink";
+
+/** 입력창 공통 스타일 (무보더, 오류 시에만 인주 링) */
+const inputBase = "bg-sunken rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1";
+const inputOk = "focus:ring-ink";
+const inputErr = "ring-1 ring-seal focus:ring-seal";
+
 export default function SajuForm({
   onSubmit,
   submitButtonText = "참여하기",
@@ -319,7 +329,7 @@ export default function SajuForm({
       const y = parseInt(birthYear, 10);
       const m = parseInt(birthMonth, 10);
       const d = parseInt(birthDay, 10);
-      
+
       if (!isNaN(y) && !isNaN(m) && !isNaN(d) && y >= 1900 && y <= 2030 && m >= 1 && m <= 12 && d >= 1 && d <= 31) {
         const formattedMonth = m.toString().padStart(2, "0");
         const formattedDay = d.toString().padStart(2, "0");
@@ -362,9 +372,9 @@ export default function SajuForm({
       const lunarMonth = calendarType === "lunar_leap" ? -m : m;
       const lunarObj = Lunar.fromYmd(y, lunarMonth, d);
       const solarObj = lunarObj.getSolar();
-      return `☀️ 양력 변환: ${solarObj.getYear()}년 ${solarObj.getMonth()}월 ${solarObj.getDay()}일`;
+      return `양력 ${solarObj.getYear()}년 ${solarObj.getMonth()}월 ${solarObj.getDay()}일`;
     } catch (e) {
-      return "⚠️ 유효하지 않은 음력 날짜 조합입니다.";
+      return "유효하지 않은 음력 날짜입니다.";
     }
   }, [calendarType, birthYear, birthMonth, birthDay]);
 
@@ -474,17 +484,15 @@ export default function SajuForm({
   };
 
   return (
-    <form id="saju-form" onSubmit={handleSubmit} className="space-y-4 bg-[#FCFAF7] p-5 border border-[#E2D8C7] rounded-xl shadow-xs">
-      <div className="flex items-center justify-between border-b border-[#EADFCF] pb-2.5">
-        <h3 className="font-serif text-sm font-bold text-[#2C3E50] tracking-tight">
-          사주 명식 정보 입력
-        </h3>
-        <span className="text-[10px] text-[#5C5046] font-medium">만세력 정밀 보정</span>
+    <form id="saju-form" onSubmit={handleSubmit} className="space-y-6 bg-surface border border-line p-5 sm:p-6 rounded-xl">
+      <div>
+        <h3 className="font-serif text-lg font-semibold text-ink">사주 정보 입력</h3>
+        <p className="text-xs text-ink-faint mt-1">태어난 날을 기준으로 만세력을 계산합니다.</p>
       </div>
 
       {/* Nickname */}
-      <div className="space-y-1 text-left">
-        <label className="block text-xs font-semibold text-[#2C3E50]">명식에 올릴 이름(별명)</label>
+      <div className="space-y-1.5 text-left">
+        <label className="block text-xs font-medium text-ink-soft">이름 (별명)</label>
         <input
           id="nickname-input"
           type="text"
@@ -492,23 +500,19 @@ export default function SajuForm({
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           placeholder="예: 홍길동, 지우"
-          className="w-full px-3.5 py-2.5 bg-white border border-[#D6CCBC] focus:outline-none focus:ring-1 focus:ring-[#C0392B] focus:border-[#C0392B] rounded-lg text-sm placeholder:text-[#B0A69B] text-[#2C3E50]"
+          className={`w-full px-4 py-3 ${inputBase} ${inputOk}`}
         />
       </div>
 
       {/* Gender */}
-      <div className="space-y-1 text-left">
-        <label className="block text-xs font-semibold text-[#2C3E50]">성별 (대운 순행/역행 판별)</label>
-        <div className="grid grid-cols-2 gap-2">
+      <div className="space-y-1.5 text-left">
+        <label className="block text-xs font-medium text-ink-soft">성별</label>
+        <div className="grid grid-cols-2 gap-1 bg-sunken p-1 rounded-xl">
           <button
             id="gender-female-btn"
             type="button"
             onClick={() => setGender("여성")}
-            className={`py-2 text-xs font-bold rounded-lg border transition-all duration-150 cursor-pointer ${
-              gender === "여성"
-                ? "bg-[#C0392B] text-white border-[#C0392B] shadow-xs"
-                : "bg-white text-[#5A4D41] border-[#D6CCBC] hover:bg-[#FAF7F2]"
-            }`}
+            className={`${chipBase} ${gender === "여성" ? chipOn : chipOff}`}
           >
             여성
           </button>
@@ -516,11 +520,7 @@ export default function SajuForm({
             id="gender-male-btn"
             type="button"
             onClick={() => setGender("남성")}
-            className={`py-2 text-xs font-bold rounded-lg border transition-all duration-150 cursor-pointer ${
-              gender === "남성"
-                ? "bg-[#C0392B] text-white border-[#C0392B] shadow-xs"
-                : "bg-white text-[#5A4D41] border-[#D6CCBC] hover:bg-[#FAF7F2]"
-            }`}
+            className={`${chipBase} ${gender === "남성" ? chipOn : chipOff}`}
           >
             남성
           </button>
@@ -528,39 +528,27 @@ export default function SajuForm({
       </div>
 
       {/* Calendar Type */}
-      <div className="space-y-1 text-left">
-        <label className="block text-xs font-semibold text-[#2C3E50]">양력 / 음력 선택</label>
-        <div className="grid grid-cols-3 gap-2">
+      <div className="space-y-1.5 text-left">
+        <label className="block text-xs font-medium text-ink-soft">양력 / 음력</label>
+        <div className="grid grid-cols-3 gap-1 bg-sunken p-1 rounded-xl">
           <button
             type="button"
             onClick={() => setCalendarType("solar")}
-            className={`py-2 text-xs font-bold rounded-lg border transition-all duration-150 cursor-pointer ${
-              calendarType === "solar"
-                ? "bg-[#C0392B] text-white border-[#C0392B] shadow-xs"
-                : "bg-white text-[#5A4D41] border-[#D6CCBC] hover:bg-[#FAF7F2]"
-            }`}
+            className={`${chipBase} ${calendarType === "solar" ? chipOn : chipOff}`}
           >
             양력
           </button>
           <button
             type="button"
             onClick={() => setCalendarType("lunar_normal")}
-            className={`py-2 text-xs font-bold rounded-lg border transition-all duration-150 cursor-pointer ${
-              calendarType === "lunar_normal"
-                ? "bg-[#C0392B] text-white border-[#C0392B] shadow-xs"
-                : "bg-white text-[#5A4D41] border-[#D6CCBC] hover:bg-[#FAF7F2]"
-            }`}
+            className={`${chipBase} ${calendarType === "lunar_normal" ? chipOn : chipOff}`}
           >
             음력 평달
           </button>
           <button
             type="button"
             onClick={() => setCalendarType("lunar_leap")}
-            className={`py-2 text-xs font-bold rounded-lg border transition-all duration-150 cursor-pointer ${
-              calendarType === "lunar_leap"
-                ? "bg-[#C0392B] text-white border-[#C0392B] shadow-xs"
-                : "bg-white text-[#5A4D41] border-[#D6CCBC] hover:bg-[#FAF7F2]"
-            }`}
+            className={`${chipBase} ${calendarType === "lunar_leap" ? chipOn : chipOff}`}
           >
             음력 윤달
           </button>
@@ -568,15 +556,13 @@ export default function SajuForm({
       </div>
 
       {/* Birth Date */}
-      <div className="space-y-1 text-left">
-        <div className="flex justify-between items-center">
-          <label className="block text-xs font-semibold text-[#2C3E50]">
+      <div className="space-y-1.5 text-left">
+        <div className="flex justify-between items-center gap-2">
+          <label className="block text-xs font-medium text-ink-soft">
             {calendarType === "solar" ? "생년월일 (양력)" : `생년월일 (음력 ${calendarType === "lunar_leap" ? "윤달" : "평달"})`}
           </label>
           {convertedSolarText && (
-            <span className="text-[11px] font-semibold text-[#C0392B] transition-all">
-              {convertedSolarText}
-            </span>
+            <span className="text-xs font-medium text-ink">{convertedSolarText}</span>
           )}
         </div>
         <div className="grid grid-cols-3 gap-2">
@@ -594,11 +580,9 @@ export default function SajuForm({
                 setBirthYear(val);
               }}
               placeholder="1995"
-              className={`w-full text-center pr-5 pl-2 py-2 bg-white border rounded-lg text-sm text-[#2C3E50] font-sans transition-colors focus:outline-none focus:ring-1 ${
-                yearError ? "border-rose-500 focus:ring-rose-500 focus:border-rose-500 bg-rose-50/20" : "border-[#D6CCBC] focus:ring-[#C0392B] focus:border-[#C0392B]"
-              }`}
+              className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${yearError ? inputErr : inputOk}`}
             />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-[#5C5046] pointer-events-none">년</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">년</span>
           </div>
 
           {/* Month Input */}
@@ -615,11 +599,9 @@ export default function SajuForm({
                 setBirthMonth(val);
               }}
               placeholder="1"
-              className={`w-full text-center pr-5 pl-2 py-2 bg-white border rounded-lg text-sm text-[#2C3E50] font-sans transition-colors focus:outline-none focus:ring-1 ${
-                monthError ? "border-rose-500 focus:ring-rose-500 focus:border-rose-500 bg-rose-50/20" : "border-[#D6CCBC] focus:ring-[#C0392B] focus:border-[#C0392B]"
-              }`}
+              className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${monthError ? inputErr : inputOk}`}
             />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-[#5C5046] pointer-events-none">월</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">월</span>
           </div>
 
           {/* Day Input */}
@@ -636,32 +618,30 @@ export default function SajuForm({
                 setBirthDay(val);
               }}
               placeholder="1"
-              className={`w-full text-center pr-5 pl-2 py-2 bg-white border rounded-lg text-sm text-[#2C3E50] font-sans transition-colors focus:outline-none focus:ring-1 ${
-                dayError ? "border-rose-500 focus:ring-rose-500 focus:border-rose-500 bg-rose-50/20" : "border-[#D6CCBC] focus:ring-[#C0392B] focus:border-[#C0392B]"
-              }`}
+              className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${dayError ? inputErr : inputOk}`}
             />
-            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-[#5C5046] pointer-events-none">일</span>
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">일</span>
           </div>
         </div>
         {(yearError || monthError || dayError) && (
           <div className="space-y-1 mt-1.5 pl-1">
-            {yearError && <p className="text-[11px] text-rose-600 font-medium leading-normal">⚠️ {yearError}</p>}
-            {monthError && <p className="text-[11px] text-rose-600 font-medium leading-normal">⚠️ {monthError}</p>}
-            {dayError && <p className="text-[11px] text-rose-600 font-medium leading-normal">⚠️ {dayError}</p>}
+            {yearError && <p className="text-xs text-seal font-medium leading-normal">{yearError}</p>}
+            {monthError && <p className="text-xs text-seal font-medium leading-normal">{monthError}</p>}
+            {dayError && <p className="text-xs text-seal font-medium leading-normal">{dayError}</p>}
           </div>
         )}
       </div>
 
       {/* Birth Place / Timezone Correction */}
-      <div className="space-y-1 text-left">
-        <label className="block text-xs font-semibold text-[#2C3E50]">출생 지역 (진태양시 정밀 경도 보정)</label>
+      <div className="space-y-1.5 text-left">
+        <label className="block text-xs font-medium text-ink-soft">출생 지역</label>
         <div className="grid grid-cols-2 gap-2">
           {/* Region Select (시/도) */}
           <select
             id="birthplace-region-select"
             value={selectedRegion}
             onChange={handleRegionChange}
-            className="w-full px-2.5 py-2 bg-white border border-[#D6CCBC] focus:outline-none focus:ring-1 focus:ring-[#C0392B] focus:border-[#C0392B] rounded-lg text-xs text-[#2C3E50] cursor-pointer"
+            className={`w-full px-3 py-3 ${inputBase} ${inputOk} cursor-pointer`}
           >
             {REGIONS.map((region) => (
               <option key={region} value={region}>
@@ -675,34 +655,35 @@ export default function SajuForm({
             id="birthplace-city-select"
             value={birthplaceCity}
             onChange={(e) => setBirthplaceCity(e.target.value)}
-            className="w-full px-2.5 py-2 bg-white border border-[#D6CCBC] focus:outline-none focus:ring-1 focus:ring-[#C0392B] focus:border-[#C0392B] rounded-lg text-xs text-[#2C3E50] cursor-pointer"
+            className={`w-full px-3 py-3 ${inputBase} ${inputOk} cursor-pointer`}
           >
             {KOREAN_CITIES_MODIFIED.filter((c) => c.region === selectedRegion).map((city) => {
               const isMetropolitan = city.region.endsWith("특별시") || city.region.endsWith("광역시") || city.region.endsWith("특별자치시");
               const displayName = isMetropolitan ? `${city.name} 전역` : `${city.name}시/군`;
               return (
                 <option key={`${city.region}-${city.name}`} value={city.name}>
-                  {displayName} ({city.lon.toFixed(2)}°)
+                  {displayName}
                 </option>
               );
             })}
           </select>
         </div>
+        <p className="text-xs text-ink-faint">출생지의 경도로 태양시를 보정해 계산합니다.</p>
       </div>
 
       {/* Birth Time Toggle + Selection */}
       <div className="space-y-2 text-left">
         <div className="flex items-center justify-between">
-          <label className="block text-xs font-semibold text-[#2C3E50]">출생 시각 입력</label>
+          <label className="block text-xs font-medium text-ink-soft">출생 시각</label>
           <label className="flex items-center space-x-1.5 cursor-pointer select-none">
             <input
               id="know-time-check"
               type="checkbox"
               checked={knowTime}
               onChange={(e) => setKnowTime(e.target.checked)}
-              className="w-3.5 h-3.5 rounded border-[#D6CCBC] text-[#C0392B] accent-[#C0392B] focus:ring-0 cursor-pointer"
+              className="w-3.5 h-3.5 rounded accent-ink cursor-pointer"
             />
-            <span className="text-xs text-[#5A4D41] font-medium">태어난 시각을 압니다</span>
+            <span className="text-xs text-ink-soft">태어난 시각을 압니다</span>
           </label>
         </div>
 
@@ -723,11 +704,9 @@ export default function SajuForm({
                     setBirthHour(val);
                   }}
                   placeholder="14"
-                  className={`w-full text-center pr-5 pl-2 py-2 bg-white border rounded-lg text-sm text-[#2C3E50] font-sans transition-colors focus:outline-none focus:ring-1 ${
-                    hourError ? "border-rose-500 focus:ring-rose-500 focus:border-rose-500 bg-rose-50/20" : "border-[#D6CCBC] focus:ring-[#C0392B] focus:border-[#C0392B]"
-                  }`}
+                  className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${hourError ? inputErr : inputOk}`}
                 />
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-[#5C5046] pointer-events-none">시</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">시</span>
               </div>
 
               {/* Minute Input */}
@@ -744,40 +723,42 @@ export default function SajuForm({
                     setBirthMin(val);
                   }}
                   placeholder="30"
-                  className={`w-full text-center pr-5 pl-2 py-2 bg-white border rounded-lg text-sm text-[#2C3E50] font-sans transition-colors focus:outline-none focus:ring-1 ${
-                    minError ? "border-rose-500 focus:ring-rose-500 focus:border-rose-500 bg-rose-50/20" : "border-[#D6CCBC] focus:ring-[#C0392B] focus:border-[#C0392B]"
-                  }`}
+                  className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${minError ? inputErr : inputOk}`}
                 />
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-[#5C5046] pointer-events-none">분</span>
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">분</span>
               </div>
             </div>
             {(hourError || minError) && (
               <div className="space-y-1 mt-1.5 pl-1">
-                {hourError && <p className="text-[11px] text-rose-600 font-medium leading-normal">⚠️ {hourError}</p>}
-                {minError && <p className="text-[11px] text-rose-600 font-medium leading-normal">⚠️ {minError}</p>}
+                {hourError && <p className="text-xs text-seal font-medium leading-normal">{hourError}</p>}
+                {minError && <p className="text-xs text-seal font-medium leading-normal">{minError}</p>}
               </div>
             )}
           </div>
         ) : (
-          <div className="text-[11px] text-[#4F443B] bg-[#F5EFE6]/60 p-2.5 rounded-lg border border-[#E2D8C7] leading-relaxed">
-            * 시각을 모르는 경우, 만세력 계산 시 태어난 날(일주)까지 삼주(연·월·일)를 바탕으로 정확히 분석합니다.
-          </div>
+          <p className="text-xs text-ink-faint bg-sunken p-3 rounded-xl leading-relaxed">
+            시각을 모르면 연·월·일 세 기둥으로 분석합니다. 시각까지 입력하면 더 정밀해집니다.
+          </p>
         )}
       </div>
 
       {/* MBTI Selection Option */}
-      <div className="space-y-2 text-left bg-[#F5EFE6]/40 p-3.5 rounded-xl border border-[#E2D8C7]">
-        <div className="flex items-center justify-between border-b border-[#EADFCF] pb-2">
-          <label className="text-xs font-semibold text-[#2C3E50]">성향 심리 (MBTI 결합)</label>
+      <div className="space-y-2 text-left bg-sunken p-4 rounded-xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-xs font-medium text-ink">MBTI 함께 보기</span>
+            <span className="text-xs text-ink-faint ml-1.5">선택</span>
+          </div>
           <button
             type="button"
             onClick={() => setUseMbti(!useMbti)}
+            aria-label="MBTI 함께 보기"
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              useMbti ? "bg-[#C0392B]" : "bg-[#D6CCBC]"
+              useMbti ? "bg-ink" : "bg-line"
             }`}
           >
             <span
-              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white transition duration-200 ease-in-out ${
                 useMbti ? "translate-x-5" : "translate-x-0"
               }`}
             />
@@ -785,140 +766,47 @@ export default function SajuForm({
         </div>
 
         {useMbti && (
-          <div className="space-y-2.5 pt-1.5">
-            <div className="grid grid-cols-2 gap-2">
-              {/* E / I */}
-              <div className="flex flex-col space-y-1">
-                <span className="text-[9px] font-bold text-[#5C5046]">에너지 (E/I)</span>
-                <div className="flex rounded-lg overflow-hidden border border-[#D6CCBC] bg-white text-xs text-center font-bold">
+          <div className="grid grid-cols-2 gap-2 pt-1.5">
+            {([
+              { label: "에너지", a: "E", b: "I", aDesc: "외향", bDesc: "내향", value: mbtiLetter1, set: setMbtiLetter1, idA: "mbti-e-btn", idB: "mbti-i-btn" },
+              { label: "인식", a: "S", b: "N", aDesc: "감각", bDesc: "직관", value: mbtiLetter2, set: setMbtiLetter2, idA: "mbti-s-btn", idB: "mbti-n-btn" },
+              { label: "판단", a: "T", b: "F", aDesc: "사고", bDesc: "감정", value: mbtiLetter3, set: setMbtiLetter3, idA: "mbti-t-btn", idB: "mbti-f-btn" },
+              { label: "생활", a: "J", b: "P", aDesc: "계획", bDesc: "자율", value: mbtiLetter4, set: setMbtiLetter4, idA: "mbti-j-btn", idB: "mbti-p-btn" },
+            ] as const).map((row) => (
+              <div key={row.label} className="flex flex-col space-y-1">
+                <span className="text-xs text-ink-faint">{row.label}</span>
+                <div className="flex rounded-lg overflow-hidden bg-surface text-sm text-center">
                   <button
-                    id="mbti-e-btn"
+                    id={row.idA}
                     type="button"
-                    onClick={() => setMbtiLetter1("E")}
-                    className={`flex-1 py-2 transition-all cursor-pointer ${
-                      mbtiLetter1 === "E"
-                        ? "bg-[#C0392B] text-white shadow-inner font-extrabold"
-                        : "bg-white text-[#8A7A6E] hover:bg-[#FAF7F2]"
+                    onClick={() => row.set(row.a)}
+                    className={`flex-1 py-2 transition-colors cursor-pointer ${
+                      row.value === row.a ? "bg-ink text-white font-semibold" : "text-ink-faint hover:text-ink"
                     }`}
                   >
-                    E (외향)
+                    {row.a} {row.aDesc}
                   </button>
                   <button
-                    id="mbti-i-btn"
+                    id={row.idB}
                     type="button"
-                    onClick={() => setMbtiLetter1("I")}
-                    className={`flex-1 py-2 transition-all cursor-pointer ${
-                      mbtiLetter1 === "I"
-                        ? "bg-[#C0392B] text-white shadow-inner font-extrabold"
-                        : "bg-white text-[#8A7A6E] hover:bg-[#FAF7F2]"
+                    onClick={() => row.set(row.b)}
+                    className={`flex-1 py-2 transition-colors cursor-pointer ${
+                      row.value === row.b ? "bg-ink text-white font-semibold" : "text-ink-faint hover:text-ink"
                     }`}
                   >
-                    I (내향)
-                  </button>
-                </div>
-              </div>
-
-              {/* S / N */}
-              <div className="flex flex-col space-y-1">
-                <span className="text-[9px] font-bold text-[#5C5046]">인식 (S/N)</span>
-                <div className="flex rounded-lg overflow-hidden border border-[#D6CCBC] bg-white text-xs text-center font-bold">
-                  <button
-                    id="mbti-s-btn"
-                    type="button"
-                    onClick={() => setMbtiLetter2("S")}
-                    className={`flex-1 py-2 transition-all cursor-pointer ${
-                      mbtiLetter2 === "S"
-                        ? "bg-[#C0392B] text-white shadow-inner font-extrabold"
-                        : "bg-white text-[#8A7A6E] hover:bg-[#FAF7F2]"
-                    }`}
-                  >
-                    S (감각)
-                  </button>
-                  <button
-                    id="mbti-n-btn"
-                    type="button"
-                    onClick={() => setMbtiLetter2("N")}
-                    className={`flex-1 py-2 transition-all cursor-pointer ${
-                      mbtiLetter2 === "N"
-                        ? "bg-[#C0392B] text-white shadow-inner font-extrabold"
-                        : "bg-white text-[#8A7A6E] hover:bg-[#FAF7F2]"
-                    }`}
-                  >
-                    N (직관)
+                    {row.b} {row.bDesc}
                   </button>
                 </div>
               </div>
-
-              {/* T / F */}
-              <div className="flex flex-col space-y-1">
-                <span className="text-[9px] font-bold text-[#5C5046]">판단 (T/F)</span>
-                <div className="flex rounded-lg overflow-hidden border border-[#D6CCBC] bg-white text-xs text-center font-bold">
-                  <button
-                    id="mbti-t-btn"
-                    type="button"
-                    onClick={() => setMbtiLetter3("T")}
-                    className={`flex-1 py-2 transition-all cursor-pointer ${
-                      mbtiLetter3 === "T"
-                        ? "bg-[#C0392B] text-white shadow-inner font-extrabold"
-                        : "bg-white text-[#8A7A6E] hover:bg-[#FAF7F2]"
-                    }`}
-                  >
-                    T (사고)
-                  </button>
-                  <button
-                    id="mbti-f-btn"
-                    type="button"
-                    onClick={() => setMbtiLetter3("F")}
-                    className={`flex-1 py-2 transition-all cursor-pointer ${
-                      mbtiLetter3 === "F"
-                        ? "bg-[#C0392B] text-white shadow-inner font-extrabold"
-                        : "bg-white text-[#8A7A6E] hover:bg-[#FAF7F2]"
-                    }`}
-                  >
-                    F (감정)
-                  </button>
-                </div>
-              </div>
-
-              {/* J / P */}
-              <div className="flex flex-col space-y-1">
-                <span className="text-[9px] font-bold text-[#5C5046]">생활 (J/P)</span>
-                <div className="flex rounded-lg overflow-hidden border border-[#D6CCBC] bg-white text-xs text-center font-bold">
-                  <button
-                    id="mbti-j-btn"
-                    type="button"
-                    onClick={() => setMbtiLetter4("J")}
-                    className={`flex-1 py-2 transition-all cursor-pointer ${
-                      mbtiLetter4 === "J"
-                        ? "bg-[#C0392B] text-white shadow-inner font-extrabold"
-                        : "bg-white text-[#8A7A6E] hover:bg-[#FAF7F2]"
-                    }`}
-                  >
-                    J (계획)
-                  </button>
-                  <button
-                    id="mbti-p-btn"
-                    type="button"
-                    onClick={() => setMbtiLetter4("P")}
-                    className={`flex-1 py-2 transition-all cursor-pointer ${
-                      mbtiLetter4 === "P"
-                        ? "bg-[#C0392B] text-white shadow-inner font-extrabold"
-                        : "bg-white text-[#8A7A6E] hover:bg-[#FAF7F2]"
-                    }`}
-                  >
-                    P (자율)
-                  </button>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
         )}
       </div>
 
       {error && (
-        <div className="text-xs text-[#C0392B] bg-[#FDEDEC] p-3 rounded-lg border border-[#FADBD8] font-medium text-center">
-          ⚠️ {error}
-        </div>
+        <p className="text-xs text-seal bg-sunken p-3 rounded-xl font-medium text-center">
+          {error}
+        </p>
       )}
 
       {(() => {
@@ -940,10 +828,10 @@ export default function SajuForm({
             id="submit-saju-btn"
             type="submit"
             disabled={isSubmitDisabled}
-            className={`w-full py-3.5 rounded-xl font-serif font-bold text-sm tracking-wide text-center transition-all duration-150 shadow-xs ${
+            className={`w-full py-3.5 rounded-xl font-semibold text-sm text-center transition-colors ${
               isSubmitDisabled
-                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#C0392B] text-white hover:bg-[#A93226] active:translate-y-[1px] cursor-pointer"
+                ? "bg-line text-ink-faint cursor-not-allowed"
+                : "bg-seal text-white hover:bg-seal-deep cursor-pointer"
             }`}
           >
             {submitButtonText}
@@ -951,12 +839,10 @@ export default function SajuForm({
         );
       })()}
 
-      <div className="mt-3 pt-3 border-t border-[#EADFCF] text-[11px] text-[#4F443B] leading-relaxed space-y-1">
-        <p className="font-semibold text-[#2C3E50]">
-          💡 왜 내가 알던 띠(동물)와 다르게 나올 수 있나요?
-        </p>
+      <div className="pt-4 border-t border-line text-xs text-ink-faint leading-relaxed">
         <p>
-          전통 명리학에서 개인의 본질 성향을 규명하는 것은 태어난 해가 아닌 <strong>태어난 날(일간·일지)</strong>의 기운입니다. 인연사주는 일주를 기반으로 한층 정밀한 고유 소울 캐릭터를 매칭해 드립니다.
+          내가 알던 띠와 다른 동물이 나올 수 있습니다. 본질 성향은 태어난 해가 아니라
+          <strong className="text-ink-soft"> 태어난 날(일간·일지)</strong>의 기운으로 읽기 때문입니다.
         </p>
       </div>
     </form>

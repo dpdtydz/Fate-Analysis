@@ -22,44 +22,36 @@ function showPCShareModal(text: string, url: string) {
   
   // 3. Inject premium, brand-aligned HTML with Zero-Trust styling (Warm/Neutral + Red Accent)
   modal.innerHTML = `
-    <div class="bg-[#FCFAF6] border border-[#E7E1D6] rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 text-left relative transform transition-all duration-300 scale-95" style="font-family: inherit;">
-      <div class="flex items-center justify-between border-b border-[#EFE9DF] pb-3">
-        <h3 class="text-sm font-serif font-bold text-[#1E293B] flex items-center gap-2">
-          <span>📋 초대 메시지 복사 완료!</span>
-        </h3>
-        <button id="pc-share-close-btn-top" class="text-[#8C7E74] hover:text-[#5C5046] transition cursor-pointer p-1">
+    <div class="bg-surface rounded-xl max-w-md w-full p-6 shadow-lg space-y-4 text-left relative transform transition-all duration-300 scale-95" style="font-family: inherit;">
+      <div class="flex items-center justify-between">
+        <h3 class="font-serif text-lg font-semibold text-ink">공유 문구를 복사했습니다</h3>
+        <button id="pc-share-close-btn-top" class="text-ink-faint hover:text-ink transition-colors cursor-pointer p-1" aria-label="닫기">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
-      
-      <p class="text-xs text-[#5C5046] leading-relaxed">
-        인연사주의 결과 및 초대 메시지가 클립보드에 안전하게 복사되었습니다.<br />
-        <strong>카카오톡 대화방</strong>이나 단톡방, SNS 등에 <strong>붙여넣기(Ctrl+V / 길게 눌러 붙여넣기)</strong> 하시면 바로 전송할 수 있습니다!
+
+      <p class="text-sm text-ink-soft leading-relaxed">
+        카카오톡 대화방이나 SNS에 붙여넣기(Ctrl+V) 하면 바로 보낼 수 있습니다.
       </p>
 
       <div class="space-y-1.5">
-        <label class="text-[10px] font-bold text-[#8C7E74] uppercase tracking-wider">복사된 공유 내용</label>
-        <div class="relative">
-          <textarea id="pc-share-textarea" readonly class="w-full h-28 p-3 text-xs text-[#2C3E50] bg-[#F5EFE6] border border-[#E7E1D6] rounded-xl focus:outline-none resize-none leading-relaxed select-all" style="font-family: inherit;">${text}</textarea>
-        </div>
+        <label class="text-xs text-ink-faint">복사된 내용</label>
+        <textarea id="pc-share-textarea" readonly class="w-full h-28 p-3 text-sm text-ink bg-sunken rounded-xl focus:outline-none focus:ring-1 focus:ring-ink resize-none leading-relaxed select-all" style="font-family: inherit;">${text}</textarea>
       </div>
 
-      <div class="flex gap-2.5 pt-1">
-        <button id="pc-share-copy-btn" class="flex-1 py-2.5 px-4 bg-[#C0392B] hover:bg-[#A93226] text-white text-xs font-bold rounded-full transition active:scale-[0.98] shadow-xs flex items-center justify-center gap-1.5 cursor-pointer">
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-          </svg>
-          <span>다시 복사하기</span>
+      <div class="flex gap-2 pt-1">
+        <button id="pc-share-copy-btn" class="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer">
+          다시 복사하기
         </button>
-        <button id="pc-share-close-btn" class="py-2.5 px-4 bg-[#EFE9DF] hover:bg-[#E7E1D6] text-[#5C5046] text-xs font-bold rounded-full transition cursor-pointer border border-[#E7E1D6]">
+        <button id="pc-share-close-btn" class="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer">
           닫기
         </button>
       </div>
-      
-      <div id="pc-share-toast" class="absolute bottom-16 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-md opacity-0 transition-opacity duration-300 pointer-events-none">
-        클립보드에 다시 복사되었습니다!
+
+      <div id="pc-share-toast" class="absolute bottom-16 left-1/2 -translate-x-1/2 bg-ink text-white text-xs font-medium px-3 py-2 rounded-xl opacity-0 transition-opacity duration-300 pointer-events-none">
+        다시 복사했습니다
       </div>
     </div>
   `;
@@ -131,7 +123,7 @@ export function shareToKakaoOrClipboard(data: ShareData): Promise<{ success: boo
       try {
         await navigator.share({
           title: data.title,
-          text: `${data.title}\n\n${data.description}\n\n👉 결과 확인하기:`,
+          text: `${data.title}\n\n${data.description}\n\n결과 확인하기:`,
           url: data.url,
         });
         resolve({ success: true, method: "web_share" });
@@ -146,7 +138,7 @@ export function shareToKakaoOrClipboard(data: ShareData): Promise<{ success: boo
     }
 
     // 2. Fallback: Copy structured viral message to clipboard
-    const shareText = `[인연사주(因緣四柱)] ${data.title}\n\n${data.badge ? `✨ ${data.badge}\n` : ""}${data.score ? `💯 인연 지수: ${data.score}점\n` : ""}\n"${data.description}"\n\n🔮 나와의 궁합 & 사주 확인하기:\n${data.url}`;
+    const shareText = `[인연사주] ${data.title}\n\n${data.badge ? `${data.badge}\n` : ""}${data.score ? `인연 지수 ${data.score}점\n` : ""}\n"${data.description}"\n\n궁합과 사주 확인하기:\n${data.url}`;
 
     try {
       await navigator.clipboard.writeText(shareText);

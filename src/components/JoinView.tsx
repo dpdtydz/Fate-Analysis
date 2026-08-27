@@ -155,10 +155,10 @@ export default function JoinView({ code }: JoinViewProps) {
 
   if (pageLoading) {
     return (
-      <Layout title="인연방 참여">
+      <Layout title="모임방 참여">
         <div className="flex flex-col items-center justify-center py-20 select-none">
-          <div className="w-10 h-10 rounded-full border-2 border-[#C0392B] border-t-transparent animate-spin mb-3" />
-          <p className="text-xs text-[#4F443B]">인연방 정보를 확인하고 있습니다...</p>
+          <div className="w-10 h-10 rounded-full border-2 border-seal border-t-transparent animate-spin mb-3" />
+          <p className="text-xs text-ink-soft">모임방 정보를 확인하고 있습니다...</p>
         </div>
       </Layout>
     );
@@ -168,31 +168,28 @@ export default function JoinView({ code }: JoinViewProps) {
 
   if (!isGoogleUser) {
     return (
-      <Layout title={`${roomTitle || "인연방"} 참여하기`} showHomeButton>
-        {loading && <LoadingOverlay message="인간 명부를 대접하는 중..." />}
-        <div className="space-y-4 py-3 text-center">
-          <div className="w-14 h-14 mx-auto rounded-xl border border-[#C0392B]/40 bg-[#FDF2F0] flex items-center justify-center font-serif text-2xl text-[#C0392B] shadow-xs select-none">
-            <span className="font-bold">參</span>
+      <Layout title={`${roomTitle || "모임방"} 참여하기`} showHomeButton>
+        {loading && <LoadingOverlay message="로그인하는 중..." />}
+        <div className="space-y-4 py-3 text-center max-w-md mx-auto">
+          <div className="w-12 h-12 mx-auto rounded-md bg-ink text-white flex items-center justify-center font-serif text-xl select-none">
+            參
           </div>
-          
+
           <div className="space-y-1">
-            <h3 className="font-serif text-base font-bold text-[#2C3E50] tracking-tight">
-              Google 계정 로그인 안내
+            <h3 className="font-serif text-lg font-semibold text-ink tracking-tight">
+              로그인하고 참여하기
             </h3>
-            <p className="text-xs text-[#4F443B] leading-relaxed max-w-sm mx-auto">
-              안전한 사주 프로필 보관 및 궁합 인연망 조회를 위해 Google 계정 인증을 진행합니다.
+            <p className="text-sm text-ink-soft leading-relaxed max-w-sm mx-auto">
+              사주 프로필을 안전하게 보관하고 궁합을 다시 볼 수 있도록 Google 계정으로 로그인합니다.
             </p>
           </div>
 
-          <div className="bg-[#FCFAF7] border border-[#E2D8C7] p-4 rounded-xl text-left text-xs text-[#4F443B] leading-relaxed space-y-1">
-            <p className="font-bold text-[#2C3E50]">💡 간편 인증 시 혜택</p>
-            <p>다시 방문하더라도 등록한 사주 캐릭터와 궁합 분석표를 언제든 다시 확인하실 수 있습니다.</p>
+          <div className="bg-surface border border-line p-4 rounded-xl text-left text-sm text-ink-soft leading-relaxed">
+            다시 방문해도 등록한 사주 캐릭터와 궁합 분석을 언제든 확인할 수 있습니다.
           </div>
 
           {error && (
-            <div className="text-xs text-[#C0392B] bg-[#FDEDEC] p-3 rounded-lg border border-[#FADBD8] font-medium">
-              ⚠️ {error}
-            </div>
+            <p className="text-xs text-seal bg-sunken p-3 rounded-xl font-medium">{error}</p>
           )}
 
           <button
@@ -208,7 +205,7 @@ export default function JoinView({ code }: JoinViewProps) {
                 setLoading(false);
               }
             }}
-            className="w-full py-3.5 bg-[#2C3E50] hover:bg-[#1E293B] active:translate-y-[1px] text-[#FAF7F2] font-serif font-bold text-sm rounded-xl transition-all tracking-wide shadow-xs flex items-center justify-center space-x-2 cursor-pointer"
+            className="w-full py-3.5 bg-ink hover:bg-ink/90 text-white font-semibold text-sm rounded-xl transition-colors flex items-center justify-center space-x-2 cursor-pointer"
           >
             <span>Google 계정으로 계속하기</span>
           </button>
@@ -218,31 +215,28 @@ export default function JoinView({ code }: JoinViewProps) {
   }
 
   return (
-    <Layout title={`${roomTitle || "인연방"} 참여하기`} showHomeButton>
-      {loading && <LoadingOverlay message="내 오행을 명부에 기록하는 중..." />}
+    <Layout title={`${roomTitle || "모임방"} 참여하기`} showHomeButton>
+      {loading && <LoadingOverlay message="사주를 등록하는 중..." />}
 
-      <div className="space-y-4 py-1">
-        <div className="text-center">
-          <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded border border-emerald-200 font-medium">
-            인증됨: {currentUser?.displayName}님
-          </span>
-          <h3 className="font-serif text-lg font-bold text-[#2C3E50] tracking-tight mt-2">
-            '{roomTitle || "인연방"}' 사주 등록
+      <div className="space-y-5 py-1">
+        <div className="text-center space-y-1">
+          <h3 className="font-serif text-xl font-semibold text-ink tracking-tight">
+            '{roomTitle || "모임방"}'에 사주 등록
           </h3>
-          <p className="text-xs text-[#4F443B] mt-0.5">
-            태어난 일시를 입력하여 모임 멤버들과의 궁합 인연망에 참여합니다.
+          <p className="text-sm text-ink-soft">
+            태어난 일시를 입력하면 모임 멤버들과의 궁합이 계산됩니다.
           </p>
         </div>
 
         {error && (
-          <div className="text-xs text-[#C0392B] bg-[#FDEDEC] p-3 rounded-lg border border-[#FADBD8] font-medium text-center">
-            ⚠️ {error}
-          </div>
+          <p className="text-xs text-seal bg-sunken p-3 rounded-xl font-medium text-center">
+            {error}
+          </p>
         )}
 
-        <SajuForm 
-          onSubmit={handleJoinSubmit} 
-          submitButtonText="인연방 명부에 등록하기" 
+        <SajuForm
+          onSubmit={handleJoinSubmit}
+          submitButtonText="등록하고 참여하기"
           initialNickname={personalProfile?.nickname || currentUser?.displayName || ""} 
           initialGender={personalProfile?.gender || "여성"}
           initialBirthDate={personalProfile?.birth_date || ""}

@@ -1,43 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { 
-  Crown, 
-  Check, 
-  Sparkles, 
-  ShieldCheck, 
-  ArrowRight, 
-  RefreshCw, 
-  Printer, 
-  Eye, 
-  Lock, 
-  Unlock, 
-  CheckCircle2, 
-  AlertCircle, 
-  Flame, 
-  Smile,
-  Users,
-  Ticket,
-  KeyRound,
-  Gift,
+import {
+  Check,
+  ShieldCheck,
+  RefreshCw,
+  Printer,
+  Eye,
+  CheckCircle2,
+  AlertCircle,
   Share2,
-  Copy,
-  UserPlus,
-  X,
-  CreditCard,
-  Wallet,
-  CheckCheck
+  X
 } from "lucide-react";
-import { 
-  auth, 
-  checkPremiumStatus, 
-  checkProductUnlock, 
-  activatePremiumSimulation, 
-  deactivatePremiumSimulation, 
-  deactivateProductSimulation, 
-  redeemCoupon, 
-  getUserTicketAccount, 
-  consumeSingleUseTicket, 
-  addTicketsToUser, 
+import {
+  auth,
+  checkPremiumStatus,
+  checkProductUnlock,
+  activatePremiumSimulation,
+  deactivatePremiumSimulation,
+  deactivateProductSimulation,
+  redeemCoupon,
+  getUserTicketAccount,
+  consumeSingleUseTicket,
+  addTicketsToUser,
   getUserMembershipInfo,
   getSystemPaymentSettings
 } from "../lib/firebase";
@@ -60,11 +44,11 @@ interface PremiumPaywallProps {
   pairKey?: string;
 }
 
-export default function PremiumPaywall({ 
-  onStatusChange, 
-  inline = false, 
-  titleText, 
-  subtitleText, 
+export default function PremiumPaywall({
+  onStatusChange,
+  inline = false,
+  titleText,
+  subtitleText,
   memberCount,
   initialTab,
   isModal = false,
@@ -79,7 +63,7 @@ export default function PremiumPaywall({
   const [checking, setChecking] = useState(true);
   const [activating, setActivating] = useState(false);
   const [message, setMessage] = useState("");
-  
+
   // Ticket Account States
   const [ticketAccount, setTicketAccount] = useState<UserTicketAccount | null>(null);
   const [ticketLoading, setTicketLoading] = useState(false);
@@ -151,7 +135,7 @@ export default function PremiumPaywall({
     setIsPdfUnlocked(status || pdfStatus);
     setIsSecretUnlocked(status || secretStatus);
     setIsGroupUnlocked(status || groupStatus);
-    
+
     // Fetch Ticket Account
     try {
       const acc = await getUserTicketAccount();
@@ -267,7 +251,7 @@ export default function PremiumPaywall({
   const handleCopyInviteLink = () => {
     const uid = auth.currentUser?.uid || localStorage.getItem("saju_fallback_guest_uid") || "guest";
     const inviteUrl = `${window.location.origin}${window.location.pathname}#/?ref=${encodeURIComponent(uid)}`;
-    
+
     navigator.clipboard.writeText(inviteUrl).then(() => {
       setCopiedInvite(true);
       logAnalyticsEvent({
@@ -364,183 +348,102 @@ export default function PremiumPaywall({
   const renderInner = () => {
     if (checking) {
       return (
-        <div id="premium-shop-skeleton" className="space-y-5 animate-pulse text-left">
-          {/* 1. Header Skeleton */}
+        <div id="premium-shop-skeleton" className="space-y-4 text-left">
           <div className="space-y-2">
-            <div className="h-5 w-44 bg-[#DFD8CD] rounded-md" /> {/* Eyebrow badge */}
-            <div className="h-7 w-3/4 bg-[#E5DFD5] rounded-lg" /> {/* Title */}
-            <div className="space-y-1.5 pt-1">
-              <div className="h-3.5 w-full bg-[#EFEBE4] rounded" />
-              <div className="h-3.5 w-5/6 bg-[#EFEBE4] rounded" />
-            </div>
+            <div className="h-6 w-2/3 bg-sunken rounded-xl" />
+            <div className="h-4 w-5/6 bg-sunken rounded-xl" />
           </div>
 
-          {/* 2. Dual Card Grid Skeleton */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Box 1: My Tickets Account Skeleton */}
-            <div className="bg-[#FAF6ED]/80 border-2 border-[#E8E0D0]/50 rounded-2xl p-4 space-y-3 shadow-3xs">
-              <div className="flex items-center justify-between">
-                <div className="h-4.5 w-28 bg-[#DFD8CD] rounded" />
-                <div className="h-5 w-20 bg-[#E5DFD5] rounded-full" />
-              </div>
-              <div className="grid grid-cols-3 gap-1.5">
-                <div className="h-11 bg-white/60 rounded-xl border border-[#E8E0D0]/40" />
-                <div className="h-11 bg-white/60 rounded-xl border border-[#E8E0D0]/40" />
-                <div className="h-11 bg-white/60 rounded-xl border border-[#E8E0D0]/40" />
-              </div>
-              <div className="h-3 w-11/12 bg-[#EFEBE4] rounded" />
-            </div>
-
-            {/* Box 2: Invite & Earn Skeleton */}
-            <div className="bg-[#FAF6ED]/80 border-2 border-[#E8E0D0]/50 rounded-2xl p-4 space-y-3 flex flex-col justify-between shadow-3xs">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="h-4.5 w-36 bg-[#DFD8CD] rounded" />
-                  <div className="h-4 w-12 bg-[#EFEBE4] rounded" />
-                </div>
-                <div className="h-3 w-full bg-[#EFEBE4] rounded" />
-              </div>
-              <div className="h-8.5 w-full bg-[#E5DFD5] rounded-xl mt-2" />
-            </div>
+            <div className="h-28 bg-sunken rounded-xl" />
+            <div className="h-28 bg-sunken rounded-xl" />
           </div>
 
-          {/* 3. Coupon redemption Skeleton */}
-          <div className="bg-[#FAF6ED]/80 border-2 border-[#E8E0D0]/60 rounded-2xl p-4.5 space-y-3.5 shadow-3xs">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1.5 flex-1">
-                <div className="h-4.5 w-40 bg-[#DFD8CD] rounded" />
-                <div className="h-3 w-3/4 bg-[#EFEBE4] rounded" />
-              </div>
-              <div className="h-5 w-24 bg-[#EFEBE4] rounded-full" />
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 pt-1">
-              <div className="h-9.5 flex-1 bg-white border border-[#DFD8CD] rounded-xl" />
-              <div className="h-9.5 w-full sm:w-44 bg-[#E5DFD5] rounded-xl" />
-            </div>
-          </div>
+          <div className="h-32 bg-sunken rounded-xl" />
+          <div className="h-11 bg-sunken rounded-xl" />
+          <div className="h-40 bg-sunken rounded-xl" />
 
-          {/* 4. Tab Navigation Skeleton */}
-          <div className="grid grid-cols-3 gap-1.5 bg-[#FAF6ED]/50 border border-[#E8E0D0]/60 p-1 rounded-xl">
-            <div className="h-9.5 bg-[#C0392B]/10 rounded-lg" />
-            <div className="h-9.5 bg-white/40 rounded-lg" />
-            <div className="h-9.5 bg-white/40 rounded-lg" />
-          </div>
-
-          {/* 5. Tab Content Skeleton */}
-          <div className="bg-[#FAF6ED]/40 border border-[#E8E0D0]/40 rounded-xl p-5 space-y-3.5">
-            <div className="flex justify-between items-start gap-2">
-              <div className="space-y-2 flex-1">
-                <div className="h-3.5 w-16 bg-[#DFD8CD] rounded" />
-                <div className="h-4 w-2/3 bg-[#E5DFD5] rounded" />
-              </div>
-              <div className="h-6.5 w-24 bg-[#EFEBE4] rounded-lg" />
-            </div>
-            <div className="space-y-2">
-              <div className="h-3.5 w-full bg-[#EFEBE4] rounded" />
-              <div className="h-3.5 w-5/6 bg-[#EFEBE4] rounded" />
-            </div>
-            <div className="border-t border-dashed border-[#E8E0D0]/60 my-3 pt-3 space-y-2">
-              <div className="h-3.5 w-4/5 bg-[#EFEBE4] rounded" />
-              <div className="h-3.5 w-3/4 bg-[#EFEBE4] rounded" />
-            </div>
-          </div>
-
-          {/* Center text indicating background loading is happening */}
-          <div className="flex items-center justify-center gap-2 pt-2 text-xs text-[#5C5046]/70">
-            <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#C0392B]" />
-            <span>인연 상점 정보를 안전하게 불러오는 중입니다...</span>
+          <div className="flex items-center justify-center gap-2 pt-2 text-xs text-ink-faint">
+            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+            <span>상점 정보를 불러오는 중입니다</span>
           </div>
         </div>
       );
     }
 
     return (
-      <div id="premium-shop-container" className={`${inline || isModal ? "p-0" : "bg-[#FFFDF9]/95 border border-[#E7E1D6] p-5.5 sm:p-6.5 rounded-[26px] shadow-md"} text-left space-y-4.5 animate-fade-in relative`}>
-      
-      {/* Premium Header */}
+      <div id="premium-shop-container" className={`${inline || isModal ? "p-0" : "bg-surface border border-line p-5 sm:p-6 rounded-xl"} text-left space-y-5 animate-fade-in relative`}>
+
+      {/* Header */}
       <div className="space-y-1.5">
-        <div className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-[#FDF3F1] border border-[#C0392B]/20 text-[9px] font-bold text-[#C0392B] rounded-md font-serif uppercase tracking-wider">
-          <Gift className="w-3 h-3 text-[#C0392B]" />
-          <span>1회 확인권 & 친구 초대 보상 센터</span>
-        </div>
-        <h4 className="font-serif text-base sm:text-lg font-black text-[#2C3E50] tracking-tight">
-          {titleText || "👑 프리미엄 사주 상생 리포트 1회 확인권 해금"}
+        <h4 className="font-serif text-lg font-semibold text-ink">
+          {titleText || "1회 확인권으로 심층 분석 열람"}
         </h4>
-        <p className="text-[11px] text-[#5C5046] leading-relaxed font-medium">
-          {subtitleText || "1회 확인권을 소모하여 단발성으로 심층 감정서를 열람할 수 있습니다. 이미 분석된 사주 데이터는 안전하게 보존되어 언제든 다시 확인권을 사용하시면 동일한 고품질 결과를 즉시 재열람할 수 있습니다."}
+        <p className="text-sm text-ink-soft leading-relaxed">
+          {subtitleText || "확인권 1장으로 심층 감정서를 한 번 열람할 수 있어요. 분석된 사주 데이터는 보관되므로 확인권을 다시 사용하면 같은 결과를 언제든 열람할 수 있어요."}
         </p>
       </div>
 
-      {/* 🎟️ TICKET STATUS & INVITE REWARD DUAL CARD */}
+      {/* Ticket status & invite reward */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        
+
         {/* Box 1: My Tickets Account */}
-        <div className="bg-gradient-to-br from-[#FFFDF9] to-[#FAF8F5] border-2 border-[#C0392B]/20 rounded-2xl p-4 space-y-2.5 shadow-xs">
+        <div className="bg-sunken rounded-xl p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Ticket className="w-4 h-4 text-[#C0392B]" />
-              <span className="font-serif font-black text-xs text-[#2C3E50]">내 보유 1회 확인권</span>
-            </div>
-            <span className="text-xs font-mono font-black text-[#C0392B] bg-[#FFFDF9] px-2 py-0.5 rounded-full border border-[#C0392B]/20 shadow-3xs">
-              총 {totalTickets}장 보유
-            </span>
+            <span className="text-sm font-semibold text-ink">내 확인권</span>
+            <span className="text-xs font-mono text-ink-soft">총 {totalTickets}장</span>
           </div>
 
-          <div className="grid grid-cols-4 gap-1 text-center text-[10px]">
-            <div className="bg-[#FFFDF9] p-1.5 rounded-xl border border-[#E7E1D6]">
-              <span className="text-[#5C5046] block text-[8px] truncate">📄 PDF소장</span>
-              <span className="font-extrabold text-[#2C3E50] font-mono text-[11px]">{(ticketAccount?.tickets?.pdf || 0)}장</span>
+          <div className="grid grid-cols-4 gap-1.5 text-center">
+            <div className="bg-surface p-2 rounded-lg">
+              <span className="text-xs text-ink-faint block truncate">PDF</span>
+              <span className="text-sm font-semibold font-mono text-ink">{(ticketAccount?.tickets?.pdf || 0)}</span>
             </div>
-            <div className="bg-[#FFFDF9] p-1.5 rounded-xl border border-[#E7E1D6]">
-              <span className="text-[#5C5046] block text-[8px] truncate">🔒 비밀인연</span>
-              <span className="font-extrabold text-[#2C3E50] font-mono text-[11px]">{(ticketAccount?.tickets?.secret || 0)}장</span>
+            <div className="bg-surface p-2 rounded-lg">
+              <span className="text-xs text-ink-faint block truncate">비밀 인연</span>
+              <span className="text-sm font-semibold font-mono text-ink">{(ticketAccount?.tickets?.secret || 0)}</span>
             </div>
-            <div className="bg-[#FFFDF9] p-1.5 rounded-xl border border-[#E7E1D6]">
-              <span className="text-[#5C5046] block text-[8px] truncate">👥 그룹오행</span>
-              <span className="font-extrabold text-[#2C3E50] font-mono text-[11px]">{(ticketAccount?.tickets?.group || 0)}장</span>
+            <div className="bg-surface p-2 rounded-lg">
+              <span className="text-xs text-ink-faint block truncate">그룹 오행</span>
+              <span className="text-sm font-semibold font-mono text-ink">{(ticketAccount?.tickets?.group || 0)}</span>
             </div>
-            <div className="bg-[#FFF8EC] p-1.5 rounded-xl border border-amber-300">
-              <span className="text-amber-800 block font-semibold text-[8px] truncate">🌟 올패스</span>
-              <span className="font-extrabold text-amber-900 font-mono text-[11px]">{(ticketAccount?.tickets?.all || 0)}장</span>
+            <div className="bg-surface p-2 rounded-lg">
+              <span className="text-xs text-ink-faint block truncate">올패스</span>
+              <span className="text-sm font-semibold font-mono text-ink">{(ticketAccount?.tickets?.all || 0)}</span>
             </div>
           </div>
 
-          <p className="text-[9.5px] text-[#5C5046] leading-tight">
-            * 1회 소모 시 해당 분석 결과가 해금되며, 모임방 데이터는 영구 보관됩니다.
+          <p className="text-xs text-ink-faint leading-relaxed">
+            확인권 1장을 사용하면 해당 분석이 열리고, 모임 데이터는 계속 보관됩니다.
           </p>
         </div>
 
-        {/* Box 2: Invite & Earn Free Tickets */}
-        <div className="bg-gradient-to-br from-[#F1F5F9] to-[#E2E8F0] border-2 border-[#1E293B]/20 rounded-2xl p-4 space-y-2.5 shadow-xs flex flex-col justify-between">
-          <div>
+        {/* Box 2: Invite & Earn */}
+        <div className="bg-sunken rounded-xl p-4 space-y-3 flex flex-col justify-between">
+          <div className="space-y-1">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <UserPlus className="w-4 h-4 text-[#1E293B]" />
-                <span className="font-serif font-black text-xs text-[#1E293B]">친구 초대하고 무료 티켓 받기</span>
-              </div>
-              <span className="text-[9px] font-extrabold text-[#1E293B] bg-[#1E293B]/10 px-1.5 py-0.5 rounded">
-                초대한 친구: {ticketAccount?.invitedCount || 0}명
-              </span>
+              <span className="text-sm font-semibold text-ink">친구 초대</span>
+              <span className="text-xs text-ink-faint">초대한 친구 {ticketAccount?.invitedCount || 0}명</span>
             </div>
-            <p className="text-[9.5px] text-[#475569] mt-1 leading-snug">
-              내 링크로 친구가 참여할 때마다 <strong>1회 확인권 +1장</strong>이 즉시 지급됩니다!
+            <p className="text-xs text-ink-soft leading-relaxed">
+              내 링크로 친구가 참여할 때마다 확인권 1장이 지급됩니다.
             </p>
           </div>
 
           <button
             type="button"
             onClick={handleCopyInviteLink}
-            className="w-full py-2 px-3 bg-[#1E293B] hover:bg-[#0F172A] text-white font-serif font-extrabold text-[11px] rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+            className="w-full py-2.5 px-3 bg-surface hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
           >
             {copiedInvite ? (
               <>
-                <Check className="w-3.5 h-3.5 text-white animate-bounce" />
-                <span>초대 링크 복사 완료!</span>
+                <Check className="w-3.5 h-3.5" />
+                <span>초대 링크가 복사되었습니다</span>
               </>
             ) : (
               <>
                 <Share2 className="w-3.5 h-3.5" />
-                <span>내 친구 초대 링크 복사하기</span>
+                <span>초대 링크 복사</span>
               </>
             )}
           </button>
@@ -548,131 +451,95 @@ export default function PremiumPaywall({
 
       </div>
 
-      {/* 🎫 HIGHLIGHTED COUPON REDEMPTION CARD */}
-      <div className="bg-gradient-to-br from-[#FFFDF9] via-[#FAF8F5] to-[#EFE9DF] border-2 border-[#E7E1D6] rounded-2xl p-4.5 sm:p-5 space-y-3.5 shadow-sm relative overflow-hidden">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5">
-            <div className="w-7 h-7 rounded-lg bg-[#C0392B] text-white flex items-center justify-center text-sm shadow-3xs">
-              <Ticket className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="font-serif font-extrabold text-xs sm:text-sm text-[#2C3E50] block">
-                쿠폰 번호 등록 & 티켓 충전
-              </span>
-              <span className="text-[9.5px] text-[#5C5046] font-medium block">
-                발급받으신 쿠폰 코드를 입력하시면 해당 1회 확인권이 즉시 충전됩니다.
-              </span>
-            </div>
-          </div>
-          <span className="text-[8.5px] font-black bg-[#FDF3F1] text-[#C0392B] px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 border border-[#C0392B]/20">
-            무결제 쿠폰 전용
+      {/* Coupon redemption */}
+      <div className="bg-sunken rounded-xl p-4 sm:p-5 space-y-3">
+        <div className="space-y-1">
+          <span className="text-sm font-semibold text-ink block">쿠폰 등록</span>
+          <span className="text-xs text-ink-soft block">
+            발급받은 쿠폰 번호를 입력하면 해당 확인권이 충전됩니다.
           </span>
         </div>
 
         {/* Input Form */}
         <form onSubmit={(e) => { e.preventDefault(); handleApplyCoupon(); }} className="flex flex-col sm:flex-row gap-2">
-          <div className="relative flex-1">
-            <KeyRound className="w-4 h-4 text-[#C0392B] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              ref={couponInputRef}
-              type="text"
-              value={couponInput}
-              onChange={(e) => {
-                setCouponInput(e.target.value);
-                setCouponErrorMsg("");
-                setCouponSuccessMsg("");
-              }}
-              placeholder="전달받으신 쿠폰 번호를 입력하세요"
-              maxLength={20}
-              className="w-full pl-9 pr-3 py-2.5 bg-white border-2 border-[#E7E1D6] rounded-xl text-xs font-bold text-[#2C3E50] uppercase placeholder:normal-case placeholder:font-normal focus:outline-none focus:border-[#C0392B] focus:ring-2 focus:ring-[#C0392B]/10 transition-all shadow-inner"
-            />
-          </div>
+          <input
+            ref={couponInputRef}
+            type="text"
+            value={couponInput}
+            onChange={(e) => {
+              setCouponInput(e.target.value);
+              setCouponErrorMsg("");
+              setCouponSuccessMsg("");
+            }}
+            placeholder="쿠폰 번호 입력"
+            maxLength={20}
+            className="flex-1 min-w-0 px-4 py-2.5 bg-surface rounded-xl text-sm text-ink font-mono uppercase placeholder:normal-case placeholder:font-sans placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-ink"
+          />
           <button
             type="submit"
             disabled={couponLoading}
-            className="py-2.5 px-5 bg-gradient-to-r from-[#C0392B] to-[#962D22] hover:from-[#A93226] hover:to-[#7E2419] text-white font-serif font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+            className="py-2.5 px-5 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
           >
             {couponLoading ? (
               <>
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>검증 중...</span>
+                <span>확인 중</span>
               </>
             ) : (
-              <>
-                <Unlock className="w-3.5 h-3.5" />
-                <span>쿠폰 등록하여 티켓 받기</span>
-              </>
+              <span>쿠폰 등록</span>
             )}
           </button>
         </form>
 
         {/* Error Feedback */}
         {couponErrorMsg && (
-          <div className="text-[10px] font-bold text-red-700 bg-red-50 border border-red-200 p-2.5 rounded-xl flex items-center gap-1.5 animate-shake">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+          <p className="text-xs text-seal font-medium flex items-center gap-1.5">
+            <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{couponErrorMsg}</span>
-          </div>
+          </p>
         )}
 
         {/* Success Feedback */}
         {couponSuccessMsg && (
-          <div className="text-[10.5px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center gap-2 animate-fade-in shadow-xs">
-            <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600 shrink-0 animate-bounce" />
+          <p className="text-xs text-ink font-medium bg-surface p-3 rounded-xl flex items-center gap-1.5 animate-fade-in">
+            <Check className="w-4 h-4 text-ink-soft shrink-0" />
             <span>{couponSuccessMsg}</span>
-          </div>
+          </p>
         )}
       </div>
 
-      {/* 🚧 Preparation Notice Banner (When Payment is OFF) */}
+      {/* Preparation Notice (When Payment is OFF) */}
       {!isPaymentEnabled && (
-        <div className="bg-[#FAF7F2] border border-[#E0D8CC] rounded-3xl p-5 sm:p-6 space-y-2 text-center shadow-xs">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100/90 text-amber-900 border border-amber-300/80 rounded-full text-xs font-bold font-serif">
-            <span>🚧 실제 결제 시스템 정식 오픈 준비 중</span>
-          </div>
-          <h4 className="font-serif font-black text-sm sm:text-base text-[#2C3E50] mt-1">
-            현재는 관리자 발급 쿠폰 및 친구 초대 보상으로 1회 확인권이 지급됩니다
+        <div className="bg-sunken rounded-xl p-5 space-y-1.5 text-center">
+          <h4 className="text-sm font-semibold text-ink">
+            결제 기능은 준비 중입니다
           </h4>
-          <p className="text-xs text-[#5C5046] leading-relaxed max-w-lg mx-auto">
-            {paymentNotice || "보다 안정적이고 완벽한 서비스 제공을 위해 전자결제 심사 및 연동 준비 중입니다. 발급받으신 프로모션 쿠폰을 아래에 등록하시거나 친구를 초대하여 1회 확인권을 무료로 충전하여 이용하세요!"}
+          <p className="text-xs text-ink-soft leading-relaxed max-w-lg mx-auto">
+            {paymentNotice || "지금은 관리자 발급 쿠폰과 친구 초대 보상으로 확인권이 지급됩니다. 쿠폰이 있다면 위에서 등록해 주세요."}
           </p>
         </div>
       )}
 
-      {/* 💳 INSTANT PURCHASE TICKET PACKAGES (Only shown when Payment is ON) */}
+      {/* Ticket packages (Only shown when Payment is ON) */}
       {isPaymentEnabled && (
-        <div className="bg-gradient-to-br from-[#FFFDF9] via-[#FAF8F5] to-[#F5EFE6] border-2 border-amber-300/80 rounded-3xl p-5 sm:p-6 space-y-4 shadow-sm">
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center text-sm shadow-3xs">
-                <CreditCard className="w-4 h-4" />
-              </div>
-              <div>
-                <span className="font-serif font-extrabold text-sm text-[#2C3E50] block">
-                  1회 확인권 즉시 충전 패키지
-                </span>
-                <span className="text-[10px] text-[#5C5046] font-medium block">
-                  원하는 수량만큼 간편결제(카카오·토스·카드)로 즉시 충전하여 바로 이용하세요.
-                </span>
-              </div>
-            </div>
-            <span className="text-[9px] font-black bg-amber-100 text-amber-900 px-2.5 py-1 rounded-full border border-amber-300">
-              ⚡ 즉시 충전 & 평생 보관
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <span className="text-sm font-semibold text-ink block">확인권 충전</span>
+            <span className="text-xs text-ink-soft block">
+              간편결제(카카오·토스·카드)로 원하는 수량을 충전할 수 있습니다.
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Option 1: 1 Ticket */}
-            <div className="bg-white border border-[#E7E1D6] hover:border-[#C0392B] rounded-2xl p-4 flex flex-col justify-between space-y-3 transition-all shadow-3xs hover:shadow-xs">
+            <div className="bg-sunken rounded-xl p-4 flex flex-col justify-between space-y-3">
               <div>
-                <div className="flex justify-between items-start">
-                  <span className="text-[10.5px] font-bold text-[#5C5046]">단건 충전</span>
-                  <span className="text-[9px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-bold">1회권</span>
-                </div>
+                <span className="text-xs font-medium text-ink-soft">단건 충전 · 1회권</span>
                 <div className="mt-1.5">
-                  <span className="text-lg font-serif font-black text-[#2C3E50]">₩1,900</span>
-                  <span className="text-[10px] text-[#8C7E74] ml-1 font-sans">/ 1장</span>
+                  <span className="text-lg font-semibold text-ink">₩1,900</span>
+                  <span className="text-xs text-ink-faint ml-1">/ 1장</span>
                 </div>
-                <p className="text-[9.5px] text-[#6A5E53] mt-1 leading-snug">원하는 감정 결과 1회 즉시 열람</p>
+                <p className="text-xs text-ink-soft mt-1 leading-relaxed">원하는 분석 결과 1회 열람</p>
               </div>
               <button
                 type="button"
@@ -683,28 +550,21 @@ export default function PremiumPaywall({
                   type: "all",
                   ticketCount: 1,
                 })}
-                className="w-full py-2.5 bg-[#FAF6EE] hover:bg-[#C0392B] text-[#C0392B] hover:text-white font-serif font-bold text-xs rounded-xl transition active:scale-95 border border-[#C0392B]/20 flex items-center justify-center gap-1 cursor-pointer"
+                className="w-full py-2.5 bg-surface hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors cursor-pointer"
               >
-                <CreditCard className="w-3.5 h-3.5" />
-                <span>₩1,900 결제하기</span>
+                ₩1,900 결제
               </button>
             </div>
 
-            {/* Option 2: 3 Tickets (Best Seller) */}
-            <div className="bg-gradient-to-b from-[#FFFDF9] to-[#FDF4F2] border-2 border-[#C0392B] rounded-2xl p-4 flex flex-col justify-between space-y-3 relative shadow-xs">
-              <div className="absolute -top-2.5 right-3 bg-[#C0392B] text-white text-[8.5px] font-extrabold px-2 py-0.5 rounded-full shadow-2xs">
-                🔥 베스트 (31% 할인)
-              </div>
+            {/* Option 2: 3 Tickets */}
+            <div className="bg-sunken rounded-xl p-4 flex flex-col justify-between space-y-3">
               <div>
-                <div className="flex justify-between items-start">
-                  <span className="text-[10.5px] font-bold text-[#C0392B]">인기 패키지</span>
-                  <span className="text-[9px] bg-[#C0392B]/10 text-[#C0392B] px-1.5 py-0.5 rounded font-bold">3회권</span>
-                </div>
+                <span className="text-xs font-medium text-seal">3회권 · 가장 많이 선택</span>
                 <div className="mt-1.5 flex items-baseline gap-1.5">
-                  <span className="text-lg font-serif font-black text-[#C0392B]">₩3,900</span>
-                  <span className="text-xs text-gray-400 line-through">₩5,700</span>
+                  <span className="text-lg font-semibold text-ink">₩3,900</span>
+                  <span className="text-xs text-ink-faint line-through">₩5,700</span>
                 </div>
-                <p className="text-[9.5px] text-[#6A5E53] mt-1 leading-snug">장당 ₩1,300 (소모임·단짝 추천)</p>
+                <p className="text-xs text-ink-soft mt-1 leading-relaxed">장당 ₩1,300</p>
               </div>
               <button
                 type="button"
@@ -717,25 +577,21 @@ export default function PremiumPaywall({
                   ticketCount: 3,
                   badge: "인기 3회권"
                 })}
-                className="w-full py-2.5 bg-[#C0392B] hover:bg-[#A93226] text-white font-serif font-extrabold text-xs rounded-xl transition active:scale-95 shadow-2xs flex items-center justify-center gap-1 cursor-pointer"
+                className="w-full py-2.5 bg-seal hover:bg-seal-deep text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>₩3,900 결제하기</span>
+                ₩3,900 결제
               </button>
             </div>
 
-            {/* Option 3: 5 Tickets (Best Value) */}
-            <div className="bg-white border border-[#E7E1D6] hover:border-[#C0392B] rounded-2xl p-4 flex flex-col justify-between space-y-3 transition-all shadow-3xs hover:shadow-xs">
+            {/* Option 3: 5 Tickets */}
+            <div className="bg-sunken rounded-xl p-4 flex flex-col justify-between space-y-3">
               <div>
-                <div className="flex justify-between items-start">
-                  <span className="text-[10.5px] font-bold text-[#5C5046]">실속 패키지</span>
-                  <span className="text-[9px] bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-bold">5회권</span>
-                </div>
+                <span className="text-xs font-medium text-ink-soft">5회권</span>
                 <div className="mt-1.5 flex items-baseline gap-1.5">
-                  <span className="text-lg font-serif font-black text-[#2C3E50]">₩5,900</span>
-                  <span className="text-xs text-gray-400 line-through">₩9,500</span>
+                  <span className="text-lg font-semibold text-ink">₩5,900</span>
+                  <span className="text-xs text-ink-faint line-through">₩9,500</span>
                 </div>
-                <p className="text-[9.5px] text-[#6A5E53] mt-1 leading-snug">장당 ₩1,180 (38% 최대 할인)</p>
+                <p className="text-xs text-ink-soft mt-1 leading-relaxed">장당 ₩1,180</p>
               </div>
               <button
                 type="button"
@@ -748,10 +604,9 @@ export default function PremiumPaywall({
                   ticketCount: 5,
                   badge: "실속 5회권"
                 })}
-                className="w-full py-2.5 bg-[#FAF6EE] hover:bg-[#C0392B] text-[#C0392B] hover:text-white font-serif font-bold text-xs rounded-xl transition active:scale-95 border border-[#C0392B]/20 flex items-center justify-center gap-1 cursor-pointer"
+                className="w-full py-2.5 bg-surface hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors cursor-pointer"
               >
-                <Gift className="w-3.5 h-3.5" />
-                <span>₩5,900 결제하기</span>
+                ₩5,900 결제
               </button>
             </div>
           </div>
@@ -759,105 +614,98 @@ export default function PremiumPaywall({
       )}
 
       {/* Tab Navigation */}
-      <div className="grid grid-cols-3 gap-1.5 bg-[#FAF8F5] border border-[#E8E0D0] p-1 rounded-2xl shadow-xs">
+      <div className="flex bg-sunken p-1 rounded-xl gap-1 text-xs">
         <button
           id="tab-pdf-btn"
           type="button"
           onClick={() => setActiveTab("pdf")}
-          className={`py-3 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-2 rounded-lg transition-colors text-center cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === "pdf"
-              ? "bg-[#C0392B] text-white shadow-xs font-serif tracking-tight"
-              : "text-[#5C5046] hover:text-[#C0392B] hover:bg-white/60"
+              ? "bg-surface text-ink font-semibold"
+              : "text-ink-soft hover:text-ink font-medium"
           }`}
         >
-          <span>📄 PDF 심층 리포트</span>
-          {isPdfUnlocked && <span className="text-[9px] bg-[#C0392B] text-white px-1.5 py-0.5 rounded-full font-bold">✓</span>}
+          <span>PDF 리포트</span>
+          {isPdfUnlocked && <Check className="w-3.5 h-3.5 text-seal shrink-0" />}
         </button>
         <button
           id="tab-secret-btn"
           type="button"
           onClick={() => setActiveTab("secret")}
-          className={`py-3 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-2 rounded-lg transition-colors text-center cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === "secret"
-              ? "bg-[#C0392B] text-white shadow-xs font-serif tracking-tight"
-              : "text-[#5C5046] hover:text-[#C0392B] hover:bg-white/60"
+              ? "bg-surface text-ink font-semibold"
+              : "text-ink-soft hover:text-ink font-medium"
           }`}
         >
-          <span>🔒 비밀 인연·상성</span>
-          {isSecretUnlocked && <span className="text-[9px] bg-[#C0392B] text-white px-1.5 py-0.5 rounded-full font-bold">✓</span>}
+          <span>비밀 인연</span>
+          {isSecretUnlocked && <Check className="w-3.5 h-3.5 text-seal shrink-0" />}
         </button>
         <button
           id="tab-group-btn"
           type="button"
           onClick={() => setActiveTab("group")}
-          className={`py-3 text-xs font-bold rounded-xl transition-all text-center cursor-pointer flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-2 rounded-lg transition-colors text-center cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === "group"
-              ? "bg-[#C0392B] text-white shadow-xs font-serif tracking-tight"
-              : "text-[#5C5046] hover:text-[#C0392B] hover:bg-white/60"
+              ? "bg-surface text-ink font-semibold"
+              : "text-ink-soft hover:text-ink font-medium"
           }`}
         >
-          <span>👥 그룹 오행 분석</span>
-          {isGroupUnlocked && <span className="text-[9px] bg-[#C0392B] text-white px-1.5 py-0.5 rounded-full font-bold">✓</span>}
+          <span>그룹 오행</span>
+          {isGroupUnlocked && <Check className="w-3.5 h-3.5 text-seal shrink-0" />}
         </button>
       </div>
 
       {/* Tab 1: PDF Deep Report */}
       {activeTab === "pdf" && (
-        <div className="space-y-4 animate-fade-in">
-          <div className="bg-gradient-to-b from-[#FDFCF9] to-[#FAF7F2] border border-[#E7E1D6] rounded-3xl p-6 space-y-4 shadow-xs">
+        <div className="space-y-3 animate-fade-in">
+          <div className="bg-sunken rounded-xl p-5 space-y-3">
             <div className="flex justify-between items-start gap-2">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] bg-[#FDF3F1] text-[#C0392B] font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider">소장용 리포트</span>
-                  {isPaymentEnabled && <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded">₩2,900</span>}
-                </div>
-                <h5 className="font-serif font-black text-base text-[#2C3E50] mt-2 leading-snug">상세 AI 심층 사주 매칭 리포트 소장 & PDF 다운로드권</h5>
-              </div>
-              <div className="text-right shrink-0">
-                <span className="text-xs font-bold text-[#C0392B] bg-[#FDF3F1] px-2.5 py-1 rounded-lg border border-[#C0392B]/20">
-                  보유 티켓: {(ticketAccount?.tickets?.pdf || 0)}장
+              <div className="space-y-1">
+                <span className="text-xs text-ink-faint block">
+                  소장용 리포트{isPaymentEnabled && " · ₩2,900"}
                 </span>
+                <h5 className="text-[15px] font-semibold text-ink leading-snug">심층 사주 리포트 PDF 소장</h5>
               </div>
+              <span className="text-xs text-ink-soft bg-surface px-2.5 py-1 rounded-lg shrink-0">
+                보유 {(ticketAccount?.tickets?.pdf || 0)}장
+              </span>
             </div>
-            
-            <p className="text-xs text-[#5C4D41] leading-relaxed">
-              사주 원국 오행 배합 분석, 조후 및 조율 십신 정밀 비평과 평생의 운명 코드를 감정하여 고품격 전통 한지 테마 PDF 파일로 영구 소장할 수 있습니다.
+
+            <p className="text-sm text-ink-soft leading-relaxed">
+              사주 원국의 오행 배합과 십신 구성을 풀이해 한지 테마 PDF로 저장할 수 있어요.
             </p>
-            
-            <div className="border-t border-dashed border-[#EFE9DF] my-3 pt-3">
-              <ul className="text-xs text-[#4A3E31] space-y-2.5 pl-0.5">
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-[#C0392B] shrink-0 mt-0.5" /> 
-                  <span>나와 소중한 인연 간의 사주 원국 정밀 비교 분석서</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-[#C0392B] shrink-0 mt-0.5" /> 
-                  <span>출력 및 보관에 최적화된 고품격 전통 한지 레이아웃</span>
-                </li>
-              </ul>
-            </div>
+
+            <ul className="text-sm text-ink-soft space-y-2 pt-3 border-t border-line">
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
+                <span>나와 인연 간의 사주 원국 비교 분석서</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
+                <span>출력과 보관에 맞춘 한지 레이아웃</span>
+              </li>
+            </ul>
           </div>
-          
+
           <div className="space-y-2">
             {isPdfUnlocked ? (
-              <div className="space-y-2">
-                <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-                  <div className="flex items-center gap-2.5">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                    <div>
-                      <span className="font-serif font-black text-xs sm:text-sm text-emerald-950 block">AI 심층 사주 매칭 리포트 해금 완료!</span>
-                      <span className="text-[11px] text-emerald-800">언제든 원하시는 만큼 PDF 소장본을 다운로드 및 인쇄하실 수 있습니다.</span>
-                    </div>
+              <div className="bg-sunken rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <Check className="w-5 h-5 text-seal shrink-0" />
+                  <div>
+                    <span className="text-sm font-semibold text-ink block">리포트가 열려 있어요</span>
+                    <span className="text-xs text-ink-soft">PDF 소장본을 언제든 내려받을 수 있습니다.</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsPdfReportModalOpen(true)}
-                    className="w-full sm:w-auto py-3 px-5 bg-emerald-600 hover:bg-emerald-700 text-white font-serif font-extrabold text-xs rounded-xl shadow-xs transition active:scale-95 flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
-                  >
-                    <Printer className="w-4 h-4 text-white" />
-                    <span>📥 리포트 열기 & PDF 다운로드</span>
-                  </button>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPdfReportModalOpen(true)}
+                  className="w-full sm:w-auto py-3 px-5 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>리포트 열기</span>
+                </button>
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row gap-2">
@@ -866,10 +714,10 @@ export default function PremiumPaywall({
                     type="button"
                     onClick={() => handleConsumeTicket("pdf")}
                     disabled={ticketLoading}
-                    className="flex-1 py-3.5 px-4 bg-gradient-to-r from-[#C0392B] to-[#962D22] hover:from-[#A93226] hover:to-[#7E2419] text-white font-serif font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Printer className="w-4 h-4 text-[#FFFDF9] shrink-0" />
-                    <span>🎫 보유 1회 확인권으로 즉시 생성 & 다운로드 (잔여 {pdfTickets}장)</span>
+                    <Printer className="w-4 h-4 shrink-0" />
+                    <span>확인권 1장으로 PDF 열람 (잔여 {pdfTickets}장)</span>
                   </button>
                 ) : isPaymentEnabled ? (
                   <>
@@ -882,28 +730,25 @@ export default function PremiumPaywall({
                         type: "pdf",
                         ticketCount: 1,
                       })}
-                      className="flex-1 py-3.5 px-4 bg-gradient-to-r from-[#C0392B] to-[#962D22] hover:from-[#A93226] hover:to-[#7E2419] text-white font-serif font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
+                      className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                     >
-                      <CreditCard className="w-4 h-4 text-[#FFFDF9] shrink-0" />
-                      <span>💳 ₩2,900 즉시 결제하여 PDF 해금하기</span>
+                      <span>₩2,900 결제하고 열람</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => focusCouponInput("PDF2026")}
-                      className="py-3.5 px-4 bg-[#FAF8F5] hover:bg-[#F2ECE0] text-[#5C5046] border border-[#E7E1D6] font-serif font-bold text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1"
+                      className="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
                     >
-                      <Ticket className="w-4 h-4 text-[#C0392B] shrink-0" />
-                      <span>쿠폰/친구초대</span>
+                      쿠폰·초대로 받기
                     </button>
                   </>
                 ) : (
                   <button
                     type="button"
                     onClick={() => focusCouponInput("PDF2026")}
-                    className="flex-1 py-3.5 px-4 bg-gradient-to-r from-[#C0392B] to-[#962D22] hover:from-[#A93226] hover:to-[#7E2419] text-white font-serif font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Ticket className="w-4 h-4 text-[#FFFDF9] shrink-0" />
-                    <span>🎟️ 쿠폰 등록 & 친구 초대로 1회 확인권 받기</span>
+                    <span>쿠폰 등록하고 확인권 받기</span>
                   </button>
                 )}
               </div>
@@ -911,16 +756,16 @@ export default function PremiumPaywall({
 
             {/* Direct Feedback Below PDF Action Button */}
             {ticketSuccessMsg && (
-              <div className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center gap-2 animate-fade-in shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 animate-bounce" />
+              <p className="text-xs text-ink font-medium bg-sunken p-3 rounded-xl flex items-center gap-1.5 animate-fade-in">
+                <Check className="w-4 h-4 text-ink-soft shrink-0" />
                 <span>{ticketSuccessMsg}</span>
-              </div>
+              </p>
             )}
             {ticketErrorMsg && (
-              <div className="text-[11px] font-bold text-red-700 bg-red-50 border border-red-200 p-2.5 rounded-xl flex items-center gap-1.5 animate-shake">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+              <p className="text-xs text-seal font-medium bg-sunken p-3 rounded-xl flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{ticketErrorMsg}</span>
-              </div>
+              </p>
             )}
           </div>
         </div>
@@ -928,41 +773,36 @@ export default function PremiumPaywall({
 
       {/* Tab 2: Secret Compatibility */}
       {activeTab === "secret" && (
-        <div className="space-y-4 animate-fade-in">
-          <div className="bg-gradient-to-b from-[#FDFCF9] to-[#FAF7F2] border border-[#E7E1D6] rounded-3xl p-6 space-y-4 shadow-xs">
+        <div className="space-y-3 animate-fade-in">
+          <div className="bg-sunken rounded-xl p-5 space-y-3">
             <div className="flex justify-between items-start gap-2">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] bg-red-100 text-red-800 font-extrabold px-2.5 py-0.5 rounded uppercase tracking-wider">1:1 심층 케미</span>
-                  {isPaymentEnabled && <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded">₩1,900</span>}
-                </div>
-                <h5 className="font-serif font-black text-base text-[#2C3E50] mt-2 leading-snug">모임 구성원 1:1 심층 인연 등급 & 기질 상성 해독권</h5>
-              </div>
-              <div className="text-right shrink-0">
-                <span className="text-xs font-bold text-[#C0392B] bg-[#FDF3F1] px-2.5 py-1 rounded-lg border border-[#C0392B]/20">
-                  보유 티켓: {(ticketAccount?.tickets?.secret || 0)}장
+              <div className="space-y-1">
+                <span className="text-xs text-ink-faint block">
+                  1:1 심층 궁합{isPaymentEnabled && " · ₩1,900"}
                 </span>
+                <h5 className="text-[15px] font-semibold text-ink leading-snug">구성원 1:1 인연 등급·기질 상성 풀이</h5>
               </div>
+              <span className="text-xs text-ink-soft bg-surface px-2.5 py-1 rounded-lg shrink-0">
+                보유 {(ticketAccount?.tickets?.secret || 0)}장
+              </span>
             </div>
-            
-            <p className="text-xs text-[#5C4D41] leading-relaxed">
-              1:1 케미스트리 서열 등급(S, A, B, C, D, F)과 내면의 기질 상성 지도를 다이어그램으로 완전 분석합니다.
+
+            <p className="text-sm text-ink-soft leading-relaxed">
+              1:1 궁합 등급(S~F)과 내면의 기질 상성을 다이어그램으로 풀이합니다.
             </p>
-            
-            <div className="border-t border-dashed border-[#EFE9DF] my-3 pt-3">
-              <ul className="text-xs text-[#4A3E31] space-y-2.5 pl-0.5">
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-[#C0392B] shrink-0 mt-0.5" /> 
-                  <span>모임 내 가장 조화로운 운명적 짝꿍(S등급 조합) 즉시 확인</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-[#C0392B] shrink-0 mt-0.5" /> 
-                  <span>단순 겉궁합을 넘어선 오행 충/합 기반 심층 성향 궤적도</span>
-                </li>
-              </ul>
-            </div>
+
+            <ul className="text-sm text-ink-soft space-y-2 pt-3 border-t border-line">
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
+                <span>모임 안에서 가장 조화로운 조합(S등급) 확인</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
+                <span>오행 충·합에 기반한 성향 상성 풀이</span>
+              </li>
+            </ul>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex flex-col sm:flex-row gap-2">
               {secretTickets > 0 ? (
@@ -970,10 +810,9 @@ export default function PremiumPaywall({
                   type="button"
                   onClick={() => handleConsumeTicket("secret")}
                   disabled={ticketLoading}
-                  className="flex-1 py-3.5 px-4 bg-gradient-to-r from-[#C0392B] to-[#962D22] hover:from-[#A93226] hover:to-[#7E2419] text-white font-serif font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <Lock className="w-4 h-4 text-[#FFFDF9] shrink-0" />
-                  <span>🎫 보유 1회 확인권으로 1:1 심층 인연 열람하기 (잔여 {secretTickets}장)</span>
+                  <span>확인권 1장으로 열람 (잔여 {secretTickets}장)</span>
                 </button>
               ) : isPaymentEnabled ? (
                 <>
@@ -986,44 +825,41 @@ export default function PremiumPaywall({
                       type: "secret",
                       ticketCount: 1,
                     })}
-                    className="flex-1 py-3.5 px-4 bg-gradient-to-r from-[#C0392B] to-[#962D22] hover:from-[#A93226] hover:to-[#7E2419] text-white font-serif font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <CreditCard className="w-4 h-4 text-[#FFFDF9] shrink-0" />
-                    <span>💳 ₩1,900 즉시 결제하여 1:1 케미 해금</span>
+                    <span>₩1,900 결제하고 열람</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => focusCouponInput("SECRET2026")}
-                    className="py-3.5 px-4 bg-[#FAF8F5] hover:bg-[#F2ECE0] text-[#5C5046] border border-[#E7E1D6] font-serif font-bold text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1"
+                    className="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
                   >
-                    <Ticket className="w-4 h-4 text-[#C0392B] shrink-0" />
-                    <span>쿠폰/친구초대</span>
+                    쿠폰·초대로 받기
                   </button>
                 </>
               ) : (
                 <button
                   type="button"
                   onClick={() => focusCouponInput("SECRET2026")}
-                  className="flex-1 py-3.5 px-4 bg-gradient-to-r from-[#C0392B] to-[#962D22] hover:from-[#A93226] hover:to-[#7E2419] text-white font-serif font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <Ticket className="w-4 h-4 text-[#FFFDF9] shrink-0" />
-                  <span>🎟️ 쿠폰 등록 & 친구 초대로 1회 확인권 받기</span>
+                  <span>쿠폰 등록하고 확인권 받기</span>
                 </button>
               )}
             </div>
 
             {/* Direct Feedback Below Secret Action Button */}
             {ticketSuccessMsg && (
-              <div className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center gap-2 animate-fade-in shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 animate-bounce" />
+              <p className="text-xs text-ink font-medium bg-sunken p-3 rounded-xl flex items-center gap-1.5 animate-fade-in">
+                <Check className="w-4 h-4 text-ink-soft shrink-0" />
                 <span>{ticketSuccessMsg}</span>
-              </div>
+              </p>
             )}
             {ticketErrorMsg && (
-              <div className="text-[11px] font-bold text-red-700 bg-red-50 border border-red-200 p-2.5 rounded-xl flex items-center gap-1.5 animate-shake">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+              <p className="text-xs text-seal font-medium bg-sunken p-3 rounded-xl flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{ticketErrorMsg}</span>
-              </div>
+              </p>
             )}
           </div>
         </div>
@@ -1031,41 +867,36 @@ export default function PremiumPaywall({
 
       {/* Tab 3: Group Analysis */}
       {activeTab === "group" && (
-        <div className="space-y-4 animate-fade-in">
-          <div className="bg-gradient-to-b from-[#FDFCF9] to-[#FAF7F2] border border-[#E7E1D6] rounded-3xl p-6 space-y-4 shadow-xs">
+        <div className="space-y-3 animate-fade-in">
+          <div className="bg-sunken rounded-xl p-5 space-y-3">
             <div className="flex justify-between items-start gap-2">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] bg-[#C0392B]/10 text-[#C0392B] font-extrabold px-2.5 py-0.5 rounded border border-[#C0392B]/20 uppercase tracking-wider">소모임 맞춤형</span>
-                  {isPaymentEnabled && <span className="text-[10px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded">₩3,900</span>}
-                </div>
-                <h5 className="font-serif font-black text-base text-[#2C3E50] mt-2 leading-snug">모임 전체 인원의 오행 상생 궁합 총괄 보고서</h5>
-              </div>
-              <div className="text-right shrink-0">
-                <span className="text-xs font-bold text-[#C0392B] bg-[#FDF3F1] px-2.5 py-1 rounded-lg border border-[#C0392B]/20">
-                  보유 티켓: {(ticketAccount?.tickets?.group || 0)}장
+              <div className="space-y-1">
+                <span className="text-xs text-ink-faint block">
+                  소모임 맞춤{isPaymentEnabled && " · ₩3,900"}
                 </span>
+                <h5 className="text-[15px] font-semibold text-ink leading-snug">모임 전체 오행 상생 궁합 보고서</h5>
               </div>
+              <span className="text-xs text-ink-soft bg-surface px-2.5 py-1 rounded-lg shrink-0">
+                보유 {(ticketAccount?.tickets?.group || 0)}장
+              </span>
             </div>
-            
-            <p className="text-xs text-[#5C4D41] leading-relaxed">
-              모든 구성원의 오행(목, 화, 토, 금, 수)이 조화를 이루는지 한눈에 보여주는 순환 에너지 분포와 최적의 그룹 처방을 제공합니다.
+
+            <p className="text-sm text-ink-soft leading-relaxed">
+              구성원 전체의 오행(목·화·토·금·수) 분포와 순환 흐름을 한눈에 보여주고, 모임에 맞는 처방을 제안합니다.
             </p>
 
-            <div className="border-t border-dashed border-[#EFE9DF] my-3 pt-3">
-              <ul className="text-xs text-[#4A3E31] space-y-2.5 pl-0.5">
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-[#C0392B] shrink-0 mt-0.5" /> 
-                  <span>모임 전체 오행 분포도 및 부족/과다 기운 처방</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-[#C0392B] shrink-0 mt-0.5" /> 
-                  <span>모든 참여자 간 1:1 전수 매칭 케미스트리 종합 리포트</span>
-                </li>
-              </ul>
-            </div>
+            <ul className="text-sm text-ink-soft space-y-2 pt-3 border-t border-line">
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
+                <span>모임 전체 오행 분포와 부족·과다 기운 처방</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-ink-faint shrink-0 mt-0.5" />
+                <span>참여자 간 1:1 전수 궁합 종합 리포트</span>
+              </li>
+            </ul>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex flex-col sm:flex-row gap-2">
               {groupTickets > 0 ? (
@@ -1073,10 +904,9 @@ export default function PremiumPaywall({
                   type="button"
                   onClick={() => handleConsumeTicket("group")}
                   disabled={ticketLoading}
-                  className="flex-1 py-3.5 px-4 bg-[#C0392B] hover:bg-[#A93226] text-white font-serif font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <Users className="w-4 h-4 text-[#FFFDF9] shrink-0" />
-                  <span>🎫 보유 1회 확인권으로 그룹 오행 열람하기 (잔여 {groupTickets}장)</span>
+                  <span>확인권 1장으로 열람 (잔여 {groupTickets}장)</span>
                 </button>
               ) : isPaymentEnabled ? (
                 <>
@@ -1089,96 +919,90 @@ export default function PremiumPaywall({
                       type: "group",
                       ticketCount: 1,
                     })}
-                    className="flex-1 py-3.5 px-4 bg-gradient-to-r from-[#C0392B] to-[#962D22] hover:from-[#A93226] hover:to-[#7E2419] text-white font-serif font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <CreditCard className="w-4 h-4 text-[#FFFDF9] shrink-0" />
-                    <span>💳 ₩3,900 즉시 결제하여 그룹오행 해금</span>
+                    <span>₩3,900 결제하고 열람</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => focusCouponInput("GROUP2026")}
-                    className="py-3.5 px-4 bg-[#FAF8F5] hover:bg-[#F2ECE0] text-[#5C5046] border border-[#E7E1D6] font-serif font-bold text-xs rounded-xl transition cursor-pointer flex items-center justify-center gap-1"
+                    className="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
                   >
-                    <Ticket className="w-4 h-4 text-[#C0392B] shrink-0" />
-                    <span>쿠폰/친구초대</span>
+                    쿠폰·초대로 받기
                   </button>
                 </>
               ) : (
                 <button
                   type="button"
                   onClick={() => focusCouponInput("GROUP2026")}
-                  className="flex-1 py-3.5 px-4 bg-gradient-to-r from-[#C0392B] to-[#962D22] hover:from-[#A93226] hover:to-[#7E2419] text-white font-serif font-extrabold text-xs rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                  <Ticket className="w-4 h-4 text-[#FFFDF9] shrink-0" />
-                  <span>🎟️ 쿠폰 등록 & 친구 초대로 1회 확인권 받기</span>
+                  <span>쿠폰 등록하고 확인권 받기</span>
                 </button>
               )}
             </div>
 
             {/* Direct Feedback Below Group Action Button */}
             {ticketSuccessMsg && (
-              <div className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center gap-2 animate-fade-in shadow-xs">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 animate-bounce" />
+              <p className="text-xs text-ink font-medium bg-sunken p-3 rounded-xl flex items-center gap-1.5 animate-fade-in">
+                <Check className="w-4 h-4 text-ink-soft shrink-0" />
                 <span>{ticketSuccessMsg}</span>
-              </div>
+              </p>
             )}
             {ticketErrorMsg && (
-              <div className="text-[11px] font-bold text-red-700 bg-red-50 border border-red-200 p-2.5 rounded-xl flex items-center gap-1.5 animate-shake">
-                <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+              <p className="text-xs text-seal font-medium bg-sunken p-3 rounded-xl flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{ticketErrorMsg}</span>
-              </div>
+              </p>
             )}
           </div>
         </div>
       )}
 
       {/* COLLAPSIBLE PREVIEW SECTION */}
-      <div className="border border-[#E8E0D0] rounded-xl overflow-hidden bg-[#FAF8F5]/40">
+      <div className="bg-sunken rounded-xl overflow-hidden">
         <button
           id="toggle-preview-btn"
           type="button"
           onClick={() => setShowSamplePreview(!showSamplePreview)}
-          className="w-full flex items-center justify-between p-3.5 bg-[#FAF8F5] hover:bg-[#FAF8F5]/80 text-left text-[11px] font-extrabold text-[#5A4D41] border-b border-[#E8E0D0] transition duration-150 cursor-pointer"
+          className="w-full flex items-center justify-between p-4 text-left text-xs font-semibold text-ink hover:bg-line transition-colors cursor-pointer"
         >
           <div className="flex items-center gap-1.5">
-            <Eye className="w-4 h-4 text-[#C0392B]" />
-            <span>🔎 프리미엄 심층 리포트 & 처방전 실제 화면 샘플 미리보기</span>
+            <Eye className="w-4 h-4 text-ink-soft" />
+            <span>심층 리포트 샘플 미리보기</span>
           </div>
-          <span className="text-[10px] text-[#5C5046]">
-            {showSamplePreview ? "▲ 닫기" : "▼ 펼쳐서 샘플 확인"}
+          <span className="text-xs text-ink-faint font-medium">
+            {showSamplePreview ? "접기" : "펼치기"}
           </span>
         </button>
 
         {showSamplePreview && (
-          <div className="p-4 space-y-4 text-left animate-fade-in text-xs leading-relaxed max-h-[300px] overflow-y-auto scrollbar-thin">
-            
+          <div className="px-4 pb-4 space-y-3 text-left animate-fade-in text-xs leading-relaxed max-h-[300px] overflow-y-auto">
+
             {/* Header Mock */}
-            <div className="text-center pb-2.5 border-b border-dashed border-[#E8E0D0]">
-              <span className="font-serif text-[10px] text-[#C0392B] bg-[#FDF3F1] px-2 py-0.5 rounded border border-[#C0392B]/20 font-bold inline-block">
-                [샘플 예시] 홍길동 님의 평생 사주명리 보배 감정서
+            <div className="text-center pb-2.5 border-b border-line">
+              <span className="text-xs text-ink-faint block">
+                샘플 · 홍길동 님의 사주명리 감정서
               </span>
-              <h6 className="font-serif font-extrabold text-sm text-[#2C3E50] mt-1.5">
+              <h6 className="font-serif text-sm font-semibold text-ink mt-1.5">
                 일간 갑목(甲木)의 대림목(大林木) 기운과 10년 대운
               </h6>
             </div>
 
             {/* SPECIAL RELATIONSHIP PRESCRIPTION */}
-            <div className="space-y-2 bg-emerald-50/40 border border-emerald-200/70 p-3 rounded-xl">
-              <div className="flex items-center gap-1">
-                <Flame className="w-3.5 h-3.5 text-amber-600 fill-amber-200" />
-                <span className="text-[10px] font-bold text-emerald-800 block">🩹 [프리미엄 전용] 관계 극복 상생 처방전</span>
-              </div>
-              
-              <div className="space-y-1.5 text-[10px] text-emerald-950">
-                <div className="bg-white/80 p-2 rounded-lg border border-emerald-100 font-semibold">
-                  <span className="text-amber-700 font-bold block mb-0.5">⚠️ 예측 갈등 요인: 금목상쟁(金木相爭)</span>
-                  상대방의 칼날 같은 금(金)기운이 나의 목(木)기운을 과도하게 벌목하여 상처를 입기 쉽습니다.
-                </div>
-                
-                <div className="bg-white/80 p-2 rounded-lg border border-emerald-100 font-semibold">
-                  <span className="text-emerald-700 font-bold block mb-0.5">💡 상생 치유책: 수(水)기운 오행 매개 요법</span>
-                  불협화음을 정화시키는 <strong>물(水)기운</strong>이 정답입니다. 함께 물가나 조용한 카페에서 티타임을 가지며 대화의 윤활유를 채우세요.
-                </div>
+            <div className="space-y-2 bg-surface p-3 rounded-xl">
+              <span className="text-xs font-semibold text-ink block">관계 상생 처방 (심층 리포트 전용)</span>
+
+              <div className="space-y-1.5 text-xs text-ink-soft">
+                <p className="leading-relaxed">
+                  <strong className="text-ink block mb-0.5">예상 갈등 요인 · 금목상쟁(金木相爭)</strong>
+                  상대의 금(金) 기운이 나의 목(木) 기운을 지나치게 눌러 상처를 입기 쉽습니다.
+                </p>
+
+                <p className="leading-relaxed">
+                  <strong className="text-ink block mb-0.5">상생 제안 · 수(水) 기운 매개</strong>
+                  물(水) 기운이 두 기운의 긴장을 풀어 줍니다. 물가나 조용한 카페에서 대화 시간을 가져 보세요.
+                </p>
               </div>
             </div>
           </div>
@@ -1186,74 +1010,64 @@ export default function PremiumPaywall({
       </div>
 
       {/* Secure Guarantee Guidance */}
-      <div className="text-center text-[10.5px] text-[#5C5046] font-medium flex items-center justify-center gap-1.5 pt-2 border-t border-[#EFE9DF]">
-        <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-        <span>인연 명당은 1회 확인권 소모 후에도 사주 원국 분석 데이터를 안전하게 보관합니다.</span>
-      </div>
+      <p className="text-center text-xs text-ink-faint flex items-center justify-center gap-1.5 pt-2 border-t border-line">
+        <ShieldCheck className="w-4 h-4 shrink-0" />
+        <span>확인권 사용 후에도 사주 분석 데이터는 계정에 보관됩니다.</span>
+      </p>
 
     </div>
     );
   };
 
-  // 💳 Interactive Checkout Modal Component
+  // Interactive Checkout Modal Component
   const renderCheckoutModal = () => {
     if (!checkoutProduct) return null;
 
     return (
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in text-left">
-        <div className="bg-[#FAF7F2] border-2 border-amber-400/80 rounded-3xl shadow-2xl max-w-md w-full overflow-hidden text-left animate-scale-up relative">
-          
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-3 sm:p-4 bg-black/50 animate-fade-in text-left">
+        <div className="bg-surface rounded-xl shadow-lg max-w-md w-full overflow-hidden text-left relative">
+
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-[#E8E0D0] bg-[#FCFAF7]">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-900 font-serif font-bold text-sm">
-                💳
-              </div>
-              <div>
-                <h4 className="font-serif font-extrabold text-sm text-[#2C3E50]">안전 간편결제 주문서</h4>
-                <span className="text-[10px] text-[#5C5046]">SSL 256-bit 보안 암호화 결제</span>
-              </div>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+            <div>
+              <h4 className="text-[15px] font-semibold text-ink">주문서</h4>
+              <span className="text-xs text-ink-faint">결제 정보는 암호화되어 처리됩니다</span>
             </div>
             <button
               type="button"
               onClick={() => !isProcessingPayment && setCheckoutProduct(null)}
               disabled={isProcessingPayment}
-              className="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 flex items-center justify-center transition cursor-pointer"
+              className="p-2 text-ink-faint hover:text-ink rounded-xl hover:bg-sunken transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Body */}
-          <div className="p-5 space-y-4 text-xs">
+          <div className="p-5 space-y-4 text-sm">
             {/* Product Summary Box */}
-            <div className="bg-white border border-[#E7E1D6] rounded-2xl p-4 space-y-2.5 shadow-2xs">
-              <div className="flex justify-between items-start gap-2">
-                <div>
-                  <span className="text-[10px] font-bold text-[#C0392B] bg-[#FDF3F1] px-2 py-0.5 rounded">주문 상품</span>
-                  <h5 className="font-serif font-black text-sm text-[#2C3E50] mt-1">{checkoutProduct.title}</h5>
-                </div>
-                {checkoutProduct.badge && (
-                  <span className="text-[9px] bg-amber-100 text-amber-900 font-extrabold px-2 py-0.5 rounded-full shrink-0">
-                    {checkoutProduct.badge}
-                  </span>
-                )}
+            <div className="bg-sunken rounded-xl p-4 space-y-2.5">
+              <div>
+                <span className="text-xs text-ink-faint block">
+                  주문 상품{checkoutProduct.badge ? ` · ${checkoutProduct.badge}` : ""}
+                </span>
+                <h5 className="text-sm font-semibold text-ink mt-1">{checkoutProduct.title}</h5>
               </div>
 
-              <div className="border-t border-dashed border-stone-200 pt-2 flex justify-between items-baseline">
-                <span className="text-[11px] text-[#5C5046] font-medium">충전 티켓 수량</span>
-                <span className="font-serif font-extrabold text-xs text-[#2C3E50]">1회 확인권 {checkoutProduct.ticketCount}장</span>
+              <div className="border-t border-line pt-2 flex justify-between items-baseline">
+                <span className="text-xs text-ink-soft">충전 수량</span>
+                <span className="text-sm font-semibold text-ink">확인권 {checkoutProduct.ticketCount}장</span>
               </div>
 
-              <div className="border-t border-stone-200 pt-2 flex justify-between items-baseline">
-                <span className="text-xs font-bold text-[#2C3E50]">최종 결제 금액 (VAT 포함)</span>
+              <div className="border-t border-line pt-2 flex justify-between items-baseline">
+                <span className="text-xs text-ink-soft">결제 금액 (VAT 포함)</span>
                 <div className="text-right">
                   {checkoutProduct.originalPrice && (
-                    <span className="text-[10px] text-gray-400 line-through mr-1.5">
+                    <span className="text-xs text-ink-faint line-through mr-1.5">
                       ₩{checkoutProduct.originalPrice.toLocaleString()}
                     </span>
                   )}
-                  <span className="text-lg font-serif font-black text-[#C0392B]">
+                  <span className="text-lg font-semibold text-ink">
                     ₩{checkoutProduct.price.toLocaleString()}
                   </span>
                 </div>
@@ -1262,77 +1076,61 @@ export default function PremiumPaywall({
 
             {/* Payment Method Selector */}
             <div className="space-y-2">
-              <span className="text-[11px] font-extrabold text-[#2C3E50] block">결제 수단 선택</span>
+              <span className="text-xs font-semibold text-ink block">결제 수단</span>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("kakaopay")}
-                  className={`p-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                  className={`p-3 rounded-xl text-xs transition-colors cursor-pointer text-center ${
                     paymentMethod === "kakaopay"
-                      ? "bg-[#FEE500]/20 border-[#FEE500] text-[#3C1E1E] shadow-2xs font-extrabold ring-1 ring-[#FEE500]"
-                      : "bg-white border-stone-200 hover:bg-stone-50 text-stone-700"
+                      ? "bg-seal text-white font-semibold"
+                      : "bg-sunken hover:bg-line text-ink-soft font-medium"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-[#FEE500] inline-block border border-amber-600/30" />
-                    카카오페이
-                  </span>
-                  <span className="text-[10px] font-mono text-amber-900">간편결제</span>
+                  카카오페이
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("tosspay")}
-                  className={`p-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                  className={`p-3 rounded-xl text-xs transition-colors cursor-pointer text-center ${
                     paymentMethod === "tosspay"
-                      ? "bg-blue-50 border-blue-400 text-blue-900 shadow-2xs font-extrabold ring-1 ring-blue-400"
-                      : "bg-white border-stone-200 hover:bg-stone-50 text-stone-700"
+                      ? "bg-seal text-white font-semibold"
+                      : "bg-sunken hover:bg-line text-ink-soft font-medium"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
-                    토스페이
-                  </span>
-                  <span className="text-[10px] font-mono text-blue-900">원클릭</span>
+                  토스페이
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("naverpay")}
-                  className={`p-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                  className={`p-3 rounded-xl text-xs transition-colors cursor-pointer text-center ${
                     paymentMethod === "naverpay"
-                      ? "bg-emerald-50 border-emerald-400 text-emerald-900 shadow-2xs font-extrabold ring-1 ring-emerald-400"
-                      : "bg-white border-stone-200 hover:bg-stone-50 text-stone-700"
+                      ? "bg-seal text-white font-semibold"
+                      : "bg-sunken hover:bg-line text-ink-soft font-medium"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" />
-                    네이버페이
-                  </span>
-                  <span className="text-[10px] font-mono text-emerald-900">포인트</span>
+                  네이버페이
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("card")}
-                  className={`p-3 rounded-xl border text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                  className={`p-3 rounded-xl text-xs transition-colors cursor-pointer text-center ${
                     paymentMethod === "card"
-                      ? "bg-stone-100 border-stone-400 text-stone-900 shadow-2xs font-extrabold ring-1 ring-stone-400"
-                      : "bg-white border-stone-200 hover:bg-stone-50 text-stone-700"
+                      ? "bg-seal text-white font-semibold"
+                      : "bg-sunken hover:bg-line text-ink-soft font-medium"
                   }`}
                 >
-                  <span className="flex items-center gap-1.5">
-                    <CreditCard className="w-3.5 h-3.5 text-stone-600" />
-                    신용/체크카드
-                  </span>
-                  <span className="text-[10px] font-mono text-stone-600">모든 카드</span>
+                  신용·체크카드
                 </button>
               </div>
             </div>
 
             {/* Legal Notice */}
-            <p className="text-[9px] text-stone-500 leading-snug">
-              구매 즉시 디지털 확인권이 계정에 지급되며, 사용 전 7일 이내 환불 가능합니다. (전자상거래법 준수)
+            <p className="text-xs text-ink-faint leading-relaxed">
+              구매 즉시 확인권이 계정에 지급되며, 사용 전 7일 이내 환불할 수 있습니다. (전자상거래법 준수)
             </p>
 
             {/* Pay Button */}
@@ -1340,18 +1138,15 @@ export default function PremiumPaywall({
               type="button"
               onClick={handleConfirmPayment}
               disabled={isProcessingPayment}
-              className="w-full py-3.5 bg-gradient-to-r from-[#C0392B] to-[#962D22] hover:from-[#A93226] hover:to-[#7E2419] text-white font-serif font-black text-sm rounded-xl shadow-md transition-all active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-3 bg-seal hover:bg-seal-deep disabled:opacity-60 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
             >
               {isProcessingPayment ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>안전 결제 승인 요청 중...</span>
+                  <span>결제 승인 요청 중</span>
                 </>
               ) : (
-                <>
-                  <Lock className="w-4 h-4" />
-                  <span>₩{checkoutProduct.price.toLocaleString()} 안전 결제하기</span>
-                </>
+                <span>₩{checkoutProduct.price.toLocaleString()} 결제하기</span>
               )}
             </button>
           </div>
@@ -1360,34 +1155,30 @@ export default function PremiumPaywall({
     );
   };
 
-  // 🎉 Payment Success Confirmation Modal
+  // Payment Success Confirmation Modal
   const renderPaymentSuccessModal = () => {
     if (!paymentSuccessData) return null;
 
     return (
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in text-left">
-        <div className="bg-[#FAF7F2] border-2 border-emerald-400 rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center space-y-4 animate-scale-up">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-600 flex items-center justify-center mx-auto shadow-sm">
-            <CheckCircle2 className="w-8 h-8" />
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 animate-fade-in text-left">
+        <div className="bg-surface rounded-xl shadow-lg max-w-sm w-full p-6 text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-sunken text-seal flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-6 h-6" />
           </div>
 
           <div className="space-y-1">
-            <h4 className="font-serif font-black text-base text-[#2C3E50]">결제가 정상 완료되었습니다!</h4>
-            <p className="text-xs text-[#5C5046]">
-              <strong>{paymentSuccessData.title}</strong> 결제가 승인되어 1회 확인권 <strong>{paymentSuccessData.count}장</strong>이 즉시 충전되었습니다.
+            <h4 className="font-serif text-lg font-semibold text-ink">결제가 완료되었어요</h4>
+            <p className="text-sm text-ink-soft leading-relaxed">
+              <strong>{paymentSuccessData.title}</strong> 결제가 승인되어 확인권 <strong>{paymentSuccessData.count}장</strong>이 충전되었습니다.
             </p>
-          </div>
-
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs font-bold text-emerald-900">
-            ✨ 지금 바로 원하시는 사주 분석을 해금하여 열람하세요!
           </div>
 
           <button
             type="button"
             onClick={() => setPaymentSuccessData(null)}
-            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-serif font-bold text-xs rounded-xl shadow-xs transition active:scale-98 cursor-pointer"
+            className="w-full py-3 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
           >
-            확인 및 상점으로 돌아가기
+            확인
           </button>
         </div>
       </div>
@@ -1396,41 +1187,34 @@ export default function PremiumPaywall({
 
   if (isModal) {
     const modalContent = (
-      <div 
+      <div
         id="premium-paywall-portal-overlay"
-        className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/80 backdrop-blur-sm overflow-y-auto cursor-pointer"
+        className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-black/50 overflow-y-auto cursor-pointer"
         onClick={(e) => {
           if (e.target === e.currentTarget) {
             onClose?.();
           }
         }}
       >
-        <div className="bg-[#FAF7F2] border-2 border-amber-400 rounded-3xl shadow-2xl max-w-2xl md:max-w-3xl w-full relative max-h-[92vh] flex flex-col overflow-hidden text-left animate-scale-up cursor-default my-auto">
-          {/* Modal Sticky Header with highly visible Close Button */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#E8E0D0] bg-[#FCFAF7] shrink-0 sticky top-0 z-30 shadow-2xs">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-amber-900 font-serif text-sm font-bold shadow-2xs">
+        <div className="bg-surface rounded-xl shadow-lg max-w-2xl md:max-w-3xl w-full relative max-h-[92vh] flex flex-col overflow-hidden text-left cursor-default my-auto">
+          {/* Modal Sticky Header */}
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-line bg-surface shrink-0 sticky top-0 z-30">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-md bg-seal text-white font-serif flex items-center justify-center text-sm">
                 緣
               </div>
-              <div>
-                <span className="font-serif font-bold text-sm sm:text-base text-[#2C3E50] block">
-                  인연 상점 (1회 확인권 & 쿠폰)
-                </span>
-                <span className="text-[10px] text-[#5C5046] font-medium hidden sm:block">
-                  사주 상생 해법과 맞춤형 프리미엄 1회권 관리
-                </span>
-              </div>
+              <span className="font-serif text-lg font-semibold text-ink">
+                인연 상점
+              </span>
             </div>
-            
-            {/* Highly Prominent Close Button for Mobile & Desktop */}
+
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-2 rounded-xl bg-stone-100 hover:bg-red-500 hover:text-white text-[#2C3E50] border border-stone-300 hover:border-red-600 font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 shrink-0"
+              className="p-2 text-ink-faint hover:text-ink rounded-xl hover:bg-sunken transition-colors cursor-pointer shrink-0"
               aria-label="상점 닫기"
             >
-              <X className="w-4 h-4" />
-              <span>닫기</span>
+              <X className="w-5 h-5" />
             </button>
           </div>
 
@@ -1439,15 +1223,14 @@ export default function PremiumPaywall({
             {renderInner()}
           </div>
 
-          {/* Bottom Mobile-friendly Close Footer Bar */}
-          <div className="px-4 py-3 bg-[#FCFAF7] border-t border-[#E8E0D0] shrink-0 flex items-center justify-end">
+          {/* Bottom Close Footer Bar */}
+          <div className="px-4 py-3 bg-surface border-t border-line shrink-0 flex items-center justify-end">
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto px-5 py-2.5 bg-[#1E293B] hover:bg-[#0F172A] text-white font-serif font-bold text-xs rounded-xl shadow-xs transition active:scale-98 flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full sm:w-auto px-5 py-2.5 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
             >
-              <X className="w-3.5 h-3.5" />
-              <span>상점 창 닫기</span>
+              닫기
             </button>
           </div>
         </div>
