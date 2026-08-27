@@ -283,9 +283,9 @@ ROLE_THEMES = {
                     "the other planted on its hip. Chin lifted, eyes blazing with resolve straight at the "
                     "viewer. A small plain pennant flag is planted in the ground beside it, reaching only "
                     "shoulder height. ",
-        "sage": "Crouched low and quiet, holding a small half-unrolled scroll between both front paws, "
-                    "eyes scanning it sideways with a knowing narrow gaze. One whisker twitched. A faint one- "
-                    "sided smirk, as if it just found the answer nobody else saw. ",
+        "sage": "Sitting upright and very still at night, head tilted UP to gaze at a few small glowing "
+                  "stars floating above, both front paws resting quietly on its chest. One whisker "
+                  "twitched, eyes narrowed in quiet insight, a faint one-sided knowing smile. ",
     },
     "ox": {
         "spark": "Head thrown back mid-bellow-laugh, mouth wide open, two puffs of warm steam bursting "
@@ -304,9 +304,9 @@ ROLE_THEMES = {
                     "hooves gripping the ground, head lowered with horns aimed ahead. Eyes locked forward "
                     "with unstoppable determination, one puff of steam at the nostrils. A small pennant is "
                     "tied to one horn. ",
-        "sage": "Standing still on all four hooves, head turned to look back over its shoulder at the "
-                    "viewer with a slow, deeply knowing half-lidded gaze. Ears swivelled attentively. A small "
-                    "closed scroll rests on the ground beside its front hooves. Utterly unhurried. ",
+        "sage": "Standing calm on all four hooves at night, head raised UP toward a few small glowing "
+                  "stars drifting above. Ears swivelled attentively, eyes half-lidded and deeply knowing. "
+                  "Utterly unhurried, as if it understood the answer long ago. ",
     },
     "tiger": {
         "spark": "Rolled onto its back paws in a playful pounce-start, front paws patting the air like a "
@@ -320,9 +320,9 @@ ROLE_THEMES = {
         "captain": "Standing squared-up on all fours, chest out, one front paw raised and slammed forward "
                     "mid-stride. Head high, mouth open in a commanding roar, ears flat with authority. Eyes "
                     "fierce and fixed on the viewer. Tail lashing straight back like a banner. ",
-        "sage": "Crouched low in tall stillness, body half-turned away but head swivelled back to the "
-                    "viewer, eyes narrowed into sharp calculating slits. One front paw resting on a small go- "
-                    "stone placed on the ground. A faint one-sided knowing smile. ",
+        "sage": "Sitting still in the dark, head lifted UP to watch a few small glowing stars above, "
+                  "eyes narrowed into sharp calculating slits reflecting the light. Tail curled quietly "
+                  "around its paws. A faint one-sided knowing smile. ",
     },
     "rabbit": {
         "spark": "Caught mid-leap with both long ears streaming upward and hind legs kicked out behind, "
@@ -338,9 +338,9 @@ ROLE_THEMES = {
                     "antennae, one front paw raised high in a clear 'follow me' signal. Chest out, eyes wide "
                     "and fearless toward the viewer. A small pennant flag is planted in the ground at its "
                     "side. ",
-        "sage": "Sitting very still with one long ear pricked straight up and the other flopped down, "
-                    "listening for something. Both front paws hold a small closed folding fan against its "
-                    "chest. Eyes glancing sideways, alert and clever, with a subtle secretive smile. ",
+        "sage": "Sitting very still with both long ears pricked straight UP like antennae, head tilted "
+                  "back to watch a few small glowing stars above. Front paws folded at its chest, eyes "
+                  "wide and clever, wearing a subtle secretive smile. ",
     },
     "dragon": {
         "spark": "Coiled body springing upward like a party streamer, both small front paws thrown open, "
@@ -355,9 +355,9 @@ ROLE_THEMES = {
         "captain": "Reared upright with the body coiled beneath for height, both small front paws spread in "
                     "a commanding stance, head held high and turned to the viewer. Eyes glowing with "
                     "authority, a confident open-mouthed shout. Tail sweeping back in a bold arc. ",
-        "sage": "Coiled compactly and low, chin resting on its own tail loop, both small front paws "
-                    "holding a small half-open scroll. Eyes half-lidded and ancient-wise, glancing sideways "
-                    "at the viewer. A tiny thoughtful puff of mist at the nostrils. ",
+        "sage": "Coiled compactly and low, head raised UP toward a few small glowing stars drifting "
+                  "above, both small front paws folded at its chest. Eyes half-lidded and ancient-wise, a "
+                  "tiny thoughtful puff of mist at the nostrils. ",
     },
     "snake": {
         "spark": "Body coiled into a rising spiral like a party ribbon, head lifted high at the top with "
@@ -374,10 +374,9 @@ ROLE_THEMES = {
         "captain": "Body reared into a tall vertical S-curve, head at the very top looking down at the "
                     "viewer with unblinking authority. The tail tip is wrapped firmly around a small pennant "
                     "flag, holding it upright beside the raised body. Mouth open in a commanding hiss. ",
-        "sage": "Coiled tightly and low with only the head raised slightly, looking sideways at the "
-                    "viewer through narrow calculating eyes. The tail tip curls delicately around a single "
-                    "small go-stone, holding it up for inspection. Tongue barely flicking. Silent and "
-                    "patient. ",
+        "sage": "Coiled tightly and low with the head raised UP toward a few small glowing stars above, "
+                  "eyes narrow and calculating, tongue barely flicking. The coils are perfectly still. "
+                  "Silent, patient, reading what no one else sees. ",
     },
     "horse": {
         "spark": "Rearing lightly onto its hind legs in a joyful prance, front hooves lifted off the "
@@ -394,10 +393,9 @@ ROLE_THEMES = {
                     "streaming back, head turned to the viewer with a bold open-mouthed neigh. Eyes blazing "
                     "with drive. A small pennant is tied to a short strap across its shoulders, streaming "
                     "behind. ",
-        "sage": "Standing quietly with head turned in profile, one ear rotated back and one forward, eye "
-                    "glancing sideways at the viewer with sharp intelligence. Mane falling over one eye. A "
-                    "small closed scroll lies on the ground near its front hooves. Perfectly composed, "
-                    "holding nothing. ",
+        "sage": "Standing quietly at night with head raised UP and turned in profile toward a few small "
+                  "glowing stars, mane falling over one eye, one ear rotated back and one forward. Eye "
+                  "sharp with intelligence. Perfectly composed, holding nothing. ",
     },
     "sheep": {
         "spark": "Bouncing straight up off all four hooves like a spring, woolly fleece bouncing and "
@@ -413,9 +411,9 @@ ROLE_THEMES = {
         "captain": "Standing braced on all four hooves at the front of an implied line, head high, small "
                     "curled horns thrust forward, chest pushed out. Eyes hard and resolute toward the viewer, "
                     "mouth open in a rallying bleat. A small pennant is tied to one curled horn. ",
-        "sage": "Standing calmly with head lowered in thought, eyes glancing up sideways at the viewer "
-                    "from beneath its wool with unexpected shrewdness. One small curled horn catches the "
-                    "light. A small closed fan rests on the ground by its hooves. Quiet, underestimated. ",
+        "sage": "Standing calmly on all four hooves with head tilted UP toward a few small glowing "
+                  "stars above, eyes shrewd and thoughtful beneath its wool. One small curled horn "
+                  "catches the starlight. Quiet, underestimated, quietly certain. ",
     },
     "monkey": {
         "spark": "Mid-cartwheel with one front paw on the ground and the other flung up, tail curled into "
@@ -431,9 +429,9 @@ ROLE_THEMES = {
                     "small pennant flag and shaking it, the other paw cupped at its mouth mid-shout. Tail "
                     "straight up like an exclamation mark. Eyes wide, grinning with fearless bravado at the "
                     "viewer. ",
-        "sage": "Sitting cross-legged with a small closed folding fan held in one front paw, tapping it "
-                    "thoughtfully against the other paw. Head tilted, one eyebrow raised high, eyes glinting "
-                    "sideways at the viewer with a sly all-knowing smirk. Tail curled into a thinking spiral. ",
+        "sage": "Sitting cross-legged with head tipped back to watch a few small glowing stars above, "
+                  "one front paw stroking its chin in thought, tail curled into a thinking spiral. One "
+                  "eyebrow raised high, wearing a sly all-knowing smirk. ",
     },
     "rooster": {
         "spark": "Wings fully spread wide and flapping, chest thrown out, beak wide open in a triumphant "
@@ -448,9 +446,9 @@ ROLE_THEMES = {
         "captain": "Standing at full height with chest thrust out, both wings raised and spread in a "
                     "commanding rally, comb held high, beak open in a loud crowing order. One leg stepped "
                     "forward. Eyes sharp and imperious, aimed directly at the viewer. ",
-        "sage": "Standing very still in profile with one eye turned to fix the viewer in a sharp sideways "
-                    "stare, head held low and forward like a strategist reading a board. Both wings folded "
-                    "tightly and neatly. A single small go-stone rests on the ground before its feet. ",
+        "sage": "Standing very still in profile at night, head raised UP with one eye fixed on a few "
+                  "small glowing stars above. Both wings folded tightly and neatly, comb upright. The "
+                  "posture of a strategist reading the sky before dawn. ",
     },
     "dog": {
         "spark": "Front paws lifted off the ground in an excited play-bow-to-jump, tongue lolling out in a "
@@ -466,9 +464,9 @@ ROLE_THEMES = {
         "captain": "Standing squarely in an alert leader's stance, one front paw raised and pointing ahead, "
                     "chest forward, ears pricked fully upright. Mouth open in a rallying bark, eyes bright "
                     "and determined at the viewer. Tail raised high and straight like a banner. ",
-        "sage": "Sitting alert but silent, head tilted at a curious angle, one ear up and one down, eyes "
-                    "narrowed in focused thought at something off to the side. A small half-unrolled scroll "
-                    "lies open on the ground between its front paws, one paw resting on its edge. ",
+        "sage": "Sitting alert but silent, head tilted back and to one side to watch a few small "
+                  "glowing stars above, one ear up and one down. Eyes narrowed in focused thought, tail "
+                  "resting in a still curve. Quietly figuring something out. ",
     },
     "pig": {
         "spark": "All four hooves doing a happy little jig, body wiggling, snout tilted up in a wide open- "
@@ -484,9 +482,9 @@ ROLE_THEMES = {
                     "ears pricked stiffly up, shoulders squared. Eyes narrowed with stubborn unstoppable "
                     "resolve toward the viewer, mouth open in a rallying grunt. A small pennant is tied at "
                     "its shoulder. ",
-        "sage": "Standing quietly with head turned back over its shoulder toward the viewer, small eyes "
-                    "glinting with surprising cunning beneath relaxed ears. Snout slightly wrinkled in a "
-                    "knowing half-smile. A small closed scroll rests on the ground beside its hooves. ",
+        "sage": "Standing quietly at night with snout raised UP toward a few small glowing stars above, "
+                  "ears relaxed, small eyes glinting with surprising cunning. A knowing half-smile. Calm "
+                  "and unbothered, seeing more than it lets on. ",
     },
 }
 
@@ -609,8 +607,11 @@ Now draw this character performing its role in the group:
 - The expression must be readable from the face alone at small size — use one big clear
   emotion, not a subtle one.
 - ANATOMY RULE: {anatomy}
-  Draw EXACTLY four limbs in total — never five, never three. Do not add a spare arm to
-  hold a prop: it must be held by one of the limbs it already has, or rest on the ground.
+  LIMB COUNT IS ABSOLUTE: draw EXACTLY four limbs in total — no more, no fewer.
+  Count them before finishing: 2 front + 2 back, and nothing else. This holds in every
+  pose. In a jump or leap, the SAME four limbs simply change angle — do NOT draw a
+  raised pair in addition to a standing pair. Never add a spare limb to hold a prop or
+  to keep balance: a prop is held by one of the four it already has, or rests on the ground.
   If the animal is sitting or standing, the limbs that hold a prop are the SAME limbs it
   would otherwise rest on — never invent an extra limb to keep its balance. When in
   doubt, place the prop on the ground and let the paws rest on or beside it.
