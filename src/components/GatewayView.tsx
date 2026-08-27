@@ -31,10 +31,6 @@ export default function GatewayView() {
                 aria-hidden="true"
                 className="absolute inset-0 w-full h-full object-cover object-[center_45%]"
               />
-              {/* 낙관 — 작품의 서명 */}
-              <span className="absolute bottom-3 right-3 w-7 h-7 rounded-sm bg-seal text-white font-serif text-xs flex items-center justify-center select-none">
-                命
-              </span>
             </div>
             <div className="p-5 flex items-center justify-between gap-4">
               <div>
@@ -58,9 +54,6 @@ export default function GatewayView() {
                 aria-hidden="true"
                 className="absolute inset-0 w-full h-full object-cover object-[center_30%]"
               />
-              <span className="absolute bottom-3 right-3 w-7 h-7 rounded-sm bg-seal text-white font-serif text-xs flex items-center justify-center select-none">
-                緣
-              </span>
             </div>
             <div className="p-5 flex items-center justify-between gap-4">
               <div>
