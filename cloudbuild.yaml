@@ -57,7 +57,22 @@ steps:
       - --region=${_REGION}
       - --platform=managed
       - --quiet
-      - --set-secrets=GEMINI_API_KEY=gemini-api-key:latest
+      # 환경변수를 지정하지 않으면 Cloud Run이 서비스에 이미 설정된 값을 그대로
+      # 유지한다. GEMINI_API_KEY는 현재 평문 env로 서비스에 들어가 있으므로 앱은
+      # 정상 동작한다.
+      #
+      # Secret Manager로 옮기려면 --set-secrets를 여기 추가하기 전에 반드시
+      # 기존 평문 변수를 먼저 제거해야 한다. 같은 이름을 평문 → 시크릿으로 바로
+      # 바꾸면 "already been set with a different type" 오류로 배포가 실패한다.
+      #   gcloud run services update service --region=asia-east1 \
+      #     --remove-env-vars=GEMINI_API_KEY
+      #   gcloud secrets create gemini-api-key --replication-policy=automatic
+      #   printf '%s' "<새 키>" | gcloud secrets versions add gemini-api-key --data-file=-
+      #   gcloud secrets add-iam-policy-binding gemini-api-key \
+      #     --member="serviceAccount:291785267663-compute@developer.gserviceaccount.com" \
+      #     --role="roles/secretmanager.secretAccessor"
+      # 위를 마친 뒤 아래 줄의 주석을 해제한다.
+      # - --set-secrets=GEMINI_API_KEY=gemini-api-key:latest
 
 images:
   - ${_IMAGE}
