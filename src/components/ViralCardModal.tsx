@@ -5,7 +5,7 @@ import { Member } from "../types";
 import { calculateTodayFortune } from "../utils/saju";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/analytics";
-import { zodiacImageSrc } from "./ZodiacAvatar";
+import { zodiacImageSrc, roleImageSrc } from "./ZodiacAvatar";
 import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
@@ -586,6 +586,7 @@ export default function ViralCardModal({
 
     if (elem === "화" || (mbti.includes("E") && mbti.includes("P"))) {
       return {
+        key: "spark" as const,
         role: "스파크 메이커",
         hanja: "和氣 (화기)",
         tagline: '"모임의 분위기를 띄우며 어색함을 단숨에 녹여요"',
@@ -601,6 +602,7 @@ export default function ViralCardModal({
     }
     if (elem === "토" || (mbti.includes("F") && mbti.includes("J"))) {
       return {
+        key: "healer" as const,
         role: "멘탈 케어 힐러",
         hanja: "德厚 (덕후)",
         tagline: '"누구 하나 소외되지 않도록 묵묵히 챙겨주는 안식처"',
@@ -616,6 +618,7 @@ export default function ViralCardModal({
     }
     if (elem === "금" || (mbti.includes("T") && mbti.includes("J"))) {
       return {
+        key: "keeper" as const,
         role: "실속 총무 & 밸런서",
         hanja: "信實 (신실)",
         tagline: '"일정과 정산을 똑 부러지게 챙기며 빈틈을 막아요"',
@@ -631,6 +634,7 @@ export default function ViralCardModal({
     }
     if (elem === "목" || (mbti.includes("E") && mbti.includes("J"))) {
       return {
+        key: "captain" as const,
         role: "카리스마 캡틴",
         hanja: "統率 (통솔)",
         tagline: '"목표가 생기면 거침없이 전진하며 모두를 이끌어요"',
@@ -645,6 +649,7 @@ export default function ViralCardModal({
       };
     }
     return {
+      key: "sage" as const,
       role: "히든 책사 & 전략가",
       hanja: "睿智 (예지)",
       tagline: '"조용히 판을 보다가 결정적인 꿀팁과 혜안을 전해요"',
@@ -658,6 +663,15 @@ export default function ViralCardModal({
       desc: `${roomTitle}의 숨은 조언자이자 길잡이예요. 과묵하게 듣다가도 핵심을 짚어내어 최선의 선택지를 제시합니다.`
     };
   }, [elem, mbti, roomTitle, isGroupMode]);
+
+  // 역할 캐릭터 이미지 — 아직 생성 전인 조합이면 로드 실패 시 기존 SVG로 되돌린다
+  const [roleImgFailed, setRoleImgFailed] = useState(false);
+  const roleSrcCandidate = useMemo(
+    () => roleImageSrc(ji, roleAnalysis?.key ?? null),
+    [ji, roleAnalysis?.key]
+  );
+  useEffect(() => setRoleImgFailed(false), [roleSrcCandidate]);
+  const roleSrc = roleImgFailed ? null : roleSrcCandidate;
 
   if (!isOpen) return null;
 
@@ -1205,15 +1219,25 @@ export default function ViralCardModal({
                 </span>
               </div>
 
-              {/* 엠블럼: 역할 플랫 라인 SVG */}
-              <div className={`w-[128px] h-[128px] mx-auto mb-5 rounded-full flex items-center justify-center ${colors.bg}`}>
-                <svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke={colors.stroke} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[72px] h-[72px]">
-                  <path d="M8 36 L12 16 L20 26 L24 12 L28 26 L36 16 L40 36 Z" />
-                  <line x1="8" y1="36" x2="40" y2="36" />
-                  <circle cx="24" cy="12" r="1.5" />
-                  <circle cx="12" cy="16" r="1.5" />
-                  <circle cx="36" cy="16" r="1.5" />
-                </svg>
+              {/* 엠블럼: 내 띠 캐릭터가 역할을 연기하는 이미지 (없으면 플랫 라인 SVG) */}
+              <div className={`w-[128px] h-[128px] mx-auto mb-5 rounded-full flex items-center justify-center overflow-hidden ${colors.bg}`}>
+                {roleSrc ? (
+                  <img
+                    src={roleSrc}
+                    alt={`${roleAnalysis.role} 캐릭터`}
+                    decoding="async"
+                    onError={() => setRoleImgFailed(true)}
+                    className="w-[112px] h-[112px] object-contain select-none"
+                  />
+                ) : (
+                  <svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke={colors.stroke} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[72px] h-[72px]">
+                    <path d="M8 36 L12 16 L20 26 L24 12 L28 26 L36 16 L40 36 Z" />
+                    <line x1="8" y1="36" x2="40" y2="36" />
+                    <circle cx="24" cy="12" r="1.5" />
+                    <circle cx="12" cy="16" r="1.5" />
+                    <circle cx="36" cy="16" r="1.5" />
+                  </svg>
+                )}
               </div>
 
               {/* 이름/헤드라인 */}

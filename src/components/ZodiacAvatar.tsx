@@ -92,3 +92,20 @@ export default function ZodiacAvatar({
     />
   );
 }
+
+/** 모임 속 시그니처 역할 — ViralCardModal의 roleAnalysis.key와 같은 값 */
+export type RoleKey = "spark" | "healer" | "keeper" | "captain" | "sage";
+
+/**
+ * 띠 × 역할 캐릭터 이미지 경로.
+ * 내 띠 캐릭터가 그 역할을 연기하는 그림이라 오행은 쓰지 않는다
+ * (역할 자체가 이미 일간 오행으로 갈리므로 색은 역할이 정한다).
+ */
+export function roleImageSrc(
+  branch?: string | null,
+  role?: RoleKey | null
+): string | null {
+  const animal = branch ? BRANCH_TO_ANIMAL[branch] : null;
+  if (!animal || !role) return null;
+  return `/zodiac/zodiac_${animal}_role_${role}.png`;
+}
