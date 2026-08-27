@@ -174,11 +174,16 @@ bg-seal text-white font-serif rounded-md — 한자 1글자 (緣, 命 등)
 
 | Phase | 대상 | 상태 |
 |-------|------|------|
-| 1 | 토큰(`index.css`), `Layout`(헤더), `Footer`, `GatewayView`(첫 진입), `LandingView`(그룹 랜딩) | ✅ 이번 작업 |
-| 2 | `MySajuView`, `SajuForm`, `SajuVisual` (입력~개인 리포트) | 예정 |
-| 3 | `MeView`, `GroupView`, `RoomView` (리포트 상세) + 모달류(`PremiumPaywall`, `AuthModal` 등) | 예정 |
+| 1 | 토큰(`index.css`), `Layout`(헤더), `Footer`, `GatewayView`(첫 진입), `LandingView`(그룹 랜딩) | ✅ 완료 |
+| 2 | `SajuForm`, `MySajuView` (입력~개인 소울카드) | ✅ 완료 |
+| 3 | `CreateView`, `JoinView`, `RoomView`, `GroupView`, `GroupNetwork`, `MeView`, `SajuVisual`, `GoogleAds` + 모달 전체(`PremiumPaywall`, `PairChemistryModal`, `ViralCardModal`, `PdfReportModal`, `AuthModal`, `UpgradeToSocialModal`, `LegalModal`, `LoadingOverlay`, `SurveyPopup`, `KakaoOutlinkGuide`, `MbtiTest`) | ✅ 완료 |
+| — | `AdminView` (관리자 전용, 사용자 미노출) | 별도 진행 |
 
-Phase 2·3 작업 시에도 이 문서의 토큰·규칙을 그대로 적용한다. 로직(상태, 핸들러, Firebase 호출, 분석 이벤트)은 건드리지 않고 프레젠테이션만 바꾼다.
+작업 시 로직(상태, 핸들러, Firebase 호출, 분석 이벤트, id 속성)은 건드리지 않고 프레젠테이션만 바꾼다.
+
+### 디자인 확인용 개발 화면
+`#/dev-qa` (개발 빌드 전용, `import.meta.env.DEV` 가드) — 로그인이나 실데이터 없이
+1:1 궁합 모달·공유 카드·감정서 리포트를 목업 멤버로 띄워 확인한다. 프로덕션 빌드에서는 라우트가 열리지 않는다.
 
 ---
 

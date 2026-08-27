@@ -261,10 +261,10 @@ export default function SurveyPopup() {
                 setIsOpen(true);
                 setIsMinimized(false);
               }}
-              className="flex items-center space-x-2 bg-[#C0392B] hover:bg-[#A93226] text-[#FAF7F2] font-serif font-bold text-xs px-4 py-3 rounded-full shadow-lg border border-[#D6CCBC]/40 transition duration-200 cursor-pointer animate-bounce"
+              className="flex items-center space-x-2 bg-surface text-ink font-semibold text-xs px-4 py-3 rounded-xl shadow-lg transition-colors duration-200 cursor-pointer hover:bg-sunken"
             >
-              <MessageSquare className="w-4 h-4 animate-pulse" />
-              <span>{submitted ? "사용성 의견 보기" : "의견 보내고 선물받기"}</span>
+              <MessageSquare className="w-4 h-4 text-ink-soft" />
+              <span>{submitted ? "보낸 의견 보기" : "의견 보내기"}</span>
             </motion.button>
           )}
         </AnimatePresence>
@@ -286,11 +286,8 @@ export default function SurveyPopup() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-[#FAF7F2] border-2 border-[#D6CCBC] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden relative flex flex-col max-h-[90vh] cursor-default"
+              className="bg-surface w-full max-w-md rounded-xl shadow-lg overflow-hidden relative flex flex-col max-h-[90vh] cursor-default"
             >
-              {/* Top ceiling accent */}
-              <div className="h-1.5 w-full bg-[#C0392B]" />
-
               {/* Close Button */}
               <button
                 type="button"
@@ -298,7 +295,7 @@ export default function SurveyPopup() {
                   setIsOpen(false);
                   setIsMinimized(true);
                 }}
-                className="absolute top-4 right-4 p-1 rounded-full text-[#5C5046] hover:bg-[#E8E0D0]/40 transition duration-150 cursor-pointer"
+                className="absolute top-4 right-4 p-1 rounded-xl text-ink-faint hover:text-ink hover:bg-sunken transition-colors duration-150 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -308,13 +305,10 @@ export default function SurveyPopup() {
                 {!submitted ? (
                   <>
                     {/* Header */}
-                    <div className="text-center space-y-1 pb-4 border-b border-[#E8E0D0]">
-                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#FCFAF5] border border-[#D6CCBC] text-2xl text-[#C0392B] mb-2 font-serif">
-                        ☯
-                      </div>
-                      <h3 className="font-serif text-lg font-bold text-[#C0392B]">인연사주 개선 사용성 설문</h3>
-                      <p className="text-xs text-[#5C5046] leading-relaxed">
-                        더 나은 서비스 디벨롭 방향성과 BM(유료 정책) 구상을 위해 소중한 한 표를 남겨주세요!
+                    <div className="text-center space-y-1 pb-4">
+                      <h3 className="font-serif text-lg font-semibold text-ink">인연사주 사용성 설문</h3>
+                      <p className="text-xs text-ink-soft leading-relaxed">
+                        서비스 개선 방향과 유료 정책 검토에 참고할 의견을 남겨 주세요.
                       </p>
                     </div>
 
@@ -322,10 +316,10 @@ export default function SurveyPopup() {
                     <form onSubmit={handleSubmit} className="space-y-5 text-left">
                       {config.questions.map((q, index) => (
                         <div key={q.id} className="space-y-2.5">
-                          <label className="block text-xs font-bold text-[#2C3E50] leading-relaxed">
-                            <span className="text-[#C0392B] mr-1">{index + 1}.</span>
+                          <label className="block text-xs font-semibold text-ink leading-relaxed">
+                            <span className="text-ink-faint mr-1">{index + 1}.</span>
                             {q.title}
-                            {q.required && <span className="text-[#C0392B] ml-1">*</span>}
+                            {q.required && <span className="text-seal ml-1">*</span>}
                           </label>
 
                           {/* TEXT question */}
@@ -334,8 +328,8 @@ export default function SurveyPopup() {
                               rows={3}
                               value={answers[q.id] || ""}
                               onChange={(e) => handleAnswerChange(q.id, e.target.value)}
-                              placeholder="여기에 자유롭게 작성해 주세요..."
-                              className="w-full p-3 bg-white border border-[#E8E0D0] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C0392B]/20 focus:border-[#C0392B] text-xs text-[#2C3E50] placeholder:text-[#B0A69B] resize-none"
+                              placeholder="여기에 자유롭게 작성해 주세요."
+                              className="w-full px-4 py-3 bg-sunken rounded-xl focus:outline-none focus:ring-1 focus:ring-ink text-xs text-ink placeholder:text-ink-faint resize-none"
                             />
                           )}
 
@@ -345,8 +339,8 @@ export default function SurveyPopup() {
                               {q.options.map((option) => (
                                 <label
                                   key={option}
-                                  className={`flex items-start p-2.5 rounded-xl border border-[#E8E0D0]/50 bg-white hover:bg-[#FDFBF7] cursor-pointer transition text-xs text-[#5A4D41] leading-tight space-x-2.5 ${
-                                    answers[q.id] === option ? "border-[#C0392B] bg-red-50/20" : ""
+                                  className={`flex items-start p-3 rounded-xl cursor-pointer transition-colors text-xs leading-relaxed space-x-2.5 ${
+                                    answers[q.id] === option ? "bg-ink text-white" : "bg-sunken text-ink-soft hover:bg-line"
                                   }`}
                                 >
                                   <input
@@ -355,7 +349,7 @@ export default function SurveyPopup() {
                                     value={option}
                                     checked={answers[q.id] === option}
                                     onChange={() => handleAnswerChange(q.id, option)}
-                                    className="mt-0.5 text-[#C0392B] focus:ring-[#C0392B]"
+                                    className="mt-0.5 accent-ink"
                                   />
                                   <span>{option}</span>
                                 </label>
@@ -371,8 +365,8 @@ export default function SurveyPopup() {
                                 return (
                                   <label
                                     key={option}
-                                    className={`flex items-start p-2.5 rounded-xl border border-[#E8E0D0]/50 bg-white hover:bg-[#FDFBF7] cursor-pointer transition text-xs text-[#5A4D41] leading-tight space-x-2.5 ${
-                                      isChecked ? "border-[#C0392B] bg-red-50/20" : ""
+                                    className={`flex items-start p-3 rounded-xl cursor-pointer transition-colors text-xs leading-relaxed space-x-2.5 ${
+                                      isChecked ? "bg-ink text-white" : "bg-sunken text-ink-soft hover:bg-line"
                                     }`}
                                   >
                                     <input
@@ -380,7 +374,7 @@ export default function SurveyPopup() {
                                       value={option}
                                       checked={isChecked}
                                       onChange={(e) => handleCheckboxChange(q.id, option, e.target.checked)}
-                                      className="mt-0.5 rounded text-[#C0392B] focus:ring-[#C0392B]"
+                                      className="mt-0.5 accent-ink"
                                     />
                                     <span>{option}</span>
                                   </label>
@@ -392,8 +386,8 @@ export default function SurveyPopup() {
                       ))}
 
                       {formError && (
-                        <p className="text-[11px] text-[#C0392B] font-bold text-center bg-red-50 p-2 rounded-lg border border-red-100">
-                          ⚠️ {formError}
+                        <p className="text-xs text-seal font-medium text-center bg-sunken p-3 rounded-xl">
+                          {formError}
                         </p>
                       )}
 
@@ -401,7 +395,7 @@ export default function SurveyPopup() {
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="w-full py-3 bg-[#C0392B] hover:bg-[#A93226] disabled:bg-gray-400 text-white rounded-xl font-serif font-bold text-xs tracking-widest flex items-center justify-center space-x-1.5 transition duration-200 cursor-pointer shadow-md"
+                        className="w-full py-3 bg-seal hover:bg-seal-deep disabled:opacity-40 text-white rounded-xl font-semibold text-sm flex items-center justify-center space-x-1.5 transition-colors duration-200 cursor-pointer"
                       >
                         {submitting ? (
                           <>
@@ -410,7 +404,7 @@ export default function SurveyPopup() {
                           </>
                         ) : (
                           <>
-                            <span>소중한 의견 보내기</span>
+                            <span>의견 보내기</span>
                             <ArrowRight className="w-3.5 h-3.5" />
                           </>
                         )}
@@ -420,24 +414,23 @@ export default function SurveyPopup() {
                 ) : (
                   /* Thank You Success Screen */
                   <div className="py-8 text-center space-y-4">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-50 border-2 border-emerald-300 text-3xl text-emerald-600 animate-bounce">
-                      <Award className="w-8 h-8" />
+                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-sunken text-ink-soft">
+                      <Award className="w-7 h-7" />
                     </div>
                     <div className="space-y-1.5">
-                      <h3 className="font-serif text-lg font-bold text-[#2C3E50]">설문 작성이 완료되었습니다!</h3>
-                      <p className="text-xs text-[#5C5046] leading-loose">
-                        귀하께서 보내주신 고견은 인연사주의 향후 빌링 정책 및<br />
-                        AI 기능 고도화에 절대적인 기준서가 될 것입니다.<br />
-                        <span className="font-bold text-[#C0392B]">lhs41977@gmail.com</span>로 잘 취합되어 전달되었습니다.
+                      <h3 className="font-serif text-lg font-semibold text-ink">설문이 제출되었습니다</h3>
+                      <p className="text-xs text-ink-soft leading-loose">
+                        보내주신 의견은 유료 정책과 기능 개선을 검토할 때 참고합니다.<br />
+                        <span className="font-semibold text-ink">lhs41977@gmail.com</span>로 전달되었습니다.
                       </p>
                     </div>
-                    <div className="bg-[#FCFAF5] border border-[#D6CCBC] p-4 rounded-xl text-left">
-                      <h4 className="text-[11px] font-bold text-[#C0392B] border-b border-[#E8E0D0] pb-1.5 mb-2 flex items-center">
-                        <Check className="w-3 h-3 mr-1" />
-                        <span>참여해 주셔서 진심으로 감사드립니다</span>
+                    <div className="bg-sunken p-4 rounded-xl text-left">
+                      <h4 className="text-xs font-semibold text-ink pb-1.5 mb-1 flex items-center">
+                        <Check className="w-3 h-3 mr-1 text-ink-soft" />
+                        <span>참여해 주셔서 감사합니다</span>
                       </h4>
-                      <p className="text-[10px] text-[#5A4D41] leading-relaxed">
-                        모든 분석은 안전하게 기록되었으며, 앞으로 더욱 정교한 사주 궁합 인연 분석으로 보답하는 인연사주가 되겠습니다.
+                      <p className="text-xs text-ink-soft leading-relaxed">
+                        의견은 안전하게 기록되었습니다. 더 나은 사주 궁합 분석으로 보답하겠습니다.
                       </p>
                     </div>
                     <button
@@ -446,7 +439,7 @@ export default function SurveyPopup() {
                         setIsOpen(false);
                         setIsMinimized(true);
                       }}
-                      className="px-6 py-2 bg-[#2C3E50] text-white hover:bg-[#1A252F] text-xs font-bold rounded-lg transition cursor-pointer"
+                      className="px-6 py-2.5 bg-sunken hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                     >
                       닫기
                     </button>

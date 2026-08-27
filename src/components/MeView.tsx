@@ -44,7 +44,7 @@ const ELEMENT_SPECS: Record<string, {
     ],
     desc: "어떤 환경에서도 스스로 길을 만들어내는 생명력을 지녔어요. 굽히지 않는 기개로 주변 사람들을 이끌지만, 때로는 휘어지는 유연함이 더 큰 성장을 만듭니다.",
     renderIcon: () => (
-      <svg viewBox="0 0 48 48" fill="none" stroke="#C0392B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
+      <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
         <line x1="24" y1="44" x2="24" y2="12" />
         <path d="M24 24 L36 14" />
         <path d="M24 30 L12 20" />
@@ -69,7 +69,7 @@ const ELEMENT_SPECS: Record<string, {
     ],
     desc: "주변의 공기를 단숨에 바꾸는 온기를 지녔어요. 마음에 품은 것은 투명하게 드러나며 뒤끝이 없지만, 에너지를 한 번에 쏟고 지치지 않도록 조절이 필요해요.",
     renderIcon: () => (
-      <svg viewBox="0 0 48 48" fill="none" stroke="#C0392B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
+      <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
         <path d="M24 4 C24 4 12 18 12 28 C12 36 17 42 24 42 C31 42 36 36 36 28 C36 18 24 4 24 4 Z" />
         <path d="M24 20 C24 20 18 26 18 31 C18 35 20.5 38 24 38 C27.5 38 30 35 30 31 C30 26 24 20 24 20 Z" opacity="0.5" />
       </svg>
@@ -90,7 +90,7 @@ const ELEMENT_SPECS: Record<string, {
     ],
     desc: "어떤 이야기도 묵묵히 받아내어 결실로 만드는 안식처예요. 중심이 단단해 곁에 있는 사람에게 큰 안정감을 주지만, 너무 많은 무게를 혼자 짊어지지 마세요.",
     renderIcon: () => (
-      <svg viewBox="0 0 48 48" fill="none" stroke="#C0392B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
+      <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
         <polygon points="24,6 42,38 6,38" />
         <polyline points="15,22 24,14 33,22" opacity="0.4" />
         <line x1="6" y1="42" x2="42" y2="42" />
@@ -112,7 +112,7 @@ const ELEMENT_SPECS: Record<string, {
     ],
     desc: "군더더기 없는 명쾌함으로 상황을 정리하는 사람이에요. 한번 정한 원칙은 잘 굽히지 않고, 그 단단함이 주변에 신뢰를 줍니다. 다만 스스로에게도 그 잣대를 들이대니, 가끔은 조금 무뎌져도 괜찮아요.",
     renderIcon: () => (
-      <svg viewBox="0 0 48 48" fill="none" stroke="#C0392B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
+      <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
         <path d="M24 4 L40 14 L40 34 L24 44 L8 34 L8 14 Z" />
         <path d="M24 12 L33 17.5 L33 30.5 L24 36 L15 30.5 L15 17.5 Z" opacity="0.55" />
         <path d="M24 4 L24 12 M40 14 L33 17.5 M40 34 L33 30.5 M24 44 L24 36 M8 34 L15 30.5 M8 14 L15 17.5" opacity="0.35" />
@@ -134,7 +134,7 @@ const ELEMENT_SPECS: Record<string, {
     ],
     desc: "바위에 부딪혀도 막히지 않고 길을 내어가는 지혜를 지녔어요. 상황을 넓게 보고 본질을 짚어내지만, 생각이 깊어져 실행을 망설이지 않도록 한 걸음 내딛어보세요.",
     renderIcon: () => (
-      <svg viewBox="0 0 48 48" fill="none" stroke="#C0392B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
+      <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
         <path d="M6 18 C12 12, 18 24, 24 18 C30 12, 36 24, 42 18" />
         <path d="M6 26 C12 20, 18 32, 24 26 C30 20, 36 32, 42 26" opacity="0.7" />
         <path d="M6 34 C12 28, 18 40, 24 34 C30 28, 36 40, 42 34" opacity="0.4" />
@@ -170,7 +170,7 @@ function getSajuMbtiSynthesis(daymasterElement: string, mbti: string): { title: 
     },
     "화": {
       "NF": { title: "열정의 횃불 (火 + NF)", text: "활활 타오르는 횃불 같은 열정과 타인을 울리는 깊은 영감이 결합했습니다. 사람들의 마음을 단숨에 사로잡고 따뜻한 온기와 에너지를 불어넣는 영혼의 치어리더이자, 이상을 전파하는 등대 같은 기운입니다." },
-      "NT": { title: "화려한 기획자 (火 + NT)", text: "모든 것을 명백하게 비추는 햇살 같은 총명함และ 고도의 이성이 만났습니다. 머리 회전이 기가 막히게 빠르며 트렌드를 앞서 선점하고, 기발한 분석력과 프레젠테이션 수완으로 청중을 압도하는 브레인입니다." },
+      "NT": { title: "화려한 기획자 (火 + NT)", text: "모든 것을 명백하게 비추는 햇살 같은 총명함과 고도의 이성이 만났습니다. 머리 회전이 기가 막히게 빠르며 트렌드를 앞서 선점하고, 기발한 분석력과 프레젠테이션 수완으로 청중을 압도하는 브레인입니다." },
       "SJ": { title: "사교적인 등불 (火 + SJ)", text: "모두를 따뜻하게 덮어주는 모닥불처럼 사교성과 질서감이 대단히 우수합니다. 약속을 생명처럼 아끼며, 지인들을 화기애애하게 챙겨주는 모임의 명랑하고 책임감 강한 활력 충전기입니다." },
       "SP": { title: "불꽃 같은 예술가 (火 + SP)", text: "어둠 속을 밝히는 네온사인처럼 끼와 매력이 사방으로 분출됩니다. 순간적인 몰입도와 미적 센스가 타의 추종을 불허하여, 무대 위나 현장 비즈니스에서 독보적인 존재감을 과시하는 주인공입니다." }
     },
@@ -315,7 +315,7 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
     sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 17, 85, 97);
     sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 41, 80, 95);
     sajuLabel = "오행상생의 창조적 파트너";
-    sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. ${g1}의 기운이 ${g2}을 촉진해 주어, ${m1.nickname}님의 추진력이 ${m2.nickname}님의 성과로 부드럽게 이어지는 완벽한 창조적 흐름입니다.`;
+    sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. ${g1}의 기운이 ${g2}을 촉진해 주어, ${m1.nickname}님의 추진력이 ${m2.nickname}님의 성과로 부드럽게 이어지는 자연스러운 창조적 흐름입니다.`;
   } else if (isReceivingSajuSupport) {
     sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 23, 80, 95);
     sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 59, 85, 97);
@@ -325,7 +325,7 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
     sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 15, 78, 92);
     sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 45, 78, 92);
     sajuLabel = "거울을 보듯 통하는 소울 조합";
-    sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. 서로 같은 '${elem1}'의 오행 기운을 공유하여, 굳이 많은 설명을 하지 않아도 깊은 동질감과 끈끈한 유대감을 나누는 완벽한 동료입니다.`;
+    sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. 서로 같은 '${elem1}'의 오행 기운을 공유하여, 굳이 많은 설명을 하지 않아도 깊은 동질감과 끈끈한 유대감을 나누는 잘 통하는 동료입니다.`;
   } else if (isSajuClash) {
     sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 19, 65, 80);
     sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 37, 65, 80);
@@ -365,7 +365,7 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
   ) {
     zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 31, 82, 94);
     zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 71, 82, 94);
-    zodiacDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${zodiacScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${zodiacScore2to1}점. ${z1.emoji}${z1.name}의 기운과 ${z2.emoji}${z2.name}의 기운이 활력 있게 만나 에너지를 지피거나 대지를 촉촉하게 가꿔주듯, 활기차고 성장을 자극하는 궁합입니다.`;
+    zodiacDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${zodiacScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${zodiacScore2to1}점. ${z1.name}의 기운과 ${z2.name}의 기운이 활력 있게 만나 에너지를 지피거나 대지를 촉촉하게 가꿔주듯, 활기차고 성장을 자극하는 궁합입니다.`;
   } else {
     zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 33, 68, 85);
     zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 73, 68, 85);
@@ -411,7 +411,7 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
 
     let synergyBullet = "";
     if (code1[2] === code2[2] && code1[2] === "T") {
-      synergyBullet = "이성적이고 담백한 팩트 체크와 효율 중심 소통이 완벽하게 일치합니다.";
+      synergyBullet = "이성적이고 담백한 팩트 체크와 효율 중심 소통이 잘 맞아떨어집니다.";
     } else if (code1[2] === code2[2] && code1[2] === "F") {
       synergyBullet = "따뜻하고 속 깊은 정서적 교감과 따뜻한 리액션이 어우러져 한없이 포근합니다.";
     } else {
@@ -470,7 +470,7 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
     const labelOptions = [
       `${nick1}과 ${nick2}의 상생적 영감`,
       `오행상생의 창조적 파트너십`,
-      `${z1.emoji}${z1.name}와 ${z2.emoji}${z2.name}의 시너지 기류`
+      `${z1.name}와 ${z2.name}의 시너지 기류`
     ];
     finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
 
@@ -484,12 +484,12 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
     const labelOptions = [
       `${nick2}과 ${nick1}의 든든한 상생 기류`,
       `따뜻한 조력과 편안한 교감`,
-      `${z2.emoji}${z2.name}가 품어주는 상생 연대`
+      `${z2.name}가 품어주는 상생 연대`
     ];
     finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
 
     const descOptions = [
-      `${m2.nickname}님의 포근하고 넓은 ${meta2.nick} 기운이 ${m1.nickname}님의 섬세한 ${meta1.nick} 성정을 든든하게 받쳐주고 생(生)해주는 완벽한 조력의 기류입니다. 두 분이 함께하면 일상에서 쌓였던 불안 and 피로가 마법처럼 해소되며 서로에 대한 대단한 신뢰가 굳건하게 형성됩니다.`,
+      `${m2.nickname}님의 포근하고 넓은 ${meta2.nick} 기운이 ${m1.nickname}님의 섬세한 ${meta1.nick} 성정을 든든하게 받쳐주고 생(生)해주는 든든한 조력의 기류입니다. 두 분이 함께하면 일상에서 쌓였던 불안과 피로가 자연스럽게 풀리며 서로에 대한 깊은 신뢰가 굳건하게 형성됩니다.`,
       `${m2.nickname}님의 깊은 포용력이 ${m1.nickname}님의 무한한 가능성을 자상하게 이끌어내어 주는 기라성 같은 인연입니다. 힘든 고난이 찾아와도 서로를 향한 변치 않는 위로와 격려를 아끼지 않는 단단하고 돈독한 상생 조합입니다.`
     ];
     finalDesc = descOptions[getDeterministicHashScore(m1Id, m2Id, 17, 0, descOptions.length - 1)];
@@ -498,26 +498,26 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
     const labelOptions = [
       `같은 ${elem1} 기운의 소울 메이트`,
       `거울을 보듯 깊이 공감하는 소통`,
-      `${z1.emoji}${z1.name}와 ${z2.emoji}${z2.name}의 깊은 우정`
+      `${z1.name}와 ${z2.name}의 깊은 우정`
     ];
     finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
 
     const descOptions = [
       `서로 같은 '${elem1}'의 오행 원소를 풍부하게 공유하고 있어, 처음 만난 순간부터 영혼 깊숙이 통하는 대단한 동질감을 경험하는 조합입니다. 굳이 말 한마디를 나누지 않아도 눈빛만으로 상대의 의도와 마음을 꿰뚫어 보며, 변함없이 곁을 지켜주는 든든한 동반자가 되어줍니다.`,
-      `서로 닮은꼴의 성향과 가치관을 지니고 있어 같은 방향을 바라보고 시원시원하게 나아가는 영혼의 단짝입니다. 갈등의 여지가 지극히 적으며, 서로에게 거울 같은 자극을 주며 동반 성장할 수 있는 완벽한 화합의 파트너십을 보여줍니다.`
+      `서로 닮은꼴의 성향과 가치관을 지니고 있어 같은 방향을 바라보고 시원시원하게 나아가는 영혼의 단짝입니다. 갈등의 여지가 지극히 적으며, 서로에게 거울 같은 자극을 주며 동반 성장할 수 있는 안정적인 화합의 파트너십을 보여줍니다.`
     ];
     finalDesc = descOptions[getDeterministicHashScore(m1Id, m2Id, 17, 0, descOptions.length - 1)];
 
   } else if (isSajuClash) {
     const labelOptions = [
       `${nick1}과 ${nick2}의 긴장 속 혁신 케미`,
-      `서로의 맹점을 완벽하게 메우는 퍼즐`,
+      `서로의 맹점을 메워주는 퍼즐`,
       `뜨겁고 날카로운 자극의 관계 기류`
     ];
     finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
 
     const descOptions = [
-      `${m1.nickname}님의 ${meta1.nick}과 ${m2.nickname}님의 ${meta2.nick}이 오행상 서로 극(剋)하며 은근한 텐션을 형성합니다. 하지만 이는 갈등이 아닌 서로의 맹점을 날카롭게 깨워주는 지적 자극제가 되며, 적절한 존중을 유지할 때 세상 어떤 조합보다 완벽하게 서로를 메워주는 훌륭한 퍼즐이 됩니다.`,
+      `${m1.nickname}님의 ${meta1.nick}과 ${m2.nickname}님의 ${meta2.nick}이 오행상 서로 극(剋)하며 은근한 텐션을 형성합니다. 하지만 이는 갈등이 아닌 서로의 맹점을 날카롭게 깨워주는 지적 자극제가 되며, 적절한 존중을 유지할 때 서로의 빈틈을 잘 메워주는 훌륭한 퍼즐이 됩니다.`,
       `서로 다른 시선과 가치관을 지녀 가끔씩 신선한 충격을 나누지만, 오히려 그렇기 때문에 평소에 생각해내지 못한 전혀 다른 창의적 각도의 해결책을 이끌어내며, 지적인 성장과 혁신을 최고치로 유도하는 파트너입니다.`
     ];
     finalDesc = descOptions[getDeterministicHashScore(m1Id, m2Id, 17, 0, descOptions.length - 1)];
@@ -526,7 +526,7 @@ function generateDynamicPairCompatibility(m1: Member, m2: Member): any {
     const labelOptions = [
       `온화함 속에서 은은히 피어나는 신뢰`,
       `담백하고 편안한 상생 파트너`,
-      `${z1.emoji}${z1.name}와 ${z2.emoji}${z2.name}의 온화한 화합`
+      `${z1.name}와 ${z2.name}의 온화한 화합`
     ];
     finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
 
@@ -745,7 +745,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("서버 혼잡 또는 네트워크 일시적 타임아웃이 발생했습니다. 잠시 후 상단의 업데이트 버튼을 눌러 다시 시도해 주세요!");
+        throw new Error("서버 혼잡 또는 네트워크 일시적 타임아웃이 발생했습니다. 잠시 후 상단의 업데이트 버튼을 눌러 다시 시도해 주세요.");
       }
 
       const aiData = await response.json();
@@ -805,7 +805,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("서버 혼잡 또는 네트워크 일시적 타임아웃이 발생했습니다. 잠시 후 실시간 인연 궁합 업데이트 버튼을 눌러 다시 시도해 주세요!");
+        throw new Error("서버 혼잡 또는 네트워크 일시적 타임아웃이 발생했습니다. 잠시 후 실시간 인연 궁합 업데이트 버튼을 눌러 다시 시도해 주세요.");
       }
 
       const aiData = await response.json();
@@ -948,7 +948,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
     birthplace_city?: string;
   }) => {
     if (!member) return;
-    setEditOverlayMessage("내 정보를 안전하게 저장하고 명식을 정밀 재해석하는 중...");
+    setEditOverlayMessage("내 정보를 저장하고 명식을 다시 해석하는 중이에요.");
     setEditLoading(true);
     setEditError("");
 
@@ -1079,10 +1079,10 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
   if (loading) {
     return (
-      <Layout title="인연명부 대조 중">
+      <Layout title="리포트 불러오는 중">
         <div className="flex flex-col items-center justify-center py-24 select-none">
-          <div className="animate-spin text-3xl text-[#C0392B] font-serif">☯</div>
-          <p className="text-xs text-[#5C5046] mt-3">사주 해석 단자를 해독하는 중...</p>
+          <div className="w-8 h-8 border-2 border-line border-t-ink rounded-full animate-spin" />
+          <p className="text-xs text-ink-faint mt-3">사주 리포트를 불러오는 중입니다.</p>
         </div>
       </Layout>
     );
@@ -1092,11 +1092,10 @@ export default function MeView({ code, memberId }: MeViewProps) {
     return (
       <Layout title="조회 실패" showHomeButton>
         <div className="text-center py-12 space-y-4">
-          <div className="text-3xl">⚠️</div>
-          <p className="text-sm font-semibold text-[#C0392B]">{error || "기록을 찾을 수 없습니다."}</p>
+          <p className="text-sm font-medium text-seal">{error || "기록을 찾을 수 없습니다."}</p>
           <a
             href={`#/room/${code}`}
-            className="inline-block px-5 py-2.5 bg-[#2C3E50] text-[#FAF7F2] rounded text-xs font-serif font-bold tracking-tight shadow-sm"
+            className="inline-block px-5 py-3 bg-sunken hover:bg-line text-ink rounded-xl text-sm font-semibold transition-colors"
           >
             모임방으로 돌아가기
           </a>
@@ -1147,37 +1146,37 @@ export default function MeView({ code, memberId }: MeViewProps) {
         <div>
           <a
             href={`#/room/${code}`}
-            className="inline-flex items-center text-xs font-medium text-[#5C5046] hover:text-[#C0392B] transition"
+            className="inline-flex items-center text-xs font-medium text-ink-soft hover:text-ink transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            모임 메인 목록으로 돌아가기
+            모임방으로 돌아가기
           </a>
         </div>
 
         {isEditing ? (
           <div className="space-y-4 animate-fade-in text-left">
-            <div className="bg-[#FAF7F2] border border-[#D6CCBC] p-4.5 rounded-2xl text-center space-y-1 shadow-xs">
-              <h4 className="font-serif text-sm font-bold text-[#C0392B]">내 사주 정보 수정</h4>
-              <p className="text-[11px] text-[#5C5046]">
-                태어난 생년월일, 시각, 별명, 성별 정보를 알맞게 정정할 수 있습니다.
+            <div className="space-y-1">
+              <h2 className="font-serif text-lg font-semibold text-ink">내 사주 정보 수정</h2>
+              <p className="text-xs text-ink-soft">
+                생년월일, 태어난 시각, 별명, 성별 정보를 고칠 수 있어요.
               </p>
             </div>
 
             {editError && (
-              <div className="text-xs text-[#C0392B] bg-[#FDEDEC] p-3 rounded-xl border border-[#FADBD8] font-bold text-center">
-                ⚠️ {editError}
-              </div>
+              <p className="text-xs text-seal bg-sunken p-3 rounded-xl font-medium text-center">
+                {editError}
+              </p>
             )}
 
             {isLoginRequiredToEdit ? (
-              <div className="bg-white border border-[#D6CCBC] p-6 rounded-2xl text-center space-y-4 shadow-xs">
-                <div className="w-12 h-12 mx-auto rounded-full bg-[#C0392B]/10 flex items-center justify-center text-[#C0392B]">
+              <div className="bg-surface border border-line p-6 rounded-xl text-center space-y-4">
+                <div className="w-12 h-12 mx-auto rounded-full bg-sunken flex items-center justify-center text-ink-soft">
                   <LogIn className="w-5 h-5" />
                 </div>
                 <div className="space-y-1">
-                  <h4 className="font-serif text-sm font-bold text-[#2C3E50]">소셜 로그인 연동 필요</h4>
-                  <p className="text-[11px] text-[#5C5046] leading-relaxed max-w-xs mx-auto">
-                    이 프로필은 소셜 계정으로 보호되어 있습니다. 정보를 정정하려면 이전에 가입/참여하셨던 Google 계정으로 로그인해 주셔야 합니다.
+                  <h3 className="text-[15px] font-semibold text-ink">소셜 로그인이 필요해요</h3>
+                  <p className="text-xs text-ink-soft leading-relaxed max-w-xs mx-auto">
+                    이 프로필은 소셜 계정으로 보호되어 있어요. 정보를 고치려면 참여할 때 사용한 Google 계정으로 로그인해 주세요.
                   </p>
                 </div>
                 <button
@@ -1192,15 +1191,15 @@ export default function MeView({ code, memberId }: MeViewProps) {
                       setEditLoading(false);
                     }
                   }}
-                  className="mx-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-[#C0392B] hover:bg-[#A0281B] text-white rounded-xl text-xs font-serif font-bold tracking-tight shadow-xs cursor-pointer transition duration-200"
+                  className="mx-auto flex items-center justify-center gap-2 px-5 py-3 bg-seal hover:bg-seal-deep text-white rounded-xl text-sm font-semibold cursor-pointer transition-colors"
                 >
-                  ☯ Google 계정으로 로그인하기
+                  Google 계정으로 로그인
                 </button>
               </div>
             ) : (
               <SajuForm
                 onSubmit={handleEditSubmit}
-                submitButtonText="최종 정보 저장 및 명식 재해석"
+                submitButtonText="수정한 정보로 다시 분석하기"
                 initialNickname={member.nickname}
                 initialGender={member.gender as "남성" | "여성"}
                 initialBirthDate={member.birth_date}
@@ -1216,7 +1215,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
                 setIsEditing(false);
                 setEditError("");
               }}
-              className="w-full py-3.5 bg-[#7F8C8D] hover:bg-[#95A5A6] text-white font-serif font-bold text-xs rounded-xl tracking-widest transition duration-200 cursor-pointer text-center"
+              className="w-full py-3 bg-sunken hover:bg-line text-ink font-semibold text-sm rounded-xl transition-colors cursor-pointer text-center"
             >
               수정 취소하고 돌아가기
             </button>
@@ -1238,24 +1237,21 @@ export default function MeView({ code, memberId }: MeViewProps) {
               const cardSerial = `${spec.serialPrefix}-${serialNum} · ${g}${j}`;
 
               return (
-                <div
-                  className="w-full bg-[#FFFFFF] rounded-[28px] p-6 sm:p-7 shadow-[0_15px_40px_-15px_rgba(192,57,43,0.12)] border border-[#EFE9DF] text-left animate-fade-in"
-                  style={{ fontFamily: '"Pretendard", system-ui, sans-serif' }}
-                >
-                  {/* 1. 상단: 시리얼 & 오행 배지 */}
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-[11px] font-mono tracking-[0.14em] text-[#5C5046]">
+                <div className="w-full bg-surface rounded-xl p-6 sm:p-7 border border-line text-left animate-fade-in">
+                  {/* 1. 상단: 시리얼 & 오행 표기 */}
+                  <div className="flex items-center justify-between mb-5">
+                    <span className="text-xs font-mono tracking-[0.14em] text-ink-faint">
                       {cardSerial}
                     </span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[11px] font-bold tracking-[0.08em] text-[#C0392B] bg-[#FDEDEC] px-2.5 py-1 rounded-full">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs tracking-[0.08em] text-ink-faint">
                         {spec.hanja} {spec.en}
                       </span>
                       {isMyProfile && (
                         <button
                           type="button"
                           onClick={() => setIsEditing(true)}
-                          className="text-[11px] font-bold text-[#5C5046] hover:text-[#C0392B] bg-[#FAF7F2] px-2.5 py-1 rounded-full border border-[#E8E0D0] cursor-pointer"
+                          className="text-xs font-medium text-ink-soft hover:text-ink bg-sunken px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
                         >
                           수정
                         </button>
@@ -1263,57 +1259,57 @@ export default function MeView({ code, memberId }: MeViewProps) {
                     </div>
                   </div>
 
-                  {/* 2. 엠블럼: 지름 96px 원, 배경 #FDEDEC, 플랫 라인 SVG */}
-                  <div className="w-[96px] h-[96px] mx-auto mb-3.5 rounded-full bg-[#FDEDEC] flex items-center justify-center border border-[#F5D5D3]/60">
+                  {/* 2. 엠블럼 */}
+                  <div className="w-[112px] h-[112px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center">
                     {spec.renderIcon()}
                   </div>
 
                   {/* 3. 이름 헤드라인 */}
-                  <h3 className="text-center text-[22px] font-[800] tracking-[-0.02em] leading-[1.25] text-[#2C3E50] mb-2">
-                    {member.nickname}님은 <span className="text-[#C0392B]">{spec.colorName}</span>
-                  </h3>
+                  <h1 className="text-center font-serif text-2xl font-semibold tracking-tight leading-snug text-ink mb-2">
+                    {member.nickname}님은 <span className="text-seal">{spec.colorName}</span>
+                  </h1>
 
                   {/* 4. 한 줄 정의 */}
-                  <p className="text-center text-[13.5px] font-[500] leading-[1.5] text-[#5A4D41] max-w-[280px] mx-auto mb-4">
+                  <p className="text-center text-sm leading-relaxed text-ink-soft max-w-[300px] mx-auto mb-5">
                     {spec.quote}
                   </p>
 
-                  {/* 5. 키워드 태그: 알약형 */}
-                  <div className="flex flex-wrap gap-1.5 justify-center mb-5">
+                  {/* 5. 키워드 태그 */}
+                  <div className="flex flex-wrap gap-1.5 justify-center mb-6">
                     {spec.tags.map((tag, idx) => (
                       <span
                         key={idx}
-                        className="text-[11.5px] font-[600] text-[#C0392B] bg-[#FDEDEC] px-3 py-1 rounded-full"
+                        className="text-xs font-medium text-ink-soft bg-sunken px-3 py-1.5 rounded-lg"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
 
-                  {/* 6. 오행 스탯 4줄 */}
-                  <div className="space-y-2 mb-5">
+                  {/* 6. 기질 스탯 4줄 */}
+                  <div className="space-y-2.5 mb-6">
                     {spec.stats.map((st, idx) => (
-                      <div key={idx} className="flex items-center gap-2 w-full">
-                        <span className="text-[12px] font-[700] text-[#2C3E50] w-[48px] shrink-0 text-left">
+                      <div key={idx} className="grid grid-cols-[48px_1fr_32px] items-center gap-2.5">
+                        <span className="text-xs font-medium text-ink">
                           {st.label}
                         </span>
-                        <div className="h-[6.5px] bg-[#F5EFE6] rounded-full overflow-hidden flex-1">
+                        <div className="h-[7px] bg-sunken rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ width: `${st.val}%`, backgroundColor: st.color }}
+                            className="h-full rounded-full bg-ink/70 transition-all duration-500"
+                            style={{ width: `${st.val}%` }}
                           />
                         </div>
-                        <span className="text-[11px] font-[700] font-mono text-right text-[#5C5046] w-[30px] shrink-0">
+                        <span className="text-xs font-mono text-right text-ink-faint">
                           {st.val}
                         </span>
                       </div>
                     ))}
                   </div>
 
-                  {/* 7. 소울 포토 카드 3종 모달 트리거 */}
-                  <div className="pt-3.5 border-t border-[#EFE9DF] flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-bold text-[#5C5046]">
-                      📸 소울 포토 카드 공유
+                  {/* 7. 소울 포토 카드 모달 트리거 */}
+                  <div className="pt-4 border-t border-line flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xs font-medium text-ink-soft">
+                      소울 포토 카드 공유
                     </span>
                     <div className="flex gap-1.5">
                       <button
@@ -1322,9 +1318,9 @@ export default function MeView({ code, memberId }: MeViewProps) {
                           setViralCardTab("identity");
                           setIsViralModalOpen(true);
                         }}
-                        className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-[#F2ECE0] border border-[#E8E0D0] text-[#2C3E50] rounded-xl text-[11px] font-bold transition active:scale-95 cursor-pointer"
+                        className="px-3 py-1.5 bg-sunken hover:bg-line text-ink rounded-lg text-xs font-medium transition-colors cursor-pointer"
                       >
-                        🔮 내 소울
+                        내 소울
                       </button>
                       <button
                         type="button"
@@ -1332,9 +1328,9 @@ export default function MeView({ code, memberId }: MeViewProps) {
                           setViralCardTab("group");
                           setIsViralModalOpen(true);
                         }}
-                        className="px-2.5 py-1.5 bg-[#FAF7F2] hover:bg-[#F2ECE0] border border-[#E8E0D0] text-[#2C3E50] rounded-xl text-[11px] font-bold transition active:scale-95 cursor-pointer"
+                        className="px-3 py-1.5 bg-sunken hover:bg-line text-ink rounded-lg text-xs font-medium transition-colors cursor-pointer"
                       >
-                        ⚡ 케미
+                        케미
                       </button>
                       <button
                         type="button"
@@ -1342,10 +1338,9 @@ export default function MeView({ code, memberId }: MeViewProps) {
                           setViralCardTab("role");
                           setIsViralModalOpen(true);
                         }}
-                        className="px-2.5 py-1.5 bg-[#FDEDEC] hover:bg-[#FADBD8] border border-[#F5D5D3] text-[#C0392B] rounded-xl text-[11px] font-bold transition active:scale-95 cursor-pointer flex items-center gap-1"
+                        className="px-3 py-1.5 bg-sunken hover:bg-line text-ink rounded-lg text-xs font-medium transition-colors cursor-pointer"
                       >
-                        <Crown className="w-3 h-3" />
-                        <span>역할</span>
+                        역할
                       </button>
                     </div>
                   </div>
@@ -1355,118 +1350,87 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
             {!isMyOwnProfile && !isSecretUnlocked ? (
               /* PREMIUM LOCK GATEWAY FOR OTHER MEMBERS' PROFILES */
-              <div className="bg-gradient-to-br from-[#FAF8F5] via-amber-50/20 to-[#FCFAF6] border border-amber-300 rounded-3xl p-6 shadow-md space-y-6 text-center animate-fade-in relative overflow-hidden text-left mt-4">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-amber-400/5 rounded-full blur-2xl pointer-events-none" />
-                <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-                
-                <div className="mx-auto w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center shadow-xs">
-                  <Crown className="w-6 h-6 text-amber-600 fill-amber-300" />
+              <div className="bg-surface border border-line rounded-xl p-6 space-y-5 animate-fade-in text-left mt-4">
+                <div className="mx-auto w-12 h-12 rounded-full bg-sunken flex items-center justify-center text-ink-soft">
+                  <Lock className="w-5 h-5" />
                 </div>
 
-                <div className="space-y-2 text-center">
-                  <h4 className="font-serif text-sm font-black text-[#2C3E50] tracking-tight flex items-center justify-center gap-1.5">
-                    <Crown className="w-4.5 h-4.5 text-[#C0392B]" />
-                    <span>타인 상세 사주명식 및 평생 감정서 열람 제한</span>
-                  </h4>
-                  <p className="text-[11px] text-[#5C5046] max-w-sm mx-auto leading-relaxed font-medium">
-                    모임 참여자 <strong>{member.nickname}</strong>님의 상세한 사주명식, 일주 총평, 현대 성향심리(MBTI) 결합 조화 해독, 그리고 4대 영역 통합 평생 감정서 정보는 프리미엄 회원에게만 공개됩니다.
+                <div className="space-y-1.5 text-center">
+                  <h2 className="font-serif text-lg font-semibold text-ink">
+                    다른 멤버의 상세 리포트는 잠겨 있어요
+                  </h2>
+                  <p className="text-xs text-ink-soft max-w-sm mx-auto leading-relaxed">
+                    {member.nickname}님의 사주명식, 일주 총평, MBTI 결합 해석, 4대 영역 통합 감정서는 해금 후 볼 수 있어요.
                   </p>
                 </div>
 
-                {/* Premium Feature Checkpoints */}
-                <div className="max-w-md mx-auto bg-white/75 backdrop-blur-xs border border-amber-200/60 p-4 rounded-xl text-left space-y-3 shadow-3xs">
-                  <h5 className="text-[9px] text-[#C0392B] font-extrabold tracking-wider uppercase flex items-center gap-1">
-                    <Lock className="w-3.5 h-3.5" />
-                    <span>포함된 프리미엄 명품 기능 목록</span>
-                  </h5>
-                  <div className="space-y-2.5 text-[11px] text-[#5A4D41] font-medium">
-                    <div className="flex items-start gap-2">
-                      <span className="text-amber-500 text-xs mt-0.5">✔</span>
-                      <div>
-                        <span className="font-bold text-[#2C3E50] text-[11px]">타인의 사주명식(만세력) 및 천기/지기 정밀 정보</span>
-                        <p className="text-[10px] text-gray-500 leading-normal">상대의 일간/일지 및 오행 구성 분포와 만세력 텍스트 정보</p>
-                      </div>
+                {/* 해금 시 열리는 항목 */}
+                <div className="max-w-md mx-auto bg-sunken p-4 rounded-xl text-left">
+                  <p className="text-xs font-medium text-ink mb-2">해금하면 열리는 내용</p>
+                  <div className="divide-y divide-line text-xs text-ink-soft">
+                    <div className="py-2.5 space-y-0.5">
+                      <p className="font-medium text-ink">사주명식(만세력) 상세 정보</p>
+                      <p className="text-xs leading-relaxed">상대의 일간·일지, 오행 구성 분포와 만세력 풀이</p>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-amber-500 text-xs mt-0.5">✔</span>
-                      <div>
-                        <span className="font-bold text-[#2C3E50] text-[11px]">현대 성향심리(MBTI)와 사주오행의 상생 조화 해독</span>
-                        <p className="text-[10px] text-gray-500 leading-normal">상대의 본질 기질과 심리 지표가 어우러져 만들어내는 통합 인격</p>
-                      </div>
+                    <div className="py-2.5 space-y-0.5">
+                      <p className="font-medium text-ink">MBTI와 사주 오행의 결합 해석</p>
+                      <p className="text-xs leading-relaxed">본질 기질과 심리 지표가 어우러진 통합 성향 풀이</p>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <span className="text-amber-500 text-xs mt-0.5">✔</span>
-                      <div>
-                        <span className="font-bold text-[#2C3E50] text-[11px]">동서양 4대 영역 통합 평생 감정서</span>
-                        <p className="text-[10px] text-gray-500 leading-normal">상대의 타고난 기질, 평생 키워드, 천직과 재능, 10년 인생 대운(大運) 통합 로드맵 및 삶의 리듬</p>
-                      </div>
+                    <div className="py-2.5 space-y-0.5">
+                      <p className="font-medium text-ink">동서양 4대 영역 통합 감정서</p>
+                      <p className="text-xs leading-relaxed">타고난 기질, 평생 키워드, 천직과 재능, 10년 대운 로드맵</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-3 flex flex-col items-center">
+                <div className="pt-1 flex flex-col items-center max-w-md mx-auto w-full">
                   <button
                     onClick={() => {
                       setShopInitialTab("secret");
                       setIsShopOpen(true);
                     }}
-                    className="w-full py-3.5 bg-[#C0392B] hover:bg-[#A93226] text-white font-serif font-black tracking-widest rounded-xl shadow-md hover:shadow-lg hover:scale-[1.005] transition-all cursor-pointer text-center flex items-center justify-center gap-2 text-xs"
+                    className="w-full py-3 bg-seal hover:bg-seal-deep text-white font-semibold text-sm rounded-xl transition-colors cursor-pointer text-center"
                   >
-                    <Crown className="w-4 h-4 fill-amber-300 text-amber-300 animate-pulse" />
-                    <span>비밀 인연·속마음 상성 해독권으로 즉시 해금하기 (2,900원)</span>
+                    상세 리포트 해금하기 (2,900원)
                   </button>
-                  <p className="text-[10px] text-[#5C5046] mt-2 font-medium flex items-center justify-center gap-1">
-                    <Lightbulb className="w-3.5 h-3.5 text-[#C0392B]" />
-                    <span>터치 시 상품 설명, 가상 결제 시뮬레이션 및 100% 무료체험 상점이 열립니다.</span>
+                  <p className="text-xs text-ink-faint mt-2 text-center">
+                    누르면 상품 설명과 무료 체험 상점이 열립니다.
                   </p>
                 </div>
               </div>
             ) : (
               <>
                 {/* 2-TAB LAYOUT: FREE VS PREMIUM */}
-                <div className="flex border-b border-[#D6CCBC] gap-1.5 pt-4 pb-1">
+                <div className="grid grid-cols-2 gap-1 bg-sunken p-1 rounded-xl text-sm mt-4">
                   <button
                     id="free-zone-tab"
                     type="button"
                     onClick={() => setActiveTab("free")}
-                    className={`flex-1 py-3 px-3 font-serif font-bold text-xs rounded-t-xl transition duration-200 cursor-pointer text-center flex items-center justify-center gap-1.5 ${
+                    className={`py-2.5 px-3 rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                       activeTab === "free"
-                        ? "bg-[#2C3E50] text-[#FAF7F2] border-t-2 border-t-[#C0392B]"
-                        : "bg-[#FCFAF6] text-[#5C5046] hover:bg-[#F2EFE6] hover:text-[#5A4D41]"
+                        ? "bg-surface text-ink font-semibold"
+                        : "text-ink-soft hover:text-ink font-medium"
                     }`}
                   >
                     {isGroupUnlocked ? (
-                      <>
-                        <Crown className="w-3.5 h-3.5 fill-amber-300 text-amber-500 animate-bounce" />
-                        <span className="text-[#1E293B] font-extrabold flex items-center gap-1">
-                          <Users className="w-3.5 h-3.5" />
-                          <span>1:1 인연 궁합 (해금됨) & 성향</span>
-                        </span>
-                      </>
+                      <span>1:1 인연 궁합 & 성향</span>
                     ) : (
-                      <span className="flex items-center gap-1">
-                        <Sparkles className="w-3.5 h-3.5 text-[#C0392B]" />
-                        <span>무료 기본 분석 & 성향</span>
-                      </span>
+                      <span>기본 분석 & 성향</span>
                     )}
                   </button>
                   <button
                     id="premium-zone-tab"
                     type="button"
                     onClick={() => setActiveTab("premium")}
-                    className={`flex-1 py-3 px-3 font-serif font-bold text-xs rounded-t-xl transition duration-200 cursor-pointer text-center flex items-center justify-center gap-1.5 relative overflow-hidden ${
+                    className={`py-2.5 px-3 rounded-lg transition-colors cursor-pointer text-center flex items-center justify-center gap-1.5 ${
                       activeTab === "premium"
-                        ? "bg-gradient-to-r from-amber-800 to-amber-900 text-amber-50 border-t-2 border-t-amber-400"
-                        : "bg-amber-50/55 text-amber-800 hover:bg-amber-100/60"
+                        ? "bg-surface text-ink font-semibold"
+                        : "text-ink-soft hover:text-ink font-medium"
                     }`}
                   >
-                    <Crown className="w-3.5 h-3.5 fill-amber-400 text-amber-300" />
-                    <span className="flex items-center gap-1">
-                      <Crown className="w-3.5 h-3.5" />
-                      <span>평생 감정서 & 궁합</span>
-                    </span>
+                    <span>평생 감정서 & 궁합</span>
                     {!isPdfUnlocked && (
-                      <span className="text-[8px] bg-[#C0392B] text-white px-1.5 py-0.5 rounded font-sans font-extrabold tracking-tight scale-95 animate-pulse">PRO</span>
+                      <Lock className="w-3 h-3 shrink-0 text-ink-faint" />
                     )}
                   </button>
                 </div>
@@ -1474,11 +1438,10 @@ export default function MeView({ code, memberId }: MeViewProps) {
                 {/* 1단계: 동양의 명리학적 일주 및 사주명식 */}
                 {activeTab === "free" && (
                   <div className="space-y-3 text-left animate-fade-in">
-                    <div className="flex items-center space-x-1.5 border-b border-[#E8E0D0] pb-2">
-                      <span className="text-base text-[#C0392B]">☯</span>
-                      <h4 className="font-serif text-sm font-bold text-[#2C3E50] tracking-tight">
-                        [1단계] 동양의 명리학적 일주 및 사주명식
-                      </h4>
+                    <div className="border-b border-line pb-2">
+                      <h2 className="font-serif text-lg font-semibold text-ink">
+                        사주명식과 일주 풀이
+                      </h2>
                     </div>
                     <SajuVisual saju={member.saju} hideMix={true} isPremium={isPdfUnlocked} />
                   </div>
@@ -1487,21 +1450,18 @@ export default function MeView({ code, memberId }: MeViewProps) {
                 {/* 2단계: 현대 성향심리 결합 (MBTI 분석) */}
                 {activeTab === "free" && (
                   <div className="space-y-4 text-left animate-fade-in mt-6">
-                    <div className="flex items-center justify-between border-b border-[#E8E0D0] pb-2">
-                      <div className="flex items-center space-x-1.5">
-                        <span className="text-base text-[#C0392B]">🧠</span>
-                        <h4 className="font-serif text-sm font-bold text-[#2C3E50] tracking-tight">
-                          [2단계] 현대 성향심리 결합 (1:1 인연 궁합)
-                        </h4>
-                      </div>
-                      <span className="text-[10px] font-bold text-gray-500">
-                        {isGroupUnlocked ? "인원 제한 없음" : "최초 1인 공개 (유료 해금 가능)"}
+                    <div className="flex items-center justify-between gap-2 border-b border-line pb-2">
+                      <h2 className="font-serif text-lg font-semibold text-ink">
+                        1:1 인연 궁합
+                      </h2>
+                      <span className="text-xs text-ink-faint">
+                        {isGroupUnlocked ? "인원 제한 없음" : "첫 1인 무료 공개"}
                       </span>
                     </div>
 
                     {allMembers.filter((m) => m.id !== memberId).length === 0 ? (
-                      <p className="text-xs text-center text-[#5C5046] py-4 italic font-serif">
-                        아직 모임방에 다른 멤버가 가입하지 않았습니다. 초대 코드를 공유해 다른 멤버를 초대해 보세요!
+                      <p className="text-xs text-center text-ink-soft py-4">
+                        아직 다른 멤버가 없어요. 초대 코드를 공유해 멤버를 초대해 보세요.
                       </p>
                     ) : (() => {
                   const otherMembers = allMembers.filter((m) => m.id !== memberId);
@@ -1545,177 +1505,163 @@ export default function MeView({ code, memberId }: MeViewProps) {
                         const isUnlockedItem = isGroupUnlocked || idx === 0;
 
                         return (
-                          <div key={other.id} className="bg-white border border-[#D6CCBC] p-5 rounded-2xl space-y-4 shadow-xs text-left relative overflow-hidden">
-                            <div className="flex items-center space-x-2 border-b border-[#E8E0D0] pb-2 text-xs font-serif font-bold text-[#2C3E50]">
-                              <span className="p-1 rounded-full bg-[#FAF7F2] border border-[#E8E0D0] text-sm leading-none shrink-0">
+                          <div key={other.id} className="bg-surface border border-line p-5 rounded-xl space-y-4 text-left">
+                            <div className="flex items-center gap-2 border-b border-line pb-2.5 text-sm font-semibold text-ink">
+                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center text-sm leading-none shrink-0">
                                 {member.character_emoji}
                               </span>
                               <span>{member.nickname}</span>
-                              <span className="text-[#5C5046] font-sans">x</span>
-                              <span className="p-1 rounded-full bg-[#FAF7F2] border border-[#E8E0D0] text-sm leading-none shrink-0">
+                              <span className="text-ink-faint font-normal">×</span>
+                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center text-sm leading-none shrink-0">
                                 {other.character_emoji}
                               </span>
                               <span>{other.nickname}</span>
-                              <span className="ml-auto bg-[#C0392B] text-white px-2.5 py-0.5 rounded-lg text-[11px] font-sans font-bold">{pair.score}점</span>
+                              <span className="ml-auto text-sm font-mono font-semibold text-ink shrink-0">{pair.score}점</span>
                               {!isUnlockedItem && (
-                                <span className="ml-1.5 text-[9px] font-black text-[#C0392B] bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-                                  <Crown className="w-2.5 h-2.5 fill-amber-400 text-amber-700" /> Locked
+                                <span className="ml-1 text-xs font-medium text-ink-faint bg-sunken px-2 py-0.5 rounded-md flex items-center gap-1 shrink-0">
+                                  <Lock className="w-3 h-3" /> 잠김
                                 </span>
                               )}
                             </div>
 
                             <div className={!isUnlockedItem ? "filter blur-sm opacity-25 select-none pointer-events-none space-y-4" : "space-y-4"}>
-                              <div className="px-3 py-2 border border-amber-400/30 bg-amber-50/20 rounded-xl text-center text-xs font-bold leading-normal text-[#C0392B]">
-                                ✨ {pair.label}
+                              <div className="px-3 py-2.5 bg-sunken rounded-xl text-center text-sm font-medium leading-normal text-ink">
+                                {pair.label}
                               </div>
 
-                              <p className="text-xs text-[#5A4D41] leading-relaxed font-semibold">{pair.description}</p>
+                              <p className="text-sm text-ink-soft leading-relaxed">{pair.description}</p>
 
                               {pair.saju && pair.ziwei && pair.mbti && pair.zodiac && (
-                                <div className="mt-3.5 pt-3.5 border-t border-dashed border-[#FAF0DE] space-y-3">
-                                  <h5 className="text-[10px] font-extrabold text-[#C0392B] uppercase tracking-wider flex items-center gap-1">
-                                    🔑 4대 영역별 상세 궁합 분석 ({member.nickname} ➔ {other.nickname} 상호작용)
-                                  </h5>
+                                <div className="mt-3.5 pt-3.5 border-t border-line space-y-3">
+                                  <p className="text-xs font-medium text-ink-soft">
+                                    영역별 상세 궁합 ({member.nickname} → {other.nickname})
+                                  </p>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {/* Saju */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs">
-                                      <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                        <span className="font-bold text-[11px] text-[#2C3E50]">☯️ 사주 궁합 분석</span>
-                                        <span className="text-[9px] font-extrabold text-[#C0392B] bg-red-50 px-1.5 py-0.5 rounded border border-red-100">
+                                    <div className="bg-sunken p-3.5 rounded-xl space-y-2">
+                                      <div className="flex justify-between items-center pb-1 flex-wrap gap-1">
+                                        <span className="text-xs font-semibold text-ink">사주 궁합</span>
+                                        <span className="text-xs font-mono text-ink">
                                           평균 {Math.round((pair.saju.score_1_to_2 + pair.saju.score_2_to_1) / 2)}점
                                         </span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>나의 기운 ➔ {other.nickname}:</span>
-                                        <span className="font-bold text-red-500">{isM1First ? pair.saju.score_1_to_2 : pair.saju.score_2_to_1}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>나의 기운 → {other.nickname}</span>
+                                        <span className="font-mono text-ink shrink-0">{isM1First ? pair.saju.score_1_to_2 : pair.saju.score_2_to_1}점</span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>{other.nickname} 기운 ➔ 나:</span>
-                                        <span className="font-bold text-green-600">{isM1First ? pair.saju.score_2_to_1 : pair.saju.score_1_to_2}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>{other.nickname} 기운 → 나</span>
+                                        <span className="font-mono text-ink shrink-0">{isM1First ? pair.saju.score_2_to_1 : pair.saju.score_1_to_2}점</span>
                                       </div>
-                                      <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/40 font-medium pt-1">
+                                      <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap pt-1">
                                         {pair.saju.description}
                                       </p>
                                     </div>
 
                                     {/* Ziwei */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs">
-                                      <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                        <span className="font-bold text-[11px] text-[#2C3E50]">🔮 자미두수 궁합 분석</span>
-                                        <span className="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                                    <div className="bg-sunken p-3.5 rounded-xl space-y-2">
+                                      <div className="flex justify-between items-center pb-1 flex-wrap gap-1">
+                                        <span className="text-xs font-semibold text-ink">자미두수 궁합</span>
+                                        <span className="text-xs font-mono text-ink">
                                           평균 {Math.round((pair.ziwei.score_1_to_2 + pair.ziwei.score_2_to_1) / 2)}점
                                         </span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>나의 명궁 ➔ {other.nickname}:</span>
-                                        <span className="font-bold text-red-500">{isM1First ? pair.ziwei.score_1_to_2 : pair.ziwei.score_2_to_1}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>나의 명궁 → {other.nickname}</span>
+                                        <span className="font-mono text-ink shrink-0">{isM1First ? pair.ziwei.score_1_to_2 : pair.ziwei.score_2_to_1}점</span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>{other.nickname} 명궁 ➔ 나:</span>
-                                        <span className="font-bold text-green-600">{isM1First ? pair.ziwei.score_2_to_1 : pair.ziwei.score_1_to_2}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>{other.nickname} 명궁 → 나</span>
+                                        <span className="font-mono text-ink shrink-0">{isM1First ? pair.ziwei.score_2_to_1 : pair.ziwei.score_1_to_2}점</span>
                                       </div>
-                                      <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-indigo-500/40 font-medium pt-1">
+                                      <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap pt-1">
                                         {pair.ziwei.description}
                                       </p>
                                     </div>
 
                                     {/* MBTI */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs">
+                                    <div className="bg-sunken p-3.5 rounded-xl space-y-2">
                                       {isMbtiRegistered(member) && isMbtiRegistered(other) ? (
                                         <>
-                                          <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                            <span className="font-bold text-[11px] text-[#2C3E50]">🧠 MBTI 성향 궁합 분석</span>
+                                          <div className="flex justify-between items-center pb-1 flex-wrap gap-1">
+                                            <span className="text-xs font-semibold text-ink">MBTI 성향 궁합</span>
                                             {isUnlockedItem ? (
-                                              <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                                              <span className="text-xs font-mono text-ink">
                                                 평균 {Math.round((pair.mbti.score_1_to_2 + pair.mbti.score_2_to_1) / 2)}점
                                               </span>
                                             ) : (
-                                              <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 flex items-center gap-0.5">
-                                                <Crown className="w-2.5 h-2.5 fill-amber-300" /> LOCK
+                                              <span className="text-xs text-ink-faint flex items-center gap-1">
+                                                <Lock className="w-3 h-3" /> 잠김
                                               </span>
                                             )}
                                           </div>
-                                          <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                            <span>나의 성향 ➔ {other.nickname}:</span>
-                                            <span className="font-bold text-red-500">{isUnlockedItem ? (isM1First ? pair.mbti.score_1_to_2 : pair.mbti.score_2_to_1) : "🔒"}점</span>
+                                          <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                            <span>나의 성향 → {other.nickname}</span>
+                                            <span className="font-mono text-ink shrink-0">{isUnlockedItem ? `${isM1First ? pair.mbti.score_1_to_2 : pair.mbti.score_2_to_1}점` : "잠김"}</span>
                                           </div>
-                                          <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                            <span>{other.nickname} 성향 ➔ 나:</span>
-                                            <span className="font-bold text-green-600">{isUnlockedItem ? (isM1First ? pair.mbti.score_2_to_1 : pair.mbti.score_1_to_2) : "🔒"}점</span>
+                                          <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                            <span>{other.nickname} 성향 → 나</span>
+                                            <span className="font-mono text-ink shrink-0">{isUnlockedItem ? `${isM1First ? pair.mbti.score_2_to_1 : pair.mbti.score_1_to_2}점` : "잠김"}</span>
                                           </div>
                                           {isUnlockedItem ? (
-                                            <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-emerald-500/40 font-medium pt-1">
+                                            <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap pt-1">
                                               {pair.mbti.description}
                                             </p>
                                           ) : (
-                                            <div className="relative pt-1">
-                                              <p className="text-[10px] text-[#5A4D41]/30 leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/20 font-medium blur-[2.5px] select-none pointer-events-none">
-                                                두 사람의 MBTI 지표(E/I, S/N, T/F, J/P) 궁합을 바탕으로 상호 성격의 보완성과 충돌 위험성을 해독한 결과입니다.
-                                              </p>
-                                              <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-[0.2px]">
-                                                <span className="text-[9px] font-black text-amber-800 bg-white border border-amber-200 px-2 py-0.5 rounded-md shadow-3xs flex items-center gap-0.5">
-                                                  🔒 프리미엄 전용 상세 해독
-                                                </span>
-                                              </div>
-                                            </div>
+                                            <p className="text-xs text-ink-faint leading-relaxed pt-1">
+                                              해금하면 두 사람의 MBTI 지표(E/I, S/N, T/F, J/P) 기반 상세 풀이를 볼 수 있어요.
+                                            </p>
                                           )}
                                         </>
                                       ) : (
                                         <>
-                                          <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                            <span className="font-bold text-[11px] text-[#2C3E50]">🧠 MBTI 성향 궁합 분석</span>
-                                            <span className="text-[9px] text-[#5C5046] bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                                          <div className="flex justify-between items-center pb-1 flex-wrap gap-1">
+                                            <span className="text-xs font-semibold text-ink">MBTI 성향 궁합</span>
+                                            <span className="text-xs text-ink-faint">
                                               미등록
                                             </span>
                                           </div>
-                                          <p className="text-[10px] text-[#5C5046] leading-relaxed pl-1.5 border-l border-gray-300 font-medium italic">
+                                          <p className="text-xs text-ink-soft leading-relaxed">
                                             {!isMbtiRegistered(member) && !isMbtiRegistered(other)
-                                              ? `두 사람 모두 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없습니다.`
+                                              ? `두 사람 모두 MBTI를 등록하지 않아 성향 궁합을 볼 수 없어요.`
                                               : !isMbtiRegistered(member)
-                                              ? `본인의 MBTI 정보가 등록되지 않아 성향 궁합을 분석할 수 없습니다.`
-                                              : `${other.nickname}님이 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없습니다.`}
+                                              ? `본인의 MBTI 정보가 등록되지 않아 성향 궁합을 볼 수 없어요.`
+                                              : `${other.nickname}님이 MBTI를 등록하지 않아 성향 궁합을 볼 수 없어요.`}
                                           </p>
                                         </>
                                       )}
                                     </div>
 
                                     {/* Zodiac */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs relative overflow-hidden">
-                                      <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                        <span className="font-bold text-[11px] text-[#2C3E50]">⭐ 별자리 궁합 분석</span>
+                                    <div className="bg-sunken p-3.5 rounded-xl space-y-2">
+                                      <div className="flex justify-between items-center pb-1 flex-wrap gap-1">
+                                        <span className="text-xs font-semibold text-ink">별자리 궁합</span>
                                         {isUnlockedItem ? (
-                                          <span className="text-[9px] font-extrabold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">
+                                          <span className="text-xs font-mono text-ink">
                                             평균 {Math.round((pair.zodiac.score_1_to_2 + pair.zodiac.score_2_to_1) / 2)}점
                                           </span>
                                         ) : (
-                                          <span className="text-[9px] font-extrabold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 flex items-center gap-0.5">
-                                            <Crown className="w-2.5 h-2.5 fill-amber-300" /> LOCK
+                                          <span className="text-xs text-ink-faint flex items-center gap-1">
+                                            <Lock className="w-3 h-3" /> 잠김
                                           </span>
                                         )}
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>나의 별자리 ➔ {other.nickname}:</span>
-                                        <span className="font-bold text-red-500">{isUnlockedItem ? (isM1First ? pair.zodiac.score_1_to_2 : pair.zodiac.score_2_to_1) : "🔒"}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>나의 별자리 → {other.nickname}</span>
+                                        <span className="font-mono text-ink shrink-0">{isUnlockedItem ? `${isM1First ? pair.zodiac.score_1_to_2 : pair.zodiac.score_2_to_1}점` : "잠김"}</span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>{other.nickname} 별자리 ➔ 나:</span>
-                                        <span className="font-bold text-green-600">{isUnlockedItem ? (isM1First ? pair.zodiac.score_2_to_1 : pair.zodiac.score_1_to_2) : "🔒"}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>{other.nickname} 별자리 → 나</span>
+                                        <span className="font-mono text-ink shrink-0">{isUnlockedItem ? `${isM1First ? pair.zodiac.score_2_to_1 : pair.zodiac.score_1_to_2}점` : "잠김"}</span>
                                       </div>
                                       {isUnlockedItem ? (
-                                        <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-rose-500/40 font-medium pt-1">
+                                        <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap pt-1">
                                           {pair.zodiac.description}
                                         </p>
                                       ) : (
-                                        <div className="relative pt-1">
-                                          <p className="text-[10px] text-[#5A4D41]/30 leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/20 font-medium blur-[2.5px] select-none pointer-events-none">
-                                            두 사람의 태양 성좌 배치를 기반으로 한 수호행성의 기운 상호작용과 성격 조화를 해독한 결과입니다.
-                                          </p>
-                                          <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-[0.2px]">
-                                            <span className="text-[9px] font-black text-amber-800 bg-white border border-amber-200 px-2 py-0.5 rounded-md shadow-3xs flex items-center gap-0.5">
-                                              🔒 프리미엄 전용 상세 해독
-                                            </span>
-                                          </div>
-                                        </div>
+                                        <p className="text-xs text-ink-faint leading-relaxed pt-1">
+                                          해금하면 두 사람의 태양 성좌 배치를 기반으로 한 상세 풀이를 볼 수 있어요.
+                                        </p>
                                       )}
                                     </div>
                                   </div>
@@ -1733,40 +1679,37 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
             {activeTab === "premium" && (
               !isViewingSelf ? (
-                <div className="py-12 px-6 flex flex-col items-center justify-center text-center space-y-6 w-full bg-[#FCFAF6] border-2 border-[#D6CCBC]/40 rounded-3xl shadow-sm animate-fade-in my-4">
-                  <div className="w-14 h-14 rounded-full bg-amber-50 border-2 border-amber-200 flex items-center justify-center text-amber-700 shadow-md">
-                    <ShieldAlert className="w-7 h-7 text-amber-600 animate-pulse" />
+                <div className="py-10 px-6 flex flex-col items-center justify-center text-center space-y-5 w-full bg-surface border border-line rounded-xl animate-fade-in my-4">
+                  <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center text-ink-soft">
+                    <Lock className="w-5 h-5" />
                   </div>
-                  <div className="space-y-2.5 max-w-sm">
-                    <h5 className="font-serif text-sm font-black text-[#2C3E50]">
-                      🔒 개인 정보 및 프리미엄 운세 자산 보호
-                    </h5>
-                    <p className="text-[11px] text-[#5C5046] leading-relaxed font-semibold">
-                      실시간 융합 운세 및 평생 감정서는 개인의 소중한 명리학적 정보이자 유료 디지털 자산입니다.
+                  <div className="space-y-2 max-w-sm">
+                    <h2 className="font-serif text-lg font-semibold text-ink">
+                      본인만 볼 수 있는 리포트예요
+                    </h2>
+                    <p className="text-xs text-ink-soft leading-relaxed">
+                      실시간 운세와 평생 감정서는 개인의 명리 정보이자 유료 콘텐츠라서, 본인의 계정과 기기에서만 상세 열람이 가능해요.
                     </p>
-                    <p className="text-[11px] text-[#5C5046] leading-relaxed">
-                      무단 캡처, 전재, 그리고 개인 사생활 보호를 위해 <strong>본인의 계정 및 디바이스에서만</strong> 상세 열람이 허용되도록 시스템 보안이 작동 중입니다.
-                    </p>
-                    <div className="bg-amber-100/40 border border-amber-200/50 rounded-xl p-3 text-left space-y-1 mt-2">
-                      <p className="text-[10px] font-black text-amber-900">💡 궁합을 확인하는 더 좋은 방법:</p>
-                      <p className="text-[9.5px] text-[#6E5D4F] leading-normal font-semibold">
-                        상대방과의 상세 인연 및 성향 궁합 분석은 <strong>[무료 기본 분석 & 성향]</strong> 탭 또는 나의 프로필 화면 하단의 <strong>[1:1 인연 궁합]</strong> 영역에서 언제든지 안전하게 상호 확인하실 수 있습니다!
+                    <div className="bg-sunken rounded-xl p-3 text-left space-y-1 mt-2">
+                      <p className="text-xs font-medium text-ink">궁합을 확인하는 방법</p>
+                      <p className="text-xs text-ink-soft leading-relaxed">
+                        상대방과의 궁합은 기본 분석 & 성향 탭, 또는 내 프로필 화면의 1:1 인연 궁합 영역에서 확인할 수 있어요.
                       </p>
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2 w-full max-w-xs justify-center items-center">
                     <a
                       href={`#/room/${code}/me/${localMemberId}`}
-                      className="w-full px-5 py-3 bg-[#C0392B] hover:bg-[#A93226] text-white rounded-xl text-xs font-serif font-black shadow-md transition duration-200 text-center cursor-pointer"
+                      className="w-full px-5 py-3 bg-seal hover:bg-seal-deep text-white rounded-xl text-sm font-semibold transition-colors text-center cursor-pointer"
                     >
-                      👤 나의 프로필로 돌아가기
+                      내 프로필로 돌아가기
                     </a>
                     <button
                       type="button"
                       onClick={() => setActiveTab("free")}
-                      className="w-full px-5 py-3 bg-white hover:bg-[#FAF8F5] text-[#2C3E50] border border-[#D6CCBC] rounded-xl text-xs font-serif font-bold shadow-xs transition duration-200 cursor-pointer"
+                      className="w-full px-5 py-3 bg-sunken hover:bg-line text-ink rounded-xl text-sm font-semibold transition-colors cursor-pointer"
                     >
-                      🌟 무료 기본 분석 보기
+                      기본 분석 보기
                     </button>
                   </div>
                 </div>
@@ -1788,61 +1731,43 @@ export default function MeView({ code, memberId }: MeViewProps) {
                   }
 
                   return (
-                    <div className="grid grid-cols-2 gap-2.5 pt-1">
+                    <div className="grid grid-cols-2 gap-2 pt-1">
                       {/* 1. Saju */}
-                      <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
-                        <span className="text-lg text-[#C0392B]">☯</span>
-                        <div className="space-y-0.5">
-                          <span className="block text-[9px] font-bold text-[#5C5046] uppercase tracking-wider">동양 사주명리</span>
-                          <span className="block text-[11px] font-bold text-[#5A4D41]">{dmGan}({dmElem}) · {dayPillarDetail}일주</span>
-                        </div>
+                      <div className="bg-surface border border-line p-3 rounded-xl space-y-0.5">
+                        <span className="block text-xs text-ink-faint">사주명리</span>
+                        <span className="block text-xs font-semibold text-ink">{dmGan}({dmElem}) · {dayPillarDetail}일주</span>
                       </div>
 
                       {/* 2. Zi Wei */}
-                      <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
-                        <span className="text-lg text-[#C0392B]">🌌</span>
-                        <div className="space-y-0.5">
-                          <span className="block text-[9px] font-bold text-[#5C5046] uppercase tracking-wider">천상 자미두수</span>
-                          <span className="block text-[11px] font-bold text-[#5A4D41] truncate max-w-[130px] font-serif" title={ziweiStarsSummary}>{ziweiStarsSummary}</span>
-                        </div>
+                      <div className="bg-surface border border-line p-3 rounded-xl space-y-0.5">
+                        <span className="block text-xs text-ink-faint">자미두수</span>
+                        <span className="block text-xs font-semibold text-ink truncate" title={ziweiStarsSummary}>{ziweiStarsSummary}</span>
                       </div>
 
                       {/* 3. Western Zodiac */}
-                      <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
-                        <span className="text-lg text-[#C0392B]">{zodiacInfo.emoji}</span>
-                        <div className="space-y-0.5">
-                          <span className="block text-[9px] font-bold text-[#5C5046] uppercase tracking-wider">서양 황도별자리</span>
-                          <span className="block text-[11px] font-bold text-[#5A4D41]">{zodiacInfo.name}</span>
-                        </div>
+                      <div className="bg-surface border border-line p-3 rounded-xl space-y-0.5">
+                        <span className="block text-xs text-ink-faint">황도 별자리</span>
+                        <span className="block text-xs font-semibold text-ink">{zodiacInfo.name}</span>
                       </div>
 
                       {/* 4. MBTI */}
-                      <div className="bg-white/70 border border-[#D6CCBC]/60 p-3 rounded-xl flex items-center space-x-2 shadow-2xs">
-                        <span className="text-lg text-[#C0392B]">🧬</span>
-                        <div className="space-y-0.5">
-                          <span className="block text-[9px] font-bold text-[#5C5046] uppercase tracking-wider">현대 성향심리</span>
-                          <span className="block text-[11px] font-bold text-[#5A4D41]">{member.mbti ? `${member.mbti.toUpperCase()}형 기운` : "미등록 상태"}</span>
-                        </div>
+                      <div className="bg-surface border border-line p-3 rounded-xl space-y-0.5">
+                        <span className="block text-xs text-ink-faint">성향심리(MBTI)</span>
+                        <span className="block text-xs font-semibold text-ink">{member.mbti ? member.mbti.toUpperCase() : "미등록"}</span>
                       </div>
                     </div>
                   );
                 })()}
 
                         {/* Real-time Premium Horoscope Section */}
-                        <div className="bg-gradient-to-br from-[#FCFAF2] via-white to-[#FAF6EE] border-2 border-amber-300 rounded-3xl p-5.5 space-y-5 shadow-md text-left relative overflow-hidden animate-fade-in no-print">
-                          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-400/5 rounded-full blur-3xl pointer-events-none" />
-                          <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-
-                          <div className="border-b border-amber-200 pb-3">
+                        <div className="bg-surface border border-line rounded-xl p-5 space-y-5 text-left animate-fade-in no-print">
+                          <div className="border-b border-line pb-3">
                             <div className="space-y-1">
-                              <div className="flex items-center space-x-1.5">
-                                <Crown className="w-4 h-4 text-amber-600 fill-amber-300 animate-bounce" />
-                                <h4 className="font-serif text-sm font-black text-[#2C3E50] tracking-tight flex items-center gap-1">
-                                  오늘의 동서양 맞춤 운세 예보
-                                </h4>
-                              </div>
-                              <p className="text-[10px] text-[#5C5046] leading-normal font-semibold">
-                                타고난 사주 일주론과 오늘의 일진(日辰), 그리고 나의 현대 성향(MBTI)을 종합한 고품격 개운 리포트입니다.
+                              <h2 className="font-serif text-lg font-semibold text-ink">
+                                오늘의 맞춤 운세 예보
+                              </h2>
+                              <p className="text-xs text-ink-soft leading-relaxed">
+                                타고난 사주 일주론과 오늘의 일진(日辰), 성향(MBTI)을 함께 읽은 리포트예요.
                               </p>
                             </div>
                           </div>
@@ -1853,16 +1778,16 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
 
                           {!isPdfUnlocked ? (
-                            <div className="relative py-12 flex flex-col items-center justify-center text-center space-y-4 w-full">
-                              <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center shadow-3xs">
-                                <Crown className="w-5 h-5 text-amber-600 fill-amber-300 animate-pulse" />
+                            <div className="bg-sunken rounded-xl py-10 px-4 flex flex-col items-center justify-center text-center space-y-4 w-full">
+                              <div className="w-12 h-12 rounded-full bg-surface flex items-center justify-center text-ink-soft">
+                                <Lock className="w-5 h-5" />
                               </div>
                               <div className="space-y-1.5 max-w-sm">
-                                <h5 className="font-serif text-xs font-black text-[#2C3E50]">
-                                  🔒 오늘의 맞춤 운세 예보 잠김
-                                </h5>
-                                <p className="text-[10px] text-[#5C5046] leading-relaxed font-semibold px-4">
-                                  오늘의 맞춤 운세 예보는 프리미엄 회원 전용 서비스입니다. 해금 후 정통 일진 만세력과 성향 맞춤 분석을 받아보세요!
+                                <h3 className="text-[15px] font-semibold text-ink">
+                                  오늘의 맞춤 운세 예보가 잠겨 있어요
+                                </h3>
+                                <p className="text-xs text-ink-soft leading-relaxed px-2">
+                                  해금하면 일진 만세력과 성향을 함께 읽은 맞춤 분석을 볼 수 있어요.
                                 </p>
                               </div>
                               <button
@@ -1871,29 +1796,26 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                   setShopInitialTab("pdf");
                                   setIsShopOpen(true);
                                 }}
-                                className="px-5 py-2.5 bg-gradient-to-r from-amber-700 to-amber-800 text-white rounded-lg text-[10px] font-serif font-extrabold hover:shadow-md hover:scale-[1.01] transition cursor-pointer"
+                                className="px-5 py-3 bg-seal hover:bg-seal-deep text-white rounded-xl text-sm font-semibold transition-colors cursor-pointer"
                               >
-                                🔓 심층 리포트 (PDF) 해금하고 보기
+                                심층 리포트 해금하기
                               </button>
                             </div>
                           ) : getMissingRequiredFields(member).length > 0 ? (
                             <div className="py-6 flex flex-col items-center justify-center text-center space-y-4 w-full">
-                              <div className="w-10 h-10 rounded-full bg-red-50 border border-red-200 flex items-center justify-center text-red-600 shadow-2xs">
-                                <ShieldAlert className="w-5 h-5 animate-bounce" />
-                              </div>
-                              <div className="space-y-1.5 max-w-sm">
-                                <h5 className="font-serif text-xs font-black text-red-900">
-                                  ⚠️ 필수 명식·성향 데이터 미입력 상태
-                                </h5>
-                                <p className="text-[10px] text-[#5C5046] leading-relaxed font-semibold px-4">
-                                  맞춤 운세를 해독하려면 <strong>사주 일주론, 성좌, MBTI 성향 데이터</strong>를 모두 입력하셔야 합니다.
+                              <div className="space-y-1.5 max-w-sm w-full">
+                                <h3 className="text-[15px] font-semibold text-ink">
+                                  필수 정보가 아직 입력되지 않았어요
+                                </h3>
+                                <p className="text-xs text-ink-soft leading-relaxed px-2">
+                                  맞춤 운세를 보려면 사주 일주론, 성좌, MBTI 성향 데이터를 모두 입력해 주세요.
                                 </p>
-                                <div className="bg-red-50 border border-red-100 rounded-xl p-3 text-left space-y-1.5 max-w-xs mx-auto mt-2 w-full">
-                                  <p className="text-[9.5px] font-black text-red-800 border-b border-red-100 pb-1">누락된 필수 항목:</p>
+                                <div className="bg-sunken rounded-xl p-3 text-left space-y-1.5 max-w-xs mx-auto mt-2 w-full">
+                                  <p className="text-xs font-medium text-ink pb-1">누락된 항목</p>
                                   <div className="flex flex-col gap-1">
                                     {getMissingRequiredFields(member).map((f) => (
-                                      <span key={f} className="text-[9.5px] font-bold text-[#C0392B] flex items-center gap-1">
-                                        ❌ {f}
+                                      <span key={f} className="text-xs text-ink-soft">
+                                        {f}
                                       </span>
                                     ))}
                                   </div>
@@ -1902,35 +1824,35 @@ export default function MeView({ code, memberId }: MeViewProps) {
                               <button
                                 type="button"
                                 onClick={() => setIsEditing(true)}
-                                className="px-5 py-2.5 bg-[#C0392B] hover:bg-[#A0281B] text-white rounded-xl text-[10px] font-serif font-black shadow-xs transition duration-200 cursor-pointer"
+                                className="px-5 py-3 bg-seal hover:bg-seal-deep text-white rounded-xl text-sm font-semibold transition-colors cursor-pointer"
                               >
-                                ✏️ 필수 데이터 입력 및 수정하러 가기
+                                필수 정보 입력하러 가기
                               </button>
                             </div>
                           ) : horoscopeLoading ? (
                             <div className="py-12 flex flex-col items-center justify-center space-y-3.5 text-center w-full">
-                              <div className="w-10 h-10 border-4 border-amber-200 border-t-[#C0392B] rounded-full animate-spin" />
+                              <div className="w-8 h-8 border-2 border-line border-t-ink rounded-full animate-spin" />
                               <div className="space-y-1">
-                                <p className="text-xs font-serif font-bold text-[#2C3E50] animate-pulse">오늘의 일진(日辰)과 만세력 명식을 연동하여 운세를 분석하는 중...</p>
-                                <p className="text-[10px] text-[#5C5046]">사주 일주론, 성좌, MBTI 성향 데이터를 정밀 분석하고 있습니다.</p>
+                                <p className="text-sm font-medium text-ink">오늘의 일진(日辰)과 만세력을 연결해 운세를 읽는 중이에요.</p>
+                                <p className="text-xs text-ink-faint">사주 일주론, 성좌, MBTI 성향 데이터를 함께 분석하고 있어요.</p>
                               </div>
                             </div>
                           ) : horoscopeError ? (
-                            <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-center space-y-2">
-                              <p className="text-xs font-semibold text-red-700">{horoscopeError}</p>
+                            <div className="p-4 bg-sunken rounded-xl text-center space-y-2.5">
+                              <p className="text-xs font-medium text-seal">{horoscopeError}</p>
                               <button
                                 onClick={() => fetchHoroscope(true)}
-                                className="px-3.5 py-1.5 bg-white border border-red-300 text-red-800 text-[10px] font-bold rounded-lg hover:bg-red-50"
+                                className="px-4 py-2 bg-surface hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                               >
-                                다시 해독하기
+                                다시 불러오기
                               </button>
                             </div>
                           ) : horoscope ? (
                             <div className="space-y-6">
                               {/* Period Tabs: High-Craft Segmented Control */}
-                              <div className="grid grid-cols-4 gap-1.5 bg-[#FAF6EE] p-1.5 border border-[#D6CCBC] rounded-xl shadow-inner">
+                              <div className="grid grid-cols-4 gap-1 bg-sunken p-1 rounded-xl">
                                 {(["today", "weekly", "monthly", "yearly"] as const).map((tab) => {
-                                  const label = tab === "today" ? "오늘 운세" : tab === "weekly" ? "주간 예보" : tab === "monthly" ? "월간 리포트" : "연간 대명운";
+                                  const label = tab === "today" ? "오늘 운세" : tab === "weekly" ? "주간 예보" : tab === "monthly" ? "월간 리포트" : "연간 운세";
                                   const isActive = activeHoroscopeTab === tab;
                                   const IconComponent = tab === "today" ? Sun : tab === "weekly" ? Calendar : tab === "monthly" ? Moon : Compass;
                                   return (
@@ -1938,13 +1860,13 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                       key={tab}
                                       type="button"
                                       onClick={() => setActiveHoroscopeTab(tab)}
-                                      className={`py-2 px-1 flex flex-col sm:flex-row items-center justify-center gap-1 text-[10px] sm:text-xs font-serif font-bold rounded-lg cursor-pointer transition-all duration-300 relative ${
+                                      className={`py-2 px-1 flex flex-col sm:flex-row items-center justify-center gap-1 text-xs rounded-lg cursor-pointer transition-colors ${
                                         isActive
-                                          ? "bg-[#C0392B] text-[#FCFAF7] shadow-md scale-[1.02]"
-                                          : "text-[#5A4D41] hover:bg-[#FAF1DF] hover:text-[#C0392B]"
+                                          ? "bg-surface text-ink font-semibold"
+                                          : "text-ink-soft hover:text-ink font-medium"
                                       }`}
                                     >
-                                      <IconComponent className={`w-3.5 h-3.5 ${isActive ? "text-[#FCFAF7] animate-pulse" : "text-[#5C5046]"}`} />
+                                      <IconComponent className={`w-3.5 h-3.5 ${isActive ? "text-ink" : "text-ink-faint"}`} />
                                       <span className="hidden sm:inline">{label}</span>
                                       <span className="sm:hidden">{label.split(" ")[0]}</span>
                                     </button>
@@ -1970,10 +1892,10 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                   return (
                                     <div className="space-y-3 pt-1">
                                       {paragraphs.map((para, idx) => (
-                                        <p key={idx} className="text-xs sm:text-[13px] md:text-[14px] text-[#4A3B2E] leading-relaxed md:leading-loose font-medium text-left">
+                                        <p key={idx} className="text-sm text-ink-soft leading-relaxed text-left">
                                           {para.startsWith("-") || para.startsWith("•") || para.startsWith("*") ? (
                                             <span className="flex items-start">
-                                              <span className="text-[#C0392B] mr-2 shrink-0 mt-1">•</span>
+                                              <span className="text-ink-faint mr-2 shrink-0 mt-1">•</span>
                                               <span>{para.replace(/^[-•*]\s*/, "")}</span>
                                             </span>
                                           ) : para}
@@ -1985,34 +1907,24 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
                                 return (
                                   <div className="space-y-6 animate-fade-in">
-                                    {/* Traditional Oriental Parchment Score Card */}
-                                    <div className="bg-[#FAF7F2] border-2 border-double border-[#D6CCBC] p-6 rounded-2xl shadow-sm relative overflow-hidden text-left">
-                                      <div className="absolute top-0 right-0 w-36 h-36 bg-gradient-to-bl from-[#C0392B]/5 to-transparent pointer-events-none" />
-                                      <div className="absolute top-1 left-1 w-2 h-2 border-t border-l border-[#C0392B]/40" />
-                                      <div className="absolute top-1 right-1 w-2 h-2 border-t border-r border-[#C0392B]/40" />
-                                      <div className="absolute bottom-1 left-1 w-2 h-2 border-b border-l border-[#C0392B]/40" />
-                                      <div className="absolute bottom-1 right-1 w-2 h-2 border-b border-r border-[#C0392B]/40" />
-
-                                      <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 border-b border-[#E8E0D0] pb-4">
+                                    {/* Score Card */}
+                                    <div className="bg-sunken p-5 rounded-xl text-left">
+                                      <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 border-b border-line pb-4">
                                         <div className="space-y-1 text-center sm:text-left">
-                                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-amber-50 border border-amber-200/60 rounded text-[9px] text-[#C0392B] font-serif font-bold uppercase tracking-wider">
-                                            <Sparkles className="w-3 h-3 text-amber-500 animate-spin" />
-                                            <span>실시간 천간지지 융합 해독</span>
-                                          </div>
-                                          <h4 className="font-serif text-base sm:text-lg font-black text-[#2C3E50] tracking-tight">
-                                            {activeHoroscopeTab === "today" ? "오늘의 운세 (今日之運)" : activeHoroscopeTab === "weekly" ? "주간 예보 (週間之運)" : activeHoroscopeTab === "monthly" ? "월간 리포트 (月間之運)" : "연간 대명운 (年間之運)"}
-                                          </h4>
+                                          <h3 className="font-serif text-lg font-semibold text-ink">
+                                            {activeHoroscopeTab === "today" ? "오늘의 운세" : activeHoroscopeTab === "weekly" ? "주간 예보" : activeHoroscopeTab === "monthly" ? "월간 리포트" : "연간 운세"}
+                                          </h3>
                                         </div>
 
                                         {/* Fortune Meter Dial / Gauge */}
-                                        <div className="flex items-center gap-3 bg-white border border-[#E8E0D0] px-3.5 py-2 rounded-2xl shadow-3xs shrink-0 self-center">
+                                        <div className="flex items-center gap-3 bg-surface px-3.5 py-2 rounded-xl shrink-0 self-center">
                                           <div className="relative w-12 h-12 flex items-center justify-center">
                                             <svg className="w-12 h-12 transform -rotate-90">
                                               <circle
                                                 cx="24"
                                                 cy="24"
                                                 r="20"
-                                                stroke="#FCFAF7"
+                                                stroke="#E7E7E2"
                                                 strokeWidth="3.5"
                                                 fill="transparent"
                                               />
@@ -2020,7 +1932,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                                 cx="24"
                                                 cy="24"
                                                 r="20"
-                                                stroke="#C0392B"
+                                                stroke="#B3382C"
                                                 strokeWidth="3.5"
                                                 fill="transparent"
                                                 strokeDasharray={2 * Math.PI * 20}
@@ -2029,20 +1941,20 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                                 className="transition-all duration-1000 ease-out"
                                               />
                                             </svg>
-                                            <span className="absolute text-[11px] font-mono font-black text-[#C0392B]">
+                                            <span className="absolute text-xs font-mono font-semibold text-seal">
                                               {displayScore}
                                             </span>
                                           </div>
                                           <div className="flex flex-col text-left">
-                                            <span className="text-[8.5px] text-[#5C5046] font-black uppercase tracking-widest leading-none mb-1">길운 지표</span>
-                                            <span className="text-xs font-serif font-black text-[#2C3E50] leading-none">
+                                            <span className="text-xs text-ink-faint leading-none mb-1">길운 지표</span>
+                                            <span className="text-sm font-semibold text-ink leading-none">
                                               {displayScore >= 90 ? "대길 (大吉)" : displayScore >= 80 ? "소길 (小吉)" : displayScore >= 70 ? "평온 (平穩)" : "주의 (注意)"}
                                             </span>
                                           </div>
                                         </div>
                                       </div>
-                                      
-                                      <div className="space-y-3 font-serif leading-relaxed pt-2">
+
+                                      <div className="space-y-3 leading-relaxed pt-2">
                                         {renderRichText(currentData.summary)}
                                       </div>
                                     </div>
@@ -2051,51 +1963,51 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                     {activeHoroscopeTab === "today" && (
                                       <div className="space-y-4">
                                         {/* Lucky Items Grid */}
-                                        <div className="bg-[#FAF7F2] border border-[#D6CCBC]/80 rounded-2xl p-5 space-y-4 shadow-sm text-left relative">
-                                          <span className="text-xs font-serif font-black text-amber-950 uppercase tracking-wider block border-b border-[#E8E0D0] pb-2">
-                                            🔑 오행 개운(開運)의 무기 & 행운 처방 (吉물秘策)
-                                          </span>
-                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+                                        <div className="space-y-3 text-left">
+                                          <h3 className="text-[15px] font-semibold text-ink border-b border-line pb-2">
+                                            오늘의 행운 처방
+                                          </h3>
+                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                                             {/* Lucky Color */}
-                                            <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl space-y-2 hover:shadow-xs transition duration-200">
-                                              <div className="flex items-center space-x-2 border-b border-amber-100/60 pb-1.5">
-                                                <Sun className="w-4 h-4 text-rose-500" />
-                                                <span className="text-[10px] font-serif font-black text-[#5C5046] tracking-wider uppercase">행운의 컬러 (吉色)</span>
+                                            <div className="bg-sunken p-4 rounded-xl space-y-1.5">
+                                              <div className="flex items-center gap-2">
+                                                <Sun className="w-4 h-4 text-ink-faint" />
+                                                <span className="text-xs text-ink-faint">행운의 색 (吉色)</span>
                                               </div>
-                                              <p className="text-xs sm:text-[13px] text-[#4A3B2E] font-serif font-bold leading-relaxed pt-0.5">
+                                              <p className="text-sm text-ink font-medium leading-relaxed">
                                                 {currentData.lucky_items?.color}
                                               </p>
                                             </div>
 
                                             {/* Lucky Number */}
-                                            <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl space-y-2 hover:shadow-xs transition duration-200">
-                                              <div className="flex items-center space-x-2 border-b border-amber-100/60 pb-1.5">
-                                                <Coins className="w-4 h-4 text-emerald-600" />
-                                                <span className="text-[10px] font-serif font-black text-[#5C5046] tracking-wider uppercase">행운의 숫자 (吉數)</span>
+                                            <div className="bg-sunken p-4 rounded-xl space-y-1.5">
+                                              <div className="flex items-center gap-2">
+                                                <Coins className="w-4 h-4 text-ink-faint" />
+                                                <span className="text-xs text-ink-faint">행운의 숫자 (吉數)</span>
                                               </div>
-                                              <p className="text-xs sm:text-[13px] text-[#4A3B2E] font-serif font-bold leading-relaxed pt-0.5">
+                                              <p className="text-sm text-ink font-medium leading-relaxed">
                                                 {currentData.lucky_items?.number}
                                               </p>
                                             </div>
 
                                             {/* Lucky Direction */}
-                                            <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl space-y-2 hover:shadow-xs transition duration-200">
-                                              <div className="flex items-center space-x-2 border-b border-amber-100/60 pb-1.5">
-                                                <Compass className="w-4 h-4 text-blue-600" />
-                                                <span className="text-[10px] font-serif font-black text-[#5C5046] tracking-wider uppercase">행운의 길방 (吉方)</span>
+                                            <div className="bg-sunken p-4 rounded-xl space-y-1.5">
+                                              <div className="flex items-center gap-2">
+                                                <Compass className="w-4 h-4 text-ink-faint" />
+                                                <span className="text-xs text-ink-faint">행운의 방위 (吉方)</span>
                                               </div>
-                                              <p className="text-xs sm:text-[13px] text-[#4A3B2E] font-serif font-bold leading-relaxed pt-0.5">
+                                              <p className="text-sm text-ink font-medium leading-relaxed">
                                                 {currentData.lucky_items?.direction}
                                               </p>
                                             </div>
 
                                             {/* Lucky Time */}
-                                            <div className="bg-white border border-[#E8E0D0] p-4 rounded-xl space-y-2 hover:shadow-xs transition duration-200">
-                                              <div className="flex items-center space-x-2 border-b border-amber-100/60 pb-1.5">
-                                                <Clock className="w-4 h-4 text-purple-600" />
-                                                <span className="text-[10px] font-serif font-black text-[#5C5046] tracking-wider uppercase">최적 개운 시간대 (吉時)</span>
+                                            <div className="bg-sunken p-4 rounded-xl space-y-1.5">
+                                              <div className="flex items-center gap-2">
+                                                <Clock className="w-4 h-4 text-ink-faint" />
+                                                <span className="text-xs text-ink-faint">좋은 시간대 (吉時)</span>
                                               </div>
-                                              <p className="text-xs sm:text-[13px] text-[#4A3B2E] font-serif font-bold leading-relaxed pt-0.5">
+                                              <p className="text-sm text-ink font-medium leading-relaxed">
                                                 {currentData.lucky_items?.time}
                                               </p>
                                             </div>
@@ -2109,35 +2021,29 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                       <div className="space-y-5">
                                         {/* Weekly Core Aspects Stack */}
                                         <div className="space-y-4">
-                                    <div className="bg-[#FAF7F2] border border-[#D6CCBC]/80 p-5 rounded-2xl shadow-3xs text-left relative overflow-hidden">
-                                      <div className="absolute top-0 left-0 w-1 h-full bg-[#C0392B]" />
-                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2.5 mb-3.5 pl-2">
-                                        <span className="text-base">🤝</span>
-                                        <span className="text-xs sm:text-sm font-serif font-black text-[#2C3E50] tracking-tight">대인관계 & 소셜 파트너십 (人際關係)</span>
+                                    <div className="bg-sunken p-4 rounded-xl text-left">
+                                      <div className="border-b border-line pb-2.5 mb-3">
+                                        <span className="text-sm font-semibold text-ink">대인관계 (人際關係)</span>
                                       </div>
-                                      <div className="space-y-2.5 pl-2">
+                                      <div className="space-y-2.5">
                                         {renderRichText(currentData.love_and_social)}
                                       </div>
                                     </div>
 
-                                    <div className="bg-[#FAF7F2] border border-[#D6CCBC]/80 p-5 rounded-2xl shadow-3xs text-left relative overflow-hidden">
-                                      <div className="absolute top-0 left-0 w-1 h-full bg-[#E67E22]" />
-                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2.5 mb-3.5 pl-2">
-                                        <span className="text-base">💰</span>
-                                        <span className="text-xs sm:text-sm font-serif font-black text-[#2C3E50] tracking-tight">재물 흐름 & 직업적 비결 (財物職境)</span>
+                                    <div className="bg-sunken p-4 rounded-xl text-left">
+                                      <div className="border-b border-line pb-2.5 mb-3">
+                                        <span className="text-sm font-semibold text-ink">재물과 일 (財物職境)</span>
                                       </div>
-                                      <div className="space-y-2.5 pl-2">
+                                      <div className="space-y-2.5">
                                         {renderRichText(currentData.wealth_and_job)}
                                       </div>
                                     </div>
 
-                                    <div className="bg-[#FAF7F2] border border-[#D6CCBC]/80 p-5 rounded-2xl shadow-3xs text-left relative overflow-hidden">
-                                      <div className="absolute top-0 left-0 w-1 h-full bg-[#16A085]" />
-                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2.5 mb-3.5 pl-2">
-                                        <span className="text-base">🔋</span>
-                                        <span className="text-xs sm:text-sm font-serif font-black text-[#2C3E50] tracking-tight">건강 에너지 & 오행 보충법 (健康五行)</span>
+                                    <div className="bg-sunken p-4 rounded-xl text-left">
+                                      <div className="border-b border-line pb-2.5 mb-3">
+                                        <span className="text-sm font-semibold text-ink">건강과 기운 (健康五行)</span>
                                       </div>
-                                      <div className="space-y-2.5 pl-2">
+                                      <div className="space-y-2.5">
                                         {renderRichText(currentData.health_and_energy)}
                                       </div>
                                     </div>
@@ -2145,29 +2051,23 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
                                   {/* Daily Flow Timeline */}
                                   {currentData.daily_flow && Array.isArray(currentData.daily_flow) && (
-                                    <div className="bg-white border-2 border-[#D6CCBC]/80 rounded-2xl p-5 space-y-4 shadow-3xs text-left">
-                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2 mb-2">
-                                        <span className="text-base">📅</span>
-                                        <span className="text-xs sm:text-sm font-black text-amber-900 tracking-tight">주간 요일별 집중 운세 예보 (曜日運勢)</span>
+                                    <div className="bg-sunken rounded-xl p-4 text-left">
+                                      <div className="border-b border-line pb-2 mb-1">
+                                        <span className="text-sm font-semibold text-ink">요일별 운세 흐름 (曜日運勢)</span>
                                       </div>
-                                      <div className="relative pl-4 border-l-2 border-amber-200/50 space-y-5 ml-4">
+                                      <div className="divide-y divide-line">
                                         {currentData.daily_flow.map((flowText: string, fIdx: number) => {
                                           const dayLabel = ["월", "화", "수", "목", "금", "토", "일"][fIdx] || "";
                                           const isWeekend = dayLabel === "토" || dayLabel === "일";
                                           return (
-                                            <div key={fIdx} className="relative flex items-start space-x-3 text-left">
-                                              {/* Timeline Node */}
-                                              <div className={`absolute -left-[27px] top-1 w-4 h-4 rounded-full border-2 ${
-                                                isWeekend ? "bg-amber-100 border-[#C0392B]" : "bg-white border-amber-600"
-                                              } flex items-center justify-center`} />
-                                              
-                                              <div className="space-y-1 flex-1">
-                                                <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-black ${
-                                                  isWeekend ? "bg-amber-100 text-[#C0392B]" : "bg-neutral-100 text-neutral-800"
+                                            <div key={fIdx} className="py-3 text-left">
+                                              <div className="space-y-1">
+                                                <span className={`inline-block px-2 py-0.5 rounded-md text-xs bg-surface ${
+                                                  isWeekend ? "text-ink font-semibold" : "text-ink font-medium"
                                                 }`}>
                                                   {dayLabel}요일
                                                 </span>
-                                                <p className="text-xs sm:text-[13px] text-[#4A3B2E] font-medium leading-relaxed font-serif pt-1">
+                                                <p className="text-sm text-ink-soft leading-relaxed pt-1">
                                                   {flowText}
                                                 </p>
                                               </div>
@@ -2184,30 +2084,27 @@ export default function MeView({ code, memberId }: MeViewProps) {
                                 <div className="space-y-5">
                                   {/* Monthly Core Aspects Stack */}
                                   <div className="space-y-4">
-                                    <div className="bg-[#FCFAF6] border-2 border-[#D6CCBC]/60 p-5 rounded-2xl shadow-3xs text-left">
-                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2 mb-3">
-                                        <span className="text-base">🔮</span>
-                                        <span className="text-xs sm:text-sm font-black text-[#2C3E50] tracking-tight">이번 달 지배적 대주제 (大主題)</span>
+                                    <div className="bg-sunken p-4 rounded-xl text-left">
+                                      <div className="border-b border-line pb-2 mb-3">
+                                        <span className="text-sm font-semibold text-ink">이번 달의 주제 (大主題)</span>
                                       </div>
                                       <div className="space-y-2.5">
                                         {renderRichText(currentData.key_theme)}
                                       </div>
                                     </div>
 
-                                    <div className="bg-[#FCFAF6] border-2 border-[#D6CCBC]/60 p-5 rounded-2xl shadow-3xs text-left">
-                                      <div className="flex items-center space-x-2 border-b border-emerald-100 pb-2 mb-3">
-                                        <span className="text-base">🎯</span>
-                                        <span className="text-xs sm:text-sm font-black text-emerald-950 tracking-tight">포착해야 할 핵심 기회 (關鍵機會)</span>
+                                    <div className="bg-sunken p-4 rounded-xl text-left">
+                                      <div className="border-b border-line pb-2 mb-3">
+                                        <span className="text-sm font-semibold text-ink">눈여겨볼 기회 (關鍵機會)</span>
                                       </div>
                                       <div className="space-y-2.5">
                                         {renderRichText(currentData.opportunities)}
                                       </div>
                                     </div>
 
-                                    <div className="bg-[#FCFAF6] border-2 border-[#D6CCBC]/60 p-5 rounded-2xl shadow-3xs text-left">
-                                      <div className="flex items-center space-x-2 border-b border-rose-100 pb-2 mb-3">
-                                        <span className="text-base">⚠️</span>
-                                        <span className="text-xs sm:text-sm font-black text-rose-950 tracking-tight">경계해야 할 운명적 돌발 장해 (運命陷阱)</span>
+                                    <div className="bg-sunken p-4 rounded-xl text-left">
+                                      <div className="border-b border-line pb-2 mb-3">
+                                        <span className="text-sm font-semibold text-ink">조심할 점 (運命陷阱)</span>
                                       </div>
                                       <div className="space-y-2.5">
                                         {renderRichText(currentData.precautions)}
@@ -2217,22 +2114,18 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
                                   {/* Weeks Flow Timeline */}
                                   {currentData.weeks_flow && Array.isArray(currentData.weeks_flow) && (
-                                    <div className="bg-white border-2 border-[#D6CCBC]/80 rounded-2xl p-5 space-y-4 shadow-3xs text-left">
-                                      <div className="flex items-center space-x-2 border-b border-amber-100 pb-2 mb-2">
-                                        <span className="text-base">📅</span>
-                                        <span className="text-xs sm:text-sm font-black text-amber-900 tracking-tight">주차별 집중 흐름 리포트 (週次運勢)</span>
+                                    <div className="bg-sunken rounded-xl p-4 text-left">
+                                      <div className="border-b border-line pb-2 mb-1">
+                                        <span className="text-sm font-semibold text-ink">주차별 흐름 (週次運勢)</span>
                                       </div>
-                                      <div className="relative pl-4 border-l-2 border-amber-200/50 space-y-5 ml-4">
+                                      <div className="divide-y divide-line">
                                         {currentData.weeks_flow.map((weekText: string, wIdx: number) => (
-                                          <div key={wIdx} className="relative flex items-start space-x-3 text-left">
-                                            {/* Timeline Node */}
-                                            <div className="absolute -left-[27px] top-1 w-4 h-4 rounded-full border-2 bg-white border-amber-600 flex items-center justify-center" />
-                                            
-                                            <div className="space-y-1 flex-1">
-                                              <span className="inline-block px-2 py-0.5 bg-neutral-100 text-neutral-800 rounded-md text-[10px] font-black">
+                                          <div key={wIdx} className="py-3 text-left">
+                                            <div className="space-y-1">
+                                              <span className="inline-block px-2 py-0.5 bg-surface text-ink rounded-md text-xs font-medium">
                                                 {wIdx + 1}주차
                                               </span>
-                                              <p className="text-xs sm:text-[13px] text-[#4A3B2E] font-medium leading-relaxed font-serif pt-1">
+                                              <p className="text-sm text-ink-soft leading-relaxed pt-1">
                                                 {weekText}
                                               </p>
                                             </div>
@@ -2247,40 +2140,36 @@ export default function MeView({ code, memberId }: MeViewProps) {
                               {/* Yearly Fortune Details */}
                               {activeHoroscopeTab === "yearly" && (
                                 <div className="space-y-4">
-                                  <div className="bg-[#FCFAF6] border-2 border-[#D6CCBC]/60 p-5 rounded-2xl shadow-3xs text-left">
-                                    <div className="flex items-center space-x-2 border-b border-amber-100 pb-2 mb-3">
-                                      <span className="text-base">🌀</span>
-                                      <span className="text-xs sm:text-sm font-black text-[#2C3E50] tracking-tight">올해 거시적 운명의 변곡점 (大變局)</span>
+                                  <div className="bg-sunken p-4 rounded-xl text-left">
+                                    <div className="border-b border-line pb-2 mb-3">
+                                      <span className="text-sm font-semibold text-ink">올해의 큰 흐름 (大變局)</span>
                                     </div>
                                     <div className="space-y-2.5">
                                       {renderRichText(currentData.grand_trend)}
                                     </div>
                                   </div>
 
-                                  <div className="bg-[#FCFAF6] border-2 border-[#D6CCBC]/60 p-5 rounded-2xl shadow-3xs text-left">
-                                    <div className="flex items-center space-x-2 border-b border-amber-100 pb-2 mb-3">
-                                      <span className="text-base">💰</span>
-                                      <span className="text-xs sm:text-sm font-black text-[#2C3E50] tracking-tight">대재운(財運) 축적 로드맵 (積財之路)</span>
+                                  <div className="bg-sunken p-4 rounded-xl text-left">
+                                    <div className="border-b border-line pb-2 mb-3">
+                                      <span className="text-sm font-semibold text-ink">재물운의 흐름 (積財之路)</span>
                                     </div>
                                     <div className="space-y-2.5">
                                       {renderRichText(currentData.wealth_flow)}
                                     </div>
                                   </div>
 
-                                  <div className="bg-[#FCFAF6] border-2 border-[#D6CCBC]/60 p-5 rounded-2xl shadow-3xs text-left">
-                                    <div className="flex items-center space-x-2 border-b border-amber-100 pb-2 mb-3">
-                                      <span className="text-base">💼</span>
-                                      <span className="text-xs sm:text-sm font-black text-[#2C3E50] tracking-tight">진로·이직·승진 비즈니스 비결 (官運事業)</span>
+                                  <div className="bg-sunken p-4 rounded-xl text-left">
+                                    <div className="border-b border-line pb-2 mb-3">
+                                      <span className="text-sm font-semibold text-ink">진로와 일 (官運事業)</span>
                                     </div>
                                     <div className="space-y-2.5">
                                       {renderRichText(currentData.career_path)}
                                     </div>
                                   </div>
 
-                                  <div className="bg-[#FCFAF6] border-2 border-[#D6CCBC]/60 p-5 rounded-2xl shadow-3xs text-left">
-                                    <div className="flex items-center space-x-2 border-b border-amber-100 pb-2 mb-3">
-                                      <span className="text-base">🧠</span>
-                                      <span className="text-xs sm:text-sm font-black text-[#2C3E50] tracking-tight">내면의 수양 및 무한한 자아성장 (心靈成長)</span>
+                                  <div className="bg-sunken p-4 rounded-xl text-left">
+                                    <div className="border-b border-line pb-2 mb-3">
+                                      <span className="text-sm font-semibold text-ink">내면과 성장 (心靈成長)</span>
                                     </div>
                                     <div className="space-y-2.5">
                                       {renderRichText(currentData.personal_growth)}
@@ -2294,15 +2183,15 @@ export default function MeView({ code, memberId }: MeViewProps) {
                       </div>
                     ) : (
                       <div className="py-8 flex flex-col items-center justify-center text-center space-y-3">
-                        <p className="text-xs text-[#5C5046] font-semibold leading-normal">
-                          오늘의 맞춤 운세를 해독할 수 있습니다.
+                        <p className="text-xs text-ink-soft leading-relaxed">
+                          오늘의 맞춤 운세를 볼 수 있어요.
                         </p>
                         <button
                           type="button"
                           onClick={() => fetchHoroscope(true)}
-                          className="px-4 py-2 bg-[#C0392B] hover:bg-[#A93226] text-white font-serif font-black rounded-xl text-xs shadow-md transition-all cursor-pointer active:scale-95"
+                          className="px-5 py-3 bg-seal hover:bg-seal-deep text-white font-semibold rounded-xl text-sm transition-colors cursor-pointer"
                         >
-                          🔮 오늘의 맞춤 운세 분석하기
+                          오늘의 맞춤 운세 보기
                         </button>
                       </div>
                     )}
@@ -2310,73 +2199,70 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
                   {/* Premium-Gated Lifetime Report Content */}
                   {aiAnalysis ? (
-                    <div className="relative overflow-hidden rounded-2xl">
+                    <div className="relative overflow-hidden rounded-xl">
                     <div className={!isPdfUnlocked ? "filter blur-md opacity-30 select-none pointer-events-none space-y-5" : "space-y-5"}>
                       {/* Keywords representation */}
-                      <div className="flex flex-wrap gap-2 justify-center">
+                      <div className="flex flex-wrap gap-1.5 justify-center">
                         {aiAnalysis.keywords.map((kw, idx) => (
                           <span
                             key={idx}
-                            className="px-3.5 py-1.5 bg-[#FCFAF6] border border-[#C0392B]/20 rounded-full text-xs font-bold text-[#C0392B]"
+                            className="px-3 py-1.5 bg-sunken rounded-lg text-xs font-medium text-ink-soft"
                           >
-                            #{kw}
+                            {kw}
                           </span>
                         ))}
                       </div>
 
                       {/* Character overview description */}
-                      <div className="p-5 bg-white border border-[#D6CCBC] rounded-2xl text-xs leading-relaxed text-[#5A4D41] shadow-xs relative">
-                        <span className="font-serif text-2xl text-[#C0392B] absolute -top-2 left-4 bg-white px-1 leading-none select-none">
-                          “
-                        </span>
-                        <p className="pt-2 pl-3 line-clamp-none font-medium">{aiAnalysis.character_desc}</p>
+                      <div className="p-5 bg-surface border border-line rounded-xl text-sm leading-relaxed text-ink-soft">
+                        <p className="whitespace-pre-line">{aiAnalysis.character_desc}</p>
                       </div>
 
                       {/* 4 areas of interpreting */}
                       <div className="grid grid-cols-1 gap-4">
                         {/* 1. Essence */}
-                        <div id="essence-area" className="bg-white/60 backdrop-blur-xs border border-[#D6CCBC] p-5 rounded-2xl space-y-2.5 shadow-xs transition hover:shadow-sm">
-                          <div className="flex items-center text-[#C0392B] font-serif text-xs font-bold border-b border-[#E8E0D0] pb-2 uppercase tracking-wide">
-                            <Compass className="w-3.5 h-3.5 mr-1.5" />
-                            <span>{isMyOwnProfile ? "본질 - 본연의 특별한 기질과 천성" : `${member.nickname}님의 본질 - 본연의 특별한 기질과 천성`}</span>
+                        <div id="essence-area" className="bg-surface border border-line p-5 rounded-xl space-y-2.5">
+                          <div className="flex items-center text-ink border-b border-line pb-2">
+                            <Compass className="w-3.5 h-3.5 mr-1.5 text-ink-faint" />
+                            <span className="text-[15px] font-semibold">{isMyOwnProfile ? "본질 — 타고난 기질과 천성" : `${member.nickname}님의 본질 — 타고난 기질과 천성`}</span>
                           </div>
-                          <p className="text-xs text-[#5A4D41] leading-relaxed font-medium whitespace-pre-line">
+                          <p className="text-sm text-ink-soft leading-relaxed whitespace-pre-line">
                             {aiAnalysis.four_areas.essence}
                           </p>
                         </div>
 
                         {/* 2. Talent */}
-                        <div id="talent-area" className="bg-white/60 backdrop-blur-xs border border-[#D6CCBC] p-5 rounded-2xl space-y-2.5 shadow-xs transition hover:shadow-sm">
-                          <div className="flex items-center text-[#C0392B] font-serif text-xs font-bold border-b border-[#E8E0D0] pb-2 uppercase tracking-wide">
-                            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-                            <span>{isMyOwnProfile ? "재능 - 타고난 천직과 재주 발휘법" : `${member.nickname}님의 재능 - 타고난 천직과 재주 발휘법`}</span>
+                        <div id="talent-area" className="bg-surface border border-line p-5 rounded-xl space-y-2.5">
+                          <div className="flex items-center text-ink border-b border-line pb-2">
+                            <Sparkles className="w-3.5 h-3.5 mr-1.5 text-ink-faint" />
+                            <span className="text-[15px] font-semibold">{isMyOwnProfile ? "재능 — 타고난 천직과 재주" : `${member.nickname}님의 재능 — 타고난 천직과 재주`}</span>
                           </div>
-                          <p className="text-xs text-[#5A4D41] leading-relaxed font-bold whitespace-pre-line bg-[#FAF7F2]/40 p-2.5 rounded-lg border border-[#E8E0D0]/40">
+                          <p className="text-sm text-ink-soft leading-relaxed whitespace-pre-line">
                             {aiAnalysis.four_areas.talent}
                           </p>
                         </div>
 
                         {/* 3. Flow */}
-                        <div id="flow-area" className="bg-white/60 backdrop-blur-xs border border-[#D6CCBC] p-5 rounded-2xl space-y-3.5 shadow-xs transition hover:shadow-sm">
-                          <div className="flex items-center text-[#C0392B] font-serif text-xs font-bold border-b border-[#E8E0D0] pb-2 uppercase tracking-wide">
-                            <Activity className="w-3.5 h-3.5 mr-1.5" />
-                            <span>{isMyOwnProfile ? "흐름 - 현재 나의 10년 인생 대운(大運) 통합 로드맵" : `흐름 - ${member.nickname}님의 10년 인생 대운(大運) 통합 로드맵`}</span>
+                        <div id="flow-area" className="bg-surface border border-line p-5 rounded-xl space-y-3.5">
+                          <div className="flex items-center text-ink border-b border-line pb-2">
+                            <Activity className="w-3.5 h-3.5 mr-1.5 text-ink-faint" />
+                            <span className="text-[15px] font-semibold">{isMyOwnProfile ? "흐름 — 10년 대운(大運) 로드맵" : `흐름 — ${member.nickname}님의 10년 대운(大運) 로드맵`}</span>
                           </div>
-                          <p className="text-xs text-[#5A4D41] leading-relaxed font-medium whitespace-pre-line">
+                          <p className="text-sm text-ink-soft leading-relaxed whitespace-pre-line">
                             {aiAnalysis.four_areas.flow}
                           </p>
-                          <div className="mt-2.5 pt-3.5 border-t border-[#E8E0D0]/50">
+                          <div className="mt-2.5 pt-3.5 border-t border-line">
                             <SajuVisual saju={member.saju} showOnlyDaewoon={true} isPremium={isPdfUnlocked} />
                           </div>
                         </div>
 
                         {/* 4. Fortune */}
-                        <div id="fortune-area" className="bg-white/60 backdrop-blur-xs border border-[#D6CCBC] p-5 rounded-2xl space-y-2.5 shadow-xs transition hover:shadow-sm">
-                          <div className="flex items-center text-[#C0392B] font-serif text-xs font-bold border-b border-[#E8E0D0] pb-2 uppercase tracking-wide">
-                            <Coins className="w-3.5 h-3.5 mr-1.5" />
-                            <span>{isMyOwnProfile ? "생활 기운 - 재물 · 인연 · 사업 · 건강 총평" : `${member.nickname}님의 생활 기운 - 재물 · 인연 · 사업 · 건강 총평`}</span>
+                        <div id="fortune-area" className="bg-surface border border-line p-5 rounded-xl space-y-2.5">
+                          <div className="flex items-center text-ink border-b border-line pb-2">
+                            <Coins className="w-3.5 h-3.5 mr-1.5 text-ink-faint" />
+                            <span className="text-[15px] font-semibold">{isMyOwnProfile ? "생활 기운 — 재물·인연·사업·건강 총평" : `${member.nickname}님의 생활 기운 — 재물·인연·사업·건강 총평`}</span>
                           </div>
-                          <p className="text-xs text-[#5A4D41] leading-relaxed font-medium whitespace-pre-line">
+                          <p className="text-sm text-ink-soft leading-relaxed whitespace-pre-line">
                             {aiAnalysis.four_areas.fortune}
                           </p>
                         </div>
@@ -2385,19 +2271,19 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
                     {/* Premium Upgrade Overlay for 3단계 */}
                     {!isPdfUnlocked && (
-                      <div className="absolute inset-0 bg-gradient-to-t from-white via-white/95 to-white/35 flex items-center justify-center p-4 text-center">
-                        <div className="w-full max-w-sm bg-[#FAF7F2] border border-amber-300 rounded-[24px] p-6 shadow-2xl space-y-4 text-center animate-scale-up">
-                          <div className="w-10 h-10 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto shadow-3xs">
-                            <Crown className="w-5 h-5 text-amber-600 fill-amber-300 animate-pulse" />
+                      <div className="absolute inset-0 bg-paper/90 flex items-center justify-center p-4 text-center">
+                        <div className="w-full max-w-sm bg-surface rounded-xl p-6 shadow-lg space-y-4 text-center">
+                          <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center mx-auto text-ink-soft">
+                            <Lock className="w-5 h-5" />
                           </div>
                           <div className="space-y-1.5">
-                            <h5 className="font-serif text-xs font-black text-[#2C3E50]">
-                              🔑 3단계: 통합 평생 감정서 잠김
-                            </h5>
-                            <p className="text-[10px] text-[#5C5046] leading-relaxed font-semibold">
-                              {isMyOwnProfile 
-                                ? "나의 평생 키워드, 천성과 기질(본질), 직업/천직(재능), 그리고 10년 인생 대운(大運) 통합 로드맵과 인생 리듬 주기(흐름/생활기운)가 즉시 융합 해설서로 해금됩니다."
-                                : `${member.nickname}님의 평생 키워드, 천성과 기질(본질), 직업/천직(재능), 그리고 10년 인생 대운(大運) 통합 로드맵과 인생 리듬 주기(흐름/생활기운)가 즉시 융합 해설서로 해금됩니다.`
+                            <h3 className="text-[15px] font-semibold text-ink">
+                              통합 평생 감정서가 잠겨 있어요
+                            </h3>
+                            <p className="text-xs text-ink-soft leading-relaxed">
+                              {isMyOwnProfile
+                                ? "해금하면 나의 평생 키워드, 본질과 재능, 10년 대운(大運) 로드맵과 생활 기운 풀이가 열립니다."
+                                : `해금하면 ${member.nickname}님의 평생 키워드, 본질과 재능, 10년 대운(大運) 로드맵과 생활 기운 풀이가 열립니다.`
                               }
                             </p>
                           </div>
@@ -2407,38 +2293,39 @@ export default function MeView({ code, memberId }: MeViewProps) {
                               setShopInitialTab("pdf");
                               setIsShopOpen(true);
                             }}
-                            className="w-full py-2.5 bg-gradient-to-r from-amber-700 to-amber-800 text-white rounded-lg text-[10px] font-serif font-extrabold hover:shadow-md hover:scale-[1.01] transition cursor-pointer"
+                            className="w-full py-3 bg-seal hover:bg-seal-deep text-white rounded-xl text-sm font-semibold transition-colors cursor-pointer"
                           >
-                            🔓 AI 심층 리포트 (PDF) 해금하러 가기
+                            심층 리포트 해금하기
                           </button>
                         </div>
                       </div>
                     )}
                     </div>
                   ) : (
-                <div className="bg-white border border-[#D6CCBC] p-5.5 rounded-2xl text-center space-y-4 shadow-xs">
-                  <p className="text-xs text-[#5C5046] leading-relaxed font-serif">
-                    아직 본인의 <strong>평생 감정서</strong>가 작성되지 않았습니다.
+                <div className="bg-surface border border-line p-5 rounded-xl text-center space-y-4">
+                  <p className="text-xs text-ink-soft leading-relaxed">
+                    아직 평생 감정서가 작성되지 않았어요.
                     <br />
-                    상단의 <strong>[실시간 인연 궁합 전체 업데이트]</strong> 버튼을 탭하시거나,
-                    모임 대기판에서 <strong>[우리 모임 궁합 보기]</strong>를 한 번 실행해 주시면,
-                    나의 평생 운세 해석과 키워드를 분석해 냅니다!
+                    모임 대기판에서 우리 모임 궁합 보기를 한 번 실행하면
+                    평생 운세 해석과 키워드가 만들어져요.
                   </p>
                 </div>
               )}
 
               {/* 모임 멤버들과의 동서양 인연 궁합 케미 */}
-              <div className="space-y-4 pt-6 border-t border-[#E8E0D0] animate-fade-in text-left">
-                <div className="flex items-center space-x-1.5 pb-1">
-                  <Crown className="w-4 h-4 text-amber-600 fill-amber-300 animate-pulse" />
-                  <h4 className="font-serif text-sm font-bold text-[#2C3E50]">
-                    모임 멤버들과의 동서양 인연 궁합 케미 {isSecretUnlocked ? "(무제한 해금됨)" : "(첫 번째 인연 무료 공개)"}
-                  </h4>
+              <div className="space-y-4 pt-6 border-t border-line animate-fade-in text-left">
+                <div className="flex items-center justify-between gap-2 pb-1">
+                  <h2 className="font-serif text-lg font-semibold text-ink">
+                    멤버들과의 인연 궁합
+                  </h2>
+                  <span className="text-xs text-ink-faint">
+                    {isSecretUnlocked ? "전체 열람" : "첫 1인 무료 공개"}
+                  </span>
                 </div>
 
                 {allMembers.filter((m) => m.id !== memberId).length === 0 ? (
-                  <p className="text-xs text-center text-[#5C5046] py-4 italic font-serif">
-                    아직 모임방에 다른 멤버가 가입하지 않았습니다. 초대 코드를 공유해 다른 멤버를 초대해 보세요!
+                  <p className="text-xs text-center text-ink-soft py-4">
+                    아직 다른 멤버가 없어요. 초대 코드를 공유해 멤버를 초대해 보세요.
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -2480,135 +2367,135 @@ export default function MeView({ code, memberId }: MeViewProps) {
                         const isM1First = matchMember(pair.member_id_1, member);
 
                         return (
-                          <div key={otherMember.id} className="bg-white border border-[#D6CCBC] p-5 rounded-2xl space-y-4 shadow-xs text-left relative overflow-hidden">
-                            <div className="flex items-center space-x-2 border-b border-[#E8E0D0] pb-2 text-xs font-serif font-bold text-[#2C3E50]">
-                              <span className="p-1 rounded-full bg-[#FAF7F2] border border-[#E8E0D0] text-sm leading-none shrink-0">
+                          <div key={otherMember.id} className="bg-surface border border-line p-5 rounded-xl space-y-4 text-left">
+                            <div className="flex items-center gap-2 border-b border-line pb-2.5 text-sm font-semibold text-ink">
+                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center text-sm leading-none shrink-0">
                                 {member.character_emoji}
                               </span>
                               <span>{member.nickname}</span>
-                              <span className="text-[#5C5046] font-sans">x</span>
-                              <span className="p-1 rounded-full bg-[#FAF7F2] border border-[#E8E0D0] text-sm leading-none shrink-0">
+                              <span className="text-ink-faint font-normal">×</span>
+                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center text-sm leading-none shrink-0">
                                 {otherMember.character_emoji}
                               </span>
                               <span>{otherMember.nickname}</span>
-                              <span className="ml-auto bg-[#C0392B] text-white px-2.5 py-0.5 rounded-lg text-[11px] font-sans font-bold">{pair.score}점</span>
+                              <span className="ml-auto text-sm font-mono font-semibold text-ink shrink-0">{pair.score}점</span>
                             </div>
 
                             <div className="space-y-4">
-                              {/* Elegant Full-width humorous label callout */}
-                              <div className="px-3 py-2 border border-amber-400/30 bg-amber-50/20 rounded-xl text-center text-xs font-bold leading-normal text-[#C0392B]">
-                                ✨ {pair.label}
+                              {/* Full-width label callout */}
+                              <div className="px-3 py-2.5 bg-sunken rounded-xl text-center text-sm font-medium leading-normal text-ink">
+                                {pair.label}
                               </div>
 
-                              <p className="text-xs text-[#5A4D41] leading-relaxed font-semibold">{pair.description}</p>
+                              <p className="text-sm text-ink-soft leading-relaxed">{pair.description}</p>
 
                               {/* Detailed 4-Area Compatibility Breakdown inside MeView */}
                               {pair.saju && pair.ziwei && pair.mbti && pair.zodiac && (
-                                <div className="mt-3.5 pt-3.5 border-t border-dashed border-[#FAF0DE] space-y-3">
-                                  <h5 className="text-[10px] font-extrabold text-[#C0392B] uppercase tracking-wider flex items-center gap-1">
-                                    🔑 4대 영역별 상세 궁합 분석 ({member.nickname} ➔ {otherMember.nickname} 상호작용)
-                                  </h5>
+                                <div className="mt-3.5 pt-3.5 border-t border-line space-y-3">
+                                  <p className="text-xs font-medium text-ink-soft">
+                                    영역별 상세 궁합 ({member.nickname} → {otherMember.nickname})
+                                  </p>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {/* Saju */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs">
-                                      <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                        <span className="font-bold text-[11px] text-[#2C3E50]">☯️ 사주 궁합 분석</span>
-                                        <span className="text-[9px] font-extrabold text-[#C0392B] bg-red-50 px-1.5 py-0.5 rounded border border-red-100">
+                                    <div className="bg-sunken p-3.5 rounded-xl space-y-2">
+                                      <div className="flex justify-between items-center pb-1 flex-wrap gap-1">
+                                        <span className="text-xs font-semibold text-ink">사주 궁합</span>
+                                        <span className="text-xs font-mono text-ink">
                                           평균 {Math.round((pair.saju.score_1_to_2 + pair.saju.score_2_to_1) / 2)}점
                                         </span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>나의 기운 ➔ {otherMember.nickname}:</span>
-                                        <span className="font-bold text-red-500">{isM1First ? pair.saju.score_1_to_2 : pair.saju.score_2_to_1}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>나의 기운 → {otherMember.nickname}</span>
+                                        <span className="font-mono text-ink shrink-0">{isM1First ? pair.saju.score_1_to_2 : pair.saju.score_2_to_1}점</span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>{otherMember.nickname} 기운 ➔ 나:</span>
-                                        <span className="font-bold text-green-600">{isM1First ? pair.saju.score_2_to_1 : pair.saju.score_1_to_2}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>{otherMember.nickname} 기운 → 나</span>
+                                        <span className="font-mono text-ink shrink-0">{isM1First ? pair.saju.score_2_to_1 : pair.saju.score_1_to_2}점</span>
                                       </div>
-                                      <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-[#C0392B]/40 font-medium pt-1">
+                                      <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap pt-1">
                                         {pair.saju.description}
                                       </p>
                                     </div>
 
                                     {/* Ziwei */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs">
-                                      <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                        <span className="font-bold text-[11px] text-[#2C3E50]">🔮 자미두수 궁합 분석</span>
-                                        <span className="text-[9px] font-extrabold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-100">
+                                    <div className="bg-sunken p-3.5 rounded-xl space-y-2">
+                                      <div className="flex justify-between items-center pb-1 flex-wrap gap-1">
+                                        <span className="text-xs font-semibold text-ink">자미두수 궁합</span>
+                                        <span className="text-xs font-mono text-ink">
                                           평균 {Math.round((pair.ziwei.score_1_to_2 + pair.ziwei.score_2_to_1) / 2)}점
                                         </span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>나의 명궁 ➔ {otherMember.nickname}:</span>
-                                        <span className="font-bold text-red-500">{isM1First ? pair.ziwei.score_1_to_2 : pair.ziwei.score_2_to_1}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>나의 명궁 → {otherMember.nickname}</span>
+                                        <span className="font-mono text-ink shrink-0">{isM1First ? pair.ziwei.score_1_to_2 : pair.ziwei.score_2_to_1}점</span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>{otherMember.nickname} 명궁 ➔ 나:</span>
-                                        <span className="font-bold text-green-600">{isM1First ? pair.ziwei.score_2_to_1 : pair.ziwei.score_1_to_2}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>{otherMember.nickname} 명궁 → 나</span>
+                                        <span className="font-mono text-ink shrink-0">{isM1First ? pair.ziwei.score_2_to_1 : pair.ziwei.score_1_to_2}점</span>
                                       </div>
-                                      <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-indigo-500/40 font-medium pt-1">
+                                      <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap pt-1">
                                         {pair.ziwei.description}
                                       </p>
                                     </div>
 
                                     {/* MBTI */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs">
+                                    <div className="bg-sunken p-3.5 rounded-xl space-y-2">
                                       {isMbtiRegistered(member) && isMbtiRegistered(otherMember) ? (
                                         <>
-                                          <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                            <span className="font-bold text-[11px] text-[#2C3E50]">🧠 MBTI 성향 궁합 분석</span>
-                                            <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">
+                                          <div className="flex justify-between items-center pb-1 flex-wrap gap-1">
+                                            <span className="text-xs font-semibold text-ink">MBTI 성향 궁합</span>
+                                            <span className="text-xs font-mono text-ink">
                                               평균 {Math.round((pair.mbti.score_1_to_2 + pair.mbti.score_2_to_1) / 2)}점
                                             </span>
                                           </div>
-                                          <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                            <span>나의 성정 ➔ {otherMember.nickname}:</span>
-                                            <span className="font-bold text-red-500">{isM1First ? pair.mbti.score_1_to_2 : pair.mbti.score_2_to_1}점</span>
+                                          <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                            <span>나의 성향 → {otherMember.nickname}</span>
+                                            <span className="font-mono text-ink shrink-0">{isM1First ? pair.mbti.score_1_to_2 : pair.mbti.score_2_to_1}점</span>
                                           </div>
-                                          <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                            <span>{otherMember.nickname} 성정 ➔ 나:</span>
-                                            <span className="font-bold text-green-600">{isM1First ? pair.mbti.score_2_to_1 : pair.mbti.score_1_to_2}점</span>
+                                          <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                            <span>{otherMember.nickname} 성향 → 나</span>
+                                            <span className="font-mono text-ink shrink-0">{isM1First ? pair.mbti.score_2_to_1 : pair.mbti.score_1_to_2}점</span>
                                           </div>
-                                          <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-emerald-500/40 font-medium pt-1">
+                                          <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap pt-1">
                                             {pair.mbti.description}
                                           </p>
                                         </>
                                       ) : (
                                         <>
-                                          <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                            <span className="font-bold text-[11px] text-[#2C3E50]">🧠 MBTI 성향 궁합 분석</span>
-                                            <span className="text-[9px] text-[#5C5046] bg-gray-50 px-1.5 py-0.5 rounded border border-gray-100">
+                                          <div className="flex justify-between items-center pb-1 flex-wrap gap-1">
+                                            <span className="text-xs font-semibold text-ink">MBTI 성향 궁합</span>
+                                            <span className="text-xs text-ink-faint">
                                               미등록
                                             </span>
                                           </div>
-                                          <p className="text-[10px] text-[#5C5046] leading-relaxed pl-1.5 border-l border-gray-300 font-medium italic">
+                                          <p className="text-xs text-ink-soft leading-relaxed">
                                             {!isMbtiRegistered(member) && !isMbtiRegistered(otherMember)
-                                              ? `두 사람 모두 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없습니다. 상단에서 MBTI를 등록해보세요!`
+                                              ? `두 사람 모두 MBTI를 등록하지 않아 성향 궁합을 볼 수 없어요. 상단에서 MBTI를 등록해 보세요.`
                                               : !isMbtiRegistered(member)
-                                              ? `본인의 MBTI 정보가 등록되지 않아 성향 궁합을 분석할 수 없습니다. 상단에서 MBTI를 등록해보세요!`
-                                              : `${otherMember.nickname}님이 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없습니다.`}
+                                              ? `본인의 MBTI 정보가 등록되지 않아 성향 궁합을 볼 수 없어요. 상단에서 MBTI를 등록해 보세요.`
+                                              : `${otherMember.nickname}님이 MBTI를 등록하지 않아 성향 궁합을 볼 수 없어요.`}
                                           </p>
                                         </>
                                       )}
                                     </div>
 
                                     {/* Zodiac */}
-                                    <div className="bg-[#FAF9F6] border border-[#FAF0DE] p-3 rounded-xl space-y-2 shadow-2xs">
-                                      <div className="flex justify-between items-center border-b border-[#FAF0DE]/50 pb-1 flex-wrap gap-1">
-                                        <span className="font-bold text-[11px] text-[#2C3E50]">⭐ 별자리 궁합 분석</span>
-                                        <span className="text-[9px] font-extrabold text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100">
+                                    <div className="bg-sunken p-3.5 rounded-xl space-y-2">
+                                      <div className="flex justify-between items-center pb-1 flex-wrap gap-1">
+                                        <span className="text-xs font-semibold text-ink">별자리 궁합</span>
+                                        <span className="text-xs font-mono text-ink">
                                           평균 {Math.round((pair.zodiac.score_1_to_2 + pair.zodiac.score_2_to_1) / 2)}점
                                         </span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>나의 별자리 ➔ {otherMember.nickname}:</span>
-                                        <span className="font-bold text-red-500">{isM1First ? pair.zodiac.score_1_to_2 : pair.zodiac.score_2_to_1}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>나의 별자리 → {otherMember.nickname}</span>
+                                        <span className="font-mono text-ink shrink-0">{isM1First ? pair.zodiac.score_1_to_2 : pair.zodiac.score_2_to_1}점</span>
                                       </div>
-                                      <div className="text-[9px] text-[#5C5046] flex justify-between">
-                                        <span>{otherMember.nickname} 별자리 ➔ 나:</span>
-                                        <span className="font-bold text-green-600">{isM1First ? pair.zodiac.score_2_to_1 : pair.zodiac.score_1_to_2}점</span>
+                                      <div className="text-xs text-ink-soft flex justify-between gap-2">
+                                        <span>{otherMember.nickname} 별자리 → 나</span>
+                                        <span className="font-mono text-ink shrink-0">{isM1First ? pair.zodiac.score_2_to_1 : pair.zodiac.score_1_to_2}점</span>
                                       </div>
-                                      <p className="text-[10px] text-[#5A4D41] leading-relaxed whitespace-pre-wrap pl-1.5 border-l border-rose-500/40 font-medium pt-1">
+                                      <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap pt-1">
                                         {pair.zodiac.description}
                                       </p>
                                     </div>
@@ -2622,27 +2509,24 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
                     {/* Elegant Consolidated Lock Card for Subsequent Members */}
                     {!isSecretUnlocked && allMembers.filter((m) => m.id !== memberId).length > 1 && (
-                      <div className="bg-[#FAF9F6] border-2 border-dashed border-[#FAF0DE] p-6 rounded-2xl flex flex-col items-center justify-center text-center space-y-3.5 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 bg-[#C0392B] text-white font-sans font-bold text-[8px] px-2.5 py-0.5 rounded-bl-lg uppercase tracking-wider">
-                          Premium
-                        </div>
-                        <span className="p-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-full">
-                          <Crown className="w-5 h-5 fill-amber-400 text-amber-700" />
+                      <div className="bg-surface border border-line p-6 rounded-xl flex flex-col items-center justify-center text-center space-y-3.5">
+                        <span className="w-12 h-12 bg-sunken text-ink-soft rounded-full flex items-center justify-center">
+                          <Lock className="w-5 h-5" />
                         </span>
-                        <h5 className="font-serif text-xs font-black text-[#2C3E50] leading-none">
-                          🔒 두 번째 멤버와의 궁합부터는 프리미엄 전용입니다
-                        </h5>
-                        <p className="text-[10px] text-[#5C5046] max-w-sm leading-relaxed font-medium">
-                          첫 번째 인연({allMembers.filter((m) => m.id !== memberId)[0]?.nickname || "첫 멤버"})의 정보는 무료로 감상하실 수 있습니다. 이 방의 전체 멤버들과의 상세 궁합 분석을 모두 열람해 보시겠어요?
+                        <h3 className="text-[15px] font-semibold text-ink">
+                          두 번째 멤버부터의 궁합은 잠겨 있어요
+                        </h3>
+                        <p className="text-xs text-ink-soft max-w-sm leading-relaxed">
+                          첫 번째 인연({allMembers.filter((m) => m.id !== memberId)[0]?.nickname || "첫 멤버"})과의 궁합은 무료로 볼 수 있어요. 해금하면 이 방의 모든 멤버와의 상세 궁합이 열립니다.
                         </p>
                         <button
                           onClick={() => {
                             setShopInitialTab("secret");
                             setIsShopOpen(true);
                           }}
-                          className="px-4 py-2 bg-[#C0392B] hover:bg-[#A93226] text-white rounded-xl font-serif font-bold text-[10px] shadow-sm active:scale-[0.98] transition cursor-pointer"
+                          className="px-5 py-3 bg-seal hover:bg-seal-deep text-white rounded-xl font-semibold text-sm transition-colors cursor-pointer"
                         >
-                          👑 비밀 인연 상성 분석 해금하기
+                          전체 궁합 해금하기
                         </button>
                       </div>
                     )}
@@ -2660,29 +2544,26 @@ export default function MeView({ code, memberId }: MeViewProps) {
         {/* Real-time Google Ads Slot / Premium promo */}
         <GoogleAds layout="banner" className="mb-4" hasContent={!!member && !loading && !!member.saju && !!member.personal_analysis} />
 
-        {/* Back Button */}
-        <div className="pt-4 border-t border-[#E8E0D0]">
+        {/* Back Button & Shop Entry */}
+        <div className="pt-4 border-t border-line space-y-2">
           <a
             href={`#/room/${code}`}
-            className="block w-full py-3.5 bg-[#2C3E50] text-[#FAF7F2] hover:bg-[#1A252F] hover:scale-[0.99] text-center font-serif font-bold text-xs rounded-xl tracking-widest transition duration-200 cursor-pointer"
+            className="block w-full py-3 bg-sunken hover:bg-line text-ink text-center font-semibold text-sm rounded-xl transition-colors cursor-pointer"
           >
-            ← 다시 대기실 목록으로 돌아가기
+            모임방으로 돌아가기
           </a>
+          <button
+            type="button"
+            onClick={() => {
+              setShopInitialTab("pdf");
+              setIsShopOpen(true);
+            }}
+            className="block w-full py-2 text-ink-soft hover:text-ink text-center text-sm transition-colors cursor-pointer"
+          >
+            인연 상점 열기
+          </button>
         </div>
       </div>
-
-      {/* Floating Premium Shop Trigger */}
-      <button
-        type="button"
-        onClick={() => {
-          setShopInitialTab("pdf");
-          setIsShopOpen(true);
-        }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-1.5 px-4 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white font-serif font-extrabold text-[11px] tracking-wider rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-[0.97] transition-all cursor-pointer ring-4 ring-amber-100/50"
-      >
-        <Crown className="w-3.5 h-3.5 fill-amber-300 animate-pulse text-amber-200" />
-        <span>인연 상점</span>
-      </button>
 
       {/* Premium Shop Modal */}
       {isShopOpen && (

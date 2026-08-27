@@ -60,26 +60,26 @@ export default function KakaoOutlinkGuide() {
   }
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-slate-950 text-slate-100 flex flex-col justify-between p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-[99999] bg-paper text-ink flex flex-col justify-between p-6 overflow-y-auto font-sans">
       {/* Upper content */}
       <div className="max-w-md mx-auto w-full pt-8 space-y-8">
-        {/* Header Alert Card */}
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-500/20 text-amber-400">
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-sunken text-ink-soft">
             <AlertCircle className="w-6 h-6" />
           </div>
-          <h2 className="text-xl font-bold tracking-tight text-white">
-            구글 로그인 보안 제한 안내
+          <h2 className="font-serif text-2xl font-semibold tracking-tight text-ink">
+            구글 로그인 제한 안내
           </h2>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            카카오톡 인앱 브라우저 환경에서는 구글의 보안 정책으로 인해 구글 소셜 로그인이 차단됩니다. 안전하고 원활한 서비스를 이용하기 위해 <span className="text-amber-400 font-semibold">외부 브라우저</span>로 이동해 주세요.
+          <p className="text-sm text-ink-soft leading-relaxed">
+            카카오톡 인앱 브라우저에서는 구글의 보안 정책에 따라 구글 로그인이 차단됩니다. 서비스를 이용하려면 <span className="font-semibold text-ink">외부 브라우저</span>로 이동해 주세요.
           </p>
         </div>
 
         {/* Action Button: Open in Default Browser */}
         <button
           onClick={handleRetryRedirect}
-          className="w-full flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-semibold py-4 px-6 rounded-2xl transition-all duration-200 shadow-lg shadow-amber-400/10 hover:shadow-amber-400/20"
+          className="w-full flex items-center justify-center gap-2 bg-seal hover:bg-seal-deep text-white text-sm font-semibold py-4 px-6 rounded-xl transition-colors duration-200"
         >
           <ExternalLink className="w-5 h-5" />
           <span>기본 브라우저로 열기</span>
@@ -87,33 +87,33 @@ export default function KakaoOutlinkGuide() {
 
         {/* Manual Method Instructions */}
         <div className="space-y-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-            수동으로 외부 브라우저 여는 방법
+          <h3 className="text-xs font-semibold text-ink-faint">
+            직접 외부 브라우저로 여는 방법
           </h3>
 
-          <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl divide-y divide-slate-800/60 overflow-hidden">
+          <div className="bg-surface border border-line rounded-xl divide-y divide-line overflow-hidden">
             {/* iOS */}
             <div className="p-4 flex gap-4 items-start">
-              <div className="bg-slate-800/60 p-2.5 rounded-xl shrink-0 text-slate-300">
+              <div className="bg-sunken p-2.5 rounded-xl shrink-0 text-ink-soft">
                 <Compass className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-200">아이폰 (iOS)</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  우측 하단의 <span className="text-amber-400 font-medium">나침반 모양 아이콘</span> 또는 <span className="text-amber-400 font-medium">더보기(⋯)</span> 버튼을 터치한 후 <span className="text-white font-medium">'Safari로 열기'</span>를 선택해 주세요.
+                <p className="text-sm font-semibold text-ink">아이폰 (iOS)</p>
+                <p className="text-xs text-ink-soft leading-relaxed">
+                  우측 하단의 <span className="font-medium text-ink">나침반 모양 아이콘</span> 또는 <span className="font-medium text-ink">더보기(⋯)</span> 버튼을 누른 뒤 <span className="font-medium text-ink">'Safari로 열기'</span>를 선택해 주세요.
                 </p>
               </div>
             </div>
 
             {/* Android */}
             <div className="p-4 flex gap-4 items-start">
-              <div className="bg-slate-800/60 p-2.5 rounded-xl shrink-0 text-slate-300">
+              <div className="bg-sunken p-2.5 rounded-xl shrink-0 text-ink-soft">
                 <MoreHorizontal className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-slate-200">안드로이드 (Galaxy 등)</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  우측 상단의 <span className="text-amber-400 font-medium">점 세 개(⋮)</span> 버튼을 누른 다음 <span className="text-white font-medium">'다른 브라우저로 열기'</span> 또는 <span className="text-white font-medium">'Chrome으로 열기'</span>를 선택해 주세요.
+                <p className="text-sm font-semibold text-ink">안드로이드 (Galaxy 등)</p>
+                <p className="text-xs text-ink-soft leading-relaxed">
+                  우측 상단의 <span className="font-medium text-ink">점 세 개(⋮)</span> 버튼을 누른 다음 <span className="font-medium text-ink">'다른 브라우저로 열기'</span> 또는 <span className="font-medium text-ink">'Chrome으로 열기'</span>를 선택해 주세요.
                 </p>
               </div>
             </div>
@@ -121,19 +121,19 @@ export default function KakaoOutlinkGuide() {
         </div>
 
         {/* Copy Link Section */}
-        <div className="bg-slate-900/30 border border-slate-800/40 rounded-2xl p-4 flex items-center justify-between gap-4">
+        <div className="bg-surface border border-line rounded-xl p-4 flex items-center justify-between gap-4">
           <div className="min-w-0 flex-1">
-            <p className="text-xs text-slate-400">직접 링크 복사하기</p>
-            <p className="text-xs text-slate-300 font-mono truncate mt-1">
+            <p className="text-xs text-ink-faint">직접 링크 복사하기</p>
+            <p className="text-xs text-ink-soft truncate mt-1">
               {window.location.href}
             </p>
           </div>
           <button
             onClick={handleCopyLink}
-            className={`flex items-center gap-1.5 py-2 px-3.5 rounded-xl text-xs font-medium shrink-0 transition-all duration-200 ${
+            className={`flex items-center gap-1.5 py-2 px-3.5 rounded-xl text-xs font-medium shrink-0 transition-colors duration-200 ${
               copied
-                ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                : "bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700/50"
+                ? "bg-ink text-white"
+                : "bg-sunken hover:bg-line text-ink"
             }`}
           >
             {copied ? (
@@ -155,9 +155,9 @@ export default function KakaoOutlinkGuide() {
       <div className="max-w-md mx-auto w-full pt-8 pb-4 text-center">
         <button
           onClick={() => setDismissed(true)}
-          className="text-xs text-slate-500 hover:text-slate-400 underline decoration-dotted underline-offset-4 transition-colors duration-150"
+          className="text-xs text-ink-faint hover:text-ink underline decoration-dotted underline-offset-4 transition-colors duration-150"
         >
-          경고 무시하고 그냥 진행할래요
+          안내를 닫고 계속 진행하기
         </button>
       </div>
     </div>

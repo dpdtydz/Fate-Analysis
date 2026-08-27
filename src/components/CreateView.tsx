@@ -191,54 +191,44 @@ export default function CreateView() {
   // State 1: Regular Email User (Must link Google to create room)
   if (membership.isEmailOnly) {
     return (
-      <Layout title="인연방 개설 권한 안내" showHomeButton>
-        {loading && <LoadingOverlay message="Google 계정 연동 처리 중..." />}
+      <Layout title="모임방 만들기" showHomeButton>
+        {loading && <LoadingOverlay message="Google 계정을 연동하는 중..." />}
         <div className="space-y-5 py-3 text-center max-w-md mx-auto">
-          <div className="w-14 h-14 mx-auto rounded-2xl border border-amber-300 bg-amber-50 flex items-center justify-center font-serif text-2xl text-amber-700 shadow-xs select-none">
-            <Sparkles className="w-7 h-7 text-amber-600" />
+          <div className="w-12 h-12 mx-auto rounded-md bg-ink text-white flex items-center justify-center font-serif text-xl select-none">
+            開
           </div>
 
           <div className="space-y-1.5">
-            <span className="inline-flex items-center gap-1 text-[11px] font-serif font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-full border border-amber-200">
-              👑 정회원 승급 필요
-            </span>
-            <h3 className="font-serif text-lg font-bold text-[#2C3E50] tracking-tight">
-              Google 연동 후 모임방을 만드실 수 있습니다
+            <h3 className="font-serif text-lg font-semibold text-ink tracking-tight">
+              Google 연동 후 모임방을 만들 수 있습니다
             </h3>
-            <p className="text-xs text-[#4F443B] leading-relaxed">
-              현재 <strong className="text-[#2C3E50] font-mono">{membership.email}</strong>(일반회원)으로 로그인되어 있습니다.
-              호스트 권한 활성화를 위해 1초 Google 연동을 완료해 주세요.
+            <p className="text-sm text-ink-soft leading-relaxed">
+              지금은 <strong className="text-ink font-mono">{membership.email}</strong> 일반회원으로 로그인되어 있습니다.
+              방장 권한을 쓰려면 Google 계정을 연동해 주세요.
             </p>
           </div>
 
-          <div className="bg-[#FCFAF7] border border-[#E2D8C7] p-4 rounded-2xl text-left text-xs text-[#4F443B] leading-relaxed space-y-2">
-            <p className="font-bold text-[#2C3E50] flex items-center gap-1.5 font-serif">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>연동 시 기존 데이터 100% 보존</span>
-            </p>
-            <p className="text-[11px]">기존에 참여했던 모임방 기록과 사주 분석 내역은 그대로 유지되며, 즉시 방장 권한과 쿠폰 혜택이 열립니다.</p>
+          <div className="bg-surface border border-line p-4 rounded-xl text-left text-sm text-ink-soft leading-relaxed space-y-1">
+            <p className="font-semibold text-ink">연동해도 기존 데이터는 그대로 유지됩니다.</p>
+            <p className="text-xs">참여했던 모임방 기록과 사주 분석 내역이 보존되고, 방장 권한과 쿠폰 기능이 열립니다.</p>
           </div>
 
           {error && (
-            <div className="text-xs text-[#C0392B] bg-[#FDEDEC] p-3 rounded-xl border border-[#FADBD8] font-medium">
-              ⚠️ {error}
-            </div>
+            <p className="text-xs text-seal bg-sunken p-3 rounded-xl font-medium">{error}</p>
           )}
 
           {successMsg && (
-            <div className="text-xs text-emerald-800 bg-emerald-50 p-3 rounded-xl border border-emerald-200 font-medium">
-              {successMsg}
-            </div>
+            <p className="text-xs text-ink bg-sunken p-3 rounded-xl font-medium">{successMsg}</p>
           )}
 
           <button
             type="button"
             onClick={handleLinkGoogle}
             disabled={loading}
-            className="w-full py-3.5 bg-gradient-to-r from-amber-600 to-red-600 hover:from-amber-700 hover:to-red-700 active:scale-98 text-white font-serif font-bold text-sm rounded-2xl transition-all shadow-md flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+            className="w-full py-3.5 bg-ink hover:bg-ink/90 text-white font-semibold text-sm rounded-xl transition-colors flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
           >
             <Chrome className="w-4 h-4 text-white" />
-            <span>{loading ? "Google 연동 중..." : "🚀 1초만에 Google 연동하고 방 개설하기"}</span>
+            <span>{loading ? "Google 연동 중..." : "Google 계정 연동하기"}</span>
           </button>
         </div>
       </Layout>
@@ -248,31 +238,28 @@ export default function CreateView() {
   // State 2: Guest / Unauthenticated
   if (!membership.isSocialVerified) {
     return (
-      <Layout title="인연방 개설" showHomeButton>
-        {loading && <LoadingOverlay message="인간 명부를 여는 중..." />}
+      <Layout title="모임방 만들기" showHomeButton>
+        {loading && <LoadingOverlay message="로그인하는 중..." />}
         <div className="space-y-5 py-3 text-center max-w-md mx-auto">
-          <div className="w-14 h-14 mx-auto rounded-2xl border border-[#C0392B]/40 bg-[#FDF2F0] flex items-center justify-center font-serif text-2xl text-[#C0392B] shadow-xs select-none">
-            <span className="font-bold">開</span>
+          <div className="w-12 h-12 mx-auto rounded-md bg-ink text-white flex items-center justify-center font-serif text-xl select-none">
+            開
           </div>
-          
+
           <div className="space-y-1.5">
-            <h3 className="font-serif text-lg font-bold text-[#2C3E50] tracking-tight">
-              Google 정회원 로그인 안내
+            <h3 className="font-serif text-lg font-semibold text-ink tracking-tight">
+              로그인하고 모임방 만들기
             </h3>
-            <p className="text-xs text-[#4F443B] leading-relaxed">
-              모임방 개설자의 방 관리 권한 유지와 안전한 데이터 보관을 위해 Google 계정 인증을 진행합니다.
+            <p className="text-sm text-ink-soft leading-relaxed">
+              방 관리 권한을 유지하고 데이터를 안전하게 보관하기 위해 Google 계정으로 로그인합니다.
             </p>
           </div>
 
-          <div className="bg-[#FCFAF7] border border-[#E2D8C7] p-4 rounded-2xl text-left text-xs text-[#4F443B] leading-relaxed space-y-1">
-            <p className="font-bold text-[#2C3E50]">💡 정회원 개설 혜택</p>
-            <p className="text-[11px]">브라우저를 닫거나 기기를 변경해도 생성한 모임방을 안전하게 관리하고 멤버들의 궁합 결과를 지속적으로 열람할 수 있습니다.</p>
+          <div className="bg-surface border border-line p-4 rounded-xl text-left text-sm text-ink-soft leading-relaxed">
+            브라우저를 닫거나 기기를 바꿔도 만든 모임방을 관리하고 멤버들의 궁합 결과를 계속 볼 수 있습니다.
           </div>
 
           {error && (
-            <div className="text-xs text-[#C0392B] bg-[#FDEDEC] p-3 rounded-xl border border-[#FADBD8] font-medium">
-              ⚠️ {error}
-            </div>
+            <p className="text-xs text-seal bg-sunken p-3 rounded-xl font-medium">{error}</p>
           )}
 
           <div className="space-y-2">
@@ -289,16 +276,16 @@ export default function CreateView() {
                   setLoading(false);
                 }
               }}
-              className="w-full py-3.5 bg-[#2C3E50] hover:bg-[#1E293B] active:scale-98 text-[#FAF7F2] font-serif font-bold text-sm rounded-2xl transition-all tracking-wide shadow-md flex items-center justify-center space-x-2 cursor-pointer"
+              className="w-full py-3.5 bg-ink hover:bg-ink/90 text-white font-semibold text-sm rounded-xl transition-colors flex items-center justify-center space-x-2 cursor-pointer"
             >
-              <Chrome className="w-4 h-4 text-amber-400" />
-              <span>Google 계정으로 로그인하고 방 만들기</span>
+              <Chrome className="w-4 h-4" />
+              <span>Google 계정으로 계속하기</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsAuthModalOpen(true)}
-              className="w-full py-2.5 text-xs text-[#5C5046] hover:text-[#2C3E50] transition underline"
+              className="w-full py-2.5 text-xs text-ink-soft hover:text-ink transition-colors underline decoration-line underline-offset-2 cursor-pointer"
             >
               다른 방법으로 로그인 / 회원가입
             </button>
@@ -315,26 +302,22 @@ export default function CreateView() {
 
   // State 3: Verified Google Social Member
   return (
-    <Layout title="인연방 개설" showHomeButton>
-      {loading && <LoadingOverlay message="기운을 열고 새 연방을 세우는 중..." />}
+    <Layout title="모임방 만들기" showHomeButton>
+      {loading && <LoadingOverlay message="모임방을 만드는 중..." />}
 
-      <div className="space-y-4 py-1">
-        <div className="text-center">
-          <span className="text-[10px] bg-amber-50 text-amber-900 px-2.5 py-1 rounded-full border border-amber-200 font-serif font-bold inline-flex items-center gap-1">
-            <Sparkles className="w-3 h-3 text-amber-600" />
-            정회원 인증: {membership.displayName}님
-          </span>
-          <h3 className="font-serif text-lg font-bold text-[#2C3E50] tracking-tight mt-2">
-            새로운 인연방 만들기
+      <div className="space-y-5 py-1">
+        <div className="text-center space-y-1">
+          <h3 className="font-serif text-xl font-semibold text-ink tracking-tight">
+            새 모임방 만들기
           </h3>
-          <p className="text-xs text-[#4F443B] mt-0.5">
-            모임 이름을 정하고, 방장님의 사주명식을 첫 번째로 등록합니다.
+          <p className="text-sm text-ink-soft">
+            모임 이름을 정하고, 방장의 사주를 첫 번째로 등록합니다.
           </p>
         </div>
 
         {/* Room Title */}
-        <div className="space-y-1 bg-[#FCFAF7] p-4 border border-[#E2D8C7] rounded-xl shadow-xs text-left">
-          <label className="block text-xs font-semibold text-[#2C3E50]">모임명 (인연방 제목)</label>
+        <div className="space-y-1.5 bg-surface p-5 border border-line rounded-xl text-left">
+          <label className="block text-xs font-medium text-ink-soft">모임 이름</label>
           <input
             id="room-title-input"
             type="text"
@@ -342,21 +325,21 @@ export default function CreateView() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="예: 우리 팀 회식, 경영학과 동기 모임"
-            className="w-full px-3.5 py-2.5 bg-white border border-[#D6CCBC] focus:outline-none focus:ring-1 focus:ring-[#C0392B] focus:border-[#C0392B] rounded-lg text-sm placeholder:text-[#B0A69B] text-[#2C3E50]"
+            className="w-full px-4 py-3 bg-sunken rounded-xl focus:outline-none focus:ring-1 focus:ring-ink text-sm placeholder:text-ink-faint text-ink"
           />
         </div>
 
         {/* Auth / general error messaging */}
         {error && (
-          <div className="text-xs text-[#C0392B] bg-[#FDEDEC] p-3 rounded-lg border border-[#FADBD8] font-medium text-center">
-            ⚠️ {error}
-          </div>
+          <p className="text-xs text-seal bg-sunken p-3 rounded-xl font-medium text-center">
+            {error}
+          </p>
         )}
 
         {/* Owner's saju profile block */}
         <SajuForm 
           onSubmit={handleCreateRoom} 
-          submitButtonText="방 개설 및 나도 등록하기" 
+          submitButtonText="방 만들고 내 사주 등록하기"
           initialNickname={personalProfile?.nickname || currentUser?.displayName || ""} 
           initialGender={personalProfile?.gender}
           initialBirthDate={personalProfile?.birth_date}

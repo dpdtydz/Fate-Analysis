@@ -243,10 +243,10 @@ export default function RoomView({ code }: RoomViewProps) {
 
   if (loading) {
     return (
-      <Layout title="인연 로딩 중">
+      <Layout title="모임방">
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="animate-spin text-3xl text-[#C0392B] font-serif">☯</div>
-          <p className="text-xs text-[#5C5046] mt-3">인연방 사주 대장을 소환하는 중...</p>
+          <div className="w-10 h-10 rounded-full border-2 border-seal border-t-transparent animate-spin mb-3" />
+          <p className="text-xs text-ink-soft">모임방 정보를 불러오는 중...</p>
         </div>
       </Layout>
     );
@@ -254,15 +254,14 @@ export default function RoomView({ code }: RoomViewProps) {
 
   if (error || !room) {
     return (
-      <Layout title="오류 알림" showHomeButton>
+      <Layout title="모임방" showHomeButton>
         <div className="text-center py-12 space-y-4">
-          <div className="text-3xl">⚠️</div>
-          <p className="text-sm font-semibold text-[#C0392B]">{error || "방을 불러올 수 없습니다."}</p>
+          <p className="text-sm font-medium text-ink">{error || "방을 불러올 수 없습니다."}</p>
           <a
             href="#/"
-            className="inline-block px-5 py-2.5 bg-[#2C3E50] text-[#FAF7F2] rounded text-xs font-serif font-bold tracking-tight shadow-sm hover:opacity-90"
+            className="inline-block px-5 py-2.5 bg-sunken hover:bg-line text-ink rounded-xl text-sm font-semibold transition-colors"
           >
-            대기실로 돌아가기
+            처음으로 돌아가기
           </a>
         </div>
       </Layout>
@@ -274,19 +273,16 @@ export default function RoomView({ code }: RoomViewProps) {
       <div className="space-y-6 py-2">
         
         {!hasJoined && (
-          <div className="bg-amber-50/90 border border-amber-200 rounded-[24px] p-5 text-center space-y-3 shadow-2xs animate-fade-in">
-            <div className="flex items-center justify-center gap-1.5 text-amber-900 font-bold font-serif text-sm">
-              <Users className="w-4 h-4 text-amber-700 animate-pulse" />
-              <span>아직 이 모임방에 등록되지 않았습니다</span>
-            </div>
-            <p className="text-xs text-amber-800 leading-relaxed max-w-sm mx-auto">
-              현재 <strong className="text-amber-950">{auth.currentUser?.displayName || "회원"}님</strong> 계정으로 로그인되어 있으나, 이 방에는 사주 정보가 아직 입력되지 않았습니다. 생년월일시를 등록하시면 즉시 모임 멤버들과의 1:1 비밀 케미와 오행 조화를 분석하실 수 있습니다!
+          <div className="bg-surface border border-line rounded-xl p-5 text-center space-y-3 animate-fade-in">
+            <p className="font-semibold text-sm text-ink">아직 이 모임방에 등록되지 않았습니다</p>
+            <p className="text-sm text-ink-soft leading-relaxed max-w-sm mx-auto">
+              생년월일시를 등록하면 멤버들과의 1:1 궁합과 모임 오행 조화를 볼 수 있습니다.
             </p>
             <a
               href={`#/room/${code}/join`}
-              className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-[#C0392B] hover:bg-[#A93226] text-white text-xs font-bold rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
+              className="inline-flex items-center justify-center px-6 py-2.5 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
             >
-              <span>내 사주 등록하고 모임 참여하기 ➔</span>
+              내 사주 등록하기
             </a>
           </div>
         )}
@@ -295,32 +291,24 @@ export default function RoomView({ code }: RoomViewProps) {
             FRONT GROUP SOUL CARD: 규격 380px, #FFFFFF, radius 28px, Pretendard
            ========================================================================= */}
         {groupMetrics && (
-          <div
-            className="w-full bg-[#FFFFFF] rounded-[28px] p-6 sm:p-7 shadow-[0_15px_40px_-15px_rgba(192,57,43,0.12)] border border-[#EFE9DF] text-left animate-fade-in"
-            style={{ fontFamily: '"Pretendard", system-ui, sans-serif' }}
-          >
-            {/* 1. 상단 시리얼 & 상생 배지 */}
+          <div className="w-full bg-surface rounded-xl p-6 sm:p-7 border border-line text-left animate-fade-in">
+            {/* 1. 상단 표기 */}
             <div className="flex items-center justify-between mb-4">
-              <span className="text-[11px] font-mono tracking-[0.14em] text-[#5C5046]">
-                GROUP · {groupMetrics.memberCount}인 결속
+              <span className="text-xs font-mono tracking-[0.14em] text-ink-faint">
+                GROUP · {groupMetrics.memberCount}인
               </span>
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] font-bold tracking-[0.08em] text-[#C0392B] bg-[#FDEDEC] px-2.5 py-1 rounded-full">
-                  相生 SYNERGY
-                </span>
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="text-[11px] font-bold text-[#5C5046] hover:text-[#C0392B] bg-[#FAF7F2] px-2.5 py-1 rounded-full border border-[#E8E0D0] cursor-pointer"
-                >
-                  {copiedLink ? "링크 복사됨!" : "초대"}
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="text-xs font-medium text-ink-soft hover:text-ink bg-sunken hover:bg-line px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              >
+                {copiedLink ? "링크 복사됨" : "초대하기"}
+              </button>
             </div>
 
-            {/* 2. 엠블럼: 지름 96px 원, 배경 #FDEDEC, 상생 기하 라인 SVG */}
-            <div className="w-[96px] h-[96px] mx-auto mb-3.5 rounded-full bg-[#FDEDEC] flex items-center justify-center border border-[#F5D5D3]/60">
-              <svg viewBox="0 0 48 48" fill="none" stroke="#C0392B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
+            {/* 2. 엠블럼 */}
+            <div className="w-[96px] h-[96px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center">
+              <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
                 <circle cx="24" cy="24" r="16" />
                 <circle cx="24" cy="14" r="6" />
                 <circle cx="15" cy="29" r="6" />
@@ -331,72 +319,45 @@ export default function RoomView({ code }: RoomViewProps) {
               </svg>
             </div>
 
-            {/* 3. 모임 케미 점수 헤드라인 */}
-            <h3 className="text-center text-[22px] font-[800] tracking-[-0.02em] leading-[1.25] text-[#2C3E50] mb-2">
-              모임 케미는 <span className="text-[#C0392B]">{groupMetrics.score}점</span>
+            {/* 3. 모임 케미 점수 */}
+            <h3 className="text-center font-serif text-2xl font-semibold tracking-tight leading-snug text-ink mb-2">
+              모임 케미 <span className="text-seal">{groupMetrics.score}점</span>
             </h3>
 
             {/* 4. 한 줄 정의 */}
-            <p className="text-center text-[13.5px] font-[500] leading-[1.5] text-[#5A4D41] max-w-[290px] mx-auto mb-4">
-              "{groupMetrics.uniqueElements}대 오행이 서로를 생(生)하며 균형을 이뤄요"
+            <p className="text-center text-sm leading-relaxed text-ink-soft max-w-[290px] mx-auto mb-5">
+              {groupMetrics.uniqueElements}가지 오행이 서로를 살리며 균형을 이룹니다.
             </p>
 
-            {/* 5. 키워드 태그: 알약형 */}
-            <div className="flex flex-wrap gap-1.5 justify-center mb-5">
-              <span className="text-[11.5px] font-[600] text-[#C0392B] bg-[#FDEDEC] px-3 py-1 rounded-full">
-                오행 상생 순환
-              </span>
-              <span className="text-[11.5px] font-[600] text-[#C0392B] bg-[#FDEDEC] px-3 py-1 rounded-full">
-                {groupMetrics.memberCount}인 결속
-              </span>
-              <span className="text-[11.5px] font-[600] text-[#C0392B] bg-[#FDEDEC] px-3 py-1 rounded-full">
-                시너지 증폭
-              </span>
-            </div>
-
-            {/* 6. 4줄 스탯 바 */}
+            {/* 5. 계산 지표 (다양성·순환) */}
             <div className="space-y-2 mb-5">
-              <div className="flex items-center gap-2 w-full">
-                <span className="text-[12px] font-[700] text-[#2C3E50] w-[48px] shrink-0 text-left">다양성</span>
-                <div className="h-[6.5px] bg-[#F5EFE6] rounded-full overflow-hidden flex-1">
-                  <div className="h-full rounded-full bg-[#35B37E]" style={{ width: `${Math.min(98, groupMetrics.uniqueElements * 22)}%` }} />
+              <div className="flex items-center gap-2.5 w-full">
+                <span className="text-xs font-medium text-ink w-[48px] shrink-0 text-left">다양성</span>
+                <div className="h-[7px] bg-sunken rounded-full overflow-hidden flex-1">
+                  <div className="h-full rounded-full bg-ink/70" style={{ width: `${Math.min(98, groupMetrics.uniqueElements * 22)}%` }} />
                 </div>
-                <span className="text-[11px] font-[700] font-mono text-right text-[#5C5046] w-[30px] shrink-0">{Math.min(98, groupMetrics.uniqueElements * 22)}</span>
+                <span className="text-xs font-mono text-right text-ink-faint w-[30px] shrink-0">{Math.min(98, groupMetrics.uniqueElements * 22)}</span>
               </div>
-              <div className="flex items-center gap-2 w-full">
-                <span className="text-[12px] font-[700] text-[#2C3E50] w-[48px] shrink-0 text-left">순환력</span>
-                <div className="h-[6.5px] bg-[#F5EFE6] rounded-full overflow-hidden flex-1">
-                  <div className="h-full rounded-full bg-[#C0392B]" style={{ width: `${groupMetrics.score}%` }} />
+              <div className="flex items-center gap-2.5 w-full">
+                <span className="text-xs font-medium text-ink w-[48px] shrink-0 text-left">순환력</span>
+                <div className="h-[7px] bg-sunken rounded-full overflow-hidden flex-1">
+                  <div className="h-full rounded-full bg-ink/70" style={{ width: `${groupMetrics.score}%` }} />
                 </div>
-                <span className="text-[11px] font-[700] font-mono text-right text-[#5C5046] w-[30px] shrink-0">{groupMetrics.score}</span>
-              </div>
-              <div className="flex items-center gap-2 w-full">
-                <span className="text-[12px] font-[700] text-[#2C3E50] w-[48px] shrink-0 text-left">안정감</span>
-                <div className="h-[6.5px] bg-[#F5EFE6] rounded-full overflow-hidden flex-1">
-                  <div className="h-full rounded-full bg-[#E0A82E]" style={{ width: "88%" }} />
-                </div>
-                <span className="text-[11px] font-[700] font-mono text-right text-[#5C5046] w-[30px] shrink-0">88</span>
-              </div>
-              <div className="flex items-center gap-2 w-full">
-                <span className="text-[12px] font-[700] text-[#2C3E50] w-[48px] shrink-0 text-left">소통력</span>
-                <div className="h-[6.5px] bg-[#F5EFE6] rounded-full overflow-hidden flex-1">
-                  <div className="h-full rounded-full bg-[#3B5BFF]" style={{ width: "92%" }} />
-                </div>
-                <span className="text-[11px] font-[700] font-mono text-right text-[#5C5046] w-[30px] shrink-0">92</span>
+                <span className="text-xs font-mono text-right text-ink-faint w-[30px] shrink-0">{groupMetrics.score}</span>
               </div>
             </div>
 
-            {/* 7. Action CTA Footer */}
-            <div className="pt-3.5 border-t border-[#EFE9DF] flex items-center justify-between gap-2">
+            {/* 6. Action CTA Footer */}
+            <div className="pt-4 border-t border-line flex items-center justify-between gap-2">
               <button
                 type="button"
                 onClick={() => {
                   setViralCardTab("group");
                   setIsViralModalOpen(true);
                 }}
-                className="px-3 py-2 bg-[#FAF7F2] hover:bg-[#F2ECE0] border border-[#E8E0D0] text-[#2C3E50] rounded-xl text-[11px] font-bold transition active:scale-95 cursor-pointer flex items-center gap-1 shrink-0"
+                className="px-3.5 py-2.5 bg-sunken hover:bg-line text-ink rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0"
               >
-                📸 카드 만들기
+                카드 만들기
               </button>
 
               <a
@@ -404,17 +365,16 @@ export default function RoomView({ code }: RoomViewProps) {
                 onClick={(e) => {
                   if (members.length < 2) {
                     e.preventDefault();
-                    alert("모임 전체 인망도를 분석하려면 최소 2명 이상 참여해야 합니다.");
+                    alert("모임 전체 분석은 2명 이상 참여하면 볼 수 있습니다.");
                   }
                 }}
-                className={`flex-1 py-2 px-3 text-center rounded-xl text-[11px] font-bold transition active:scale-95 flex items-center justify-center gap-1 ${
+                className={`flex-1 py-2.5 px-3 text-center rounded-xl text-xs font-semibold transition-colors ${
                   members.length >= 2
-                    ? "bg-[#C0392B] hover:bg-[#A93226] text-white shadow-xs cursor-pointer"
-                    : "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    ? "bg-seal hover:bg-seal-deep text-white cursor-pointer"
+                    : "bg-sunken text-ink-faint cursor-not-allowed"
                 }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>종합 인망도 분석실 ➔</span>
+                모임 전체 분석 보기
               </a>
             </div>
           </div>
@@ -422,37 +382,27 @@ export default function RoomView({ code }: RoomViewProps) {
 
         {/* SECTION 1: 1-on-1 Individual Chemistry Explorer */}
         <div className="space-y-3 pt-1">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5 text-left">
-              <span className="text-xs font-bold text-[#2C3E50] font-serif uppercase tracking-wider flex items-center gap-1.5">
-                <span className="text-rose-500">💖</span>
-                <span>1:1 개인 인연 탐색 ({members.length}명)</span>
-              </span>
-              <p className="text-[11px] text-[#5C5046]">
-                원하는 멤버를 눌러 <strong>나와의 1:1 오행 조화 및 궁합</strong>을 확인해 보세요.
-              </p>
-            </div>
-            {hasJoined && (
-              <span className="text-[10px] text-[#C0392B] bg-[#FDEDEC] px-2 py-0.5 rounded-lg border border-[#FADBD8] font-bold font-sans shrink-0">
-                나도 참가 중 👤
-              </span>
-            )}
+          <div className="text-left">
+            <h2 className="font-serif text-lg font-semibold text-ink">
+              멤버별 궁합 <span className="text-sm text-ink-faint font-sans font-normal">{members.length}명</span>
+            </h2>
+            <p className="text-xs text-ink-soft mt-0.5">
+              멤버를 누르면 나와의 1:1 궁합이 열립니다.
+            </p>
           </div>
 
           <div id="members-grid" className="grid grid-cols-2 gap-3">
             {!hasJoined && (
               <a
                 href={`#/room/${code}/join`}
-                className="p-4 bg-[#FDF2F0]/80 border-2 border-dashed border-[#C0392B]/30 hover:border-[#C0392B]/60 rounded-2xl shadow-2xs flex flex-col items-center justify-center text-center transition-all duration-200 group relative hover:bg-[#FDF2F0] cursor-pointer"
+                className="p-4 border border-dashed border-ink-faint hover:border-ink rounded-xl flex flex-col items-center justify-center text-center transition-colors cursor-pointer"
               >
-                <div className="w-12 h-12 rounded-full bg-[#FDEDEC] flex items-center justify-center text-xl mb-2 group-hover:scale-105 transition-transform duration-200">
-                  ➕
+                <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center text-xl text-ink-soft mb-2">
+                  +
                 </div>
-                <span className="text-xs font-black text-[#C0392B]">
-                  나도 참여하기
-                </span>
-                <span className="text-[9.5px] text-[#5C5046] mt-1.5 leading-tight">
-                  내 사주 등록하고 멤버들과 궁합 분석하기
+                <span className="text-sm font-semibold text-ink">나도 참여하기</span>
+                <span className="text-xs text-ink-faint mt-1 leading-tight">
+                  내 사주를 등록하고 궁합 보기
                 </span>
               </a>
             )}
@@ -463,29 +413,28 @@ export default function RoomView({ code }: RoomViewProps) {
                   <a
                     key={member.id}
                     href={`#/room/${code}/me/${member.id}`}
-                    className="p-4 bg-white/95 border-2 border-[#C0392B]/40 ring-1 ring-[#C0392B]/10 rounded-2xl shadow-xs flex flex-col items-center justify-center text-center transition-all duration-200 group relative hover:bg-white hover:shadow-sm"
+                    className="p-4 bg-surface border border-line hover:border-ink-faint rounded-xl flex flex-col items-center justify-center text-center transition-colors group relative"
                   >
-                    <div className="w-12 h-12 rounded-full bg-[#FAF7F2] border border-[#E8E0D0] flex items-center justify-center text-2xl relative mb-2 group-hover:scale-105 transition-transform duration-200">
+                    <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center text-2xl relative mb-2">
                       {member.character_emoji}
-                      <span className="absolute -top-1 -right-1 w-4.5 h-4.5 bg-[#C0392B] text-white text-[8px] flex items-center justify-center rounded-full font-sans font-bold shadow-sm">
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-seal text-white text-xs flex items-center justify-center rounded-full font-sans font-semibold">
                         나
                       </span>
                     </div>
-                    <span className="text-xs font-bold text-[#2C3E50] truncate max-w-full">
+                    <span className="text-sm font-semibold text-ink truncate max-w-full">
                       {member.nickname}
                     </span>
                     <span
-                      className="text-[9px] font-bold px-2 py-0.5 rounded-lg mt-1.5 border"
+                      className="text-xs font-medium px-2 py-0.5 rounded-lg mt-1.5"
                       style={{
-                        backgroundColor: `${member.character_color}15`,
-                        borderColor: `${member.character_color}40`,
+                        backgroundColor: `${member.character_color}14`,
                         color: member.character_color,
                       }}
                     >
                       {member.saju.daymaster.gan} {member.character_animal} {member.mbti ? ` · ${member.mbti.toUpperCase()}` : ""}
                     </span>
-                    <span className="text-[9px] text-[#C0392B] mt-2 font-bold transition-all flex items-center gap-0.5">
-                      🌟 내 소울 카드 열기
+                    <span className="text-xs text-seal mt-2 font-medium">
+                      내 소울 카드 보기
                     </span>
                   </a>
                 );
@@ -499,26 +448,25 @@ export default function RoomView({ code }: RoomViewProps) {
                     setSelectedTargetMember(member);
                     setIsChemistryModalOpen(true);
                   }}
-                  className="p-4 bg-white/75 border border-[#E8E0D0] hover:border-rose-300 rounded-2xl shadow-xs flex flex-col items-center justify-center text-center transition-all duration-200 group relative hover:bg-white hover:shadow-sm cursor-pointer"
+                  className="p-4 bg-surface border border-line hover:border-ink-faint rounded-xl flex flex-col items-center justify-center text-center transition-colors group relative cursor-pointer"
                 >
-                  <div className="w-12 h-12 rounded-full bg-[#FAF7F2] border border-[#E8E0D0] flex items-center justify-center text-2xl relative mb-2 group-hover:scale-105 transition-transform duration-200">
+                  <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center text-2xl relative mb-2">
                     {member.character_emoji}
                   </div>
-                  <span className="text-xs font-bold text-[#2C3E50] truncate max-w-full">
+                  <span className="text-sm font-semibold text-ink truncate max-w-full">
                     {member.nickname}
                   </span>
                   <span
-                    className="text-[9px] font-bold px-2 py-0.5 rounded-lg mt-1.5 border"
+                    className="text-xs font-medium px-2 py-0.5 rounded-lg mt-1.5"
                     style={{
-                      backgroundColor: `${member.character_color}15`,
-                      borderColor: `${member.character_color}40`,
+                      backgroundColor: `${member.character_color}14`,
                       color: member.character_color,
                     }}
                   >
                     {member.saju.daymaster.gan} {member.character_animal} {member.mbti ? ` · ${member.mbti.toUpperCase()}` : ""}
                   </span>
-                  <span className="text-[9px] text-rose-600 mt-2 opacity-85 group-hover:opacity-100 font-bold transition-all flex items-center gap-0.5">
-                    💖 나와의 1:1 케미
+                  <span className="text-xs text-ink-faint group-hover:text-ink mt-2 font-medium transition-colors">
+                    나와의 궁합 보기
                   </span>
                 </button>
               );
@@ -527,89 +475,69 @@ export default function RoomView({ code }: RoomViewProps) {
         </div>
 
         {/* SECTION 2: Progressive Disclosure for Macro Group Details */}
-        <div className="bg-white/70 backdrop-blur-xs border border-[#D6CCBC] rounded-2xl p-5 text-left space-y-4 shadow-xs">
+        <div className="bg-surface border border-line rounded-xl p-5 text-left space-y-4">
           <button
             type="button"
             onClick={() => setShowDetailAccordion(!showDetailAccordion)}
-            className="w-full flex items-center justify-between border-b border-[#E8E0D0] pb-3 text-left cursor-pointer group select-none"
+            className="w-full flex items-center justify-between text-left cursor-pointer group select-none"
           >
-            <div>
-              <span className="text-[10px] font-bold text-[#C0392B] uppercase tracking-wider block">
-                모임 종합 분석
-              </span>
-              <h4 className="font-serif text-sm font-bold text-[#2C3E50] mt-0.5 flex items-center gap-1.5 group-hover:text-[#C0392B] transition-colors">
-                <span>🌐</span>
-                <span>우리 모임의 오행 조화도 & 상세 분석</span>
-              </h4>
-            </div>
-            <div className="text-xs font-bold text-[#C0392B] bg-[#FDEDEC] hover:bg-[#FADBD8] px-3 py-1.5 rounded-xl transition flex items-center gap-1 shrink-0">
-              <span>{showDetailAccordion ? "간략히 보기" : "자세히 보기"}</span>
+            <h4 className="font-serif text-lg font-semibold text-ink">
+              모임 오행 조화
+            </h4>
+            <span className="text-xs font-medium text-ink-soft bg-sunken hover:bg-line px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 shrink-0">
+              <span>{showDetailAccordion ? "접기" : "자세히"}</span>
               {showDetailAccordion ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-            </div>
+            </span>
           </button>
 
           {/* 1단계: 기본 무료 공개 (오행 분포 현황) */}
-          <div className="space-y-3">
-            <span className="text-[11px] font-bold text-[#5A4D41] block">
-              📊 모임의 5가지 기운 분포 (무료)
-            </span>
-            {groupMetrics && (
-              <div className="grid grid-cols-5 gap-1.5 text-center">
-                {[
-                  { key: "목", label: "목(木)", color: "#35B37E" },
-                  { key: "화", label: "화(火)", color: "#F0632E" },
-                  { key: "토", label: "토(土)", color: "#E0A82E" },
-                  { key: "금", label: "금(金)", color: "#7C86A0" },
-                  { key: "수", label: "수(水)", color: "#3B5BFF" }
-                ].map((item) => {
-                  const count = groupMetrics.counts[item.key] || 0;
-                  return (
-                    <div key={item.key} className="p-2 bg-[#FAF7F2]/60 rounded-xl">
-                      <span className="text-[10px] font-bold block" style={{ color: item.color }}>{item.label}</span>
-                      <span className="text-sm font-black text-[#2C3E50] font-mono">{count}명</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          {groupMetrics && (
+            <div className="grid grid-cols-5 gap-1.5 text-center">
+              {[
+                { key: "목", label: "목 木", color: "var(--color-wood)" },
+                { key: "화", label: "화 火", color: "var(--color-fire)" },
+                { key: "토", label: "토 土", color: "var(--color-earth)" },
+                { key: "금", label: "금 金", color: "var(--color-metal)" },
+                { key: "수", label: "수 水", color: "var(--color-water)" }
+              ].map((item) => {
+                const count = groupMetrics.counts[item.key] || 0;
+                return (
+                  <div key={item.key} className="p-2.5 bg-sunken rounded-xl">
+                    <span className="text-xs font-medium block" style={{ color: item.color }}>{item.label}</span>
+                    <span className="text-sm font-semibold text-ink font-mono">{count}명</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* 2단계: 자세히 보기 토글 시 심층 영역 */}
           {showDetailAccordion && (
-            <div className="pt-3 border-t border-[#E8E0D0] space-y-4 animate-fade-in">
-              <div className="p-4 bg-[#FCFAF6] border-l-3 border-[#C0392B] rounded-r-xl rounded-l-xs space-y-1.5 text-xs text-[#5A4D41] shadow-3xs">
-                <p className="font-bold text-[#C0392B] flex items-center gap-1.5">
-                  <Lightbulb className="w-3.5 h-3.5" />
-                  <span>모임 화합 시너지 팁</span>
-                </p>
-                <p className="text-[11px] leading-relaxed text-[#5C5046]">
-                  다양한 오행이 고루 포진할수록 의사결정 시 사각지대가 줄어들고 성과 순환이 빨라집니다. 
-                  모임 전체의 인망도 그래프와 전원 1:1 비밀 케미 해독은 종합 분석실에서 즉시 확인하실 수 있습니다.
-                </p>
-              </div>
+            <div className="pt-3 border-t border-line space-y-4 animate-fade-in">
+              <p className="p-4 bg-sunken rounded-xl text-xs leading-relaxed text-ink-soft">
+                오행이 고루 있을수록 의사결정의 사각지대가 줄어듭니다. 모임 전체 그래프와 전원 1:1 궁합 풀이는
+                모임 전체 분석에서 볼 수 있습니다.
+              </p>
 
-              {/* 3단계: 전체 심층 인망도 & 속마음 상성 유료/쿠폰 해금 안내 */}
-              <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 rounded-xl space-y-2.5 relative shadow-3xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <Crown className="w-4 h-4 text-amber-700 fill-amber-300" />
-                    <span className="text-xs font-black text-amber-950">
-                      우리 모임 1:1 속궁합 & 내면 상성
-                    </span>
-                  </div>
-                  <span className="text-[9px] font-bold text-amber-800 bg-white border border-amber-200 px-2 py-0.5 rounded-full">
-                    {isGroupUnlocked ? "해금 완료" : "쿠폰 / 유료"}
+              {/* 3단계: 유료/쿠폰 해금 안내 */}
+              <div className="p-4 bg-sunken rounded-xl space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-ink">
+                    멤버 간 1:1 속궁합 풀이
+                  </span>
+                  <span className="text-xs text-ink-faint shrink-0">
+                    {isGroupUnlocked ? "열람 가능" : "쿠폰·이용권"}
                   </span>
                 </div>
-                <p className="text-[11px] text-amber-900 leading-relaxed font-medium">
-                  모임 구성원 간의 은밀한 내면 서열(S~F 등급), 4대 영역별(사주·자미두수·MBTI·별자리) 전수 1:1 케미 해설서를 열람하세요.
+                <p className="text-xs text-ink-soft leading-relaxed">
+                  구성원 간 상성 등급(S~F)과 사주·자미두수·MBTI·별자리 네 영역의 1:1 궁합 해설을 볼 수 있습니다.
                 </p>
                 <div className="flex gap-2 pt-1">
                   <a
                     href={`#/room/${code}/group`}
-                    className="flex-1 py-2 bg-[#C0392B] hover:bg-[#A93226] text-white rounded-lg text-[11px] font-bold text-center shadow-xs cursor-pointer"
+                    className="flex-1 py-2.5 bg-seal hover:bg-seal-deep text-white rounded-xl text-xs font-semibold text-center transition-colors cursor-pointer"
                   >
-                    종합 인망도 분석실 입장 ➔
+                    모임 전체 분석 보기
                   </a>
                   <button
                     type="button"
@@ -617,10 +545,9 @@ export default function RoomView({ code }: RoomViewProps) {
                       setShopTab("group");
                       setIsShopOpen(true);
                     }}
-                    className="px-3.5 py-2 bg-white hover:bg-amber-100 border border-amber-300 text-amber-900 rounded-lg text-[11px] font-bold cursor-pointer flex items-center gap-1"
+                    className="px-3.5 py-2.5 bg-surface hover:bg-line text-ink rounded-xl text-xs font-semibold cursor-pointer transition-colors"
                   >
-                    <Ticket className="w-3.5 h-3.5" />
-                    <span>쿠폰 입력 / 상점</span>
+                    쿠폰 · 상점
                   </button>
                 </div>
               </div>
@@ -629,44 +556,31 @@ export default function RoomView({ code }: RoomViewProps) {
         </div>
 
         {/* Room Invite Controls */}
-        <div className="bg-white/60 backdrop-blur-xs border border-[#D6CCBC] p-4 rounded-2xl space-y-3 shadow-xs text-left">
-          <div className="flex items-center justify-between text-xs text-[#5C5046]">
-            <span className="font-bold text-[#2C3E50]">초대 코드: <span className="font-mono text-[#C0392B]">{code}</span></span>
-            <span className="text-[10px]">30일 후 자동 만료</span>
+        <div className="bg-surface border border-line p-4 rounded-xl space-y-3 text-left">
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-medium text-ink">초대 코드 <span className="font-mono text-seal">{code}</span></span>
+            <span className="text-ink-faint">30일 후 자동 만료</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
             <button
               id="copy-code-btn"
               onClick={handleCopyCode}
-              className="py-2.5 px-3 bg-white border border-[#E8E0D0] hover:bg-[#F9F6EE] active:scale-[0.98] rounded-xl text-xs font-bold text-[#2C3E50] flex items-center justify-center gap-1.5 cursor-pointer"
+              className="py-2.5 px-3 bg-sunken hover:bg-line rounded-xl text-xs font-semibold text-ink flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
             >
-              <Copy className="w-3.5 h-3.5 text-[#5C5046]" />
-              <span>{copiedCode ? "복사완료" : "코드 복사"}</span>
+              <Copy className="w-3.5 h-3.5 text-ink-faint" />
+              <span>{copiedCode ? "복사 완료" : "코드 복사"}</span>
             </button>
             <button
               id="copy-link-btn"
               onClick={handleCopyLink}
-              className="py-2.5 px-3 bg-[#FAF7F2] border border-[#C0392B] hover:bg-[#C0392B] hover:text-white active:scale-[0.98] rounded-xl text-xs font-serif font-bold text-[#C0392B] flex items-center justify-center gap-1.5 cursor-pointer"
+              className="py-2.5 px-3 bg-sunken hover:bg-line rounded-xl text-xs font-semibold text-ink flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
             >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>{copiedLink ? "링크 복사됨!" : "초대링크 복사"}</span>
+              <Share2 className="w-3.5 h-3.5 text-ink-faint" />
+              <span>{copiedLink ? "링크 복사됨" : "초대 링크 복사"}</span>
             </button>
           </div>
         </div>
       </div>
-
-      {/* Floating Premium Shop Trigger */}
-      <button
-        type="button"
-        onClick={() => {
-          setShopTab("group");
-          setIsShopOpen(true);
-        }}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-1.5 px-4 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-white font-serif font-extrabold text-[11px] tracking-wider rounded-full shadow-lg hover:shadow-xl hover:scale-105 active:scale-[0.97] transition-all cursor-pointer ring-4 ring-amber-100/50"
-      >
-        <Crown className="w-3.5 h-3.5 fill-amber-300 animate-pulse text-amber-200" />
-        <span>인연 상점 · 쿠폰</span>
-      </button>
 
       {/* Premium Shop Modal */}
       {isShopOpen && (
