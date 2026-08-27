@@ -1,0 +1,73 @@
+# Cloud Build 트리거 설정. GitHub main 브랜치 푸시 시 실행된다.
+#
+# 사전 준비 (GCP 콘솔/gcloud에서 1회):
+# 1) Secret Manager에 시크릿 생성 — 기존 GEMINI_API_KEY는 대화 로그에 노출되었으므로
+#    반드시 새로 발급받은 키로 등록할 것.
+#      gcloud secrets create gemini-api-key --replication-policy=automatic
+#      echo -n "<새로 발급받은 GEMINI_API_KEY>" | gcloud secrets versions add gemini-api-key --data-file=-
+# 2) Cloud Build 서비스 계정에 시크릿 접근 권한 부여
+#      gcloud secrets add-iam-policy-binding gemini-api-key \
+#        --member="serviceAccount:<PROJECT_NUMBER>@cloudbuild.gserviceaccount.com" \
+#        --role="roles/secretmanager.secretAccessor"
+# 3) Cloud Build 트리거(GCP 콘솔)에서 "Cloud Build 구성 파일" 방식을 선택하고
+#    이 파일(cloudbuild.yaml)을 가리키도록 설정한다. 이전 트리거가 자동 생성한
+#    빌드/배포 스텝은 더 이상 쓰지 않는다.
+#
+# VITE_ADSENSE_CLIENT_ID / VITE_ADSENSE_SLOT_ID는 vite가 빌드 타임에 클라이언트
+# 번들에 굽는 값이라 Docker build-arg로 전달한다(런타임 env로는 반영 안 됨).
+# 둘 다 코드(GoogleAds.tsx)에 fallback이 있는 공개 값이라 비워둬도 동작한다.
+#
+# VITE_LEMON_SQUEEZY_CHECKOUT_URL과 APP_URL은 소스 전체를 검색해도 실제로 읽는
+# 코드가 없어(server.ts는 요청 Host 헤더로 base URL을 동적 계산) 넘기지 않는다.
+
+steps:
+  # 1) 이미지 빌드
+  - id: Build
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --build-arg
+      - VITE_ADSENSE_CLIENT_ID=${_ADSENSE_CLIENT_ID}
+      - --build-arg
+      - VITE_ADSENSE_SLOT_ID=${_ADSENSE_SLOT_ID}
+      - -t
+      - ${_IMAGE}
+      - .
+
+  # 2) Artifact Registry로 푸시
+  - id: Push
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_IMAGE}
+
+  # 3) Cloud Run 배포. 기존 서비스가 AI Studio 소스 배포 방식(run.googleapis.com/sources
+  #    어노테이션, 컨테이너명 app-container)으로 만들어져 있어 `services update`를
+  #    컨테이너명 없이 호출하면 어노테이션이 가리키는 컨테이너를 찾지 못해 거부된다.
+  #    `gcloud run deploy`는 기존 컨테이너/설정을 유지한 채 이미지만 교체하므로
+  #    이 문제를 피해간다.
+  - id: Deploy
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE_NAME}
+      - --image=${_IMAGE}
+      - --region=${_REGION}
+      - --platform=managed
+      - --quiet
+      - --set-secrets=GEMINI_API_KEY=gemini-api-key:latest
+
+images:
+  - ${_IMAGE}
+
+substitutions:
+  _REGION: asia-east1
+  _SERVICE_NAME: service
+  _IMAGE: asia-east1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/fate-analysis/service:${COMMIT_SHA}
+  _ADSENSE_CLIENT_ID: ""
+  _ADSENSE_SLOT_ID: ""
+
+options:
+  logging: CLOUD_LOGGING_ONLY
