@@ -1,0 +1,25 @@
+node_modules
+dist
+build
+coverage
+
+.git
+.gitignore
+.claude
+
+# 시크릿은 이미지에 절대 넣지 않는다 (.env.example만 예외)
+.env
+.env.*
+!.env.example
+
+*.log
+.DS_Store
+
+# 생성 원본/중간본 (재생성 가능, 대용량)
+assets/zodiac/raw
+assets/zodiac/refs
+scripts/__pycache__
+
+README.md
+design.md
+seal-prompts.md

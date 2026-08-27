@@ -103,7 +103,8 @@ function getWesternZodiac(birthDate: string): string {
 async function startServer() {
   const app = express();
   app.set("trust proxy", 1);
-  const PORT = 3000;
+  // Cloud Run 등 PaaS는 PORT를 주입한다. 로컬 개발은 기존대로 3000.
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json());
 
