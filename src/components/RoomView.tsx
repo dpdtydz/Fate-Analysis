@@ -198,6 +198,36 @@ export default function RoomView({ code }: RoomViewProps) {
               localStorage.setItem(`saju_member_id_${code}`, activeMemberDoc.id);
               setLocalMemberId(activeMemberDoc.id);
             }
+
+            // Propagate central profile edits (nickname, birth info, character) into this room's member doc
+            if (activeMemberDoc) {
+              const changed =
+                activeMemberDoc.nickname !== centralProfile.nickname ||
+                activeMemberDoc.birth_date !== centralProfile.birth_date ||
+                (activeMemberDoc.birth_time || null) !== (centralProfile.birth_time || null) ||
+                (activeMemberDoc.mbti || null) !== (centralProfile.mbti || null);
+
+              if (changed) {
+                const syncPayload = {
+                  nickname: centralProfile.nickname,
+                  gender: centralProfile.gender,
+                  birth_date: centralProfile.birth_date,
+                  birth_time: centralProfile.birth_time,
+                  saju: centralProfile.saju,
+                  character_emoji: centralProfile.character_emoji,
+                  character_animal: centralProfile.character_animal,
+                  character_color: centralProfile.character_color,
+                  mbti: centralProfile.mbti || null,
+                };
+                await setDoc(
+                  doc(db, "rooms", code, "members", activeMemberDoc.id),
+                  syncPayload,
+                  { merge: true }
+                );
+                // Recalculated chemistry needs a fresh analysis cache
+                await deleteDoc(doc(db, "rooms", code, "analysis", "result")).catch(() => {});
+              }
+            }
           }
         } else {
           // Case C: User has NO central profile, but is registered in this room
@@ -326,7 +356,11 @@ export default function RoomView({ code }: RoomViewProps) {
 
             {/* 4. 한 줄 정의 */}
             <p className="text-center text-sm leading-relaxed text-ink-soft max-w-[290px] mx-auto mb-5">
-              {groupMetrics.uniqueElements}가지 오행이 서로를 살리며 균형을 이룹니다.
+              {groupMetrics.memberCount < 2
+                ? "구성원이 모이면 모임 전체의 기운 흐름을 읽어드립니다."
+                : groupMetrics.uniqueElements < 2
+                  ? "구성원 모두가 같은 기운을 지녀 결이 잘 맞습니다."
+                  : `${groupMetrics.uniqueElements}가지 오행이 서로를 살리며 균형을 이룹니다.`}
             </p>
 
             {/* 5. 계산 지표 (다양성·순환) */}
