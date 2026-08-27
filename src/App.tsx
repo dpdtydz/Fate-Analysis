@@ -44,6 +44,13 @@ function parseRoute(hash: string): ParsedRoute {
     return { path: "/dev-qa" };
   }
 
+  // 명리학 칼럼(#/column/1~4)은 랜딩(LandingView) 위에 모달로 열린다.
+  // LandingView가 해시를 읽어 모달을 복원하므로 라우트는 랜딩(/group)으로 유지한다.
+  // (이 매핑이 없으면 아래 fallback으로 떨어져 게이트웨이로 튕기고 모달이 닫힌다)
+  if (/^\/column\/[1-4]$/.test(cleanPath)) {
+    return { path: "/group" };
+  }
+
   // Check /room/{code}/me/{id}
   const meMatch = cleanPath.match(/^\/room\/([A-Z0-9]{6})\/me\/([a-zA-Z0-9_\-]+)$/);
   if (meMatch) {
