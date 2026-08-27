@@ -316,10 +316,7 @@ ROLE_THEMES = {
                     "as if reaching out to reassure someone. Ears turned softly outward, eyes half-closed and "
                     "warm, a small calm smile with fangs hidden. Tail curled protectively around its own "
                     "side. ",
-        "keeper": "Sitting upright with a small closed ledger tucked under one front paw, the other front "
-                    "paw raised in a crisp 'one moment' gesture. Chin slightly lifted, eyes narrowed in "
-                    "shrewd focus toward the viewer, mouth set in a no-nonsense line. Tail curled tight and "
-                    "orderly. ",
+        "keeper": "Sitting upright with a small open ledger book resting FLAT ON THE GROUND directly in front of it, both front paws placed side by side on top of the open pages. Chin slightly lifted, eyes narrowed in shrewd focus toward the viewer, mouth set in a no-nonsense line. Tail curled tight and orderly.",
         "captain": "Standing squared-up on all fours, chest out, one front paw raised and slammed forward "
                     "mid-stride. Head high, mouth open in a commanding roar, ears flat with authority. Eyes "
                     "fierce and fixed on the viewer. Tail lashing straight back like a banner. ",
@@ -614,6 +611,11 @@ Now draw this character performing its role in the group:
 - ANATOMY RULE: {anatomy}
   Draw EXACTLY four limbs in total — never five, never three. Do not add a spare arm to
   hold a prop: it must be held by one of the limbs it already has, or rest on the ground.
+  If the animal is sitting or standing, the limbs that hold a prop are the SAME limbs it
+  would otherwise rest on — never invent an extra limb to keep its balance. When in
+  doubt, place the prop on the ground and let the paws rest on or beside it.
+  A prop must sit clearly IN FRONT of the body, fully visible — never tucked under,
+  behind, or half-buried in the character's torso.
 - SAFETY RULE: any flag, strap, pole or prop must stay entirely BESIDE or BELOW the head.
   It must never pass in front of, behind, or across the neck or face. A neck strap hangs
   low on the chest, well clear of the chin. The character must read as one connected,
@@ -653,10 +655,14 @@ SPACES = {
             "notebook and empty stools around it. Soft green light filtering through the glass roof. "
             "Everything in fresh green tones (#4CAF50) with warm wood accents.",
     # 한밤의 캠프파이어 라운지 — 火 우세. 떠들고 웃고 밤새는 모임.
-    "fire": "A warm outdoor lounge at night gathered around a crackling campfire in a stone ring, with "
-            "low cushioned seats and a hanging string of small warm lights arching overhead. A kettle "
-            "rests on a grill beside the fire. Everything glows in warm red-orange firelight (#E53935) "
-            "against deep cozy shadow. Empty seats, waiting.",
+    "fire": "A cozy night CAMPSITE on open natural ground: a crackling campfire in a rough stone "
+            "ring at the center, two or three folding camp chairs and a low log bench pulled up around "
+            "it, a small tent with its flap open at the back, a kettle on a grill beside the fire, and "
+            "a lantern hanging from a wooden pole. Grass and scattered pebbles underfoot. Everything "
+            "glows in warm red-orange firelight (#E53935) against deep cozy night shadow. Empty seats, "
+            "waiting. CRITICAL: this is an irregular natural outdoor campsite — absolutely NO round "
+            "paved plaza, NO circular stone platform, NO radiating paths, NO archways or gates. The "
+            "ground must read as real earth and grass, never a built floor.",
     # 골목 안 사랑방 툇마루 — 土 우세. 신발 벗고 눌러앉는 곳.
     "earth": "A traditional Korean wooden veranda (numaru) of a small hanok, with a low wooden table set "
              "with empty teacups and floor cushions, sliding paper doors open behind it, and a small "
@@ -674,10 +680,14 @@ SPACES = {
              "empty armchair beside it. Cool blue tones (#5B9BD5) with soft lamplight. Still, private, "
              "contemplative.",
     # 순혈 성소 — 오행 1종. 뉴트럴 스톤으로 뽑고 오행 틴트는 코드(CSS)에서 입힌다.
-    "pure": "A small circular shrine platform of pale stone, open to the sky, with a single tall smooth "
-            "monolith pillar standing exactly at its center and a ring of five low identical stone markers "
-            "around the rim. Utterly symmetrical, quiet and rare. Neutral pale stone tones so it can be "
-            "tinted, soft even light.",
+    "pure": "A solemn open-air stone SANCTUARY: a raised circular platform of pale carved stone reached "
+            "by three wide steps, one tall slender monolith at its exact center and a ring of five "
+            "shorter carved pillars evenly around it, each joined to the center by an inlaid line in "
+            "the floor. A low stone basin rests at the foot of the central monolith and simple carved "
+            "patterns run along the platform rim. Utterly symmetrical, quiet, rare and ceremonial. "
+            "Neutral pale stone tones with clear carved detail and soft even light, so it can be tinted "
+            "later. Fill the frame confidently — the structure must read as substantial and detailed, "
+            "never sparse or empty.",
 }
 
 # balanced를 먼저 확정하고, 그것을 나머지 6종의 스타일 앵커로 삼는다.
