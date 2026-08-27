@@ -472,7 +472,7 @@ export default function AdminView() {
       };
       await setDoc(appConfigRef, updatedData);
       setAppConfig(updatedData);
-      setConfigSuccessMsg("상점 및 결제 환경 설정이 실시간 반영되었습니다!");
+      setConfigSuccessMsg("상점 및 결제 환경 설정이 실시간 반영되었습니다.");
       setTimeout(() => setConfigSuccessMsg(""), 3500);
     } catch (err: any) {
       console.error("Error saving app config:", err);
@@ -664,7 +664,7 @@ export default function AdminView() {
       });
 
       setReconcileList(mismatches);
-      setScanMessage(`스캔 완료! 정합성 오류(미지급 누락) 건수: 총 ${mismatches.length}건 발견되었습니다.`);
+      setScanMessage(`스캔 완료. 정합성 오류(미지급 누락) 건수: 총 ${mismatches.length}건 발견되었습니다.`);
     } catch (err: any) {
       console.error("Reconciliation error:", err);
       setScanMessage(`정합성 분석 스캔 실패: ${err.message || err}`);
@@ -748,7 +748,7 @@ export default function AdminView() {
       }
 
       setReconcileList(newList);
-      setScanMessage(`복구 완료! 누락된 ${repairSuccessCount}건의 확인권이 완벽히 정상 복원 지급되었습니다.`);
+      setScanMessage(`복구 완료. 누락된 ${repairSuccessCount}건의 확인권이 정상 복구 지급되었습니다.`);
     } catch (err: any) {
       console.error("Repair action error:", err);
       setScanMessage(`보정 지급 진행 오류: ${err.message || err}`);
@@ -990,22 +990,22 @@ export default function AdminView() {
     let readinessStatus: { label: string; color: string; desc: string; badge: string };
     if (score >= 70) {
       readinessStatus = {
-        label: "🟢 유료화 런칭 강력 추천 (High Readiness)",
-        color: "text-emerald-700 bg-emerald-50 border-emerald-300",
-        desc: "유저들의 1회권 소모 적극성과 설문 지불 의향이 매우 높아, 유료 결제 전환 시 안정적인 수익 창출이 기대됩니다.",
+        label: "유료화 전환 추천 (High Readiness)",
+        color: "text-ink",
+        desc: "1회권 소모 참여와 설문 지불 의향이 높아, 유료 결제 전환 시 안정적인 수익 창출이 기대됩니다.",
         badge: "유료화 적기"
       };
     } else if (score >= 45) {
       readinessStatus = {
-        label: "🟡 추가 모객 & 무료 바이럴 검증 권장 (Moderate Readiness)",
-        color: "text-amber-700 bg-amber-50 border-amber-300",
+        label: "추가 모객·무료 바이럴 검증 권장 (Moderate Readiness)",
+        color: "text-ink",
         desc: "기본적인 지불 의향은 확인되었으나, 모임방 생성 바이럴과 1회권 재방문 고착도를 조금 더 확충하는 것을 추천합니다.",
         badge: "추가 검증 권장"
       };
     } else {
       readinessStatus = {
-        label: "🔴 무료 모객 집중 단계 (Early Discovery)",
-        color: "text-rose-700 bg-rose-50 border-rose-300",
+        label: "무료 모객 집중 단계 (Early Discovery)",
+        color: "text-ink",
         desc: "아직 초기 단계로 유료화보다는 무료 체험 및 친구 초대 혜택을 통해 MAU 풀을 300명 이상 확장하는 것이 우선입니다.",
         badge: "무료 모객 집중"
       };
@@ -1087,21 +1087,21 @@ export default function AdminView() {
 
   if (!loading && !isAdminUser) {
     return (
-      <Layout title="인연사주 어드민" showHomeButton>
+      <Layout title="관리자 콘솔" showHomeButton>
         <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">
-          <div className="w-16 h-16 rounded-full bg-red-50 border border-red-300 text-red-600 flex items-center justify-center text-3xl font-serif">
-            🔒
+          <div className="w-14 h-14 rounded-full bg-sunken text-ink-soft flex items-center justify-center">
+            <Lock className="w-6 h-6" />
           </div>
           <div className="space-y-2">
-            <h3 className="font-serif text-lg font-bold text-[#2C3E50]">접근 권한이 제한되었습니다</h3>
-            <p className="text-xs text-[#5C5046] leading-relaxed max-w-xs mx-auto">
-              이 공간은 최고 관리자(<span className="font-semibold text-[#C0392B]">lhs41977@gmail.com</span>) 전용 콘솔입니다.
-              구글 로그인을 통해 해당 계정으로 입장해 주세요.
+            <h3 className="font-serif text-lg font-semibold text-ink">접근 권한이 없습니다</h3>
+            <p className="text-sm text-ink-soft leading-relaxed max-w-xs mx-auto">
+              이 화면은 최고 관리자(<span className="font-semibold text-ink">lhs41977@gmail.com</span>) 전용 콘솔입니다.
+              구글 로그인으로 해당 계정에 접속해 주세요.
             </p>
           </div>
           <a
             href="#/"
-            className="px-6 py-2.5 bg-[#C0392B] text-[#FAF7F2] font-bold text-xs rounded-xl hover:bg-[#A93226] transition cursor-pointer"
+            className="px-5 py-3 bg-seal hover:bg-seal-deep text-white font-semibold text-sm rounded-xl transition-colors cursor-pointer"
           >
             처음으로 돌아가기
           </a>
@@ -1111,40 +1111,34 @@ export default function AdminView() {
   }
 
   return (
-    <Layout title="BM 의사결정 관제 콘솔" showHomeButton>
+    <Layout title="관리자 콘솔" showHomeButton>
       <div className="space-y-6 text-left pb-16">
-        
+
         {/* Master Header */}
-        <div className="bg-[#2D1B4E] text-[#FAF7F2] p-5 sm:p-6 rounded-3xl border-2 border-purple-800/60 shadow-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <span className="text-xl">👑</span>
-              <h2 className="font-serif text-base sm:text-lg font-bold tracking-wider text-amber-300">
-                인연사주 BM 유료화 의사결정 관제 센터
-              </h2>
-              <span className="px-2 py-0.5 bg-amber-400/20 text-amber-300 text-[10px] font-bold rounded-full border border-amber-400/40">
-                MASTER ADMIN
-              </span>
-            </div>
-            <p className="text-xs text-purple-200">
-              최고 관리자: <span className="font-semibold text-amber-200">{currentUser?.email}</span> | MAU: <strong className="text-white">{metrics.mau}명</strong> | 유료화 판정: <strong className="text-amber-300">{metrics.readinessStatus.badge}</strong>
+        <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-1.5">
+            <h2 className="font-serif text-lg font-semibold text-ink">
+              유료화 의사결정 콘솔
+            </h2>
+            <p className="text-xs text-ink-soft">
+              관리자 <span className="font-medium text-ink">{currentUser?.email}</span> · MAU {metrics.mau}명 · 판정 <span className="font-medium text-ink">{metrics.readinessStatus.badge}</span>
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <button
               onClick={handleCopyDecisionReport}
-              className="flex items-center space-x-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-purple-950 font-serif font-black text-xs rounded-xl shadow-md transition cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-sunken hover:bg-line text-ink font-semibold text-xs rounded-xl transition-colors cursor-pointer"
             >
               {copiedDecisionReport ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-purple-950" />
-                  <span>보고서 복사 완료!</span>
+                  <Check className="w-3.5 h-3.5" />
+                  <span>보고서 복사 완료</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5" />
-                  <span>유료화 의사결정 보고서 복사</span>
+                  <span>의사결정 보고서 복사</span>
                 </>
               )}
             </button>
@@ -1152,7 +1146,7 @@ export default function AdminView() {
             <button
               onClick={loadAdminData}
               disabled={loading}
-              className="flex items-center space-x-1 px-3 py-2 bg-purple-800/80 hover:bg-purple-700 text-purple-100 text-xs font-semibold rounded-xl transition border border-purple-600/50 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2.5 bg-sunken hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
               <span>새로고침</span>
@@ -1161,53 +1155,49 @@ export default function AdminView() {
         </div>
 
         {/* Global Navigation Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-[#FAF7F2] p-1.5 rounded-2xl border border-[#E0D8CC]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 bg-sunken p-1 rounded-xl text-sm">
           <button
             onClick={() => setActiveTab("decision_metrics")}
-            className={`flex items-center justify-center space-x-1.5 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`py-2.5 px-2 text-xs rounded-lg transition-colors text-center cursor-pointer ${
               activeTab === "decision_metrics"
-                ? "bg-[#C0392B] text-white shadow-sm font-serif"
-                : "text-[#5C5046] hover:text-[#C0392B] hover:bg-white/60"
+                ? "bg-surface text-ink font-semibold"
+                : "text-ink-soft hover:text-ink font-medium"
             }`}
           >
-            <Gauge className="w-4 h-4" />
-            <span>📊 BM 유료화 지표 & MAU</span>
+            유료화 지표
           </button>
 
           <button
             onClick={() => setActiveTab("coupons")}
-            className={`flex items-center justify-center space-x-1.5 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`py-2.5 px-2 text-xs rounded-lg transition-colors text-center cursor-pointer ${
               activeTab === "coupons"
-                ? "bg-[#C0392B] text-white shadow-sm font-serif"
-                : "text-[#5C5046] hover:text-[#C0392B] hover:bg-white/60"
+                ? "bg-surface text-ink font-semibold"
+                : "text-ink-soft hover:text-ink font-medium"
             }`}
           >
-            <Ticket className="w-4 h-4" />
-            <span>🎫 1회권 & 쿠폰 관리</span>
+            확인권·쿠폰 관리
           </button>
 
           <button
             onClick={() => setActiveTab("shop_control")}
-            className={`flex items-center justify-center space-x-1.5 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`py-2.5 px-2 text-xs rounded-lg transition-colors text-center cursor-pointer ${
               activeTab === "shop_control"
-                ? "bg-[#C0392B] text-white shadow-sm font-serif"
-                : "text-[#5C5046] hover:text-[#C0392B] hover:bg-white/60"
+                ? "bg-surface text-ink font-semibold"
+                : "text-ink-soft hover:text-ink font-medium"
             }`}
           >
-            <ShoppingCart className="w-4 h-4" />
-            <span>🎛️ 상점 & 베타 모드 제어</span>
+            상점·베타 제어
           </button>
 
           <button
             onClick={() => setActiveTab("survey")}
-            className={`flex items-center justify-center space-x-1.5 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`py-2.5 px-2 text-xs rounded-lg transition-colors text-center cursor-pointer ${
               activeTab === "survey"
-                ? "bg-[#C0392B] text-white shadow-sm font-serif"
-                : "text-[#5C5046] hover:text-[#C0392B] hover:bg-white/60"
+                ? "bg-surface text-ink font-semibold"
+                : "text-ink-soft hover:text-ink font-medium"
             }`}
           >
-            <FileText className="w-4 h-4" />
-            <span>📋 지불의향 설문 ({responses.length}명)</span>
+            지불의향 설문 ({responses.length}명)
           </button>
         </div>
 
@@ -1218,109 +1208,94 @@ export default function AdminView() {
           <div className="space-y-6 animate-fade-in">
             
             {/* 1. MONETIZATION READINESS SCORECARD */}
-            <div className={`p-5 sm:p-6 rounded-3xl border-2 shadow-sm ${metrics.readinessStatus.color}`}>
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-2">
-                    <Gauge className="w-5 h-5 text-current" />
-                    <span className="font-serif font-black text-sm uppercase tracking-wider">
-                      유료화 적정성 종합 의사결정 지수 (Monetization Readiness)
-                    </span>
-                  </div>
-                  <h3 className="font-serif text-lg sm:text-xl font-black tracking-tight">
+                  <span className="text-xs text-ink-faint block">
+                    유료화 적정성 종합 지수 (Monetization Readiness)
+                  </span>
+                  <h3 className={`font-serif text-lg font-semibold tracking-tight ${metrics.readinessStatus.color}`}>
                     {metrics.readinessStatus.label}
                   </h3>
-                  <p className="text-xs leading-relaxed max-w-2xl font-medium">
+                  <p className="text-xs text-ink-soft leading-relaxed max-w-2xl">
                     {metrics.readinessStatus.desc}
                   </p>
                 </div>
 
                 {/* Big Score Dial */}
-                <div className="flex items-center gap-3 bg-white/90 p-4 rounded-2xl border border-current/20 shadow-xs shrink-0">
+                <div className="flex items-center gap-4 bg-sunken p-4 rounded-xl shrink-0">
                   <div className="text-right">
-                    <span className="text-[10px] text-gray-500 font-bold block uppercase">의사결정 스코어</span>
-                    <span className="font-mono text-3xl font-black text-[#2C3E50]">
-                      {metrics.score}<span className="text-sm font-normal text-gray-400">/100</span>
+                    <span className="text-xs text-ink-faint block">의사결정 스코어</span>
+                    <span className="font-mono text-3xl font-semibold text-ink">
+                      {metrics.score}<span className="text-sm font-normal text-ink-faint">/100</span>
                     </span>
                   </div>
-                  <div className="w-12 h-12 rounded-full border-4 border-[#C0392B] flex items-center justify-center font-serif font-black text-xs text-[#C0392B]">
+                  <span className="text-xs font-semibold text-ink">
                     {metrics.score >= 70 ? "GO" : metrics.score >= 45 ? "WAIT" : "GROW"}
-                  </div>
+                  </span>
                 </div>
               </div>
 
               {/* Progress Factors */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4 pt-4 border-t border-current/20 text-xs">
-                <div className="bg-white/80 p-2.5 rounded-xl">
-                  <span className="text-[10px] text-gray-500 block">설문 유료 지불의향</span>
-                  <span className="font-bold text-[#2C3E50]">{metrics.willingnessRate}% ({metrics.paidIntentCount}/{responses.length}명)</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4 pt-4 border-t border-line text-xs">
+                <div className="bg-sunken p-2.5 rounded-xl">
+                  <span className="text-xs text-ink-faint block">설문 유료 지불의향</span>
+                  <span className="font-semibold text-ink">{metrics.willingnessRate}% ({metrics.paidIntentCount}/{responses.length}명)</span>
                 </div>
-                <div className="bg-white/80 p-2.5 rounded-xl">
-                  <span className="text-[10px] text-gray-500 block">1회권 소모율</span>
-                  <span className="font-bold text-[#2C3E50]">{metrics.ticketConsumedCount}회 소모 완료</span>
+                <div className="bg-sunken p-2.5 rounded-xl">
+                  <span className="text-xs text-ink-faint block">1회권 소모율</span>
+                  <span className="font-semibold text-ink">{metrics.ticketConsumedCount}회 소모 완료</span>
                 </div>
-                <div className="bg-white/80 p-2.5 rounded-xl">
-                  <span className="text-[10px] text-gray-500 block">고착도 (DAU/MAU)</span>
-                  <span className="font-bold text-[#2C3E50]">{metrics.stickiness}% 고착</span>
+                <div className="bg-sunken p-2.5 rounded-xl">
+                  <span className="text-xs text-ink-faint block">고착도 (DAU/MAU)</span>
+                  <span className="font-semibold text-ink">{metrics.stickiness}% 고착</span>
                 </div>
-                <div className="bg-white/80 p-2.5 rounded-xl">
-                  <span className="text-[10px] text-gray-500 block">바이럴 K-Factor</span>
-                  <span className="font-bold text-[#2C3E50]">{metrics.kFactor} (초대 {metrics.inviteConvertCount}명 유입)</span>
+                <div className="bg-sunken p-2.5 rounded-xl">
+                  <span className="text-xs text-ink-faint block">바이럴 K-Factor</span>
+                  <span className="font-semibold text-ink">{metrics.kFactor} (초대 {metrics.inviteConvertCount}명 유입)</span>
                 </div>
               </div>
             </div>
 
             {/* 2. CORE TRAFFIC KPI CARDS (DAU, WAU, MAU, STICKINESS) */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              
-              <div className="bg-[#FAF7F2] p-4.5 rounded-2xl border border-[#E0D8CC] space-y-1 text-left shadow-xs">
-                <div className="flex items-center justify-between text-xs text-[#5C5046]">
-                  <span>MAU (월간 활성)</span>
-                  <Users className="w-4 h-4 text-purple-600" />
+
+              <div className="bg-surface border border-line rounded-xl p-4 space-y-1 text-left">
+                <span className="text-xs text-ink-soft block">MAU (월간 활성)</span>
+                <div className="font-mono text-2xl font-semibold text-ink">
+                  {metrics.mau.toLocaleString()}<span className="text-xs font-normal text-ink-soft ml-1">명</span>
                 </div>
-                <div className="font-mono text-2xl font-black text-[#2C3E50]">
-                  {metrics.mau.toLocaleString()}<span className="text-xs font-normal text-[#5C5046] ml-1">명</span>
-                </div>
-                <span className="text-[9.5px] text-purple-700 font-bold block">
+                <span className="text-xs text-ink-faint block">
                   30일간 순 방문자
                 </span>
               </div>
 
-              <div className="bg-[#FAF7F2] p-4.5 rounded-2xl border border-[#E0D8CC] space-y-1 text-left shadow-xs">
-                <div className="flex items-center justify-between text-xs text-[#5C5046]">
-                  <span>WAU (주간 활성)</span>
-                  <Activity className="w-4 h-4 text-blue-600" />
+              <div className="bg-surface border border-line rounded-xl p-4 space-y-1 text-left">
+                <span className="text-xs text-ink-soft block">WAU (주간 활성)</span>
+                <div className="font-mono text-2xl font-semibold text-ink">
+                  {metrics.wau.toLocaleString()}<span className="text-xs font-normal text-ink-soft ml-1">명</span>
                 </div>
-                <div className="font-mono text-2xl font-black text-[#2C3E50]">
-                  {metrics.wau.toLocaleString()}<span className="text-xs font-normal text-[#5C5046] ml-1">명</span>
-                </div>
-                <span className="text-[9.5px] text-blue-700 font-bold block">
+                <span className="text-xs text-ink-faint block">
                   7일간 순 방문자
                 </span>
               </div>
 
-              <div className="bg-[#FAF7F2] p-4.5 rounded-2xl border border-[#E0D8CC] space-y-1 text-left shadow-xs">
-                <div className="flex items-center justify-between text-xs text-[#5C5046]">
-                  <span>DAU (일간 활성)</span>
-                  <TrendingUp className="w-4 h-4 text-emerald-600" />
+              <div className="bg-surface border border-line rounded-xl p-4 space-y-1 text-left">
+                <span className="text-xs text-ink-soft block">DAU (일간 활성)</span>
+                <div className="font-mono text-2xl font-semibold text-ink">
+                  {metrics.dau.toLocaleString()}<span className="text-xs font-normal text-ink-soft ml-1">명</span>
                 </div>
-                <div className="font-mono text-2xl font-black text-[#2C3E50]">
-                  {metrics.dau.toLocaleString()}<span className="text-xs font-normal text-[#5C5046] ml-1">명</span>
-                </div>
-                <span className="text-[9.5px] text-emerald-700 font-bold block">
+                <span className="text-xs text-ink-faint block">
                   24시간 순 방문자
                 </span>
               </div>
 
-              <div className="bg-[#FAF7F2] p-4.5 rounded-2xl border border-[#E0D8CC] space-y-1 text-left shadow-xs">
-                <div className="flex items-center justify-between text-xs text-[#5C5046]">
-                  <span>서비스 고착도</span>
-                  <Zap className="w-4 h-4 text-amber-600" />
+              <div className="bg-surface border border-line rounded-xl p-4 space-y-1 text-left">
+                <span className="text-xs text-ink-soft block">서비스 고착도</span>
+                <div className="font-mono text-2xl font-semibold text-ink">
+                  {metrics.stickiness}<span className="text-xs font-normal text-ink-soft ml-0.5">%</span>
                 </div>
-                <div className="font-mono text-2xl font-black text-[#C0392B]">
-                  {metrics.stickiness}<span className="text-xs font-normal text-[#5C5046] ml-0.5">%</span>
-                </div>
-                <span className="text-[9.5px] text-amber-800 font-bold block">
+                <span className="text-xs text-ink-faint block">
                   DAU ÷ MAU 비율
                 </span>
               </div>
@@ -1328,118 +1303,112 @@ export default function AdminView() {
             </div>
 
             {/* 3. VISUAL ACTIVITY TREND CHART (LAST 14 DAYS) */}
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-4 shadow-xs">
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <LineChart className="w-4 h-4 text-[#C0392B]" />
-                  <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                    📈 최근 14일간 트래픽(PV) 및 1회 확인권 소모 추이
-                  </h4>
-                </div>
-                <span className="text-[10px] text-[#5C5046]">일별 인터랙션 집계</span>
+                <h4 className="text-[15px] font-semibold text-ink">
+                  최근 14일 트래픽·확인권 소모 추이
+                </h4>
+                <span className="text-xs text-ink-faint">일별 인터랙션 집계</span>
               </div>
 
               {/* Bar Chart Visualizer */}
-              <div className="h-44 flex items-end justify-between gap-1 sm:gap-2 pt-6 pb-2 px-2 bg-white rounded-2xl border border-[#E8E0D0]">
+              <div className="h-44 flex items-end justify-between gap-1 sm:gap-2 pt-6 pb-2 px-2 bg-sunken rounded-xl">
                 {metrics.trendList.map((item, idx) => {
                   const pvHeight = Math.max(12, Math.round((item.pv / metrics.maxPv) * 100));
                   const ticketHeight = Math.min(pvHeight, item.ticketConsumed * 15);
                   return (
                     <div key={idx} className="flex-1 flex flex-col items-center gap-1 group relative">
                       {/* Tooltip on Hover */}
-                      <div className="absolute -top-10 hidden group-hover:flex flex-col items-center bg-[#2C3E50] text-white text-[9px] px-2 py-1 rounded-md z-20 whitespace-nowrap shadow-md">
+                      <div className="absolute -top-10 hidden group-hover:flex flex-col items-center bg-ink text-white text-xs px-2 py-1 rounded-md z-20 whitespace-nowrap shadow-lg">
                         <span>{item.date} : {item.pv} PV</span>
-                        <span className="text-amber-300">티켓 소모: {item.ticketConsumed}회</span>
+                        <span>티켓 소모: {item.ticketConsumed}회</span>
                       </div>
 
                       {/* Dual Bar */}
-                      <div className="w-full max-w-[22px] flex flex-col justify-end h-32 rounded-t-md overflow-hidden bg-gray-100 relative">
-                        <div 
-                          style={{ height: `${pvHeight}%` }} 
-                          className="w-full bg-gradient-to-t from-red-700 to-amber-500 rounded-t-md transition-all group-hover:brightness-110"
+                      <div className="w-full max-w-[22px] flex flex-col justify-end h-32 rounded-t-md overflow-hidden bg-line/60 relative">
+                        <div
+                          style={{ height: `${pvHeight}%` }}
+                          className="w-full bg-ink/30 rounded-t-md transition-all"
                         />
                         {item.ticketConsumed > 0 && (
-                          <div 
-                            style={{ height: `${ticketHeight}%` }} 
-                            className="w-full bg-emerald-500 absolute bottom-0 left-0 opacity-80"
+                          <div
+                            style={{ height: `${ticketHeight}%` }}
+                            className="w-full bg-ink absolute bottom-0 left-0"
                           />
                         )}
                       </div>
-                      <span className="text-[8.5px] text-[#5C5046] font-mono">{item.date}</span>
+                      <span className="text-xs text-ink-faint font-mono">{idx % 2 === 0 ? item.date : ""}</span>
                     </div>
                   );
                 })}
               </div>
 
-              <div className="flex items-center justify-center gap-4 text-[10px] text-[#5C5046] pt-1">
+              <div className="flex items-center justify-center gap-4 text-xs text-ink-soft pt-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded bg-gradient-to-r from-red-700 to-amber-500 inline-block" />
-                  <span>페이지뷰 & 기능 탐색 (PV)</span>
+                  <span className="w-3 h-3 rounded bg-ink/30 inline-block" />
+                  <span>페이지뷰·기능 탐색 (PV)</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded bg-emerald-500 inline-block" />
-                  <span>1회 확인권 소모 (Ticket Consumed)</span>
+                  <span className="w-3 h-3 rounded bg-ink inline-block" />
+                  <span>1회 확인권 소모</span>
                 </div>
               </div>
             </div>
 
             {/* 4. FEATURE & MENU ENGAGEMENT HITMAP */}
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-4 shadow-xs">
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Compass className="w-4 h-4 text-[#C0392B]" />
-                  <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                    🧭 어떤 메뉴와 기능을 가장 많이 눌렀는가? (기능별 클릭 인기도)
-                  </h4>
-                </div>
-                <span className="text-[10px] text-[#5C5046]">실측 인터랙션 텔레메트리</span>
+                <h4 className="text-[15px] font-semibold text-ink">
+                  기능별 클릭 인기도
+                </h4>
+                <span className="text-xs text-ink-faint">실측 인터랙션 집계</span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
                 {/* 1:1 케미 & 궁합 조회 */}
-                <div className="bg-white p-3 rounded-2xl border border-[#E8E0D0] space-y-1">
-                  <span className="text-[10px] text-[#5C5046] font-bold block">☯️ 궁합/사주 조회</span>
-                  <div className="font-mono text-lg font-black text-[#2C3E50]">
+                <div className="bg-sunken p-3 rounded-xl space-y-1">
+                  <span className="text-xs text-ink-soft block">궁합·사주 조회</span>
+                  <div className="font-mono text-lg font-semibold text-ink">
                     {metrics.featureCounts.viewSaju + metrics.featureCounts.cardExpand}
-                    <span className="text-[10px] font-normal text-gray-500 ml-1">회</span>
+                    <span className="text-xs font-normal text-ink-faint ml-1">회</span>
                   </div>
-                  <span className="text-[9px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded font-bold inline-block">
+                  <span className="text-xs text-ink-faint block">
                     기본 탐색 코어
                   </span>
                 </div>
 
                 {/* 4대 영역 잠금 터치 */}
-                <div className="bg-white p-3 rounded-2xl border border-amber-200 space-y-1">
-                  <span className="text-[10px] text-amber-800 font-bold block">🔒 비밀 인연·속마음 락</span>
-                  <div className="font-mono text-lg font-black text-amber-900">
+                <div className="bg-sunken p-3 rounded-xl space-y-1">
+                  <span className="text-xs text-ink-soft block">비밀 인연 잠금 터치</span>
+                  <div className="font-mono text-lg font-semibold text-ink">
                     {metrics.featureCounts.lockedSecret}
-                    <span className="text-[10px] font-normal text-gray-500 ml-1">회</span>
+                    <span className="text-xs font-normal text-ink-faint ml-1">회</span>
                   </div>
-                  <span className="text-[9px] text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded font-bold inline-block">
+                  <span className="text-xs text-ink-faint block">
                     최대 관심 품목
                   </span>
                 </div>
 
                 {/* PDF 리포트 락 */}
-                <div className="bg-white p-3 rounded-2xl border border-rose-200 space-y-1">
-                  <span className="text-[10px] text-rose-800 font-bold block">📄 PDF 심층 리포트 락</span>
-                  <div className="font-mono text-lg font-black text-rose-900">
+                <div className="bg-sunken p-3 rounded-xl space-y-1">
+                  <span className="text-xs text-ink-soft block">PDF 리포트 잠금 터치</span>
+                  <div className="font-mono text-lg font-semibold text-ink">
                     {metrics.featureCounts.lockedPdf}
-                    <span className="text-[10px] font-normal text-gray-500 ml-1">회</span>
+                    <span className="text-xs font-normal text-ink-faint ml-1">회</span>
                   </div>
-                  <span className="text-[9px] text-rose-800 bg-rose-50 px-1.5 py-0.5 rounded font-bold inline-block">
+                  <span className="text-xs text-ink-faint block">
                     고단가 유료 전환군
                   </span>
                 </div>
 
                 {/* 결과 이미지 캡처 & 공유 */}
-                <div className="bg-white p-3 rounded-2xl border border-emerald-200 space-y-1">
-                  <span className="text-[10px] text-emerald-800 font-bold block">📸 이미지 캡처 & 공유</span>
-                  <div className="font-mono text-lg font-black text-emerald-900">
+                <div className="bg-sunken p-3 rounded-xl space-y-1">
+                  <span className="text-xs text-ink-soft block">이미지 캡처·공유</span>
+                  <div className="font-mono text-lg font-semibold text-ink">
                     {metrics.featureCounts.resultCapture + metrics.featureCounts.inviteShared}
-                    <span className="text-[10px] font-normal text-gray-500 ml-1">회</span>
+                    <span className="text-xs font-normal text-ink-faint ml-1">회</span>
                   </div>
-                  <span className="text-[9px] text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded font-bold inline-block">
+                  <span className="text-xs text-ink-faint block">
                     바이럴 확산 동력
                   </span>
                 </div>
@@ -1447,49 +1416,39 @@ export default function AdminView() {
             </div>
 
             {/* 5. USER BEHAVIOR CONVERSION & DROP-OFF FUNNEL */}
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-4 shadow-xs">
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-[#C0392B]" />
-                  <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                    📉 유저 행동 전환 및 이탈 퍼널 분석 (6-Step Funnel)
-                  </h4>
-                </div>
-                <span className="text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-300 font-bold px-2 py-0.5 rounded-full">
-                  전환 병목지점 실시간 추적
+                <h4 className="text-[15px] font-semibold text-ink">
+                  유저 행동 전환·이탈 퍼널 (6단계)
+                </h4>
+                <span className="text-xs text-ink-faint">
+                  전환 병목지점 추적
                 </span>
               </div>
 
-              <div className="space-y-3 bg-white p-4.5 rounded-2xl border border-[#E8E0D0]">
+              <div className="space-y-3">
                 {metrics.funnel.map((step, idx) => (
                   <div key={idx} className="space-y-1 text-left">
                     <div className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-2">
-                        <span className="font-serif font-bold text-[#2C3E50]">{step.step}</span>
-                        <span className="text-[10px] text-gray-400 font-normal">({step.desc})</span>
+                        <span className="font-medium text-ink">{step.step}</span>
+                        <span className="text-xs text-ink-faint font-normal hidden sm:inline">({step.desc})</span>
                       </div>
                       <div className="flex items-center gap-2 font-mono">
-                        <strong className="text-[#2C3E50]">{step.count.toLocaleString()}회</strong>
-                        <span className="text-[10px] font-bold text-[#C0392B]">({step.pct}%)</span>
+                        <strong className="text-ink">{step.count.toLocaleString()}회</strong>
+                        <span className="text-xs text-ink-soft">({step.pct}%)</span>
                         {step.dropPct > 0 && (
-                          <span className="text-[9px] text-gray-400 bg-gray-100 px-1.5 py-0.2 rounded">
+                          <span className="text-xs text-ink-faint bg-sunken px-1.5 py-0.5 rounded-md">
                             이탈 {step.dropPct}%
                           </span>
                         )}
                       </div>
                     </div>
                     {/* Progress bar */}
-                    <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
-                        style={{ width: `${Math.max(4, step.pct)}%` }} 
-                        className={`h-full rounded-full transition-all ${
-                          idx === 0 ? "bg-blue-600" :
-                          idx === 1 ? "bg-indigo-600" :
-                          idx === 2 ? "bg-amber-500" :
-                          idx === 3 ? "bg-emerald-600" :
-                          idx === 4 ? "bg-rose-500" :
-                          "bg-purple-600"
-                        }`}
+                    <div className="w-full h-2 bg-sunken rounded-full overflow-hidden">
+                      <div
+                        style={{ width: `${Math.max(4, step.pct)}%` }}
+                        className="h-full rounded-full transition-all bg-ink/70"
                       />
                     </div>
                   </div>
@@ -1500,115 +1459,112 @@ export default function AdminView() {
             {/* 6. USER TIER SEGMENT COMPARISON (FREE vs TRIAL/COUPON vs PAID) */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-[#C0392B]" />
-                  <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                    👥 유저 세그먼트별 활동 영역 & 실측 이탈 지점 분석
-                  </h4>
-                </div>
-                <span className="text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-300 font-bold px-2 py-0.5 rounded-full">
-                  ✓ Firestore 실시간 로그 기반 (N={analyticsEvents.length}건)
+                <h4 className="text-[15px] font-semibold text-ink">
+                  유저 세그먼트별 활동·이탈 지점
+                </h4>
+                <span className="text-xs text-ink-faint">
+                  Firestore 로그 기반 (N={analyticsEvents.length}건)
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-                
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+
                 {/* Segment 1: Free Tier */}
-                <div className="bg-[#FAF7F2] p-4.5 rounded-2xl border border-gray-300 space-y-3 shadow-2xs text-left">
-                  <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-                    <span className="font-serif font-bold text-xs text-gray-800">🟢 무료 사용자 (Free Tier)</span>
-                    <span className="text-[9px] bg-gray-200 text-gray-800 font-bold px-1.5 py-0.5 rounded">
+                <div className="bg-surface border border-line rounded-xl p-4 space-y-3 text-left">
+                  <div className="flex items-center justify-between border-b border-line pb-2">
+                    <span className="font-semibold text-xs text-ink">무료 사용자 (Free)</span>
+                    <span className="text-xs bg-sunken text-ink-soft px-1.5 py-0.5 rounded-md">
                       N={metrics.freeCount}건
                     </span>
                   </div>
-                  
+
                   {/* Top Real Actions */}
-                  <div className="space-y-1.5 text-xs text-[#5A4D41]">
-                    <span className="text-[10px] text-[#5C5046] font-bold block">실시간 발생 상위 이벤트:</span>
+                  <div className="space-y-1.5 text-xs">
+                    <span className="text-xs text-ink-faint block">발생 상위 이벤트</span>
                     {metrics.freeTopActions.length === 0 ? (
-                      <p className="text-[10px] text-gray-400">아직 수집된 로그가 없습니다.</p>
+                      <p className="text-xs text-ink-faint">아직 수집된 로그가 없습니다.</p>
                     ) : (
                       metrics.freeTopActions.slice(0, 3).map((act, i) => (
-                        <div key={i} className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-gray-200 text-[10px]">
-                          <span className="font-mono truncate">{act.name}</span>
-                          <strong className="text-[#2C3E50]">{act.count}회 ({act.pct}%)</strong>
+                        <div key={i} className="flex justify-between items-center bg-sunken p-1.5 rounded-lg text-xs">
+                          <span className="font-mono truncate text-ink-soft">{act.name}</span>
+                          <strong className="text-ink">{act.count}회 ({act.pct}%)</strong>
                         </div>
                       ))
                     )}
                   </div>
 
-                  <div className="space-y-1 text-xs border-t border-gray-200 pt-2 text-[#5A4D41]">
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-[#5C5046]">주요 이탈 지점:</span>
-                      <span className="text-[#C0392B] font-bold">비밀 인연 락 마주침</span>
+                  <div className="space-y-1 text-xs border-t border-line pt-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-ink-faint">주요 이탈 지점</span>
+                      <span className="text-ink font-medium">비밀 인연 잠금 마주침</span>
                     </div>
                   </div>
-                  <p className="text-[10px] text-[#5C5046] bg-white p-2 rounded-xl border border-gray-200">
-                    💡 <strong>전환 처방</strong>: 친구 1명 초대 시 즉시 1회 확인권을 지급하여 체험 단계로 유도.
+                  <p className="text-xs text-ink-soft bg-sunken p-2.5 rounded-xl leading-relaxed">
+                    <strong className="text-ink">전환 처방</strong> · 친구 1명 초대 시 즉시 1회 확인권을 지급해 체험 단계로 유도.
                   </p>
                 </div>
 
                 {/* Segment 2: Coupon / Trial Tier */}
-                <div className="bg-[#FDFAF2] p-4.5 rounded-2xl border border-amber-300 space-y-3 shadow-2xs text-left">
-                  <div className="flex items-center justify-between border-b border-amber-200 pb-2">
-                    <span className="font-serif font-bold text-xs text-amber-900">🟡 쿠폰/초대 체험자 (Trial Tier)</span>
-                    <span className="text-[9px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.5 rounded">
+                <div className="bg-surface border border-line rounded-xl p-4 space-y-3 text-left">
+                  <div className="flex items-center justify-between border-b border-line pb-2">
+                    <span className="font-semibold text-xs text-ink">쿠폰·초대 체험자 (Trial)</span>
+                    <span className="text-xs bg-sunken text-ink-soft px-1.5 py-0.5 rounded-md">
                       N={metrics.couponCount}건
                     </span>
                   </div>
 
                   {/* Top Real Actions */}
-                  <div className="space-y-1.5 text-xs text-[#5A4D41]">
-                    <span className="text-[10px] text-amber-800 font-bold block">실시간 발생 상위 이벤트:</span>
+                  <div className="space-y-1.5 text-xs">
+                    <span className="text-xs text-ink-faint block">발생 상위 이벤트</span>
                     {metrics.couponTopActions.length === 0 ? (
-                      <p className="text-[10px] text-gray-400">아직 수집된 로그가 없습니다.</p>
+                      <p className="text-xs text-ink-faint">아직 수집된 로그가 없습니다.</p>
                     ) : (
                       metrics.couponTopActions.slice(0, 3).map((act, i) => (
-                        <div key={i} className="flex justify-between items-center bg-white p-1.5 rounded-lg border border-amber-200 text-[10px]">
-                          <span className="font-mono truncate">{act.name}</span>
-                          <strong className="text-amber-900">{act.count}회 ({act.pct}%)</strong>
+                        <div key={i} className="flex justify-between items-center bg-sunken p-1.5 rounded-lg text-xs">
+                          <span className="font-mono truncate text-ink-soft">{act.name}</span>
+                          <strong className="text-ink">{act.count}회 ({act.pct}%)</strong>
                         </div>
                       ))
                     )}
                   </div>
 
-                  <div className="space-y-1 text-xs border-t border-amber-200 pt-2 text-[#5A4D41]">
-                    <div className="flex justify-between text-[10px]">
-                      <span className="text-[#5C5046]">1회권 소모 / 초대 시도:</span>
-                      <strong className="text-emerald-700 font-mono">{metrics.featureCounts.ticketConsumed}회 / {metrics.featureCounts.inviteShared}회</strong>
+                  <div className="space-y-1 text-xs border-t border-line pt-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-ink-faint">1회권 소모 / 초대 시도</span>
+                      <strong className="text-ink font-mono">{metrics.featureCounts.ticketConsumed}회 / {metrics.featureCounts.inviteShared}회</strong>
                     </div>
                   </div>
-                  <p className="text-[10px] text-[#5C5046] bg-white p-2 rounded-xl border border-amber-200">
-                    💡 <strong>전환 처방</strong>: 1회권 소모 후 결과 공유하기 및 만족도 설문 조사 연계.
+                  <p className="text-xs text-ink-soft bg-sunken p-2.5 rounded-xl leading-relaxed">
+                    <strong className="text-ink">전환 처방</strong> · 1회권 소모 후 결과 공유와 만족도 설문을 연계.
                   </p>
                 </div>
 
                 {/* Segment 3: Paid Intent Tier */}
-                <div className="bg-[#FAF2F2] p-4.5 rounded-2xl border border-rose-300 space-y-3 shadow-2xs text-left">
-                  <div className="flex items-center justify-between border-b border-rose-200 pb-2">
-                    <span className="font-serif font-bold text-xs text-rose-950">🔴 유료 지불 의향자 (Core Paid)</span>
-                    <span className="text-[9px] bg-rose-200 text-rose-950 font-bold px-1.5 py-0.5 rounded">
+                <div className="bg-surface border border-line rounded-xl p-4 space-y-3 text-left">
+                  <div className="flex items-center justify-between border-b border-line pb-2">
+                    <span className="font-semibold text-xs text-ink">유료 지불 의향자 (Core Paid)</span>
+                    <span className="text-xs bg-sunken text-ink-soft px-1.5 py-0.5 rounded-md">
                       응답 {responses.length}명
                     </span>
                   </div>
 
-                  <div className="space-y-1.5 text-xs text-[#5A4D41]">
-                    <div className="flex justify-between text-[10.5px]">
-                      <span className="text-[#5C5046]">지불 의향 찬성률:</span>
-                      <strong className="text-[#C0392B] font-mono font-black">{metrics.willingnessRate}% ({metrics.paidIntentCount}명)</strong>
+                  <div className="space-y-1.5 text-xs">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-ink-faint">지불 의향 찬성률</span>
+                      <strong className="text-ink font-mono">{metrics.willingnessRate}% ({metrics.paidIntentCount}명)</strong>
                     </div>
-                    <div className="flex justify-between text-[10.5px]">
-                      <span className="text-[#5C5046]">최대 관심 품목:</span>
-                      <span className="font-bold">PDF 소장권 & 모임 오행</span>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-ink-faint">최대 관심 품목</span>
+                      <span className="text-ink font-medium">PDF 소장권·모임 오행</span>
                     </div>
-                    <div className="flex justify-between text-[10.5px]">
-                      <span className="text-[#5C5046]">선호 과금 모델:</span>
-                      <span>1,000~2,900원 건별 결제</span>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-ink-faint">선호 과금 모델</span>
+                      <span className="text-ink-soft">1,000~2,900원 건별 결제</span>
                     </div>
                   </div>
 
-                  <p className="text-[10px] text-[#5C5046] bg-white p-2 rounded-xl border border-rose-200">
-                    💡 <strong>전환 처방</strong>: 정식 결제 오픈 시 얼리버드 할인 혜택 이메일 알림 발송.
+                  <p className="text-xs text-ink-soft bg-sunken p-2.5 rounded-xl leading-relaxed">
+                    <strong className="text-ink">전환 처방</strong> · 정식 결제 오픈 시 얼리버드 할인 안내 이메일 발송.
                   </p>
                 </div>
 
@@ -1616,56 +1572,53 @@ export default function AdminView() {
             </div>
 
             {/* 7. FILTERABLE RAW LIVE EVENT AUDIT EXPLORER */}
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-4 shadow-xs">
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[#C0392B]" />
-                  <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                    📡 실시간 원천 감사 로그 탐색기 (Live Telemetry Stream)
-                  </h4>
-                </div>
+                <h4 className="text-[15px] font-semibold text-ink">
+                  실시간 이벤트 로그 탐색기
+                </h4>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={loadAdminData}
-                    className="p-1.5 rounded-lg bg-white border border-[#E0D8CC] text-[#5C5046] hover:text-[#2C3E50] hover:bg-gray-50 transition"
+                    className="p-1.5 rounded-lg bg-sunken hover:bg-line text-ink-soft hover:text-ink transition-colors cursor-pointer"
                     title="로그 새로고침"
                     aria-label="로그 새로고침"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                   </button>
-                  <span className="text-[10px] text-[#5C5046]">전체 {analyticsEvents.length}건 중 표시</span>
+                  <span className="text-xs text-ink-faint">전체 {analyticsEvents.length}건 중 표시</span>
                 </div>
               </div>
 
               {/* Filters Toolbar */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-white p-3 rounded-2xl border border-[#E8E0D0] text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 {/* Filter 1: Tier */}
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-[#5C5046] font-bold shrink-0">세그먼트:</span>
+                  <span className="text-xs text-ink-faint shrink-0">세그먼트</span>
                   <select
                     value={logFilterTier}
                     onChange={(e) => setLogFilterTier(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E8E0D0] rounded-lg px-2 py-1 text-xs text-[#2C3E50]"
+                    className="w-full bg-sunken rounded-xl px-2 py-1.5 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-ink"
                   >
                     <option value="all">전체 유저 (All Tiers)</option>
-                    <option value="free">🟢 무료 사용자 (Free)</option>
-                    <option value="coupon">🟡 쿠폰/체험자 (Coupon/Trial)</option>
-                    <option value="paid">🔴 유료 지불자 (Paid)</option>
+                    <option value="free">무료 사용자 (Free)</option>
+                    <option value="coupon">쿠폰·체험자 (Coupon/Trial)</option>
+                    <option value="paid">유료 지불자 (Paid)</option>
                   </select>
                 </div>
 
                 {/* Filter 2: Category */}
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] text-[#5C5046] font-bold shrink-0">카테고리:</span>
+                  <span className="text-xs text-ink-faint shrink-0">카테고리</span>
                   <select
                     value={logFilterCategory}
                     onChange={(e) => setLogFilterCategory(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E8E0D0] rounded-lg px-2 py-1 text-xs text-[#2C3E50]"
+                    className="w-full bg-sunken rounded-xl px-2 py-1.5 text-xs text-ink focus:outline-none focus:ring-1 focus:ring-ink"
                   >
                     <option value="all">전체 카테고리 (All)</option>
                     <option value="traffic">방문 및 트래픽 (traffic)</option>
                     <option value="engagement">콘텐츠 탐색 (engagement)</option>
-                    <option value="conversion">락 터치 및 해금 (conversion)</option>
+                    <option value="conversion">잠금 터치 및 해금 (conversion)</option>
                     <option value="viral">공유 및 초대 (viral)</option>
                     <option value="ui_nav">UI 및 탭 전환 (ui_nav)</option>
                   </select>
@@ -1675,10 +1628,10 @@ export default function AdminView() {
                 <div>
                   <input
                     type="text"
-                    placeholder="이벤트명, 룸코드, 메타데이터 검색..."
+                    placeholder="이벤트명, 룸코드, 메타데이터 검색"
                     value={logSearchQuery}
                     onChange={(e) => setLogSearchQuery(e.target.value)}
-                    className="w-full bg-[#FAF7F2] border border-[#E8E0D0] rounded-lg px-2 py-1 text-xs text-[#2C3E50]"
+                    className="w-full bg-sunken rounded-xl px-3 py-1.5 text-xs text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-ink"
                   />
                 </div>
               </div>
@@ -1700,44 +1653,40 @@ export default function AdminView() {
 
                 if (filtered.length === 0) {
                   return (
-                    <div className="p-6 text-center text-xs text-[#5C5046] bg-white rounded-2xl border border-dashed border-[#E0D8CC]">
-                      일치하는 이벤트 로그가 없습니다. (필터를 조정해보세요)
+                    <div className="p-6 text-center text-xs text-ink-faint bg-sunken rounded-xl">
+                      일치하는 이벤트 로그가 없습니다. 필터를 조정해 보세요.
                     </div>
                   );
                 }
 
                 return (
                   <div className="overflow-x-auto max-h-96">
-                    <table className="w-full text-left text-[11px] bg-white rounded-2xl overflow-hidden border border-[#E8E0D0]">
-                      <thead className="bg-[#FAF8F5] text-[#5A4D41] border-b border-[#E8E0D0] text-[10px] sticky top-0 z-10">
+                    <table className="w-full text-left text-xs">
+                      <thead className="text-ink-faint border-b border-line text-xs sticky top-0 z-10 bg-surface">
                         <tr>
-                          <th className="p-2.5 font-serif font-bold">발생 일시</th>
-                          <th className="p-2.5 font-serif font-bold">이벤트명</th>
-                          <th className="p-2.5 font-serif font-bold">세그먼트</th>
-                          <th className="p-2.5 font-serif font-bold">카테고리</th>
-                          <th className="p-2.5 font-serif font-bold">룸코드</th>
-                          <th className="p-2.5 font-serif font-bold">상세 메타데이터</th>
+                          <th className="p-2.5 font-medium">발생 일시</th>
+                          <th className="p-2.5 font-medium">이벤트명</th>
+                          <th className="p-2.5 font-medium">세그먼트</th>
+                          <th className="p-2.5 font-medium">카테고리</th>
+                          <th className="p-2.5 font-medium">룸코드</th>
+                          <th className="p-2.5 font-medium">상세 메타데이터</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#E8E0D0] font-mono">
+                      <tbody className="divide-y divide-line font-mono">
                         {filtered.slice(0, 30).map((ev) => (
-                          <tr key={ev.id} className="hover:bg-amber-50/30 transition">
-                            <td className="p-2.5 text-gray-500 whitespace-nowrap text-[10px]">
+                          <tr key={ev.id} className="hover:bg-sunken transition-colors">
+                            <td className="p-2.5 text-ink-faint whitespace-nowrap text-xs">
                               {new Date(ev.timestamp).toLocaleTimeString("ko-KR")}
                             </td>
-                            <td className="p-2.5 font-bold text-[#2C3E50]">{ev.eventName}</td>
+                            <td className="p-2.5 font-semibold text-ink">{ev.eventName}</td>
                             <td className="p-2.5">
-                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                                ev.userTier === "paid" ? "bg-rose-100 text-rose-800" :
-                                ev.userTier === "coupon" ? "bg-amber-100 text-amber-900" :
-                                "bg-gray-100 text-gray-700"
-                              }`}>
+                              <span className="px-1.5 py-0.5 rounded-md text-xs bg-sunken text-ink-soft">
                                 {ev.userTier || "free"}
                               </span>
                             </td>
-                            <td className="p-2.5 text-gray-600 font-sans text-[10px]">{ev.category}</td>
-                            <td className="p-2.5 text-[#C0392B] font-bold text-[10px]">{ev.roomCode || "-"}</td>
-                            <td className="p-2.5 text-gray-500 truncate max-w-xs text-[10px]">
+                            <td className="p-2.5 text-ink-soft font-sans text-xs">{ev.category}</td>
+                            <td className="p-2.5 text-ink-soft text-xs">{ev.roomCode || "-"}</td>
+                            <td className="p-2.5 text-ink-faint truncate max-w-xs text-xs">
                               {ev.metadata ? JSON.stringify(ev.metadata) : "-"}
                             </td>
                           </tr>
@@ -1759,23 +1708,15 @@ export default function AdminView() {
           <div className="space-y-6 animate-fade-in">
             
             {/* 1. Live DB Ticket Account Statistics & Actions */}
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-4 shadow-xs">
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-[#C0392B] text-white rounded-xl shadow-xs">
-                    <Ticket className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-serif font-black text-sm text-[#2C3E50] flex items-center gap-1.5">
-                      <span>🎫 Firestore DB 티켓 실시간 통합 관리</span>
-                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
-                        user_tickets 컬렉션 실시간 연동
-                      </span>
-                    </h4>
-                    <p className="text-[11px] text-[#5C5046]">
-                      클라우드 DB에 생성된 모든 사용자의 1회 확인권 잔여량을 조회하고, 직접 지급·차감·초기화합니다.
-                    </p>
-                  </div>
+                <div>
+                  <h4 className="text-[15px] font-semibold text-ink">
+                    티켓 실시간 통합 관리
+                  </h4>
+                  <p className="text-xs text-ink-soft mt-0.5">
+                    user_tickets 컬렉션 연동. 모든 사용자의 1회 확인권 잔여량을 조회하고 직접 지급·차감·초기화합니다.
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -1783,7 +1724,7 @@ export default function AdminView() {
                     type="button"
                     onClick={refreshAllUserTickets}
                     disabled={ticketActionLoading}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-white border border-[#D6CCBC] text-[#5A4D41] hover:bg-[#F5EFE6] text-xs font-bold rounded-xl transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-sunken hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${ticketActionLoading ? "animate-spin" : ""}`} />
                     <span>DB 새로고침</span>
@@ -1793,18 +1734,18 @@ export default function AdminView() {
                     type="button"
                     onClick={handleBatchResetAllToZero}
                     disabled={ticketActionLoading || userTicketAccounts.length === 0}
-                    className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#C0392B] hover:bg-[#A93226] disabled:opacity-50 text-white text-xs font-serif font-black rounded-xl shadow-xs transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-sunken hover:bg-line disabled:opacity-50 text-seal text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                     title="모든 사용자 티켓을 0장으로 일괄 초기화합니다."
                   >
                     <Trash2 className="w-3.5 h-3.5" />
-                    <span>🔥 전체 계정 0건 일괄 초기화</span>
+                    <span>전체 계정 일괄 초기화</span>
                   </button>
                 </div>
               </div>
 
               {ticketActionMsg && (
-                <div className="text-xs bg-emerald-50 text-emerald-800 border border-emerald-300 p-3 rounded-2xl flex items-center gap-2 animate-fade-in">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="text-xs bg-sunken text-ink p-3 rounded-xl flex items-center gap-2 animate-fade-in">
+                  <CheckCircle2 className="w-4 h-4 text-ink-soft shrink-0" />
                   <span className="font-medium">{ticketActionMsg}</span>
                 </div>
               )}
@@ -1819,25 +1760,25 @@ export default function AdminView() {
 
                 return (
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
-                    <div className="bg-white p-3 rounded-2xl border border-[#E8E0D0]">
-                      <div className="text-[10px] text-gray-500 font-bold">등록 계정 수</div>
-                      <div className="font-mono font-black text-base text-[#2C3E50]">{userTicketAccounts.length}명</div>
+                    <div className="bg-sunken p-3 rounded-xl">
+                      <div className="text-xs text-ink-faint">등록 계정 수</div>
+                      <div className="font-mono font-semibold text-base text-ink">{userTicketAccounts.length}명</div>
                     </div>
-                    <div className="bg-white p-3 rounded-2xl border border-[#E8E0D0]">
-                      <div className="text-[10px] text-amber-700 font-bold">📄 PDF 소장권</div>
-                      <div className="font-mono font-black text-base text-amber-900">{totalPdf}장</div>
+                    <div className="bg-sunken p-3 rounded-xl">
+                      <div className="text-xs text-ink-faint">PDF 소장권</div>
+                      <div className="font-mono font-semibold text-base text-ink">{totalPdf}장</div>
                     </div>
-                    <div className="bg-white p-3 rounded-2xl border border-[#E8E0D0]">
-                      <div className="text-[10px] text-rose-700 font-bold">🔒 비밀인연권</div>
-                      <div className="font-mono font-black text-base text-rose-900">{totalSecret}장</div>
+                    <div className="bg-sunken p-3 rounded-xl">
+                      <div className="text-xs text-ink-faint">비밀인연권</div>
+                      <div className="font-mono font-semibold text-base text-ink">{totalSecret}장</div>
                     </div>
-                    <div className="bg-white p-3 rounded-2xl border border-[#E8E0D0]">
-                      <div className="text-[10px] text-blue-700 font-bold">👥 그룹오행권</div>
-                      <div className="font-mono font-black text-base text-blue-900">{totalGroup}장</div>
+                    <div className="bg-sunken p-3 rounded-xl">
+                      <div className="text-xs text-ink-faint">그룹오행권</div>
+                      <div className="font-mono font-semibold text-base text-ink">{totalGroup}장</div>
                     </div>
-                    <div className="bg-white p-3 rounded-2xl border border-amber-300 bg-amber-50/50 col-span-2 sm:col-span-1">
-                      <div className="text-[10px] text-[#C0392B] font-bold">👑 올패스 / 총합</div>
-                      <div className="font-mono font-black text-base text-[#C0392B]">{totalAll}장 (총 {grandTotal}장)</div>
+                    <div className="bg-sunken p-3 rounded-xl col-span-2 sm:col-span-1">
+                      <div className="text-xs text-ink-faint">올패스 / 총합</div>
+                      <div className="font-mono font-semibold text-base text-ink">{totalAll}장 (총 {grandTotal}장)</div>
                     </div>
                   </div>
                 );
@@ -1849,29 +1790,29 @@ export default function AdminView() {
                   type="text"
                   value={ticketSearchQuery}
                   onChange={(e) => setTicketSearchQuery(e.target.value)}
-                  placeholder="UID 또는 추천인 코드로 계정 검색..."
-                  className="px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs flex-1 min-w-[200px] focus:outline-none focus:border-[#C0392B]"
+                  placeholder="UID 또는 추천인 코드로 계정 검색"
+                  className="px-3 py-2 bg-sunken rounded-xl text-xs flex-1 min-w-[200px] text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-ink"
                 />
-                <span className="text-[11px] text-[#5C5046]">
+                <span className="text-xs text-ink-faint">
                   표시 중: {userTicketAccounts.filter(a => !ticketSearchQuery || a.userUid.toLowerCase().includes(ticketSearchQuery.toLowerCase()) || (a.referralCode || "").toLowerCase().includes(ticketSearchQuery.toLowerCase())).length}개
                 </span>
               </div>
 
               {/* User Tickets Table */}
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs bg-white rounded-2xl overflow-hidden border border-[#E8E0D0]">
-                  <thead className="bg-[#FAF8F5] text-[#5A4D41] border-b border-[#E8E0D0] text-[11px]">
+                <table className="w-full text-left text-xs">
+                  <thead className="text-ink-faint border-b border-line text-xs">
                     <tr>
-                      <th className="p-3 font-serif font-bold">사용자 UID / 추천인</th>
-                      <th className="p-3 font-serif font-bold text-center">PDF</th>
-                      <th className="p-3 font-serif font-bold text-center">비밀인연</th>
-                      <th className="p-3 font-serif font-bold text-center">그룹오행</th>
-                      <th className="p-3 font-serif font-bold text-center">올패스</th>
-                      <th className="p-3 font-serif font-bold text-center">등급</th>
-                      <th className="p-3 font-serif font-bold text-center">티켓 지급 / 차감 / 초기화 조작</th>
+                      <th className="p-3 font-medium">사용자 UID / 추천인</th>
+                      <th className="p-3 font-medium text-center">PDF</th>
+                      <th className="p-3 font-medium text-center">비밀인연</th>
+                      <th className="p-3 font-medium text-center">그룹오행</th>
+                      <th className="p-3 font-medium text-center">올패스</th>
+                      <th className="p-3 font-medium text-center">등급</th>
+                      <th className="p-3 font-medium text-center">지급 / 차감 / 초기화</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E8E0D0]">
+                  <tbody className="divide-y divide-line">
                     {userTicketAccounts
                       .filter(a => !ticketSearchQuery || a.userUid.toLowerCase().includes(ticketSearchQuery.toLowerCase()) || (a.referralCode || "").toLowerCase().includes(ticketSearchQuery.toLowerCase()))
                       .map((acc) => {
@@ -1879,22 +1820,22 @@ export default function AdminView() {
                         const isExpanded = expandedUserUid === acc.userUid;
                         return (
                           <React.Fragment key={acc.userUid}>
-                            <tr className={`hover:bg-amber-50/40 transition ${isCurrentMaster ? "bg-amber-50/30 font-medium" : ""} ${isExpanded ? "bg-amber-50/20" : ""}`}>
+                            <tr className={`hover:bg-sunken transition-colors ${isCurrentMaster ? "font-medium" : ""} ${isExpanded ? "bg-sunken/60" : ""}`}>
                               <td className="p-3">
                                 <div className="flex items-center gap-1.5">
-                                  <span className="font-mono text-xs text-[#2C3E50]">{acc.userUid}</span>
+                                  <span className="font-mono text-xs text-ink">{acc.userUid}</span>
                                   {isCurrentMaster && (
-                                    <span className="px-1.5 py-0.2 bg-amber-500 text-white rounded text-[9px] font-bold">
+                                    <span className="px-1.5 py-0.5 bg-sunken text-ink-soft rounded-md text-xs font-medium">
                                       내 계정
                                     </span>
                                   )}
                                   <button
                                     type="button"
                                     onClick={() => setExpandedUserUid(isExpanded ? null : acc.userUid)}
-                                    className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded border text-[9px] font-serif font-bold transition ml-1 cursor-pointer ${
+                                    className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-xs font-medium transition-colors ml-1 cursor-pointer ${
                                       isExpanded
-                                        ? "bg-amber-200 border-amber-300 text-amber-950"
-                                        : "bg-white hover:bg-amber-50 border-[#D6CCBC] text-[#7C5A3E]"
+                                        ? "bg-line text-ink"
+                                        : "bg-sunken hover:bg-line text-ink-soft"
                                     }`}
                                     title="티켓 발급/유입 경로 추적"
                                   >
@@ -1902,28 +1843,24 @@ export default function AdminView() {
                                     <span>경로 추적</span>
                                   </button>
                                 </div>
-                                <div className="text-[10px] text-gray-500 font-mono">
+                                <div className="text-xs text-ink-faint font-mono">
                                   추천코드: {acc.referralCode || "-"} (초대: {acc.invitedCount || 0}명)
                                 </div>
                               </td>
-                              <td className="p-3 text-center font-mono font-bold text-amber-900">
+                              <td className="p-3 text-center font-mono font-semibold text-ink">
                                 {acc.tickets?.pdf || 0}
                               </td>
-                              <td className="p-3 text-center font-mono font-bold text-rose-900">
+                              <td className="p-3 text-center font-mono font-semibold text-ink">
                                 {acc.tickets?.secret || 0}
                               </td>
-                              <td className="p-3 text-center font-mono font-bold text-blue-900">
+                              <td className="p-3 text-center font-mono font-semibold text-ink">
                                 {acc.tickets?.group || 0}
                               </td>
-                              <td className="p-3 text-center font-mono font-bold text-[#C0392B]">
+                              <td className="p-3 text-center font-mono font-semibold text-ink">
                                 {acc.tickets?.all || 0}
                               </td>
                               <td className="p-3 text-center">
-                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                  acc.userTier === "paid" ? "bg-rose-100 text-rose-800" :
-                                  acc.userTier === "coupon" ? "bg-amber-100 text-amber-900" :
-                                  "bg-gray-100 text-gray-700"
-                                }`}>
+                                <span className="px-2 py-0.5 rounded-md text-xs bg-sunken text-ink-soft">
                                   {acc.userTier || "free"}
                                 </span>
                               </td>
@@ -1935,7 +1872,7 @@ export default function AdminView() {
                                     onClick={() => handleAdjustTickets(acc.userUid, "pdf", 1, "관리자 빠른 지급")}
                                     disabled={ticketActionLoading}
                                     title="PDF 1장 지급"
-                                    className="px-1.5 py-0.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded text-[10px] font-bold cursor-pointer"
+                                    className="px-1.5 py-0.5 bg-sunken hover:bg-line text-ink rounded-md text-xs font-medium cursor-pointer"
                                   >
                                     +PDF
                                   </button>
@@ -1944,7 +1881,7 @@ export default function AdminView() {
                                     onClick={() => handleAdjustTickets(acc.userUid, "secret", 1, "관리자 빠른 지급")}
                                     disabled={ticketActionLoading}
                                     title="비밀인연 1장 지급"
-                                    className="px-1.5 py-0.5 bg-rose-100 hover:bg-rose-200 text-rose-900 rounded text-[10px] font-bold cursor-pointer"
+                                    className="px-1.5 py-0.5 bg-sunken hover:bg-line text-ink rounded-md text-xs font-medium cursor-pointer"
                                   >
                                     +비밀
                                   </button>
@@ -1953,7 +1890,7 @@ export default function AdminView() {
                                     onClick={() => handleAdjustTickets(acc.userUid, "group", 1, "관리자 빠른 지급")}
                                     disabled={ticketActionLoading}
                                     title="그룹오행 1장 지급"
-                                    className="px-1.5 py-0.5 bg-blue-100 hover:bg-blue-200 text-blue-900 rounded text-[10px] font-bold cursor-pointer"
+                                    className="px-1.5 py-0.5 bg-sunken hover:bg-line text-ink rounded-md text-xs font-medium cursor-pointer"
                                   >
                                     +그룹
                                   </button>
@@ -1962,7 +1899,7 @@ export default function AdminView() {
                                     onClick={() => handleAdjustTickets(acc.userUid, "all", 1, "관리자 빠른 지급")}
                                     disabled={ticketActionLoading}
                                     title="올패스 1장 지급"
-                                    className="px-1.5 py-0.5 bg-purple-100 hover:bg-purple-200 text-purple-900 rounded text-[10px] font-bold cursor-pointer"
+                                    className="px-1.5 py-0.5 bg-sunken hover:bg-line text-ink rounded-md text-xs font-medium cursor-pointer"
                                   >
                                     +올패스
                                   </button>
@@ -1973,7 +1910,7 @@ export default function AdminView() {
                                     onClick={() => handleAdjustTickets(acc.userUid, "pdf", -1, "관리자 빠른 차감")}
                                     disabled={ticketActionLoading || (acc.tickets?.pdf || 0) <= 0}
                                     title="PDF 1장 차감"
-                                    className="px-1.5 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 rounded text-[10px] font-bold cursor-pointer"
+                                    className="px-1.5 py-0.5 bg-sunken hover:bg-line text-ink-soft disabled:opacity-30 rounded-md text-xs font-medium cursor-pointer"
                                   >
                                     -PDF
                                   </button>
@@ -1982,7 +1919,7 @@ export default function AdminView() {
                                     onClick={() => handleAdjustTickets(acc.userUid, "secret", -1, "관리자 빠른 차감")}
                                     disabled={ticketActionLoading || (acc.tickets?.secret || 0) <= 0}
                                     title="비밀 1장 차감"
-                                    className="px-1.5 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 rounded text-[10px] font-bold cursor-pointer"
+                                    className="px-1.5 py-0.5 bg-sunken hover:bg-line text-ink-soft disabled:opacity-30 rounded-md text-xs font-medium cursor-pointer"
                                   >
                                     -비밀
                                   </button>
@@ -1991,7 +1928,7 @@ export default function AdminView() {
                                     onClick={() => handleAdjustTickets(acc.userUid, "group", -1, "관리자 빠른 차감")}
                                     disabled={ticketActionLoading || (acc.tickets?.group || 0) <= 0}
                                     title="그룹 1장 차감"
-                                    className="px-1.5 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-30 rounded text-[10px] font-bold cursor-pointer"
+                                    className="px-1.5 py-0.5 bg-sunken hover:bg-line text-ink-soft disabled:opacity-30 rounded-md text-xs font-medium cursor-pointer"
                                   >
                                     -그룹
                                   </button>
@@ -2002,7 +1939,7 @@ export default function AdminView() {
                                     onClick={() => handleResetUserToZero(acc.userUid)}
                                     disabled={ticketActionLoading}
                                     title="보유 티켓을 0장으로 초기화"
-                                    className="px-2 py-0.5 bg-[#C0392B] hover:bg-[#A93226] text-white rounded text-[10px] font-bold transition cursor-pointer flex items-center gap-0.5 ml-1"
+                                    className="px-2 py-0.5 bg-sunken hover:bg-line text-seal rounded-md text-xs font-medium transition-colors cursor-pointer flex items-center gap-0.5 ml-1"
                                   >
                                     <span>0건 초기화</span>
                                   </button>
@@ -2013,7 +1950,7 @@ export default function AdminView() {
                                     onClick={() => handleDeleteUserAccount(acc.userUid)}
                                     disabled={ticketActionLoading}
                                     title="Firestore user_tickets 문서 완전 삭제"
-                                    className="p-1 bg-stone-100 hover:bg-red-100 text-stone-600 hover:text-red-700 rounded text-[10px] font-bold transition cursor-pointer"
+                                    className="p-1 text-ink-faint hover:text-seal rounded-md transition-colors cursor-pointer"
                                   >
                                     <Trash2 className="w-3 h-3" />
                                   </button>
@@ -2021,51 +1958,47 @@ export default function AdminView() {
                               </td>
                             </tr>
                             {isExpanded && (
-                              <tr className="bg-amber-50/20">
-                                <td colSpan={7} className="p-4 border-t border-b border-amber-100 bg-amber-50/10">
+                              <tr className="bg-sunken/60">
+                                <td colSpan={7} className="p-4">
                                   <div className="space-y-2 max-w-4xl mx-auto">
-                                    <div className="flex items-center justify-between border-b border-amber-200/50 pb-2">
-                                      <h5 className="font-serif font-black text-xs text-[#2C3E50] flex items-center gap-1.5">
-                                        <History className="w-3.5 h-3.5 text-amber-700" />
-                                        <span>티켓 획득 경로 및 발급 세부 이력 추적:</span>
-                                        <span className="font-mono text-amber-800 text-[11px] font-bold">{acc.userUid}</span>
+                                    <div className="flex items-center justify-between border-b border-line pb-2">
+                                      <h5 className="font-semibold text-xs text-ink flex items-center gap-1.5">
+                                        <History className="w-3.5 h-3.5 text-ink-soft" />
+                                        <span>티켓 획득 경로·발급 이력</span>
+                                        <span className="font-mono text-ink-soft text-xs">{acc.userUid}</span>
                                       </h5>
                                       <button
                                         type="button"
                                         onClick={() => setExpandedUserUid(null)}
-                                        className="text-[10px] text-amber-800 hover:underline hover:text-[#C0392B] cursor-pointer"
+                                        className="text-xs text-ink-soft hover:text-ink cursor-pointer"
                                       >
                                         상세 닫기
                                       </button>
                                     </div>
                                     {!acc.grantHistory || acc.grantHistory.length === 0 ? (
-                                      <p className="text-[11px] text-stone-500 py-2 pl-1 italic">
-                                        기록된 획득 이력이 존재하지 않습니다. (최근 업데이트 이전 발급되었거나 기본 초기 상태)
+                                      <p className="text-xs text-ink-faint py-2 pl-1">
+                                        기록된 획득 이력이 없습니다. (최근 업데이트 이전 발급되었거나 기본 초기 상태)
                                       </p>
                                     ) : (
                                       <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
                                         {acc.grantHistory.map((g) => (
-                                          <div key={g.id || Math.random().toString()} className="flex items-center justify-between bg-white p-2.5 rounded-xl border border-amber-100 text-[11px] shadow-2xs hover:border-amber-200 transition">
+                                          <div key={g.id || Math.random().toString()} className="flex items-center justify-between bg-surface p-2.5 rounded-xl text-xs">
                                             <div className="flex items-center gap-2 flex-wrap">
-                                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                                                g.sourceType === "coupon" ? "bg-amber-100 text-amber-900 border border-amber-200" :
-                                                g.sourceType === "referral" ? "bg-emerald-100 text-emerald-900 border border-emerald-200" :
-                                                g.sourceType === "manual_admin" ? "bg-blue-100 text-blue-900 border border-blue-200" : "bg-gray-100 text-gray-700 border border-gray-200"
-                                              }`}>
-                                                {g.sourceType === "coupon" ? `🎟️ 쿠폰 [${g.couponCode}]` :
-                                                 g.sourceType === "referral" ? "👥 친구 초대" :
-                                                 g.sourceType === "manual_admin" ? "✍️ 수동 지급" : "🔄 시스템"}
+                                              <span className="px-1.5 py-0.5 rounded-md text-xs bg-sunken text-ink-soft font-medium">
+                                                {g.sourceType === "coupon" ? `쿠폰 [${g.couponCode}]` :
+                                                 g.sourceType === "referral" ? "친구 초대" :
+                                                 g.sourceType === "manual_admin" ? "수동 지급" : "시스템"}
                                               </span>
-                                              <span className="text-[#2C3E50] font-bold">
-                                                {g.productType === "pdf" ? "📄 AI 심층 리포트 PDF 소장권" :
-                                                 g.productType === "secret" ? "🔒 비밀 인연 궁합 해독권" :
-                                                 g.productType === "group" ? "👥 그룹 오행 분석권" : "👑 전체 1회 올패스"}
-                                                <span className="text-[#C0392B] ml-1 font-mono font-black">+{g.amount}장</span>
+                                              <span className="text-ink font-medium">
+                                                {g.productType === "pdf" ? "심층 리포트 PDF 소장권" :
+                                                 g.productType === "secret" ? "비밀 인연 궁합 해독권" :
+                                                 g.productType === "group" ? "그룹 오행 분석권" : "전체 1회 올패스"}
+                                                <span className="text-ink ml-1 font-mono font-semibold">+{g.amount}장</span>
                                               </span>
-                                              <span className="text-gray-300 font-mono text-[10px]">|</span>
-                                              <span className="text-stone-600 font-medium">{g.reason}</span>
+                                              <span className="text-ink-faint font-mono text-xs">|</span>
+                                              <span className="text-ink-soft">{g.reason}</span>
                                             </div>
-                                            <span className="text-stone-400 text-[10px] font-mono shrink-0">
+                                            <span className="text-ink-faint text-xs font-mono shrink-0">
                                               {new Date(g.timestamp).toLocaleString("ko-KR")}
                                             </span>
                                           </div>
@@ -2085,18 +2018,15 @@ export default function AdminView() {
             </div>
 
             {/* 2. Manual Custom Ticket Grant Box */}
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-4 shadow-xs">
-              <div className="flex items-center space-x-2">
-                <Plus className="w-4 h-4 text-[#C0392B]" />
-                <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                  ✍️ 특정 사용자 UID 대상 티켓 직접 발급 및 충전
-                </h4>
-              </div>
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
+              <h4 className="text-[15px] font-semibold text-ink">
+                특정 사용자 티켓 직접 지급
+              </h4>
 
               <form onSubmit={handleManualGrantSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
+                    <label className="text-xs font-medium text-ink-soft block mb-1">
                       대상 사용자 UID
                     </label>
                     <input
@@ -2104,28 +2034,28 @@ export default function AdminView() {
                       value={grantUid}
                       onChange={(e) => setGrantUid(e.target.value)}
                       placeholder="예: 2mY... 또는 guest_..."
-                      className="w-full px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs font-mono font-bold focus:outline-none focus:border-[#C0392B]"
+                      className="w-full px-3 py-2 bg-sunken rounded-xl text-xs font-mono text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-ink"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
+                    <label className="text-xs font-medium text-ink-soft block mb-1">
                       지급 품목
                     </label>
                     <select
                       value={grantProduct}
                       onChange={(e: any) => setGrantProduct(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs font-medium focus:outline-none focus:border-[#C0392B]"
+                      className="w-full px-3 py-2 bg-sunken rounded-xl text-xs text-ink focus:outline-none focus:ring-1 focus:ring-ink"
                     >
-                      <option value="pdf">📄 AI 심층 리포트 PDF 소장권</option>
-                      <option value="secret">🔒 비밀 인연·속마음 상성 해독권</option>
-                      <option value="group">👥 그룹 오행 총괄 분석서</option>
-                      <option value="all">👑 전체 기능 1회 올패스</option>
+                      <option value="pdf">심층 리포트 PDF 소장권</option>
+                      <option value="secret">비밀 인연·속마음 상성 해독권</option>
+                      <option value="group">그룹 오행 총괄 분석서</option>
+                      <option value="all">전체 기능 1회 올패스</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
+                    <label className="text-xs font-medium text-ink-soft block mb-1">
                       지급 수량 (장)
                     </label>
                     <input
@@ -2134,12 +2064,12 @@ export default function AdminView() {
                       max={100}
                       value={grantAmount}
                       onChange={(e) => setGrantAmount(Number(e.target.value))}
-                      className="w-full px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs font-mono font-bold focus:outline-none focus:border-[#C0392B]"
+                      className="w-full px-3 py-2 bg-sunken rounded-xl text-xs font-mono text-ink focus:outline-none focus:ring-1 focus:ring-ink"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
+                    <label className="text-xs font-medium text-ink-soft block mb-1">
                       지급 사유
                     </label>
                     <input
@@ -2147,7 +2077,7 @@ export default function AdminView() {
                       value={grantReason}
                       onChange={(e) => setGrantReason(e.target.value)}
                       placeholder="예: 고객센터 보상, 이벤트 참여"
-                      className="w-full px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs focus:outline-none focus:border-[#C0392B]"
+                      className="w-full px-3 py-2 bg-sunken rounded-xl text-xs text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-ink"
                     />
                   </div>
                 </div>
@@ -2156,28 +2086,25 @@ export default function AdminView() {
                   <button
                     type="submit"
                     disabled={ticketActionLoading || !grantUid.trim()}
-                    className="flex items-center space-x-1.5 px-5 py-2.5 bg-[#C0392B] hover:bg-[#A93226] disabled:opacity-50 text-white text-xs font-serif font-black rounded-xl shadow-md transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-5 py-2.5 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>{ticketActionLoading ? "처리 중..." : "Firestore DB에 티켓 즉시 지급하기"}</span>
+                    <span>{ticketActionLoading ? "처리 중..." : "티켓 지급하기"}</span>
                   </button>
                 </div>
               </form>
             </div>
 
             {/* Create New 1-Use Coupon */}
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-4 shadow-xs">
-              <div className="flex items-center space-x-2">
-                <Ticket className="w-4 h-4 text-[#C0392B]" />
-                <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                  🎟️ 1회 확인권 프로모션 쿠폰 신규 발급
-                </h4>
-              </div>
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
+              <h4 className="text-[15px] font-semibold text-ink">
+                프로모션 쿠폰 신규 발급
+              </h4>
 
               <form onSubmit={handleIssueCoupon} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
-                    <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
+                    <label className="text-xs font-medium text-ink-soft block mb-1">
                       쿠폰 코드 (대문자 자동 변환)
                     </label>
                     <input
@@ -2185,28 +2112,28 @@ export default function AdminView() {
                       value={newCouponCode}
                       onChange={(e) => setNewCouponCode(e.target.value.toUpperCase())}
                       placeholder="예: VIP2026, SUMMER100"
-                      className="w-full px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs font-mono font-bold focus:outline-none focus:border-[#C0392B]"
+                      className="w-full px-3 py-2 bg-sunken rounded-xl text-xs font-mono text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-ink"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
+                    <label className="text-xs font-medium text-ink-soft block mb-1">
                       지급할 1회 확인권 품목
                     </label>
                     <select
                       value={newCouponProduct}
                       onChange={(e: any) => setNewCouponProduct(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs font-medium focus:outline-none focus:border-[#C0392B]"
+                      className="w-full px-3 py-2 bg-sunken rounded-xl text-xs text-ink focus:outline-none focus:ring-1 focus:ring-ink"
                     >
-                      <option value="pdf">📄 AI 심층 리포트 PDF 소장권</option>
-                      <option value="secret">🔒 비밀 인연·속마음 상성 해독권</option>
-                      <option value="group">👥 그룹 오행 총괄 분석서</option>
-                      <option value="all">👑 전체 기능 1회 올패스</option>
+                      <option value="pdf">심층 리포트 PDF 소장권</option>
+                      <option value="secret">비밀 인연·속마음 상성 해독권</option>
+                      <option value="group">그룹 오행 총괄 분석서</option>
+                      <option value="all">전체 기능 1회 올패스</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
+                    <label className="text-xs font-medium text-ink-soft block mb-1">
                       최대 사용 가능 횟수
                     </label>
                     <input
@@ -2216,26 +2143,26 @@ export default function AdminView() {
                         const val = e.target.value === "" ? 0 : Number(e.target.value);
                         setNewCouponMaxUses(val);
                       }}
-                      className="w-full px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs font-mono font-bold focus:outline-none focus:border-[#C0392B]"
+                      className="w-full px-3 py-2 bg-sunken rounded-xl text-xs font-mono text-ink focus:outline-none focus:ring-1 focus:ring-ink"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
-                      유입 경로 / 광고 캠페인 소스
+                    <label className="text-xs font-medium text-ink-soft block mb-1">
+                      유입 경로 / 캠페인 소스
                     </label>
                     <input
                       type="text"
                       value={newCampaignSource}
                       onChange={(e) => setNewCampaignSource(e.target.value)}
                       placeholder="예: 인스타그램 광고, 오프라인 홍보"
-                      className="w-full px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs focus:outline-none focus:border-[#C0392B] font-medium text-[#2C3E50]"
+                      className="w-full px-3 py-2 bg-sunken rounded-xl text-xs text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-ink"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
+                  <label className="text-xs font-medium text-ink-soft block mb-1">
                     쿠폰 설명 (내부 관리용)
                   </label>
                   <input
@@ -2243,17 +2170,17 @@ export default function AdminView() {
                     value={newCouponDescription}
                     onChange={(e) => setNewCouponDescription(e.target.value)}
                     placeholder="예: 인플루언서 마케팅 연계 1회 전용 체험 쿠폰"
-                    className="w-full px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs focus:outline-none focus:border-[#C0392B] font-medium text-[#2C3E50]"
+                    className="w-full px-3 py-2 bg-sunken rounded-xl text-xs text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-ink"
                   />
                 </div>
 
                 {couponError && (
-                  <div className="text-xs text-red-700 bg-red-50 p-2.5 rounded-xl border border-red-200">
+                  <div className="text-xs text-seal bg-sunken p-2.5 rounded-xl font-medium">
                     {couponError}
                   </div>
                 )}
                 {couponSuccess && (
-                  <div className="text-xs text-emerald-800 bg-emerald-50 p-2.5 rounded-xl border border-emerald-300">
+                  <div className="text-xs text-ink bg-sunken p-2.5 rounded-xl font-medium">
                     {couponSuccess}
                   </div>
                 )}
@@ -2262,71 +2189,68 @@ export default function AdminView() {
                   <button
                     type="submit"
                     disabled={issuing}
-                    className="flex items-center space-x-1.5 px-5 py-2.5 bg-[#C0392B] hover:bg-[#A93226] text-white text-xs font-serif font-black rounded-xl shadow-md transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-5 py-2.5 bg-seal hover:bg-seal-deep text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    <span>{issuing ? "발급 처리 중..." : "1회권 쿠폰 즉시 발급하기"}</span>
+                    <span>{issuing ? "발급 처리 중..." : "쿠폰 발급하기"}</span>
                   </button>
                 </div>
               </form>
             </div>
 
             {/* Coupons List Table */}
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-4 shadow-xs">
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
               <div className="flex items-center justify-between animate-fade-in">
-                <div className="flex items-center gap-2">
-                  <Ticket className="w-4 h-4 text-[#C0392B]" />
-                  <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                    발급된 1회 확인권 쿠폰 목록 ({coupons.length}개)
-                  </h4>
-                </div>
-                <span className="text-[10px] text-[#5C5046]">실시간 유입 경로 및 등록 추적 연동됨</span>
+                <h4 className="text-[15px] font-semibold text-ink">
+                  발급된 쿠폰 목록 ({coupons.length}개)
+                </h4>
+                <span className="text-xs text-ink-faint">유입 경로·등록 추적 연동</span>
               </div>
 
               {coupons.length === 0 ? (
-                <div className="p-8 text-center text-xs text-[#5C5046] bg-white rounded-2xl border border-dashed border-[#E0D8CC]">
+                <div className="p-8 text-center text-xs text-ink-faint bg-sunken rounded-xl">
                   발급된 커스텀 쿠폰이 없습니다.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs bg-white rounded-2xl overflow-hidden border border-[#E8E0D0]">
-                    <thead className="bg-[#FAF8F5] text-[#5A4D41] border-b border-[#E8E0D0] text-[11px]">
+                  <table className="w-full text-left text-xs">
+                    <thead className="text-ink-faint border-b border-line text-xs">
                       <tr>
-                        <th className="p-3 font-serif font-bold">쿠폰 코드</th>
-                        <th className="p-3 font-serif font-bold">유입 캠페인 경로</th>
-                        <th className="p-3 font-serif font-bold">쿠폰 목적 및 설명</th>
-                        <th className="p-3 font-serif font-bold">대상 품목</th>
-                        <th className="p-3 font-serif font-bold text-center">사용 / 한도</th>
-                        <th className="p-3 font-serif font-bold">생성 일시</th>
-                        <th className="p-3 font-serif font-bold text-center">조회 / 관리</th>
+                        <th className="p-3 font-medium">쿠폰 코드</th>
+                        <th className="p-3 font-medium">유입 캠페인 경로</th>
+                        <th className="p-3 font-medium">쿠폰 설명</th>
+                        <th className="p-3 font-medium">대상 품목</th>
+                        <th className="p-3 font-medium text-center">사용 / 한도</th>
+                        <th className="p-3 font-medium">생성 일시</th>
+                        <th className="p-3 font-medium text-center">조회 / 관리</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E8E0D0]">
+                    <tbody className="divide-y divide-line">
                       {coupons.map((c) => {
                         const isExhausted = c.usedCount >= c.maxUses;
                         return (
-                          <tr key={c.code} className="hover:bg-amber-50/40 transition">
-                            <td className="p-3 font-mono font-black text-[#2C3E50]">{c.code}</td>
-                            <td className="p-3 font-medium text-[#7C5A3E]">
-                              {c.campaignSource || <span className="text-gray-400 text-[10px]">-</span>}
+                          <tr key={c.code} className="hover:bg-sunken transition-colors">
+                            <td className="p-3 font-mono font-semibold text-ink">{c.code}</td>
+                            <td className="p-3 text-ink-soft">
+                              {c.campaignSource || <span className="text-ink-faint text-xs">-</span>}
                             </td>
-                            <td className="p-3 text-[#555] max-w-xs truncate" title={c.description}>
-                              {c.description || <span className="text-gray-400 text-[10px]">-</span>}
+                            <td className="p-3 text-ink-soft max-w-xs truncate" title={c.description}>
+                              {c.description || <span className="text-ink-faint text-xs">-</span>}
                             </td>
                             <td className="p-3">
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                {c.productType === "pdf" ? "📄 PDF 리포트" :
-                                 c.productType === "secret" ? "🔒 비밀 인연" :
-                                 c.productType === "group" ? "👥 그룹 오행" : "👑 전체 올패스"}
+                              <span className="px-2 py-0.5 rounded-md text-xs bg-sunken text-ink-soft">
+                                {c.productType === "pdf" ? "PDF 리포트" :
+                                 c.productType === "secret" ? "비밀 인연" :
+                                 c.productType === "group" ? "그룹 오행" : "전체 올패스"}
                               </span>
                             </td>
                             <td className="p-3 text-center font-mono">
-                              <span className={isExhausted ? "text-red-600 font-bold" : "text-emerald-700 font-bold"}>
+                              <span className={isExhausted ? "text-seal font-semibold" : "text-ink font-semibold"}>
                                 {c.usedCount}
                               </span>
-                              <span className="text-gray-400"> / {c.maxUses}</span>
+                              <span className="text-ink-faint"> / {c.maxUses}</span>
                             </td>
-                            <td className="p-3 text-[10px] text-[#5C5046]">
+                            <td className="p-3 text-xs text-ink-faint">
                               {new Date(c.createdAt).toLocaleDateString("ko-KR")}
                             </td>
                             <td className="p-3 text-center">
@@ -2334,7 +2258,7 @@ export default function AdminView() {
                                 <button
                                   type="button"
                                   onClick={() => setSelectedCouponDetails(c)}
-                                  className="px-2 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 font-serif font-black rounded text-[10px] transition cursor-pointer"
+                                  className="px-2 py-1 bg-sunken hover:bg-line text-ink font-medium rounded-md text-xs transition-colors cursor-pointer"
                                   title="유입 유저 추적 및 상세 이력 보기"
                                 >
                                   추적
@@ -2342,7 +2266,7 @@ export default function AdminView() {
                                 <button
                                   type="button"
                                   onClick={() => handleDeleteCoupon(c.code)}
-                                  className="p-1 text-gray-400 hover:text-red-600 transition cursor-pointer"
+                                  className="p-1 text-ink-faint hover:text-seal transition-colors cursor-pointer"
                                   title="쿠폰 삭제"
                                   aria-label="쿠폰 삭제"
                                 >
@@ -2366,76 +2290,73 @@ export default function AdminView() {
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 15 }}
-                  className="bg-[#FFFDF9] p-5 sm:p-6 rounded-3xl border-2 border-amber-300/60 space-y-4 shadow-sm"
+                  className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4"
                 >
-                  <div className="flex items-center justify-between border-b border-amber-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <History className="w-4 h-4 text-amber-700" />
-                      <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                        🎟️ 쿠폰 등록 추적 상세 리포트: <span className="font-mono text-amber-700 font-black">{selectedCouponDetails.code}</span>
-                      </h4>
-                    </div>
+                  <div className="flex items-center justify-between border-b border-line pb-3">
+                    <h4 className="text-[15px] font-semibold text-ink">
+                      쿠폰 등록 추적: <span className="font-mono text-ink-soft">{selectedCouponDetails.code}</span>
+                    </h4>
                     <button
                       type="button"
                       onClick={() => setSelectedCouponDetails(null)}
-                      className="p-1 hover:bg-amber-50 rounded-full text-stone-500 transition cursor-pointer"
+                      className="p-1 hover:bg-sunken rounded-md text-ink-faint hover:text-ink transition-colors cursor-pointer"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-amber-50/40 p-4 rounded-2xl border border-amber-100 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-sunken p-4 rounded-xl text-xs">
                     <div>
-                      <span className="text-gray-500 block mb-0.5">캠페인 경로(유입출처)</span>
-                      <span className="font-bold text-[#2C3E50]">{selectedCouponDetails.campaignSource || "일반 발급"}</span>
+                      <span className="text-ink-faint block mb-0.5">캠페인 경로(유입출처)</span>
+                      <span className="font-semibold text-ink">{selectedCouponDetails.campaignSource || "일반 발급"}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500 block mb-0.5">쿠폰 설명</span>
-                      <span className="font-bold text-[#2C3E50]">{selectedCouponDetails.description || "프로모션 확인권"}</span>
+                      <span className="text-ink-faint block mb-0.5">쿠폰 설명</span>
+                      <span className="font-semibold text-ink">{selectedCouponDetails.description || "프로모션 확인권"}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500 block mb-0.5">총 등록 건수</span>
-                      <span className="font-bold text-[#2C3E50] font-mono">{selectedCouponDetails.usedCount} / {selectedCouponDetails.maxUses}회</span>
+                      <span className="text-ink-faint block mb-0.5">총 등록 건수</span>
+                      <span className="font-semibold text-ink font-mono">{selectedCouponDetails.usedCount} / {selectedCouponDetails.maxUses}회</span>
                     </div>
                     <div>
-                      <span className="text-gray-500 block mb-0.5 font-serif">발급 일시</span>
-                      <span className="text-[#5C5046] font-mono">{new Date(selectedCouponDetails.createdAt).toLocaleString("ko-KR")}</span>
+                      <span className="text-ink-faint block mb-0.5">발급 일시</span>
+                      <span className="text-ink-soft font-mono">{new Date(selectedCouponDetails.createdAt).toLocaleString("ko-KR")}</span>
                     </div>
                   </div>
 
-                  <h5 className="font-serif font-bold text-xs text-[#5A4D41] pt-1">
-                    👥 이 쿠폰을 등록한 사용자 목록 ({selectedCouponDetails.usedDetails?.length || 0}명)
+                  <h5 className="font-medium text-xs text-ink-soft pt-1">
+                    이 쿠폰을 등록한 사용자 목록 ({selectedCouponDetails.usedDetails?.length || 0}명)
                   </h5>
 
                   {!selectedCouponDetails.usedDetails || selectedCouponDetails.usedDetails.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-stone-400 bg-stone-50 rounded-xl border border-dashed border-stone-200">
+                    <div className="p-6 text-center text-xs text-ink-faint bg-sunken rounded-xl">
                       아직 이 쿠폰을 사용한 유입 고객 이력이 없습니다.
                     </div>
                   ) : (
                     <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs bg-white rounded-xl overflow-hidden border border-amber-100">
-                        <thead className="bg-amber-50/30 text-[#5A4D41] border-b border-amber-100 text-[10px]">
+                      <table className="w-full text-left text-xs">
+                        <thead className="text-ink-faint border-b border-line text-xs">
                           <tr>
-                            <th className="p-2.5 font-semibold">등록자 고유 UID</th>
-                            <th className="p-2.5 font-semibold">가입 이메일 / 형태</th>
-                            <th className="p-2.5 font-semibold">쿠폰 유입 출처</th>
-                            <th className="p-2.5 font-semibold">사용된 시각</th>
+                            <th className="p-2.5 font-medium">등록자 고유 UID</th>
+                            <th className="p-2.5 font-medium">가입 이메일 / 형태</th>
+                            <th className="p-2.5 font-medium">쿠폰 유입 출처</th>
+                            <th className="p-2.5 font-medium">사용된 시각</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-amber-100/50">
+                        <tbody className="divide-y divide-line">
                           {selectedCouponDetails.usedDetails.map((ud, idx) => (
-                            <tr key={idx} className="hover:bg-amber-50/10 transition">
-                              <td className="p-2.5 font-mono font-bold text-gray-700 text-[11px]">{ud.uid}</td>
+                            <tr key={idx} className="hover:bg-sunken transition-colors">
+                              <td className="p-2.5 font-mono font-semibold text-ink text-xs">{ud.uid}</td>
                               <td className="p-2.5">
-                                <span className="px-1.5 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-mono mr-1.5">
+                                <span className="px-1.5 py-0.5 bg-sunken text-ink-soft rounded-md text-xs font-mono mr-1.5">
                                   {ud.uid.startsWith("guest_") ? "게스트" : "회원"}
                                 </span>
-                                <span className="font-medium text-stone-600">{ud.userEmail || "알 수 없음"}</span>
+                                <span className="font-medium text-ink-soft">{ud.userEmail || "알 수 없음"}</span>
                               </td>
-                              <td className="p-2.5 text-stone-500 font-medium">
+                              <td className="p-2.5 text-ink-soft">
                                 {ud.campaignSource || selectedCouponDetails.campaignSource || "일반 발급"}
                               </td>
-                              <td className="p-2.5 font-mono text-[10px] text-stone-500">
+                              <td className="p-2.5 font-mono text-xs text-ink-faint">
                                 {new Date(ud.redeemedAt).toLocaleString("ko-KR")}
                               </td>
                             </tr>
@@ -2449,19 +2370,14 @@ export default function AdminView() {
             </AnimatePresence>
 
             {/* 3. Ticket Consumption Log History (Real-time tracking by User ID) */}
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-4 shadow-xs">
-              <div className="flex items-center space-x-2">
-                <div className="p-2 bg-[#C0392B] text-white rounded-xl shadow-xs">
-                  <Database className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                    📋 1회 확인권 & 쿠폰 실시간 소비 이력 로그 (ID별 수집)
-                  </h4>
-                  <p className="text-[11px] text-[#5C5046]">
-                    사용자들이 만세력 및 사주 결과 해금을 위해 보유 1회권을 소모한 전체 이력을 실시간으로 조회합니다.
-                  </p>
-                </div>
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
+              <div>
+                <h4 className="text-[15px] font-semibold text-ink">
+                  확인권·쿠폰 소비 이력 로그
+                </h4>
+                <p className="text-xs text-ink-soft mt-0.5">
+                  사용자가 만세력·사주 결과를 해금하며 보유 확인권을 소모한 전체 이력입니다.
+                </p>
               </div>
 
               {/* Search filter for logs */}
@@ -2470,68 +2386,60 @@ export default function AdminView() {
                   type="text"
                   value={ticketLogSearchQuery}
                   onChange={(e) => setTicketLogSearchQuery(e.target.value)}
-                  placeholder="UID, 이메일 또는 소비 항목명으로 로그 필터링..."
-                  className="px-3 py-2 bg-white border border-[#D6CCBC] rounded-xl text-xs flex-1 max-w-sm focus:outline-none focus:border-[#C0392B]"
+                  placeholder="UID, 이메일 또는 소비 항목명으로 필터링"
+                  className="px-3 py-2 bg-sunken rounded-xl text-xs flex-1 max-w-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-ink"
                 />
-                <span className="text-[11px] text-[#5C5046] font-medium">
+                <span className="text-xs text-ink-faint">
                   총 {aggregatedConsumptionLogs.filter(l => !ticketLogSearchQuery || l.uid.toLowerCase().includes(ticketLogSearchQuery.toLowerCase()) || (l.label || "").toLowerCase().includes(ticketLogSearchQuery.toLowerCase()) || (l.email || "").toLowerCase().includes(ticketLogSearchQuery.toLowerCase())).length}건의 기록
                 </span>
               </div>
 
               {/* Logs Table */}
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs bg-white rounded-2xl overflow-hidden border border-[#E8E0D0]">
-                  <thead className="bg-[#FAF8F5] text-[#5A4D41] border-b border-[#E8E0D0] text-[11px]">
+                <table className="w-full text-left text-xs">
+                  <thead className="text-ink-faint border-b border-line text-xs">
                     <tr>
-                      <th className="p-3 font-serif font-bold">소비 시각</th>
-                      <th className="p-3 font-serif font-bold">사용자 UID / 이메일</th>
-                      <th className="p-3 font-serif font-bold">소비 상품</th>
-                      <th className="p-3 font-serif font-bold">소비 사유 / 위치</th>
+                      <th className="p-3 font-medium">소비 시각</th>
+                      <th className="p-3 font-medium">사용자 UID / 이메일</th>
+                      <th className="p-3 font-medium">소비 상품</th>
+                      <th className="p-3 font-medium">소비 사유 / 위치</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#E8E0D0]">
+                  <tbody className="divide-y divide-line">
                     {aggregatedConsumptionLogs.filter(l => !ticketLogSearchQuery || l.uid.toLowerCase().includes(ticketLogSearchQuery.toLowerCase()) || (l.label || "").toLowerCase().includes(ticketLogSearchQuery.toLowerCase()) || (l.email || "").toLowerCase().includes(ticketLogSearchQuery.toLowerCase())).length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="p-8 text-center text-xs text-stone-400 font-medium">
-                          조건에 부합하는 티켓/쿠폰 소비 로그 기록이 없습니다.
+                        <td colSpan={4} className="p-8 text-center text-xs text-ink-faint">
+                          조건에 맞는 확인권·쿠폰 소비 기록이 없습니다.
                         </td>
                       </tr>
                     ) : (
                       aggregatedConsumptionLogs
                         .filter(l => !ticketLogSearchQuery || l.uid.toLowerCase().includes(ticketLogSearchQuery.toLowerCase()) || (l.label || "").toLowerCase().includes(ticketLogSearchQuery.toLowerCase()) || (l.email || "").toLowerCase().includes(ticketLogSearchQuery.toLowerCase()))
                         .map((log, idx) => (
-                          <tr key={idx} className="hover:bg-amber-50/20 transition">
-                            <td className="p-3 text-stone-500 font-mono text-[10.5px]">
+                          <tr key={idx} className="hover:bg-sunken transition-colors">
+                            <td className="p-3 text-ink-faint font-mono text-xs">
                               {new Date(log.timestamp).toLocaleString("ko-KR")}
                             </td>
                             <td className="p-3">
                               <div className="flex flex-col">
-                                <span className="font-mono text-xs font-bold text-stone-700">{log.uid}</span>
-                                <span className="text-[10px] text-stone-500">{log.email}</span>
+                                <span className="font-mono text-xs font-semibold text-ink">{log.uid}</span>
+                                <span className="text-xs text-ink-faint">{log.email}</span>
                               </div>
                             </td>
                             <td className="p-3">
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                log.productType === "pdf"
-                                  ? "bg-rose-50 border border-rose-200 text-rose-800"
-                                  : log.productType === "secret"
-                                  ? "bg-amber-50 border border-amber-200 text-amber-800"
-                                  : log.productType === "group"
-                                  ? "bg-blue-50 border border-blue-200 text-blue-800"
-                                  : "bg-indigo-50 border border-indigo-200 text-indigo-800"
-                              }`}>
+                              <span className="px-2 py-0.5 rounded-md text-xs bg-sunken text-ink-soft">
                                 {log.productType.toUpperCase()}
                               </span>
                             </td>
-                            <td className="p-3 font-medium text-[#2C3E50]">
-                              {log.label || "일반 1회 확인권 소모"}
+                            <td className="p-3 text-ink">
+                              {log.label || "일반 확인권 소모"}
                               {log.roomCode && (
-                                <span className="block text-[9.5px] text-blue-600 font-mono mt-0.5">
+                                <span className="block text-xs text-ink-faint font-mono mt-0.5">
                                   방 코드: {log.roomCode}
                                 </span>
                               )}
                               {log.pairKey && (
-                                <span className="block text-[9.5px] text-emerald-600 font-mono">
+                                <span className="block text-xs text-ink-faint font-mono">
                                   매칭 페어키: {log.pairKey}
                                 </span>
                               )}
@@ -2545,30 +2453,25 @@ export default function AdminView() {
             </div>
 
             {/* 4. 쿠폰 등록 데이터 정합성 검사 및 보정 도구 (Data Reconciliation & Repair) */}
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-4 shadow-xs">
-              <div className="flex items-center space-x-2">
-                <div className="p-2 bg-amber-600 text-white rounded-xl shadow-xs">
-                  <Bug className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                    🎟️ 과거 쿠폰 지급 누락 정밀 검증 및 보정 자동화 도구
-                  </h4>
-                  <p className="text-[11px] text-[#5C5046]">
-                    수정 전 버전 버그(undefined 값 예외로 인한 Firestore 쓰기 실패 및 이력 유실)로 인해 **"쿠폰 사용 이력은 등록되었으나 실제 티켓은 지급되지 않아 계정이 영구 잠금 상태가 된 사용자"**를 전체 데이터베이스에서 자동 스캔하고 원클릭으로 티켓을 보정 지급합니다.
-                  </p>
-                </div>
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-4">
+              <div>
+                <h4 className="text-[15px] font-semibold text-ink">
+                  쿠폰 지급 누락 검증·보정 도구
+                </h4>
+                <p className="text-xs text-ink-soft mt-0.5 leading-relaxed">
+                  이전 버전의 Firestore 쓰기 실패로 쿠폰 사용 이력만 남고 티켓이 지급되지 않은 계정을 전체 데이터베이스에서 찾아, 누락된 티켓을 보정 지급합니다.
+                </p>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   type="button"
                   disabled={isScanning || isRepairing}
                   onClick={handleRunReconciliation}
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300 text-white text-xs font-serif font-black rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-sunken hover:bg-line disabled:opacity-50 text-ink text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <Search className="w-3.5 h-3.5" />
-                  {isScanning ? "정밀 분석 스캔 중..." : "🔍 쿠폰 누락 및 정합성 불일치 정밀 스캔 시작"}
+                  {isScanning ? "스캔 중..." : "누락·정합성 불일치 스캔"}
                 </button>
 
                 {reconcileList.length > 0 && (
@@ -2576,61 +2479,61 @@ export default function AdminView() {
                     type="button"
                     disabled={isScanning || isRepairing}
                     onClick={handleRepairReconciliation}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white text-xs font-serif font-black rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                    className="px-4 py-2.5 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
                   >
                     <CheckSquare className="w-3.5 h-3.5" />
-                    {isRepairing ? "보정 및 자동 복구 진행 중..." : "🔧 미지급 티켓 보정 일괄 자동 복구 실행"}
+                    {isRepairing ? "복구 진행 중..." : "미지급 티켓 일괄 보정"}
                   </button>
                 )}
               </div>
 
               {scanMessage && (
-                <div className="p-3 text-xs bg-amber-50 border border-amber-200 text-amber-900 rounded-xl font-medium">
+                <div className="p-3 text-xs bg-sunken text-ink rounded-xl font-medium">
                   {scanMessage}
                 </div>
               )}
 
               {reconcileList.length > 0 && (
                 <div className="overflow-x-auto mt-2">
-                  <table className="w-full text-left text-xs bg-white rounded-2xl overflow-hidden border border-[#E8E0D0]">
-                    <thead className="bg-[#FAF8F5] text-[#5A4D41] border-b border-[#E8E0D0] text-[10.5px]">
+                  <table className="w-full text-left text-xs">
+                    <thead className="text-ink-faint border-b border-line text-xs">
                       <tr>
-                        <th className="p-3 font-serif font-bold">사용자 UID</th>
-                        <th className="p-3 font-serif font-bold">사용자 이메일</th>
-                        <th className="p-3 font-serif font-bold">등록 쿠폰 코드</th>
-                        <th className="p-3 font-serif font-bold">미지급된 혜택 종류</th>
-                        <th className="p-3 font-serif font-bold">캠페인 경로</th>
-                        <th className="p-3 font-serif font-bold text-center">보정 상태</th>
+                        <th className="p-3 font-medium">사용자 UID</th>
+                        <th className="p-3 font-medium">사용자 이메일</th>
+                        <th className="p-3 font-medium">등록 쿠폰 코드</th>
+                        <th className="p-3 font-medium">미지급 혜택 종류</th>
+                        <th className="p-3 font-medium">캠페인 경로</th>
+                        <th className="p-3 font-medium text-center">보정 상태</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#E8E0D0]">
+                    <tbody className="divide-y divide-line">
                       {reconcileList.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-amber-50/20 transition">
-                          <td className="p-3 font-mono font-bold text-gray-700">{item.uid}</td>
-                          <td className="p-3 font-medium text-stone-600">{item.email}</td>
-                          <td className="p-3 font-mono font-black text-amber-800">{item.couponCode}</td>
+                        <tr key={idx} className="hover:bg-sunken transition-colors">
+                          <td className="p-3 font-mono font-semibold text-ink">{item.uid}</td>
+                          <td className="p-3 text-ink-soft">{item.email}</td>
+                          <td className="p-3 font-mono font-semibold text-ink">{item.couponCode}</td>
                           <td className="p-3">
-                            <span className="px-1.5 py-0.5 rounded text-[9.5px] font-extrabold bg-rose-50 border border-rose-100 text-rose-800">
-                              {item.productType === "pdf" ? "📄 PDF 소장권" :
-                               item.productType === "secret" ? "🔒 비밀 인연" :
-                               item.productType === "group" ? "👥 그룹 오행" : "👑 전체 올패스"}
+                            <span className="px-1.5 py-0.5 rounded-md text-xs bg-sunken text-ink-soft">
+                              {item.productType === "pdf" ? "PDF 소장권" :
+                               item.productType === "secret" ? "비밀 인연" :
+                               item.productType === "group" ? "그룹 오행" : "전체 올패스"}
                             </span>
                           </td>
-                          <td className="p-3 font-medium text-stone-500">{item.campaignSource}</td>
+                          <td className="p-3 text-ink-soft">{item.campaignSource}</td>
                           <td className="p-3 text-center">
                             {item.status === "detected" && (
-                              <span className="px-2 py-0.5 bg-red-100 text-red-800 text-[10px] font-bold rounded-full">
-                                ⚠️ 미지급 누락 발견됨
+                              <span className="px-2 py-0.5 bg-sunken text-seal text-xs font-medium rounded-md">
+                                미지급 누락
                               </span>
                             )}
                             {item.status === "repaired" && (
-                              <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full">
-                                ✅ 보정 지급 완료 (정상 복구)
+                              <span className="px-2 py-0.5 bg-sunken text-ink text-xs font-medium rounded-md">
+                                보정 완료
                               </span>
                             )}
                             {item.status === "error" && (
-                              <span className="px-2 py-0.5 bg-rose-100 text-rose-800 text-[10px] font-bold rounded-full" title={item.errorMsg}>
-                                ❌ 실패 ({item.errorMsg})
+                              <span className="px-2 py-0.5 bg-sunken text-seal text-xs font-medium rounded-md" title={item.errorMsg}>
+                                실패 ({item.errorMsg})
                               </span>
                             )}
                           </td>
@@ -2651,64 +2554,63 @@ export default function AdminView() {
         {/* ========================================================================= */}
         {activeTab === "shop_control" && (
           <div className="space-y-6 animate-fade-in">
-            <div className="bg-[#FAF7F2] p-5 sm:p-6 rounded-3xl border border-[#E0D8CC] space-y-5 shadow-xs">
-              <div className="flex items-center space-x-2">
-                <ShoppingCart className="w-4 h-4 text-[#C0392B]" />
-                <h4 className="font-serif font-black text-sm text-[#2C3E50]">
-                  🎛️ 인연상점 공개 여부 및 베타 모드 마스터 설정
-                </h4>
-              </div>
+            <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 space-y-5">
+              <h4 className="text-[15px] font-semibold text-ink">
+                인연상점 공개 여부·베타 모드 설정
+              </h4>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
                 {/* Switch 1: Shop Enabled */}
-                <div className="p-4 bg-white rounded-2xl border border-[#E0D8CC] space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-[#2C3E50]">인연상점(프리미엄 탭) 노출 스위치</span>
+                <div className="p-4 bg-sunken rounded-xl space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-xs text-ink">인연상점(프리미엄 탭) 노출</span>
                     <button
                       type="button"
                       onClick={() => setAppConfig({ ...appConfig, shop_enabled: !appConfig.shop_enabled })}
-                      className="cursor-pointer"
+                      className="cursor-pointer shrink-0"
+                      aria-label="인연상점 노출 전환"
                     >
                       {appConfig.shop_enabled ? (
-                        <ToggleRight className="w-8 h-8 text-emerald-600" />
+                        <ToggleRight className="w-8 h-8 text-seal" />
                       ) : (
-                        <ToggleLeft className="w-8 h-8 text-gray-400" />
+                        <ToggleLeft className="w-8 h-8 text-ink-faint" />
                       )}
                     </button>
                   </div>
-                  <p className="text-[10px] text-[#5C5046] leading-relaxed">
-                    활성화 시 모임방 하단에 프리미엄 해금 대시보드가 노출됩니다.
+                  <p className="text-xs text-ink-soft leading-relaxed">
+                    켜면 모임방 하단에 프리미엄 해금 대시보드가 노출됩니다.
                   </p>
                 </div>
 
                 {/* Switch 2: Real Payment ON/OFF */}
-                <div className="p-4 bg-white rounded-2xl border-2 border-amber-200/80 bg-amber-50/20 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-bold text-xs text-[#2C3E50] flex items-center gap-1.5">
-                        💳 실제 결제 시스템 오픈 (ON/OFF)
+                <div className="p-4 bg-sunken rounded-xl space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="space-y-1">
+                      <span className="font-semibold text-xs text-ink block">
+                        실제 결제 시스템 오픈
                       </span>
-                      <span className="text-[9px] font-bold text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded">
-                        {appConfig.real_payment_enabled ? "🟢 결제 오픈 상태" : "🟡 결제 준비중 (쿠폰 전용)"}
+                      <span className="text-xs text-ink-faint">
+                        {appConfig.real_payment_enabled ? "결제 오픈 상태" : "결제 준비 중 (쿠폰 전용)"}
                       </span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setAppConfig({ ...appConfig, real_payment_enabled: !appConfig.real_payment_enabled })}
-                      className="cursor-pointer"
+                      className="cursor-pointer shrink-0"
+                      aria-label="실제 결제 시스템 전환"
                     >
                       {appConfig.real_payment_enabled ? (
-                        <ToggleRight className="w-8 h-8 text-emerald-600" />
+                        <ToggleRight className="w-8 h-8 text-seal" />
                       ) : (
-                        <ToggleLeft className="w-8 h-8 text-amber-600" />
+                        <ToggleLeft className="w-8 h-8 text-ink-faint" />
                       )}
                     </button>
                   </div>
-                  <p className="text-[10px] text-[#5C5046] leading-relaxed">
-                    {appConfig.real_payment_enabled 
-                      ? "실제 PG 결제창과 즉시 충전 패키지가 사용자에게 활성화됩니다."
-                      : "OFF 상태: 실제 결제가 차단되며, 오직 관리자가 발급한 쿠폰과 친구 초대 보상으로만 1회 확인권이 통용됩니다."}
+                  <p className="text-xs text-ink-soft leading-relaxed">
+                    {appConfig.real_payment_enabled
+                      ? "실제 PG 결제창과 충전 패키지가 사용자에게 활성화됩니다."
+                      : "실제 결제가 차단되며, 관리자 발급 쿠폰과 친구 초대 보상으로만 확인권이 통용됩니다."}
                   </p>
                 </div>
 
@@ -2717,34 +2619,34 @@ export default function AdminView() {
               {/* Payment Notice (Shown when payment is OFF) */}
               {!appConfig.real_payment_enabled && (
                 <div>
-                  <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
-                    🚧 결제 오픈 준비 중 사용자 안내 문구
+                  <label className="text-xs font-medium text-ink-soft block mb-1">
+                    결제 준비 중 사용자 안내 문구
                   </label>
                   <textarea
                     rows={2}
                     value={appConfig.payment_notice || ""}
                     onChange={(e) => setAppConfig({ ...appConfig, payment_notice: e.target.value })}
-                    placeholder="현재 실제 결제 기능은 정식 오픈 준비 중입니다. 관리자가 발급하는 프로모션 쿠폰을 등록하여 이용해 주세요."
-                    className="w-full p-3 bg-white border border-[#D6CCBC] rounded-xl text-xs focus:outline-none focus:border-[#C0392B]"
+                    placeholder="현재 실제 결제 기능은 정식 오픈 준비 중입니다. 관리자가 발급하는 프로모션 쿠폰을 등록해 이용해 주세요."
+                    className="w-full p-3 bg-sunken rounded-xl text-xs text-ink placeholder:text-ink-faint leading-relaxed focus:outline-none focus:ring-1 focus:ring-ink"
                   />
                 </div>
               )}
 
               {/* Announcement */}
               <div>
-                <label className="text-[11px] font-bold text-[#5A4D41] block mb-1">
+                <label className="text-xs font-medium text-ink-soft block mb-1">
                   모임방 상단 안내 공지 문구
                 </label>
                 <textarea
                   rows={2}
                   value={appConfig.announcement || ""}
                   onChange={(e) => setAppConfig({ ...appConfig, announcement: e.target.value })}
-                  className="w-full p-3 bg-white border border-[#D6CCBC] rounded-xl text-xs focus:outline-none focus:border-[#C0392B]"
+                  className="w-full p-3 bg-sunken rounded-xl text-xs text-ink placeholder:text-ink-faint leading-relaxed focus:outline-none focus:ring-1 focus:ring-ink"
                 />
               </div>
 
               {configSuccessMsg && (
-                <div className="text-xs text-emerald-800 bg-emerald-50 p-2.5 rounded-xl border border-emerald-300">
+                <div className="text-xs text-ink bg-sunken p-3 rounded-xl font-medium">
                   {configSuccessMsg}
                 </div>
               )}
@@ -2754,10 +2656,10 @@ export default function AdminView() {
                   type="button"
                   onClick={handleSaveAppConfig}
                   disabled={savingConfig}
-                  className="flex items-center space-x-1.5 px-5 py-2.5 bg-[#2C3E50] hover:bg-[#1A252F] text-white text-xs font-serif font-bold rounded-xl shadow-md transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-5 py-2.5 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                 >
                   <Save className="w-3.5 h-3.5" />
-                  <span>{savingConfig ? "저장 중..." : "설정 실시간 저장하기"}</span>
+                  <span>{savingConfig ? "저장 중..." : "설정 저장하기"}</span>
                 </button>
               </div>
             </div>
@@ -2770,15 +2672,15 @@ export default function AdminView() {
         {activeTab === "survey" && (
           <div className="space-y-6 animate-fade-in">
             {/* Survey Quick Actions */}
-            <div className="flex items-center justify-between bg-[#FAF7F2] p-4 rounded-2xl border border-[#E0D8CC]">
-              <div className="text-xs text-[#2C3E50]">
-                총 <strong>{responses.length}명</strong>의 유저가 설문에 참여했습니다. (지불 의향률: <strong className="text-[#C0392B]">{metrics.willingnessRate}%</strong>)
+            <div className="flex items-center justify-between gap-3 flex-wrap bg-surface border border-line rounded-xl p-4">
+              <div className="text-xs text-ink-soft">
+                총 <strong className="text-ink">{responses.length}명</strong>이 설문에 참여했습니다. 지불 의향률 <strong className="text-ink">{metrics.willingnessRate}%</strong>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={handleExportCSV}
                   disabled={responses.length === 0}
-                  className="flex items-center space-x-1 px-3 py-1.5 bg-[#2C3E50] hover:bg-[#1A252F] text-white text-xs font-semibold rounded-lg transition disabled:opacity-50 cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-sunken hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>CSV 다운로드</span>
@@ -2786,9 +2688,9 @@ export default function AdminView() {
                 <button
                   onClick={handleCopyToClipboard}
                   disabled={responses.length === 0}
-                  className="flex items-center space-x-1 px-3 py-1.5 bg-white hover:bg-[#FAF7F2] border border-[#E0D8CC] text-[#2C3E50] text-xs font-semibold rounded-lg transition disabled:opacity-50 cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-2 bg-sunken hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copied ? "복사됨" : "전체 복사"}</span>
                 </button>
               </div>
@@ -2797,23 +2699,23 @@ export default function AdminView() {
             {/* Responses List */}
             <div className="space-y-3">
               {responses.length === 0 ? (
-                <div className="p-8 bg-[#FAF7F2] rounded-2xl border border-[#E0D8CC] text-center text-xs text-[#5C5046]">
+                <div className="p-8 bg-surface border border-line rounded-xl text-center text-xs text-ink-faint">
                   아직 제출된 설문 응답이 없습니다.
                 </div>
               ) : (
                 responses.map((res, idx) => (
-                  <div key={res.id} className="p-4 bg-[#FAF7F2] rounded-2xl border border-[#E0D8CC] space-y-2 text-xs">
-                    <div className="flex items-center justify-between border-b border-[#EAE4DC] pb-2">
-                      <div className="font-bold text-[#2C3E50]">
+                  <div key={res.id} className="p-4 bg-surface border border-line rounded-xl space-y-2 text-xs">
+                    <div className="flex items-center justify-between gap-2 border-b border-line pb-2">
+                      <div className="font-semibold text-ink">
                         #{responses.length - idx} {res.nickname || "익명"} ({res.userEmail || "이메일 없음"})
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-[10px] text-[#5C5046]">
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs text-ink-faint">
                           {new Date(res.submittedAt).toLocaleString("ko-KR")}
                         </span>
                         <button
                           onClick={() => handleDeleteResponse(res.id)}
-                          className="text-stone-400 hover:text-red-600 p-1 transition cursor-pointer"
+                          className="text-ink-faint hover:text-seal p-1 transition-colors cursor-pointer"
                           title="응답 삭제"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -2821,13 +2723,13 @@ export default function AdminView() {
                       </div>
                     </div>
 
-                    <div className="space-y-1.5 pt-1">
+                    <div className="space-y-2 pt-1">
                       {surveyConfig?.questions.map((q) => {
                         const ans = res.answers[q.id];
                         return (
-                          <div key={q.id} className="text-[11px] leading-relaxed">
-                            <span className="text-[#5C5046] font-medium block">Q. {q.title}</span>
-                            <span className="text-[#2C3E50] font-bold pl-2 border-l-2 border-amber-300 inline-block mt-0.5">
+                          <div key={q.id} className="text-xs leading-relaxed">
+                            <span className="text-ink-faint block">Q. {q.title}</span>
+                            <span className="text-ink font-medium block mt-0.5">
                               {Array.isArray(ans) ? ans.join(", ") : ans || "응답 없음"}
                             </span>
                           </div>
