@@ -554,7 +554,7 @@ export default function ViralCardModal({
         tagline: '"모임의 분위기를 띄우며 어색함을 단숨에 녹여요"',
         tags: ["분위기 메이커", "도파민 충전", "유쾌한 에너지", "대화 촉발"],
         stats: [
-          { label: "텐션 촉발", val: 92, color: "#F0632E" },
+          { label: "분위기", val: 92, color: "#F0632E" },
           { label: "순발력", val: 86, color: "#35B37E" },
           { label: "도파민", val: 94, color: "#C0392B" },
           { label: "약속 추진", val: 78, color: "#7C86A0" }
@@ -723,6 +723,20 @@ export default function ViralCardModal({
       const isMobile = /mobile|android|iphone|ipad/i.test(navigator.userAgent);
       const canShareFile = !!(navigator.canShare && navigator.canShare({ files: [file] }));
 
+      // PNG를 클립보드에 직접 넣는다. 브라우저·플랫폼 제약이 커서(특히 모바일
+      // 인앱 브라우저) 실패가 정상이며, 실패하면 아래 공유·저장 경로로 넘어간다.
+      // 성공 여부를 그대로 안내 문구에 반영한다 — 실패한 걸 복사됐다고 말하지 않는다.
+      const tryCopyImageToClipboard = async (): Promise<boolean> => {
+        try {
+          if (typeof ClipboardItem === "undefined" || !navigator.clipboard?.write) return false;
+          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+          return true;
+        } catch (e) {
+          console.debug("Clipboard image write failed:", e);
+          return false;
+        }
+      };
+
       // 카톡·인스타 인앱 브라우저도 파일 공유를 지원하면 시도한다.
       // 카카오톡은 이미지가 있으면 text를 무시하므로, 링크는 미리 클립보드에 넣어
       // 사용자가 이미지 전송 직후 바로 붙여넣을 수 있게 한다.
@@ -752,8 +766,14 @@ export default function ViralCardModal({
           if (shareErr?.name === "AbortError") {
             setCopiedMsg("");
           } else {
-            console.log("Web Share files failed, fallback to long-press guide");
-            setShowLongPressGuide(true);
+            console.log("Web Share files failed, try clipboard image then long-press guide");
+            const imgCopied = await tryCopyImageToClipboard();
+            if (imgCopied) {
+              setCopiedMsg("카드 이미지가 복사되었습니다. 대화방에 붙여넣기 하세요.");
+              setTimeout(() => setCopiedMsg(""), 4500);
+            } else {
+              setShowLongPressGuide(true);
+            }
           }
         }
       } else if (isInAppBrowser && isMobile) {
@@ -767,23 +787,30 @@ export default function ViralCardModal({
         setCopiedMsg("링크를 복사했습니다. 카드는 길게 눌러 저장하세요.");
         setTimeout(() => setCopiedMsg(""), 4500);
       } else {
-        // Fallback: Trigger download on desktop AND show long-press guide on mobile
+        // Fallback: 데스크톱은 이미지 클립보드 복사 → 실패 시 다운로드, 모바일은 길게 눌러 저장 안내
         if (!/mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
-          // Desktop: download file
-          const a = document.createElement("a");
-          a.href = dataUrl;
-          a.download = filename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
+          const imgCopied = await tryCopyImageToClipboard();
 
-          await shareToKakaoOrClipboard({
-            title: `[소울 카드] ${nickname}님의 ${tabName}`,
-            description: "사주 오행 본질로 분석한 소울 카드",
-            url: window.location.href
-          });
-          setCopiedMsg("포토 카드가 저장되었고 링크가 복사되었습니다.");
-          setTimeout(() => setCopiedMsg(""), 3500);
+          if (imgCopied) {
+            setCopiedMsg("카드 이미지가 복사되었습니다. 대화방에 붙여넣기(Ctrl+V) 하세요.");
+            setTimeout(() => setCopiedMsg(""), 4500);
+          } else {
+            // Desktop: download file
+            const a = document.createElement("a");
+            a.href = dataUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            await shareToKakaoOrClipboard({
+              title: `[소울 카드] ${nickname}님의 ${tabName}`,
+              description: "사주 오행 본질로 분석한 소울 카드",
+              url: window.location.href
+            });
+            setCopiedMsg("카드 이미지가 저장되었고 링크가 복사되었습니다.");
+            setTimeout(() => setCopiedMsg(""), 3500);
+          }
         } else {
           // Mobile: show the interactive long press guide!
           setShowLongPressGuide(true);
