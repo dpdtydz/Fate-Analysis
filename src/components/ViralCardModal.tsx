@@ -715,26 +715,53 @@ export default function ViralCardModal({
       const dataUrl = canvas.toDataURL("image/png");
       setCapturedImgUrl(dataUrl);
 
-      const isInstagramOrKakao = /instagram|kakaotalk/i.test(navigator.userAgent);
+      const isInAppBrowser = /instagram|kakaotalk/i.test(navigator.userAgent);
+      const isMobile = /mobile|android|iphone|ipad/i.test(navigator.userAgent);
+      const canShareFile = !!(navigator.canShare && navigator.canShare({ files: [file] }));
 
-      if (
-        !isInstagramOrKakao &&
-        navigator.canShare &&
-        navigator.canShare({ files: [file] }) &&
-        /mobile|android|iphone|ipad/i.test(navigator.userAgent)
-      ) {
+      // 카톡·인스타 인앱 브라우저도 파일 공유를 지원하면 시도한다.
+      // 카카오톡은 이미지가 있으면 text를 무시하므로, 링크는 미리 클립보드에 넣어
+      // 사용자가 이미지 전송 직후 바로 붙여넣을 수 있게 한다.
+      if (canShareFile && isMobile) {
+        const shareUrl = window.location.href;
+        let urlCopied = false;
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          urlCopied = true;
+        } catch (e) {
+          console.debug("Clipboard write before share failed:", e);
+        }
+
         try {
           await navigator.share({
             files: [file],
             title: `[소울 카드] ${nickname}님의 ${tabName}`,
-            text: `인연사주 소울 카드를 확인해보세요.\n${window.location.href}`
+            text: `인연사주 소울 카드를 확인해보세요.\n${shareUrl}`
           });
-          setCopiedMsg("포토 카드가 공유되었습니다.");
-          setTimeout(() => setCopiedMsg(""), 3500);
-        } catch (shareErr) {
-          console.log("Web Share files failed, fallback to long-press guide");
-          setShowLongPressGuide(true);
+          setCopiedMsg(
+            urlCopied
+              ? "카드를 보냈습니다. 링크도 복사해 두었으니 이어서 붙여넣기 하세요."
+              : "포토 카드가 공유되었습니다."
+          );
+          setTimeout(() => setCopiedMsg(""), 4500);
+        } catch (shareErr: any) {
+          if (shareErr?.name === "AbortError") {
+            setCopiedMsg("");
+          } else {
+            console.log("Web Share files failed, fallback to long-press guide");
+            setShowLongPressGuide(true);
+          }
         }
+      } else if (isInAppBrowser && isMobile) {
+        // 인앱 브라우저에서 파일 공유가 막힌 경우: 길게 눌러 저장 + 링크 복사
+        setShowLongPressGuide(true);
+        await shareToKakaoOrClipboard({
+          title: `[소울 카드] ${nickname}님의 ${tabName}`,
+          description: "사주 오행 본질로 분석한 소울 카드",
+          url: window.location.href
+        });
+        setCopiedMsg("링크를 복사했습니다. 카드는 길게 눌러 저장하세요.");
+        setTimeout(() => setCopiedMsg(""), 4500);
       } else {
         // Fallback: Trigger download on desktop AND show long-press guide on mobile
         if (!/mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
