@@ -93,6 +93,24 @@ export default function RoomView({ code }: RoomViewProps) {
   }, [code]);
 
   // Group summary metrics
+  // GroupView가 쓰는 실제 분석 캐시의 종합 점수(사주·자미두수·MBTI·별자리 4축).
+  // 분석 전이거나 읽기 실패면 null이고, 아래에서 오행 기반 어림값으로 폴백한다.
+  const [analysisScore, setAnalysisScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!code) return;
+    const ref = doc(db, "rooms", code, "analysis", "result");
+    const unsub = onSnapshot(
+      ref,
+      (snap) => {
+        const s = snap.exists() ? snap.data()?.group?.overall_score : null;
+        setAnalysisScore(typeof s === "number" && s > 0 ? s : null);
+      },
+      () => setAnalysisScore(null)
+    );
+    return () => unsub();
+  }, [code]);
+
   const groupMetrics = useMemo(() => {
     if (members.length === 0) return null;
     const elements = members.map((m) => m.saju?.daymaster?.element).filter(Boolean) as string[];
@@ -101,7 +119,9 @@ export default function RoomView({ code }: RoomViewProps) {
     const baseScore = 78;
     const diversityBonus = Math.min(uniqueElements * 4, 16);
     const sizeBonus = Math.min(memberCount * 2, 6);
-    const score = Math.min(99, baseScore + diversityBonus + sizeBonus);
+    // 실제 분석(4축 종합)이 있으면 그 점수를 쓰고, 없을 때만 오행 기반으로 어림한다.
+    const score =
+      analysisScore ?? Math.min(99, baseScore + diversityBonus + sizeBonus);
 
     const counts: Record<string, number> = { "목": 0, "화": 0, "토": 0, "금": 0, "수": 0 };
     elements.forEach(e => {
@@ -110,11 +130,12 @@ export default function RoomView({ code }: RoomViewProps) {
 
     return {
       score,
+      isRealScore: analysisScore != null,
       memberCount,
       uniqueElements,
       counts
     };
-  }, [members]);
+  }, [members, analysisScore]);
 
   // Automatic session recovery & database self-healing deduplication
   // Automatic session recovery, central-profile-based auto-join, and auto-sync

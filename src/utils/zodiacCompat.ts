@@ -177,3 +177,58 @@ export function getCautionBranches(dayJi?: string | null): CautionBranchMatch[] 
   }
   return out;
 }
+
+/**
+ * 특정 오행을 가진 사람 중, 나(일지)와 가장 잘 맞는 띠를 고른다.
+ *
+ * "잘 맞는 카드"는 오행(예: 土)만 알려주는데, 캐릭터 이미지는 띠까지 있어야 고를 수 있다.
+ * 그래서 그 오행을 본기로 가지는 지지 후보 중에서
+ * 삼합 > 육합 > 무관계 순으로 나와 관계가 가까운 쪽을 대표로 뽑는다.
+ * (土처럼 후보가 넷인 오행에서 아무거나 집지 않기 위한 규칙)
+ *
+ * @param element 상대의 오행 — 한글("토") 또는 한자("土")
+ * @param dayJi   나의 일지
+ * @returns 대표 지지와 띠 이름. 후보가 없으면 null
+ */
+export function getRepresentativeBranch(
+  element?: string | null,
+  dayJi?: string | null
+): { branch: Branch; animal: string; element: string; relation: string } | null {
+  if (!element) return null;
+
+  // 한자 오행도 받아준다
+  const HANJA_TO_KO: Record<string, string> = {
+    木: "목", 火: "화", 土: "토", 金: "금", 水: "수",
+  };
+  const elem = HANJA_TO_KO[element] || element;
+
+  const candidates = (BRANCHES as readonly Branch[]).filter(
+    (b) => BRANCH_TO_ELEMENT[b] === elem
+  );
+  if (candidates.length === 0) return null;
+
+  const me = normalizeBranch(dayJi);
+  if (!me) {
+    const b = candidates[0];
+    return { branch: b, animal: BRANCH_TO_ANIMAL_NAME[b], element: elem, relation: "" };
+  }
+
+  const isSamhap = (other: Branch) =>
+    SAMHAP.some((g) => g.members.includes(me) && g.members.includes(other) && other !== me);
+  const isYukhap = (other: Branch) =>
+    YUKHAP.some(([a, b]) => (a === me && b === other) || (b === me && a === other));
+
+  // 삼합 → 육합 → 그 외 순으로 우선한다
+  const ranked = [...candidates].sort((x, y) => {
+    const rank = (b: Branch) => (isSamhap(b) ? 0 : isYukhap(b) ? 1 : 2);
+    return rank(x) - rank(y);
+  });
+
+  const picked = ranked[0];
+  return {
+    branch: picked,
+    animal: BRANCH_TO_ANIMAL_NAME[picked],
+    element: elem,
+    relation: isSamhap(picked) ? "삼합" : isYukhap(picked) ? "육합" : "",
+  };
+}

@@ -244,6 +244,252 @@ THEMES = {
     },
 }
 
+# 역할별 팔레트 — 역할 분기가 이미 일간 오행이라 ELEMENTS를 그대로 쓴다
+ROLE_PALETTES = {
+    "spark": ELEMENTS["fire"],
+    "healer": ELEMENTS["earth"],
+    "keeper": ELEMENTS["metal"],
+    "captain": ELEMENTS["wood"],
+    "sage": ELEMENTS["water"],
+}
+
+# 역할별 공통 감정 — 128px 원형 엠블럼에서 표정만으로 역할이 갈려야 한다
+ROLE_EMOTION = {
+    "spark": "Big open-mouthed laugh, eyes in happy crescents, body springing UPWARD.",
+    "healer": "Eyes half-closed with a soft gentle smile, body LOWERED into a caring posture.",
+    "keeper": "Eyes wide and sharp, head slightly tilted, mouth in a firm tidy line; body STILL, gaze on the prop.",
+    "captain": "Chin lifted, eyes blazing straight at the viewer, body pushing FORWARD.",
+    "sage": "Sideways glance, one-sided knowing smirk, body low and quiet.",
+}
+
+# 동물 x 역할 테마 60종 (기획자 검수본)
+ROLE_THEMES = {
+    "rat": {
+        "spark": "Bouncing up on its hind legs with both front paws flung wide open above its shoulders, "
+                    "mouth open in a huge laugh, whiskers swept back by its own momentum. Tiny warm sparkles "
+                    "pop in the air around its paws. Eyes squeezed into happy crescents, looking straight at "
+                    "the viewer. ",
+        "healer": "Sitting calmly and holding a small steaming teacup in both front paws, offering it "
+                    "forward toward the viewer with a gentle warm smile. Eyes softly half-closed, head tilted "
+                    "kindly. The cup is small — no bigger than its own head — and clearly gripped by both "
+                    "paws. ",
+        "keeper": "Sitting upright with a small open ledger book propped between both front paws, one paw "
+                    "pointing at a line in it, brow furrowed in sharp concentration. Head tilted slightly, "
+                    "eyes bright and alert. A tiny coin pouch sits closed on the ground beside its tail. ",
+        "captain": "Standing tall on its hind legs, one front paw thrust forward pointing decisively ahead, "
+                    "the other planted on its hip. Chin lifted, eyes blazing with resolve straight at the "
+                    "viewer. A small plain pennant flag is planted in the ground beside it, reaching only "
+                    "shoulder height. ",
+        "sage": "Crouched low and quiet, holding a small half-unrolled scroll between both front paws, "
+                    "eyes scanning it sideways with a knowing narrow gaze. One whisker twitched. A faint one- "
+                    "sided smirk, as if it just found the answer nobody else saw. ",
+    },
+    "ox": {
+        "spark": "Head thrown back mid-bellow-laugh, mouth wide open, two puffs of warm steam bursting "
+                    "from its nostrils and curling upward. All four hooves planted but the front half lifted "
+                    "in a joyful hop, tail flicked up. Eyes crescent-shaped, radiating good humor at the "
+                    "viewer. ",
+        "healer": "Lying down with its legs folded neatly beneath it in a calm resting posture, a small "
+                    "folded blanket draped over its broad back. Head lowered to eye level, eyes half-closed "
+                    "and serene, offering a patient listening expression toward the viewer. Nothing held — it "
+                    "simply stays. ",
+        "keeper": "Standing steadily on all four hooves with a small pair of balance scales resting on the "
+                    "ground directly in front of its lowered head, both pans perfectly level. Eyes fixed "
+                    "intently on the scales, ears forward, expression firm and dependable. It holds nothing — "
+                    "it inspects. ",
+        "captain": "Front half lowered and shoulders bunched in a powerful forward-charge stance, all four "
+                    "hooves gripping the ground, head lowered with horns aimed ahead. Eyes locked forward "
+                    "with unstoppable determination, one puff of steam at the nostrils. A small pennant is "
+                    "tied to one horn. ",
+        "sage": "Standing still on all four hooves, head turned to look back over its shoulder at the "
+                    "viewer with a slow, deeply knowing half-lidded gaze. Ears swivelled attentively. A small "
+                    "closed scroll rests on the ground beside its front hooves. Utterly unhurried. ",
+    },
+    "tiger": {
+        "spark": "Rolled onto its back paws in a playful pounce-start, front paws patting the air like a "
+                    "drum roll, mouth open in a delighted roar-laugh showing tiny fangs. Ears perked fully "
+                    "forward, tail curled into a spring shape. Looking up and slightly at the viewer. ",
+        "healer": "Sitting upright but relaxed, one front paw resting gently on the ground in front of it "
+                    "as if reaching out to reassure someone. Ears turned softly outward, eyes half-closed and "
+                    "warm, a small calm smile with fangs hidden. Tail curled protectively around its own "
+                    "side. ",
+        "keeper": "Sitting upright with a small closed ledger tucked under one front paw, the other front "
+                    "paw raised in a crisp 'one moment' gesture. Chin slightly lifted, eyes narrowed in "
+                    "shrewd focus toward the viewer, mouth set in a no-nonsense line. Tail curled tight and "
+                    "orderly. ",
+        "captain": "Standing squared-up on all fours, chest out, one front paw raised and slammed forward "
+                    "mid-stride. Head high, mouth open in a commanding roar, ears flat with authority. Eyes "
+                    "fierce and fixed on the viewer. Tail lashing straight back like a banner. ",
+        "sage": "Crouched low in tall stillness, body half-turned away but head swivelled back to the "
+                    "viewer, eyes narrowed into sharp calculating slits. One front paw resting on a small go- "
+                    "stone placed on the ground. A faint one-sided knowing smile. ",
+    },
+    "rabbit": {
+        "spark": "Caught mid-leap with both long ears streaming upward and hind legs kicked out behind, "
+                    "front paws clapping together in front of its chest. Mouth open in a squeaky cheer, eyes "
+                    "wide and sparkling. Small warm confetti-like motes trail its jump. ",
+        "healer": "Sitting with both long ears drooped softly down around its face like a comforting hood, "
+                    "front paws folded together over its chest. Eyes half-closed in a tender smile, head "
+                    "tilted toward the viewer. A small folded blanket rests beside it on the ground. ",
+        "keeper": "Sitting upright with a small abacus held flat between both front paws, one paw mid-flick "
+                    "sliding a bead across. Long ears standing perfectly straight and alert. Eyes wide and "
+                    "focused on the beads, mouth pursed in careful concentration. ",
+        "captain": "Standing upright on hind legs with both long ears raised straight and rigid like "
+                    "antennae, one front paw raised high in a clear 'follow me' signal. Chest out, eyes wide "
+                    "and fearless toward the viewer. A small pennant flag is planted in the ground at its "
+                    "side. ",
+        "sage": "Sitting very still with one long ear pricked straight up and the other flopped down, "
+                    "listening for something. Both front paws hold a small closed folding fan against its "
+                    "chest. Eyes glancing sideways, alert and clever, with a subtle secretive smile. ",
+    },
+    "dragon": {
+        "spark": "Coiled body springing upward like a party streamer, both small front paws thrown open, "
+                    "mouth open in a bright laugh with a tiny harmless puff of warm light escaping. Tail "
+                    "whipped into a cheerful loop behind it. Eyes big and delighted, aimed at the viewer. ",
+        "healer": "Body coiled into a soft protective ring, like a nest with an open front, both small "
+                    "front paws folded gently at its chest. Head resting low at the rim of the coil, eyes "
+                    "half-closed, breathing a tiny puff of warm gentle light. A calm caretaking smile. ",
+        "keeper": "Coiled upright with a small closed money pouch cradled in both front paws against its "
+                    "chest, guarding it neatly. Tail curled into a tidy spiral beneath. Eyes sharp and "
+                    "watchful, aimed at the viewer, with a small confident closed-mouth smile. ",
+        "captain": "Reared upright with the body coiled beneath for height, both small front paws spread in "
+                    "a commanding stance, head held high and turned to the viewer. Eyes glowing with "
+                    "authority, a confident open-mouthed shout. Tail sweeping back in a bold arc. ",
+        "sage": "Coiled compactly and low, chin resting on its own tail loop, both small front paws "
+                    "holding a small half-open scroll. Eyes half-lidded and ancient-wise, glancing sideways "
+                    "at the viewer. A tiny thoughtful puff of mist at the nostrils. ",
+    },
+    "snake": {
+        "spark": "Body coiled into a rising spiral like a party ribbon, head lifted high at the top with "
+                    "its mouth open in a cheerful grin, tongue flicking out playfully. The tail tip curls "
+                    "upward in a flourish. Warm sparkles rise along the spiral. Bright happy eyes toward the "
+                    "viewer. ",
+        "healer": "Coiled into a wide flat spiral like a warm cushion, head resting low on top of its own "
+                    "coils and turned toward the viewer, eyes half-closed in a serene smile. The outermost "
+                    "coil opens slightly, as if making room for someone to sit. No tongue flick — perfectly "
+                    "calm. ",
+        "keeper": "Coiled into a neat stacked spiral like a filing tower, head raised at the top, the tail "
+                    "tip curled around a small closed ledger and holding it up beside the body. Eyes narrow "
+                    "and precise, focused on the ledger. Every coil is perfectly even — order made visible. ",
+        "captain": "Body reared into a tall vertical S-curve, head at the very top looking down at the "
+                    "viewer with unblinking authority. The tail tip is wrapped firmly around a small pennant "
+                    "flag, holding it upright beside the raised body. Mouth open in a commanding hiss. ",
+        "sage": "Coiled tightly and low with only the head raised slightly, looking sideways at the "
+                    "viewer through narrow calculating eyes. The tail tip curls delicately around a single "
+                    "small go-stone, holding it up for inspection. Tongue barely flicking. Silent and "
+                    "patient. ",
+    },
+    "horse": {
+        "spark": "Rearing lightly onto its hind legs in a joyful prance, front hooves lifted off the "
+                    "ground and mane flying upward, mouth open in a whinnying laugh. Tail streaming behind. "
+                    "Eyes crescent-happy, head turned toward the viewer. Holds nothing — the joy is all body. ",
+        "healer": "Standing with all four hooves planted but head lowered all the way down to eye level, "
+                    "neck curved into a soft arc, mane falling forward. Eyes half-closed, ears turned gently "
+                    "sideways, offering a quiet nuzzle toward the viewer. A small blanket lies folded on the "
+                    "ground beside its hooves. ",
+        "keeper": "Standing squarely on all four hooves with a small pair of balance scales on the ground "
+                    "in front, head lowered to check them at eye level. Ears pricked forward, eyes serious "
+                    "and measuring, mane neatly falling. It cannot hold anything — it verifies with its gaze. ",
+        "captain": "Rearing high on its hind legs with both front hooves striking forward, mane and tail "
+                    "streaming back, head turned to the viewer with a bold open-mouthed neigh. Eyes blazing "
+                    "with drive. A small pennant is tied to a short strap across its shoulders, streaming "
+                    "behind. ",
+        "sage": "Standing quietly with head turned in profile, one ear rotated back and one forward, eye "
+                    "glancing sideways at the viewer with sharp intelligence. Mane falling over one eye. A "
+                    "small closed scroll lies on the ground near its front hooves. Perfectly composed, "
+                    "holding nothing. ",
+    },
+    "sheep": {
+        "spark": "Bouncing straight up off all four hooves like a spring, woolly fleece bouncing and "
+                    "puffing outward, mouth open in a bright bleating laugh. A few soft wool tufts float free "
+                    "around it. Eyes squeezed shut with happiness, head tilted toward the viewer. ",
+        "healer": "Standing on all four hooves with its exceptionally thick soft fleece puffed out, head "
+                    "turned toward the viewer and lowered, eyes half-closed in a gentle smile. The fleece "
+                    "reads as the softest, safest place to lean on. Nothing held — the wool itself is the "
+                    "comfort. ",
+        "keeper": "Standing on all four hooves with a small closed coin pouch hanging from a short strap "
+                    "around its neck, resting flat against its fleece well below the chin. Head turned to the "
+                    "viewer, eyes alert and businesslike, mouth in a firm little line. ",
+        "captain": "Standing braced on all four hooves at the front of an implied line, head high, small "
+                    "curled horns thrust forward, chest pushed out. Eyes hard and resolute toward the viewer, "
+                    "mouth open in a rallying bleat. A small pennant is tied to one curled horn. ",
+        "sage": "Standing calmly with head lowered in thought, eyes glancing up sideways at the viewer "
+                    "from beneath its wool with unexpected shrewdness. One small curled horn catches the "
+                    "light. A small closed fan rests on the ground by its hooves. Quiet, underestimated. ",
+    },
+    "monkey": {
+        "spark": "Mid-cartwheel with one front paw on the ground and the other flung up, tail curled into "
+                    "a jaunty question-mark, mouth stretched into a huge mischievous grin showing teeth. "
+                    "Eyebrows raised high. Eyes locked on the viewer as if it just landed a perfect joke. ",
+        "healer": "Sitting cross-legged and calm for once, both front paws resting open on its knees, palms "
+                    "up in a welcoming gesture. Tail curled quietly around itself. Eyes half-closed, eyebrows "
+                    "softened, wearing an unusually gentle and patient smile toward the viewer. ",
+        "keeper": "Sitting with a small abacus held in both front paws, tail curled around a tiny coin "
+                    "pouch to keep it secure. Eyes darting sharply to the beads, one eyebrow raised, wearing "
+                    "a clever 'I already counted it' smirk toward the viewer. ",
+        "captain": "Standing upright on hind legs on a small rock, one front paw raised high gripping a "
+                    "small pennant flag and shaking it, the other paw cupped at its mouth mid-shout. Tail "
+                    "straight up like an exclamation mark. Eyes wide, grinning with fearless bravado at the "
+                    "viewer. ",
+        "sage": "Sitting cross-legged with a small closed folding fan held in one front paw, tapping it "
+                    "thoughtfully against the other paw. Head tilted, one eyebrow raised high, eyes glinting "
+                    "sideways at the viewer with a sly all-knowing smirk. Tail curled into a thinking spiral. ",
+    },
+    "rooster": {
+        "spark": "Wings fully spread wide and flapping, chest thrown out, beak wide open in a triumphant "
+                    "crow, comb and wattle bouncing. Standing tall on both legs, one foot lifted mid-step. "
+                    "Small warm sparkles burst from the tips of its spread wings. Facing the viewer proudly. ",
+        "healer": "Standing calmly with both wings lowered and slightly opened forward, like a sheltering "
+                    "cape spread to take someone in. Head tilted down and toward the viewer, beak closed, "
+                    "eyes half-closed and kind. Comb and wattle relaxed. A quiet, protective stance. ",
+        "keeper": "Standing tall and upright with a small open ledger balanced between both partly spread "
+                    "wings, beak pointed down at the page in strict inspection. Comb upright, eyes narrowed "
+                    "and exacting. Both legs planted squarely — the posture of an auditor. ",
+        "captain": "Standing at full height with chest thrust out, both wings raised and spread in a "
+                    "commanding rally, comb held high, beak open in a loud crowing order. One leg stepped "
+                    "forward. Eyes sharp and imperious, aimed directly at the viewer. ",
+        "sage": "Standing very still in profile with one eye turned to fix the viewer in a sharp sideways "
+                    "stare, head held low and forward like a strategist reading a board. Both wings folded "
+                    "tightly and neatly. A single small go-stone rests on the ground before its feet. ",
+    },
+    "dog": {
+        "spark": "Front paws lifted off the ground in an excited play-bow-to-jump, tongue lolling out in a "
+                    "huge open-mouthed grin, tail a blur of wagging. Ears flopped up by the bounce. Eyes "
+                    "wide, shining, fixed adoringly on the viewer. ",
+        "healer": "Lying down in a relaxed sphinx pose with its head resting on top of both front paws, "
+                    "looking up at the viewer with big soft trusting eyes and a gentle closed-mouth smile. "
+                    "Ears relaxed and drooping. Tail resting in a calm curve, tip barely wagging. ",
+        "keeper": "Sitting attentively with a small closed coin pouch set on the ground between its front "
+                    "paws, one paw placed firmly on top of it in clear guard position. Ears pricked, eyes "
+                    "bright and dutiful, looking straight at the viewer. Tail curled neatly around its "
+                    "haunches. ",
+        "captain": "Standing squarely in an alert leader's stance, one front paw raised and pointing ahead, "
+                    "chest forward, ears pricked fully upright. Mouth open in a rallying bark, eyes bright "
+                    "and determined at the viewer. Tail raised high and straight like a banner. ",
+        "sage": "Sitting alert but silent, head tilted at a curious angle, one ear up and one down, eyes "
+                    "narrowed in focused thought at something off to the side. A small half-unrolled scroll "
+                    "lies open on the ground between its front paws, one paw resting on its edge. ",
+    },
+    "pig": {
+        "spark": "All four hooves doing a happy little jig, body wiggling, snout tilted up in a wide open- "
+                    "mouthed squeal of laughter, curly tail vibrating. Ears flapped upward by the motion. "
+                    "Eyes crescent-shaped with joy, aimed at the viewer. ",
+        "healer": "Lying down on its side-front in a cozy settled posture, all four hooves tucked in, snout "
+                    "resting low and turned toward the viewer with a contented gentle smile. Eyes half- "
+                    "closed. A small folded blanket is draped over its back. ",
+        "keeper": "Standing on all four hooves beside a small piggy-bank-shaped coin box resting on the "
+                    "ground, snout lowered to nudge a single coin toward its slot. Eyes focused on the coin, "
+                    "ears forward, expression thrifty and satisfied. Nothing is held in the hooves. ",
+        "captain": "Standing on all four hooves in a firm braced stance, snout raised and pushed forward, "
+                    "ears pricked stiffly up, shoulders squared. Eyes narrowed with stubborn unstoppable "
+                    "resolve toward the viewer, mouth open in a rallying grunt. A small pennant is tied at "
+                    "its shoulder. ",
+        "sage": "Standing quietly with head turned back over its shoulder toward the viewer, small eyes "
+                    "glinting with surprising cunning beneath relaxed ears. Snout slightly wrinkled in a "
+                    "knowing half-smile. A small closed scroll rests on the ground beside its hooves. ",
+    },
+}
+
 BASE_PROMPT = """Using the exact same art style AND color palette as the reference images
 (cute chibi cartoon, soft gradient shading, clean bold outlines),
 draw ONLY ONE animal: {animal_desc}.
@@ -340,6 +586,43 @@ ANATOMY = {
     "sheep":   ANATOMY_HOOFED,
     "pig":     ANATOMY_HOOFED,
 }
+
+
+ROLE_PROMPT = """Use the reference image ONLY for the character's identity:
+same species, same chibi proportions, same art style, same face design.
+
+### FIRST — RECOLOR THE ANIMAL ###
+The reference animal is BLUE. You MUST repaint its BODY in {palette}.
+Fur/skin/wool/feathers, ears, muzzle, legs, tail and outlines all take the new palette.
+No blue may remain on the animal, and no leftover natural animal colors either
+(inner ears, comb, wattle, face skin) — never pink, red or peach.
+
+Now draw this character performing its role in the group:
+{emotion}
+{theme}
+
+- COMPOSITION: the character is the hero. It sits in the CENTER and fills at least 65%
+  of the frame height. Any prop stays SMALLER than the character's own torso and never
+  bigger than its head; it sits beside or below the character, never above the head.
+- The image will be cropped to a CIRCLE: keep the head and upper body well inside the
+  middle of the canvas, nothing important near the corners.
+- The expression must be readable from the face alone at small size — use one big clear
+  emotion, not a subtle one.
+- ANATOMY RULE: {anatomy}
+  Draw EXACTLY four limbs in total — never five, never three. Do not add a spare arm to
+  hold a prop: it must be held by one of the limbs it already has, or rest on the ground.
+- SAFETY RULE: any flag, strap, pole or prop must stay entirely BESIDE or BELOW the head.
+  It must never pass in front of, behind, or across the neck or face. A neck strap hangs
+  low on the chest, well clear of the chin. The character must read as one connected,
+  unharmed body.
+- POSE RULE: keep the posture natural for that animal's real body. A four-legged animal
+  rests on its four legs; never fold its limbs into human sitting poses at broken angles.
+  Expressions stay happy, calm or confident — never sad, crying, or in pain.
+- Draw ONLY what is described. Never add extra props of your own, and never put a leaf,
+  twig or food in the character's mouth unless stated.
+- ONE animal only, full body, solid pure white background (#FFFFFF), no shadow.
+- No text, no letters, no watermark.
+"""
 
 
 def get_client():
@@ -487,6 +770,27 @@ def phase_recolor(client, animals: list[str], elements: list[str]):
                     print(f"  [팔레트 위반] {out.name} — {detail} → 검수 필요")
 
 
+def phase_role(client, animals: list[str], roles: list[str]):
+    """내 띠 캐릭터가 모임 속 시그니처 역할을 연기하는 이미지 (12 x 4 = 48장)."""
+    for animal in animals:
+        base = find_base_image(animal)
+        if not base:
+            print(f"[role] {animal}: 기준본이 없어 스킵 (--phase base 먼저 실행)")
+            continue
+        for role in roles:
+            out = RAW_DIR / f"zodiac_{animal}_role_{role}.png"
+            if out.exists():
+                print(f"[role] {animal}/{role}: 이미 있음 — 스킵")
+                continue
+            print(f"[role] {animal}/{role} 생성 중...")
+            contents = [image_part(base),
+                        ROLE_PROMPT.format(palette=ROLE_PALETTES[role],
+                                           emotion=ROLE_EMOTION[role],
+                                           theme=ROLE_THEMES[animal][role],
+                                           anatomy=ANATOMY.get(animal, ANATOMY_DEFAULT))]
+            generate(client, contents, out)
+
+
 def remove_backgrounds():
     try:
         from rembg import remove
@@ -509,8 +813,10 @@ def remove_backgrounds():
 
 def main():
     parser = argparse.ArgumentParser(description="12지신 x 오행 이미지 생성")
-    parser.add_argument("--phase", choices=["base", "recolor", "all"], default=None,
-                        help="base: 파란색 12마리 / recolor: 오행 리컬러 / all: 둘 다")
+    parser.add_argument("--roles", default=",".join(ROLE_PALETTES),
+                        help="쉼표 구분 역할 목록 (기본: spark,healer,keeper,captain)")
+    parser.add_argument("--phase", choices=["base", "recolor", "role", "all"], default=None,
+                        help="base: 기준본 12마리 / recolor: 오행 60장 / role: 역할 48장 / all: 전부")
     parser.add_argument("--animals", default=",".join(ANIMALS),
                         help="쉼표 구분 동물 목록 (기본: 전체)")
     parser.add_argument("--elements", default=",".join(ELEMENTS),
@@ -529,6 +835,10 @@ def main():
     for e in elements:
         if e not in ELEMENTS:
             sys.exit(f"[ERROR] 알 수 없는 오행: {e} (가능: {', '.join(ELEMENTS)})")
+    roles = [r.strip() for r in args.roles.split(",") if r.strip()]
+    for r in roles:
+        if r not in ROLE_PALETTES:
+            sys.exit(f"[ERROR] 알 수 없는 역할: {r} (가능: {', '.join(ROLE_PALETTES)})")
 
     if not args.phase and not args.remove_bg:
         parser.print_help()
@@ -540,6 +850,8 @@ def main():
             phase_base(client, animals, force=args.force)
         if args.phase in ("recolor", "all"):
             phase_recolor(client, animals, elements)
+        if args.phase in ("role", "all"):
+            phase_role(client, animals, roles)
 
     if args.remove_bg:
         remove_backgrounds()

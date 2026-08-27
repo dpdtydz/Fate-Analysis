@@ -47,7 +47,7 @@ import ViralCardModal from "./ViralCardModal";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { calculateTodayFortune, calculateSaju, getDynamicCharacter } from "../utils/saju";
 import ZodiacAvatar, { zodiacImageSrc } from "./ZodiacAvatar";
-import { getBestBranches, getCautionBranches } from "../utils/zodiacCompat";
+import { getRepresentativeBranch } from "../utils/zodiacCompat";
 
 // Sample Profile Generator for Zero-Login 1-Second Instant Preview
 export function createSampleProfile(): PersonalSajuProfile {
@@ -649,10 +649,6 @@ export default function MySajuView() {
     [ji, daymasterElement]
   );
 
-  // 일지 기준 띠 궁합 — 삼합·육합은 잘 맞는 띠, 충은 맞춰가야 할 띠.
-  // 캐릭터 이미지는 상대 지지의 본기 오행으로 고른다.
-  const bestBranches = React.useMemo(() => getBestBranches(ji), [ji]);
-  const cautionBranches = React.useMemo(() => getCautionBranches(ji), [ji]);
 
   // 오행 카운트
   const ohaengCount = React.useMemo(() => {
@@ -1015,7 +1011,7 @@ export default function MySajuView() {
               </div>
 
               {/* ─────────────────────────────────────────────────────────────
-                  [소울카드 인연 케미] 잘 맞는 카드 vs 주의해야 할 카드
+                  [소울카드 인연 케미] 잘 맞는 유형 vs 잘 안 맞는 유형
                  ───────────────────────────────────────────────────────────── */}
               {spec.compatibility && (
                 <div className="pt-5 border-t border-line mb-5 space-y-5">
@@ -1024,97 +1020,15 @@ export default function MySajuView() {
                     <span className="text-xs text-ink-faint">누르면 소통 팁이 열립니다</span>
                   </div>
 
-                  {/* 0. 잘 맞는 띠 — 일지의 삼합·육합으로 계산 */}
-                  {bestBranches.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium text-ink-soft">
-                        잘 맞는 띠 · {ji}일지 기준
-                      </p>
-                      <div className="bg-sunken rounded-xl divide-y divide-line">
-                        {bestBranches.map((b) => {
-                          const src = zodiacImageSrc(b.branch, b.element);
-                          return (
-                            <div key={b.branch} className="flex items-start gap-3 p-3.5">
-                              {src ? (
-                                <img
-                                  src={src}
-                                  alt={`${b.animal}띠 캐릭터`}
-                                  decoding="async"
-                                  width={44}
-                                  height={44}
-                                  className="w-11 h-11 shrink-0 object-contain select-none"
-                                />
-                              ) : (
-                                <span
-                                  className="w-11 h-11 shrink-0 rounded-md text-white font-serif text-sm flex items-center justify-center select-none"
-                                  style={{ backgroundColor: ELEM_COLOR[b.element] || "var(--color-ink)" }}
-                                >
-                                  {b.branch}
-                                </span>
-                              )}
-                              <div className="min-w-0">
-                                <div className="flex items-baseline gap-2 flex-wrap">
-                                  <span className="font-semibold text-sm text-ink">
-                                    {b.animal}띠
-                                  </span>
-                                  <span className="text-xs text-ink-faint">
-                                    {b.hanjaRelation}
-                                  </span>
-                                </div>
-                                <p className="mt-1 text-xs text-ink-soft leading-relaxed">
-                                  {b.oneLiner}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        })}
-                        {cautionBranches.map((b) => {
-                          const src = zodiacImageSrc(b.branch, b.element);
-                          return (
-                            <div key={b.branch} className="flex items-start gap-3 p-3.5">
-                              {src ? (
-                                <img
-                                  src={src}
-                                  alt={`${b.animal}띠 캐릭터`}
-                                  decoding="async"
-                                  width={44}
-                                  height={44}
-                                  className="w-11 h-11 shrink-0 object-contain select-none opacity-60"
-                                />
-                              ) : (
-                                <span
-                                  className="w-11 h-11 shrink-0 rounded-md text-white font-serif text-sm flex items-center justify-center select-none"
-                                  style={{ backgroundColor: ELEM_COLOR[b.element] || "var(--color-ink)" }}
-                                >
-                                  {b.branch}
-                                </span>
-                              )}
-                              <div className="min-w-0">
-                                <div className="flex items-baseline gap-2 flex-wrap">
-                                  <span className="font-semibold text-sm text-ink-soft">
-                                    {b.animal}띠
-                                  </span>
-                                  <span className="text-xs text-ink-faint">
-                                    맞춰가야 할 띠 · {b.hanjaRelation}
-                                  </span>
-                                </div>
-                                <p className="mt-1 text-xs text-ink-soft leading-relaxed">
-                                  {b.oneLiner}
-                                </p>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
 
-                  {/* 1. 잘 맞는 카드 */}
+                  {/* 1. 잘 맞는 유형 */}
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-ink-soft">잘 맞는 카드</p>
+                    <p className="text-xs font-medium text-ink-soft">잘 맞는 유형</p>
                     <div className="grid grid-cols-1 gap-2">
                       {spec.compatibility.best.map((item, idx) => {
                         const isExpanded = activeTipCard === `best-${idx}`;
+                        const rep = getRepresentativeBranch(item.elem, ji);
+                        const repSrc = rep ? zodiacImageSrc(rep.branch, rep.element) : null;
                         return (
                           <div
                             key={idx}
@@ -1123,12 +1037,21 @@ export default function MySajuView() {
                           >
                             <div className="flex items-center justify-between mb-1.5 gap-2">
                               <div className="flex items-center gap-2 flex-wrap min-w-0">
-                                <span
-                                  className="w-6 h-6 shrink-0 rounded-md text-white font-serif text-xs flex items-center justify-center select-none"
-                                  style={{ backgroundColor: ELEM_COLOR[item.elem] || "var(--color-ink)" }}
-                                >
-                                  {item.hanja}
-                                </span>
+                                {repSrc ? (
+                                  <img
+                                    src={repSrc}
+                                    alt={`${rep!.element} 기운의 ${rep!.animal} 캐릭터`}
+                                    decoding="async"
+                                    className="w-9 h-9 shrink-0 object-contain select-none"
+                                  />
+                                ) : (
+                                  <span
+                                    className="w-6 h-6 shrink-0 rounded-md text-white font-serif text-xs flex items-center justify-center select-none"
+                                    style={{ backgroundColor: ELEM_COLOR[item.elem] || "var(--color-ink)" }}
+                                  >
+                                    {item.hanja}
+                                  </span>
+                                )}
                                 <span className="font-semibold text-sm text-ink">
                                   {item.cardName}
                                 </span>
@@ -1154,12 +1077,14 @@ export default function MySajuView() {
                     </div>
                   </div>
 
-                  {/* 2. 조심할 카드 */}
+                  {/* 2. 잘 안 맞는 유형 */}
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-ink-soft">맞춰가야 할 카드</p>
+                    <p className="text-xs font-medium text-ink-soft">잘 안 맞는 유형</p>
                     <div className="grid grid-cols-1 gap-2">
                       {spec.compatibility.caution.map((item, idx) => {
                         const isExpanded = activeTipCard === `caution-${idx}`;
+                        const rep = getRepresentativeBranch(item.elem, ji);
+                        const repSrc = rep ? zodiacImageSrc(rep.branch, rep.element) : null;
                         return (
                           <div
                             key={idx}
@@ -1168,12 +1093,21 @@ export default function MySajuView() {
                           >
                             <div className="flex items-center justify-between mb-1.5 gap-2">
                               <div className="flex items-center gap-2 flex-wrap min-w-0">
-                                <span
-                                  className="w-6 h-6 shrink-0 rounded-md text-white font-serif text-xs flex items-center justify-center select-none"
-                                  style={{ backgroundColor: ELEM_COLOR[item.elem] || "var(--color-ink)" }}
-                                >
-                                  {item.hanja}
-                                </span>
+                                {repSrc ? (
+                                  <img
+                                    src={repSrc}
+                                    alt={`${rep!.element} 기운의 ${rep!.animal} 캐릭터`}
+                                    decoding="async"
+                                    className="w-9 h-9 shrink-0 object-contain select-none opacity-60"
+                                  />
+                                ) : (
+                                  <span
+                                    className="w-6 h-6 shrink-0 rounded-md text-white font-serif text-xs flex items-center justify-center select-none"
+                                    style={{ backgroundColor: ELEM_COLOR[item.elem] || "var(--color-ink)" }}
+                                  >
+                                    {item.hanja}
+                                  </span>
+                                )}
                                 <span className="font-semibold text-sm text-ink">
                                   {item.cardName}
                                 </span>

@@ -6,6 +6,8 @@ import { calculateTodayFortune } from "../utils/saju";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/analytics";
 import { zodiacImageSrc } from "./ZodiacAvatar";
+import { db } from "../lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 interface ViralCardModalProps {
   isOpen: boolean;
@@ -522,6 +524,34 @@ export default function ViralCardModal({
     return `${spec.serialPrefix}-${num} · ${gan}${ji}`;
   }, [gan, ji, spec.serialPrefix]);
 
+  // GroupView가 쓰는 실제 분석 캐시(rooms/{code}/analysis/result)를 읽어온다.
+  // 이 문서에는 사주·자미두수·MBTI·별자리 4축을 종합한 overall_score가 들어 있다.
+  // 아직 분석 전이거나 읽기에 실패하면 null로 두고 아래 간이 계산으로 폴백한다.
+  const [groupAnalysis, setGroupAnalysis] = useState<{ score: number; title?: string } | null>(null);
+
+  useEffect(() => {
+    if (!isOpen || !isGroupMode || !roomCode) {
+      setGroupAnalysis(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, "rooms", roomCode, "analysis", "result"));
+        if (cancelled || !snap.exists()) return;
+        const g = snap.data()?.group;
+        if (typeof g?.overall_score === "number" && g.overall_score > 0) {
+          setGroupAnalysis({ score: g.overall_score, title: g.title });
+        }
+      } catch {
+        // 권한·네트워크 문제 시 조용히 폴백한다
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, isGroupMode, roomCode]);
+
   // 2. 모임 케미 분석 데이터
   const groupStats = useMemo(() => {
     if (!isGroupMode) return null;
@@ -532,16 +562,23 @@ export default function ViralCardModal({
     });
 
     const uniqueElements = Object.values(counts).filter(c => c > 0).length;
-    const baseScore = 78 + (uniqueElements * 3) + Math.min(8, allMembers.length * 2);
-    const score = Math.min(99, Math.max(82, baseScore));
+
+    // 실제 분석(4축 종합)이 있으면 그 점수를 쓰고, 없을 때만 오행 기반으로 어림한다.
+    const fallbackScore = Math.min(
+      99,
+      Math.max(82, 78 + uniqueElements * 3 + Math.min(8, allMembers.length * 2))
+    );
+    const score = groupAnalysis?.score ?? fallbackScore;
 
     return {
       score,
+      isRealScore: groupAnalysis != null,
+      groupTitle: groupAnalysis?.title,
       uniqueElements,
       counts,
       memberCount: allMembers.length
     };
-  }, [allMembers, isGroupMode]);
+  }, [allMembers, isGroupMode, groupAnalysis]);
 
   // 3. 모임 속 시그니처 역할 분석 데이터
   const roleAnalysis = useMemo(() => {
@@ -1092,9 +1129,11 @@ export default function ViralCardModal({
                 모임 케미는 <span className={colors.text}>{groupStats.score}점</span>
               </h1>
 
-              {/* 한 줄 정의 */}
+              {/* 한 줄 정의 — 실제 분석이 있으면 그 모임 제목을, 없으면 오행 기준 문구를 쓴다 */}
               <p className="text-center text-sm font-medium leading-[1.6] text-[#55565E] max-w-[300px] mx-auto mb-6">
-                "{groupStats.uniqueElements}가지 오행이 서로를 생(生)하며 균형을 이뤄요"
+                {groupStats.groupTitle
+                  ? `"${groupStats.groupTitle}"`
+                  : `"${groupStats.uniqueElements}가지 오행이 서로를 생(生)하며 균형을 이뤄요"`}
               </p>
 
               {/* 키워드 태그 */}
