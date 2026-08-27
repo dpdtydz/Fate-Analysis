@@ -46,6 +46,7 @@ import AuthModal from "./AuthModal";
 import ViralCardModal from "./ViralCardModal";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { calculateTodayFortune, calculateSaju, getDynamicCharacter } from "../utils/saju";
+import ZodiacAvatar, { zodiacImageSrc } from "./ZodiacAvatar";
 
 // Sample Profile Generator for Zero-Login 1-Second Instant Preview
 export function createSampleProfile(): PersonalSajuProfile {
@@ -641,6 +642,12 @@ export default function MySajuView() {
     return `${spec.serialPrefix}-${num} · ${daymasterGan}${ji}`;
   }, [daymasterGan, ji, spec.serialPrefix]);
 
+  // 일지 × 일간 오행 캐릭터 — 카드의 다른 표기(시리얼·일주)와 같은 일주 기준
+  const zodiacSrc = React.useMemo(
+    () => zodiacImageSrc(ji, daymasterElement),
+    [ji, daymasterElement]
+  );
+
   // 오행 카운트
   const ohaengCount = React.useMemo(() => {
     const counts: Record<string, number> = { "목": 0, "화": 0, "토": 0, "금": 0, "수": 0 };
@@ -924,9 +931,13 @@ export default function MySajuView() {
                 </span>
               </div>
 
-              {/* 2. 엠블럼 */}
-              <div className="relative w-[112px] h-[112px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center">
-                {spec.renderIcon()}
+              {/* 2. 엠블럼 — 띠×오행 캐릭터가 있으면 우선, 없으면 오행 아이콘 */}
+              <div className="relative w-[112px] h-[112px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center overflow-hidden">
+                {zodiacSrc ? (
+                  <ZodiacAvatar branch={ji} element={daymasterElement} size={104} />
+                ) : (
+                  spec.renderIcon()
+                )}
                 {profile.character_emoji && (
                   <div
                     className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-surface flex items-center justify-center text-lg shadow-sm"

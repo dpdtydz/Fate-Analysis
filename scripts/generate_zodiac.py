@@ -59,7 +59,10 @@ ELEMENTS = {
     "wood":  "fresh green tones (base #4CAF50, light #C8E6C9, outlines dark green #1B5E20)",
     "fire":  "warm red-orange tones (base #E53935, light #FFCDD2, outlines deep crimson #7F1D1D)",
     "earth": "ochre yellow-brown tones (base #D4A017, light #F5E6C4, outlines dark brown #5D4037)",
-    "metal": "silver white-gray tones (base #B0BEC5, light #ECEFF1, outlines charcoal #37474F)",
+    "metal": "polished pale-gold and warm silver tones (base #C9B896, light #F2EADB, "
+             "outlines dark bronze #6B5B45) — a warm precious-metal sheen with bright "
+             "specular highlights. CRITICAL: absolutely NO blue and NO blue-gray anywhere; "
+             "if it looks cool or bluish it is wrong — push it warm and golden",
     "water": "cool blue tones (base #5B9BD5, light #C9E2F5, outlines navy #1F4E79)",
 }
 
@@ -73,8 +76,9 @@ THEMES = {
                  "a small cartoon flame bursting above the open paws, eyes focused on the flame",
         "earth": "mid-digging action: gripping a tiny shovel with both front paws, body leaning "
                  "into the dig, a small mound of soil and flying dirt bits beside it",
-        "metal": "doing a heavy overhead barbell lift: both front paws gripping the bar above "
-                 "its head, knees bent, cheeks puffed with effort, the bar slightly bending",
+        "metal": "a tiny warrior in gleaming steel armor: a small polished helmet, "
+                 "chest plate and shoulder guards, holding up a little silver shield "
+                 "with both front paws, standing bravely on guard",
         "water": "playing in a swim ring worn around its waist, both front paws resting on the "
                  "ring, leaning playfully as if floating, goggles on forehead, water drops splashing",
     },
@@ -86,8 +90,9 @@ THEMES = {
                  "front hoof, looking mighty and proud",
         "earth": "happily plowing a tiny field: pulling a small wooden plow, fresh soil "
                  "turning over behind it",
-        "metal": "wearing shiny toy knight armor with a tiny helmet between its horns, "
-                 "standing proud like a guardian",
+        "metal": "a heavy armored war ox: thick steel plate armor strapped over its back "
+                 "and chest, polished metal caps on its horns, standing planted on all "
+                 "four hooves like an unmovable fortress, holding nothing",
         "water": "soaking half-submerged in a calm pond like a water buffalo, only eyes, "
                  "snout and horns above the waterline, blissfully zoned out, gentle ripples spreading",
     },
@@ -98,20 +103,24 @@ THEMES = {
                  "determined grin",
         "earth": "standing proudly on top of a small rocky mountain peak, chest out, "
                  "little pebbles rolling down",
-        "metal": "wearing a tiny shiny gold crown, sitting upright regally with chest "
-                 "puffed out, one front paw raised, letting out a proud cute little roar",
+        "metal": "a fierce armored warrior: steel shoulder guards and a chest plate, "
+                 "one front paw raised mid-swipe with gleaming steel claw-blades strapped "
+                 "over its claws, sharp metallic glints",
         "water": "happily paddling and swimming in water, head above the surface, "
                  "splashes around its front paws (tigers love swimming)",
     },
     "rabbit": {
         "wood":  "nibbling a huge fresh green leaf held in both front paws, "
                  "cheeks stuffed round, tiny sprouts around its feet",
-        "fire":  "leaping high like a rocket, a small flame burst under its feet at "
-                 "takeoff, long ears streaming back, thrilled wide-eyed grin",
+        "fire":  "blasting upward in a powerful rocket launch: a LARGE roaring flame jet "
+                 "erupting from under its feet and filling the lower half of the image, "
+                 "body tilted diagonally in flight, long ears swept back by the speed, "
+                 "flame sparks streaking, exhilarated open-mouthed grin",
         "earth": "digging a burrow enthusiastically: bottom and tail up in the air, "
                  "head half in the hole, dirt flying out behind",
-        "metal": "hammering on a tiny anvil like a blacksmith, one front paw raising "
-                 "a small hammer, tiny sparks flying",
+        "metal": "a nimble little knight: a small steel helmet between its long ears, "
+                 "light chain-mail vest, holding a slender silver sword upright "
+                 "in both front paws, alert stance",
         "water": "sitting at the edge of a pond, scooping water with both front paws to "
                  "wash one long drooping ear, eyes squeezed shut, giggling",
     },
@@ -122,8 +131,9 @@ THEMES = {
                  "chest puffed out, tiny sparks around",
         "earth": "curled cozily around a miniature mountain like a guardian, "
                  "chin resting on the peak, content smile",
-        "metal": "clutching a large shiny golden orb (yeouiju pearl) preciously with both "
-                 "front paws, gazing at its own sparkling reflection in it, mesmerized",
+        "metal": "clad in overlapping steel armor plates along its body like a war "
+                 "dragon, polished metal guards on its shoulders, holding a gleaming "
+                 "silver orb in both front paws, proud stance",
         "water": "flying among small rain clouds, raindrops falling from the clouds, "
                  "its long body waving through them happily (the rain-bringing dragon)",
     },
@@ -134,34 +144,43 @@ THEMES = {
                  "gazing at the flame in wonder",
         "earth": "burrowing playfully: body half-buried in soil, head popping out of a "
                  "little dirt hole, soil bits on its head",
-        "metal": "coiled around a shiny toy knight sword like a guardian, "
-                 "head resting on the sword's hilt",
+        "metal": "wearing a sleek steel helmet-crown on its head with polished metal "
+                 "bands wrapped along its coils like armor rings, coiled upright and "
+                 "guarding a silver blade planted in front of it",
         "water": "swimming like a tiny sea serpent: body making elegant waves through "
                  "water, small splashes and bubbles around",
     },
     "horse": {
-        "wood":  "trotting through a small forest path, carrying two baskets of green "
-                 "saplings on its back like saddlebags, leaves in its mane",
+        "wood":  "trotting cheerfully with two small baskets of green saplings strapped "
+                 "over its back like saddlebags, the baskets sitting low on its flanks "
+                 "well behind the neck, mane and head completely unobstructed",
         "fire":  "galloping at full speed with a cute trail of small flames behind its "
                  "hooves, mane flowing, joyful expression",
         "earth": "playfully kicking up dust on a dirt road with its hind legs, "
                  "little dust clouds and pebbles flying",
-        "metal": "proudly showing off a shiny new golden horseshoe on one lifted front "
-                 "hoof, sparkle effects on the horseshoe",
+        "metal": "a warhorse in battle armor: a steel chanfron plate over its forehead "
+                 "(eyes fully visible), metal barding along its flanks, gleaming silver "
+                 "horseshoes on all four hooves, standing proudly on all four legs",
         "water": "splashing through a shallow stream, water spraying up around all four "
                  "legs, delighted expression",
     },
     "sheep": {
-        "wood":  "wearing a flower crown, standing in sprouting grass and munching a "
-                 "leaf, tiny flowers blooming in its wool",
-        "fire":  "sitting cozily by a tiny campfire at night, warming its front hooves, "
-                 "wool glowing warmly in the firelight",
-        "earth": "balancing proudly on top of a small pile of round rocks like a "
-                 "mountain goat, chest out",
-        "metal": "ringing a small golden bell hanging from its neck, one front hoof "
-                 "touching the bell, musical notes floating",
-        "water": "wearing a cute yellow raincoat with the hood up over its woolly head, "
-                 "standing in gentle rain next to a puddle",
+        "wood":  "wearing a flower crown, standing happily in fresh sprouting grass with "
+                 "tiny flowers blooming all over its wool, head raised with a gentle "
+                 "smile (nothing in its mouth)",
+        "fire":  "standing calmly on all four hooves beside a bright crackling campfire, "
+                 "head turned toward the flames with a cozy contented smile, "
+                 "its fleece lit warm orange by the firelight, embers drifting up",
+        "earth": "standing firmly on top of one large flat boulder with all four hooves "
+                 "planted solidly ON the rock surface (clearly touching, no floating), "
+                 "chest out and head raised proudly like a mountain ram surveying its land",
+        "metal": "a woolly little warrior: a small steel helmet sitting between its curled "
+                 "horns, a polished breastplate strapped over its fleece, "
+                 "standing proudly at attention on all four hooves",
+        "water": "swimming happily in clear blue water, paddling along with its head and "
+                 "woolly back above the surface, a big cheerful smile, "
+                 "water ripples and splashes around it (no clothing — horns and ears "
+                 "fully visible, never a sad or crying face)",
     },
     "monkey": {
         "wood":  "hanging from a tree branch by one arm, picking a fruit with the other "
@@ -170,32 +189,40 @@ THEMES = {
                  "tail balancing, focused grin",
         "earth": "carefully stacking small stones into a tiny tower, placing the top "
                  "pebble with delicate fingertips, tongue sticking out in deep concentration",
-        "metal": "cheerfully clashing two small toy cymbals together with both front "
-                 "paws, like a classic toy monkey, musical notes around",
-        "water": "soaking in a steaming hot spring like a famous onsen monkey, "
-                 "eyes half closed in bliss, towel folded on its head",
+        "metal": "a martial artist in light steel arm guards and a headband with a "
+                 "metal plate, spinning a long silver staff with both front paws, "
+                 "mischievous confident grin",
+        "water": "cannonballing into cool water: curled up mid-splash with a big "
+                 "crown-shaped water splash bursting up around it, droplets flying "
+                 "everywhere, eyes squeezed shut with a delighted open-mouthed laugh",
     },
     "rooster": {
-        "wood":  "perched on a leafy tree branch, holding a fresh green leaf in its "
-                 "beak, feathers fluffed happily",
+        "wood":  "perched high on a leafy tree branch with both feet gripping it firmly, "
+                 "wings folded neatly against its sides, chest out and head raised "
+                 "proudly, fresh green leaves rustling around it (nothing in its beak)",
         "fire":  "transformed like a tiny phoenix: tail feathers and crest blazing with "
                  "cute cartoon flames, wings spread majestically, small embers floating around",
         "earth": "scratching and pecking at the soil looking for food, one foot "
                  "kicking back a little spray of dirt",
-        "metal": "standing on top of a weathervane arrow like a classic rooster "
-                 "weathervane, wings tucked, looking noble",
+        "metal": "a proud sentry in polished steel: a small crested helmet over its "
+                 "comb, metal wing guards, sharp silver spurs on its legs, "
+                 "standing tall with its chest out on watch",
         "water": "flapping and splashing joyfully in a round stone birdbath, wings spread "
                  "wide, water drops flying everywhere, eyes closed in bliss",
     },
     "dog": {
-        "wood":  "joyfully carrying a leafy tree branch in its mouth like a fetched "
-                 "stick, tail wagging hard, leaves flying off",
-        "fire":  "running proudly like an olympic torch bearer with a small torch held "
-                 "in its mouth, flame trailing behind, tail wagging, joyful sprint",
+        "wood":  "trotting back proudly with a leafy branch CLAMPED FIRMLY between its "
+                 "closed jaws at the center of its muzzle, the branch resting across "
+                 "its mouth like a fetched stick, tail wagging hard, leaves flying off",
+        "fire":  "sprinting like an olympic torch bearer: the torch handle CLAMPED FIRMLY "
+                 "between its closed jaws at the center of its muzzle, teeth gripping the "
+                 "wooden shaft, the burning flame end raised high above its head, "
+                 "tail wagging, proud joyful sprint",
         "earth": "burying a bone in a freshly dug hole, both front paws pushing soil, "
                  "dirt on its nose, tail up",
-        "metal": "sitting proudly with a big shiny gold medal hanging on its chest, "
-                 "chin up like a champion, sparkle effects",
+        "metal": "a loyal guard in steel armor: a small helmet with ear holes, a "
+                 "polished chest plate, sitting upright alert beside a silver shield "
+                 "planted at its side",
         "water": "shaking off water after a bath, fur puffed mid-shake, water drops "
                  "flying in a circle around it, happy face",
     },
@@ -208,8 +235,10 @@ THEMES = {
                  "charging forward playfully with small cartoon flames trailing behind",
         "earth": "lying blissfully in a shallow mud puddle, belly up, one hoof patting "
                  "the mud, mud splashes around",
-        "metal": "sitting like a piggy bank among a small pile of gold coins, one coin "
-                 "balanced on its snout, delighted eyes",
+        "metal": "a stout little soldier in round steel plate armor covering its back and "
+                 "sides, a small pot-shaped helmet on its head, standing sturdily on all "
+                 "four hooves with a determined face, a silver shield resting on the "
+                 "ground beside it",
         "water": "standing under a tiny waterfall like a shower, eyes closed happily, "
                  "water splashing off its round belly",
     },
@@ -235,17 +264,51 @@ STRICT COLOR RULE — blue monochrome only:
 THEME_PROMPT = """Use the reference image ONLY for the character's identity:
 same species, same chibi proportions, same art style, same face design.
 
+### FIRST AND MOST IMPORTANT — RECOLOR THE ANIMAL ###
+The reference animal is BLUE. You MUST repaint its BODY in {palette}.
+This is a recolor task: the fur/skin/wool/feathers, ears, muzzle, legs, tail and
+outlines all change to the new palette. Adding a prop or costume is NOT enough —
+if any blue remains on the animal itself, the image is WRONG.
+
 Now draw this character in a COMPLETELY NEW POSE, fully engaged in this action:
 {theme}
 
 - The pose must CHANGE from the reference — the whole body participates in the action
   (posture, limbs, and gaze all directed at the prop/effect)
 - ANATOMY RULE: {anatomy}
+  Draw EXACTLY four limbs in total — never five, never three. Do not add a spare arm
+  to hold a prop: the prop must be held by one of the four limbs it already has.
 - SAFETY RULE: no prop may cross, overlap or cut through the neck, throat or face.
   The head and neck must stay fully visible and clearly separated from every prop.
   The whole body must read as one connected, unharmed character.
-- Repaint the ENTIRE animal in {palette} — no leftover colors from the reference
-- The prop/effect may use its own natural accent colors, kept soft and minimal
+- Draw ONLY what the theme describes. Never add extra props of your own — especially
+  never put a leaf, twig or food in the character's mouth unless the theme says so.
+- For birds: wings attach clearly at the shoulders and read as wings — either folded
+  neatly against the body or fully spread. Never leave them half-open, detached,
+  or tangled with the tail feathers.
+- POSE RULE: keep the posture natural and comfortable for that animal's real body.
+  A four-legged animal rests on its four legs; never bend its limbs into human sitting
+  poses or fold them under the body at broken angles. Expressions stay happy or calm —
+  never sad, crying, or in pain.
+- HOLDING RULE: whatever the character holds must visibly TOUCH and be gripped by
+  the body part holding it. If held in the mouth, the jaws must be closed around
+  the object at the center of the muzzle, with clear contact — never let a prop
+  float near the face or pass by without being bitten.
+- CLOTHING RULE: if the character wears anything (costume, coat, hood, armor), it must
+  fit around its real anatomy — ears and horns come THROUGH or OUTSIDE the garment,
+  never clipping through the fabric. Paws holding an object must be in front of it,
+  never poking through it. Armor and helmets must sit snugly ON the body following its
+  curves, sized to this small chibi character — never oversized, floating, or detached.
+  Keep the animal's own cute face fully visible and unchanged; the gear is worn BY the
+  character, it never replaces or hides who it is.
+- Re-check the recolor: every part of the animal body is in {palette}, no blue left,
+  and no leftover natural animal colors either — inner ears, muzzle, face skin,
+  comb and wattle must all take the new palette, never pink, red or peach.
+- The elemental prop/effect must be BOLD and unmistakable at a glance — large enough
+  to read as the point of the picture, not a tiny decoration tucked in a corner.
+  It may use its own natural accent colors, but it must read as the RIGHT element:
+  water is clear blue (never brown or muddy), fire is orange-red flame,
+  soil is brown earth, plants are green, metal is gray steel.
 - ONE animal only, full body, centered
 - Solid pure white background (#FFFFFF), no shadow on the ground
 - No text, no letters, no watermark
@@ -256,6 +319,13 @@ Now draw this character in a COMPLETELY NEW POSE, fully engaged in this action:
 ANATOMY_DEFAULT = ("the animal has exactly TWO front paws and TWO hind legs. "
                    "Count the limbs — never draw extra arms or paws. "
                    "Where the theme says 'front paws', use its two front paws.")
+ANATOMY_HOOFED = ("this is a FOUR-LEGGED hoofed animal — an ANIMAL body, never a humanoid. "
+                  "It has exactly FOUR LEGS ending in hooves, and absolutely NO arms, "
+                  "NO shoulders, NO hands and NO fingers. All four legs stay attached "
+                  "under its body in normal animal posture, and it cannot hold or carry "
+                  "anything with its front legs — objects rest on the ground, hang from "
+                  "its body, or are worn. Even in armor it is still a four-legged beast, "
+                  "NOT a knight standing on two legs.")
 ANATOMY = {
     "snake":   ("the snake has NO arms and NO legs — NEVER draw limbs on it. "
                 "Where the theme says 'front paws', the snake instead wraps, holds, "
@@ -265,6 +335,10 @@ ANATOMY = {
     "dragon":  ("the baby dragon has exactly TWO small front paws, TWO hind legs and one tail. "
                 "Count the limbs — never draw extra arms. Its long body may also curl "
                 "around the prop to help."),
+    "ox":      ANATOMY_HOOFED,
+    "horse":   ANATOMY_HOOFED,
+    "sheep":   ANATOMY_HOOFED,
+    "pig":     ANATOMY_HOOFED,
 }
 
 
@@ -312,6 +386,59 @@ def generate(client, contents, out_path: Path) -> bool:
     return False
 
 
+
+# ── 팔레트 자동 검사 ───────────────────────────────────────────────
+# 오행별 기대 색상(Hue 범위, degrees). 생성 직후 위반을 잡아낸다.
+HUE_EXPECT = {
+    "wood":  (70, 170),    # 초록
+    "fire":  (-25, 25),    # 빨강/주황
+    "earth": (25, 60),     # 황토
+    "metal": (25, 60),     # 따뜻한 금빛 (파랑이면 위반)
+    "water": (170, 260),   # 파랑
+}
+
+
+def check_palette(path: Path, element: str) -> tuple[bool, str]:
+    """생성 이미지의 몸 색이 해당 오행 팔레트에 맞는지 검사."""
+    try:
+        import colorsys
+        import numpy as np
+        from PIL import Image
+    except ImportError:
+        return True, "검사 생략(numpy/pillow 없음)"
+    im = Image.open(path).convert("RGB").resize((160, 160))
+    a = np.asarray(im).astype(float) / 255
+    mx, mn = a.max(2), a.min(2)
+    sat = np.where(mx > 0, (mx - mn) / np.maximum(mx, 1e-6), 0)
+    body = (mx < 0.97) | (sat > 0.12)
+    if body.sum() < 100:
+        return True, "빈 이미지"
+    hues = []
+    for y, x in zip(*np.where(body & (sat > 0.18))):
+        r, g, b = a[y, x]
+        hues.append(colorsys.rgb_to_hsv(r, g, b)[0] * 360)
+    if not hues:
+        # 채도 있는 픽셀이 없음 = 완전 무채색. 金도 금빛이어야 하므로 위반
+        return False, "무채색 일색 — 색이 빠짐"
+    hues = np.array(hues)
+    blue = float(((hues >= 180) & (hues <= 260)).mean())
+    if element == "water":
+        return blue > 0.4, f"blue={blue:.0%}"
+    if blue > 0.25:
+        return False, f"파란색 잔존 blue={blue:.0%}"
+    lo, hi = HUE_EXPECT[element]
+    h2 = np.where(hues > 300, hues - 360, hues)
+    hit = float(((h2 >= lo) & (h2 <= hi)).mean())
+    lo, hi = HUE_EXPECT[element]
+    h2 = np.where(hues > 300, hues - 360, hues)
+    if element == "metal":
+        # 금빛(따뜻한 색조)이어야 함. 무채색 회색 일색이면 옛 팔레트 → 위반
+        warm = float(((h2 >= 20) & (h2 <= 65)).mean())
+        if warm < 0.35:
+            return False, f"금빛 부족(warm={warm:.0%}) — 회색 일색 의심"
+        return True, f"warm={warm:.0%}, blue={blue:.0%}"
+    return hit > 0.30, f"{element}색 {hit:.0%}, blue={blue:.0%}"
+
 def find_base_image(animal: str) -> Path | None:
     """확정 레퍼런스(refs) 우선, 없으면 생성본(raw)에서 파란색 기준본을 찾는다."""
     for d in (REFS_DIR, RAW_DIR):
@@ -354,7 +481,10 @@ def phase_recolor(client, animals: list[str], elements: list[str]):
                         THEME_PROMPT.format(palette=ELEMENTS[element],
                                             theme=THEMES[animal][element],
                                             anatomy=ANATOMY.get(animal, ANATOMY_DEFAULT))]
-            generate(client, contents, out)
+            if generate(client, contents, out):
+                ok, detail = check_palette(out, element)
+                if not ok:
+                    print(f"  [팔레트 위반] {out.name} — {detail} → 검수 필요")
 
 
 def remove_backgrounds():
