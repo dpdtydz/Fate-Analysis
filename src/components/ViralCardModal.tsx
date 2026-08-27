@@ -5,6 +5,7 @@ import { Member } from "../types";
 import { calculateTodayFortune } from "../utils/saju";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/analytics";
+import { zodiacImageSrc } from "./ZodiacAvatar";
 
 interface ViralCardModalProps {
   isOpen: boolean;
@@ -510,6 +511,9 @@ export default function ViralCardModal({
   const todayFortune = calculateTodayFortune(gan, elem);
   const colors = useMemo(() => getElementCardColors(elem), [elem]);
 
+  // 일지 × 일간 오행 캐릭터 — MySajuView 소울카드와 같은 기준
+  const zodiacSrc = useMemo(() => zodiacImageSrc(ji, elem), [ji, elem]);
+
   // 1. 내 소울 카드 시리얼
   const cardSerial = useMemo(() => {
     const ganCode = gan.charCodeAt(0) % 10;
@@ -899,9 +903,24 @@ export default function ViralCardModal({
                 </span>
               </div>
 
-              {/* 엠블럼: 지름 128px 원, 오행 데이터 컬러 적용 */}
-              <div className={`w-[128px] h-[128px] mx-auto mb-5 rounded-full flex items-center justify-center ${colors.bg}`}>
-                {spec.renderIcon(colors.stroke)}
+              {/* 엠블럼: 띠×오행 캐릭터가 있으면 우선, 없으면 오행 아이콘.
+                  캐릭터는 정사각 투명 PNG라 원형 배경에 넣으면 발끝이 잘린다. */}
+              <div
+                className={`w-[128px] h-[128px] mx-auto mb-5 flex items-center justify-center ${
+                  zodiacSrc ? "" : `rounded-full ${colors.bg}`
+                }`}
+              >
+                {zodiacSrc ? (
+                  <img
+                    src={zodiacSrc}
+                    alt=""
+                    aria-hidden="true"
+                    /* html2canvas 캡처 대상이므로 lazy 금지 — 캡처 시점에 로드되어 있어야 한다 */
+                    className="w-full h-full object-contain select-none"
+                  />
+                ) : (
+                  spec.renderIcon(colors.stroke)
+                )}
               </div>
 
               {/* 이름 */}

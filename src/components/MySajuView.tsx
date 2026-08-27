@@ -931,10 +931,16 @@ export default function MySajuView() {
                 </span>
               </div>
 
-              {/* 2. 엠블럼 — 띠×오행 캐릭터가 있으면 우선, 없으면 오행 아이콘 */}
-              <div className="relative w-[112px] h-[112px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center overflow-hidden">
+              {/* 2. 엠블럼 — 띠×오행 캐릭터가 있으면 우선, 없으면 오행 아이콘.
+                     캐릭터는 정사각 투명 PNG라 원형 마스크에 넣으면 발끝이 잘린다.
+                     캐릭터일 때는 원형 배경 없이 그대로 놓고, 폴백 SVG일 때만 원형 배경을 준다. */}
+              <div
+                className={`relative w-[112px] h-[112px] mx-auto mb-4 flex items-center justify-center ${
+                  zodiacSrc ? "" : "rounded-full bg-sunken overflow-hidden"
+                }`}
+              >
                 {zodiacSrc ? (
-                  <ZodiacAvatar branch={ji} element={daymasterElement} size={104} />
+                  <ZodiacAvatar branch={ji} element={daymasterElement} size={112} />
                 ) : (
                   spec.renderIcon()
                 )}

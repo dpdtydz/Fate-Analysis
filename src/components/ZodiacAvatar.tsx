@@ -82,11 +82,13 @@ export default function ZodiacAvatar({
     <img
       src={src}
       alt={`${elemName}(${element}) 기운의 ${animalName} 캐릭터`}
-      loading="lazy"
+      /* lazy 금지 — 크기를 지정해도 로드 전 레이아웃이 0이 되는 순간이 있어
+         lazy 로더가 "화면 밖"으로 판단해 영원히 로드하지 않는 교착이 생긴다.
+         카드의 핵심 시각 요소라 즉시 로드한다. */
       decoding="async"
       className={`object-contain select-none ${className}`}
-      /* 원본 비율 유지 — 정사각형으로 눌리지 않게 최대치만 제한한다 */
-      style={{ maxWidth: size, maxHeight: size }}
+      /* 박스는 size로 고정하고 그림은 object-contain으로 비율을 지킨다 */
+      style={{ width: size, height: size }}
     />
   );
 }
