@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# 12지신 리소스 — 생성 원본/중간본은 제외 (재생성 가능, 91MB)
+# 투명 PNG(assets/zodiac/png)와 웹 배포본(public/zodiac)은 커밋한다.
+assets/zodiac/raw/
+assets/zodiac/refs/
+scripts/__pycache__/
