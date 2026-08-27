@@ -79,8 +79,9 @@ THEMES = {
                  "ring, leaning playfully as if floating, goggles on forehead, water drops splashing",
     },
     "ox": {
-        "wood":  "proudly carrying a big log on its back, small green sprouts and leaves "
-                 "growing from the log, walking steadily",
+        "wood":  "pulling a small wooden cart loaded with leafy green saplings, the cart "
+                 "behind and below it, head held high and fully clear of the load, "
+                 "walking steadily with a proud smile",
         "fire":  "snorting two cute little puffs of flame from its nostrils, stomping one "
                  "front hoof, looking mighty and proud",
         "earth": "happily plowing a tiny field: pulling a small wooden plow, fresh soil "
@@ -240,6 +241,9 @@ Now draw this character in a COMPLETELY NEW POSE, fully engaged in this action:
 - The pose must CHANGE from the reference — the whole body participates in the action
   (posture, limbs, and gaze all directed at the prop/effect)
 - ANATOMY RULE: {anatomy}
+- SAFETY RULE: no prop may cross, overlap or cut through the neck, throat or face.
+  The head and neck must stay fully visible and clearly separated from every prop.
+  The whole body must read as one connected, unharmed character.
 - Repaint the ENTIRE animal in {palette} — no leftover colors from the reference
 - The prop/effect may use its own natural accent colors, kept soft and minimal
 - ONE animal only, full body, centered
