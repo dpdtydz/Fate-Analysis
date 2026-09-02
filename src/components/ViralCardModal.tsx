@@ -570,12 +570,27 @@ export default function ViralCardModal({
     );
     const score = groupAnalysis?.score ?? fallbackScore;
 
+    // 우리 모임 공간 — 오행 구성으로 갈린다.
+    // 4종 이상 섞이면 대통합 광장, 1종뿐이면 순혈 성소, 그 외엔 최다 오행의 공간.
+    // 서버 분석에 의존하지 않으므로 분석 실패 상태에서도 엠블럼이 뜬다.
+    const ELEM_TO_SPACE: Record<string, string> = {
+      목: "wood", 화: "fire", 토: "earth", 금: "metal", 수: "water",
+    };
+    const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const spaceKey =
+      uniqueElements >= 4
+        ? "balanced"
+        : uniqueElements === 1
+          ? "pure"
+          : ELEM_TO_SPACE[dominant] ?? "balanced";
+
     return {
       score,
       isRealScore: groupAnalysis != null,
       groupTitle: groupAnalysis?.title,
       uniqueElements,
       counts,
+      spaceKey,
       memberCount: allMembers.length
     };
   }, [allMembers, isGroupMode, groupAnalysis]);

@@ -5,6 +5,10 @@
 assets/zodiac/png/ (투명 PNG, 1024px) 를 읽어
 public/zodiac/ 에 웹 최적화본(여백 크롭 + 리사이즈 + 압축)으로 저장.
 
+배포 대상:
+  zodiac_*.png         캐릭터 / 역할(zodiac_*_role_*.png) - 320px
+  space_*.png          공간 배경 - 480px (엠블럼 128px + 레티나 여유)
+
 사용법:
   python scripts/publish_zodiac.py           # 기본 320px
   python scripts/publish_zodiac.py --size 512
@@ -18,10 +22,24 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SRC_DIR = PROJECT_ROOT / "assets" / "zodiac" / "png"
 OUT_DIR = PROJECT_ROOT / "public" / "zodiac"
 
+# 배포 대상 glob 패턴
+SRC_PATTERNS = ("zodiac_*.png", "space_*.png")
+
+
+def classify(name: str) -> str:
+    """파일명으로 리소스 종류를 판별한다."""
+    if name.startswith("space_"):
+        return "space"
+    if "_role_" in name:
+        return "role"
+    return "character"
+
 
 def main():
     ap = argparse.ArgumentParser(description="12지신 리소스 웹 배포")
     ap.add_argument("--size", type=int, default=320, help="긴 변 기준 출력 크기(px)")
+    ap.add_argument("--space-size", type=int, default=480,
+                    help="space_ 이미지의 긴 변 기준 출력 크기(px)")
     ap.add_argument("--padding", type=int, default=8, help="크롭 후 남길 여백(px)")
     args = ap.parse_args()
 
