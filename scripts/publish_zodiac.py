@@ -48,34 +48,51 @@ def main():
     except ImportError:
         sys.exit("[ERROR] pip install pillow 후 실행하세요.")
 
-    files = sorted(SRC_DIR.glob("zodiac_*.png"))
+    files = []
+    for pattern in SRC_PATTERNS:
+        files.extend(SRC_DIR.glob(pattern))
+    files = sorted(set(files))
+
     if not files:
         sys.exit(f"[ERROR] {SRC_DIR} 에 투명 PNG가 없습니다. "
                  "먼저 generate_zodiac.py --remove-bg 를 실행하세요.")
 
+    counts = {"character": 0, "role": 0, "space": 0}
+    for f in files:
+        counts[classify(f.name)] += 1
+
+    if counts["space"] == 0:
+        print("[INFO] space PNG가 아직 없어 배포 대상 0건")
+
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     total = 0
     for f in files:
+        kind = classify(f.name)
+        target_size = args.space_size if kind == "space" else args.size
+
         im = Image.open(f).convert("RGBA")
-        # 알파 채널 기준으로 캐릭터 영역만 크롭
+        # 알파 채널 기준으로 유효 영역만 크롭
         bbox = im.split()[3].getbbox()
         if bbox:
             l, t, r, b = bbox
             p = args.padding
             im = im.crop((max(l - p, 0), max(t - p, 0),
                           min(r + p, im.width), min(b + p, im.height)))
-        # 긴 변을 size 로 맞춰 축소
-        scale = args.size / max(im.width, im.height)
+        # 긴 변을 대상 크기로 맞춰 축소 (space: 480px, zodiac: 320px)
+        scale = target_size / max(im.width, im.height)
         if scale < 1:
             im = im.resize((max(round(im.width * scale), 1),
                             max(round(im.height * scale), 1)), Image.LANCZOS)
         out = OUT_DIR / f.name
         im.save(out, "PNG", optimize=True)
+        webp_out = OUT_DIR / f"{f.stem}.webp"
+        im.save(webp_out, "WEBP", quality=88)
         total += out.stat().st_size
         print(f"  [OK] {out.relative_to(PROJECT_ROOT)} {im.width}x{im.height} "
-              f"{out.stat().st_size // 1024}KB")
+              f"{out.stat().st_size // 1024}KB (WebP: {webp_out.stat().st_size // 1024}KB)")
 
-    print(f"\n{len(files)}장 배포 완료 · 합계 {total / 1024 / 1024:.1f}MB → "
+    summary_counts = f"캐릭터 {counts['character']}장 / 역할 {counts['role']}장 / 공간 {counts['space']}장"
+    print(f"\n{len(files)}장 배포 완료 ({summary_counts}) · 합계 {total / 1024 / 1024:.1f}MB → "
           f"{OUT_DIR.relative_to(PROJECT_ROOT)}")
 
 

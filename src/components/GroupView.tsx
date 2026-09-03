@@ -10,6 +10,7 @@ import html2canvas from "html2canvas-pro";
 import PremiumPaywall from "./PremiumPaywall";
 import GoogleAds from "./GoogleAds";
 import { logAnalyticsEvent } from "../lib/analytics";
+import ZodiacAvatar, { spaceImageSrc, SPACE_NAMES, calculateSpaceKey, calculateMemberRole } from "./ZodiacAvatar";
 
 const isMbtiRegistered = (m?: any): boolean => {
   if (!m || !m.mbti) return false;
@@ -895,6 +896,12 @@ export default function GroupView({ code }: GroupViewProps) {
 
   const captureRef = useRef<HTMLDivElement>(null);
 
+  const spaceKey = React.useMemo(() => calculateSpaceKey(members), [members]);
+  const [spaceImgFailed, setSpaceImgFailed] = useState(false);
+  const spaceSrcCandidate = React.useMemo(() => spaceImageSrc(spaceKey), [spaceKey]);
+  useEffect(() => setSpaceImgFailed(false), [spaceSrcCandidate]);
+  const spaceSrc = spaceImgFailed ? null : spaceSrcCandidate;
+
   // Score to color helper — 점수는 먹 농담으로, 최고 구간(90+)에만 인주 포인트
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-seal bg-sunken";
@@ -1447,19 +1454,32 @@ export default function GroupView({ code }: GroupViewProps) {
                   <span className="text-xs font-mono tracking-[0.14em] text-ink-faint">
                     GROUP · {members.length}인
                   </span>
+                  <span className="text-xs font-medium text-seal bg-seal/10 px-2.5 py-1 rounded-lg">
+                    {SPACE_NAMES[spaceKey]}
+                  </span>
                 </div>
 
-                {/* Circular Geometric Emblem */}
-                <div className="w-[96px] h-[96px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center">
-                  <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
-                    <circle cx="24" cy="24" r="16" />
-                    <circle cx="24" cy="14" r="6" />
-                    <circle cx="15" cy="29" r="6" />
-                    <circle cx="33" cy="29" r="6" />
-                    <line x1="24" y1="14" x2="15" y2="29" opacity="0.4" />
-                    <line x1="24" y1="14" x2="33" y2="29" opacity="0.4" />
-                    <line x1="15" y1="29" x2="33" y2="29" opacity="0.4" />
-                  </svg>
+                {/* Circular Geometric Emblem or Space Image */}
+                <div className="w-[104px] h-[104px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center overflow-hidden">
+                  {spaceSrc ? (
+                    <img
+                      src={spaceSrc}
+                      alt={`${SPACE_NAMES[spaceKey]} 심볼`}
+                      decoding="async"
+                      onError={() => setSpaceImgFailed(true)}
+                      className="w-[92px] h-[92px] object-contain select-none"
+                    />
+                  ) : (
+                    <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
+                      <circle cx="24" cy="24" r="16" />
+                      <circle cx="24" cy="14" r="6" />
+                      <circle cx="15" cy="29" r="6" />
+                      <circle cx="33" cy="29" r="6" />
+                      <line x1="24" y1="14" x2="15" y2="29" opacity="0.4" />
+                      <line x1="24" y1="14" x2="33" y2="29" opacity="0.4" />
+                      <line x1="15" y1="29" x2="33" y2="29" opacity="0.4" />
+                    </svg>
+                  )}
                 </div>
 
                 <h3 className="text-center font-serif text-2xl font-semibold tracking-tight leading-snug text-ink mb-2">
@@ -1579,9 +1599,15 @@ export default function GroupView({ code }: GroupViewProps) {
                           return (
                             <div key={idx} className="flex items-center justify-between p-3 bg-sunken rounded-xl">
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-ink">{m1.character_emoji} {m1.nickname}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <ZodiacAvatar member={m1} size={20} fallbackEmoji={m1.character_emoji} />
+                                  <span className="text-sm font-semibold text-ink">{m1.nickname}</span>
+                                </div>
                                 <span className="text-ink-faint font-sans">·</span>
-                                <span className="text-sm font-semibold text-ink">{m2.character_emoji} {m2.nickname}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <ZodiacAvatar member={m2} size={20} fallbackEmoji={m2.character_emoji} />
+                                  <span className="text-sm font-semibold text-ink">{m2.nickname}</span>
+                                </div>
                               </div>
                               <span className="text-xs font-semibold text-seal bg-surface px-2 py-0.5 rounded-md">
                                 {p.score >= 95 ? "S+ 등급" : "S 등급"} · {p.score}점
@@ -1788,16 +1814,22 @@ export default function GroupView({ code }: GroupViewProps) {
                 >
                   {/* Pair header participants */}
                   <div className="flex items-center justify-between pb-2">
-                    <div className="flex items-center space-x-1.5 text-sm font-semibold text-ink min-w-0 flex-1">
-                      <span className="p-1 rounded-full bg-sunken text-sm leading-none shrink-0">
-                        {m1.character_emoji}
+                    <div className="flex items-center space-x-1.5 text-sm font-semibold text-ink min-w-0 flex-1 flex-wrap gap-y-1">
+                      <span className="w-6 h-6 rounded-full bg-sunken flex items-center justify-center shrink-0 overflow-hidden">
+                        <ZodiacAvatar member={m1} size={22} fallbackEmoji={m1.character_emoji} />
                       </span>
                       <span className="truncate">{m1.nickname}</span>
+                      <span className="text-[11px] font-normal text-ink-faint bg-sunken px-1.5 py-0.5 rounded shrink-0">
+                        {calculateMemberRole(m1).role}
+                      </span>
                       <span className="text-ink-faint font-normal shrink-0">×</span>
-                      <span className="p-1 rounded-full bg-sunken text-sm leading-none shrink-0">
-                        {m2.character_emoji}
+                      <span className="w-6 h-6 rounded-full bg-sunken flex items-center justify-center shrink-0 overflow-hidden">
+                        <ZodiacAvatar member={m2} size={22} fallbackEmoji={m2.character_emoji} />
                       </span>
                       <span className="truncate">{m2.nickname}</span>
+                      <span className="text-[11px] font-normal text-ink-faint bg-sunken px-1.5 py-0.5 rounded shrink-0">
+                        {calculateMemberRole(m2).role}
+                      </span>
                     </div>
 
                     {/* Score & Special Status Badge Group */}

@@ -9,6 +9,7 @@ import PremiumPaywall from "./PremiumPaywall";
 import PairChemistryModal from "./PairChemistryModal";
 import ViralCardModal from "./ViralCardModal";
 import GoogleAds from "./GoogleAds";
+import ZodiacAvatar, { spaceImageSrc, SPACE_NAMES, calculateSpaceKey, calculateMemberRole } from "./ZodiacAvatar";
 
 interface RoomViewProps {
   code: string;
@@ -31,6 +32,12 @@ export default function RoomView({ code }: RoomViewProps) {
   const [isGroupUnlocked, setIsGroupUnlocked] = useState(false);
 
   const [localMemberId, setLocalMemberId] = useState<string>(() => localStorage.getItem(`saju_member_id_${code}`) || "");
+
+  const spaceKey = useMemo(() => calculateSpaceKey(members), [members]);
+  const [spaceImgFailed, setSpaceImgFailed] = useState(false);
+  const spaceSrcCandidate = useMemo(() => spaceImageSrc(spaceKey), [spaceKey]);
+  useEffect(() => setSpaceImgFailed(false), [spaceSrcCandidate]);
+  const spaceSrc = spaceImgFailed ? null : spaceSrcCandidate;
 
   useEffect(() => {
     checkProductUnlock("group", code).then(setIsGroupUnlocked).catch(() => {});
@@ -345,9 +352,14 @@ export default function RoomView({ code }: RoomViewProps) {
           <div className="w-full bg-surface rounded-xl p-6 sm:p-7 border border-line text-left animate-fade-in">
             {/* 1. 상단 표기 */}
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-mono tracking-[0.14em] text-ink-faint">
-                GROUP · {groupMetrics.memberCount}인
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono tracking-[0.14em] text-ink-faint">
+                  GROUP · {groupMetrics.memberCount}인
+                </span>
+                <span className="text-xs font-medium text-seal bg-seal/10 px-2.5 py-1 rounded-lg">
+                  {SPACE_NAMES[spaceKey]}
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={handleCopyLink}
@@ -358,16 +370,26 @@ export default function RoomView({ code }: RoomViewProps) {
             </div>
 
             {/* 2. 엠블럼 */}
-            <div className="w-[96px] h-[96px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center">
-              <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
-                <circle cx="24" cy="24" r="16" />
-                <circle cx="24" cy="14" r="6" />
-                <circle cx="15" cy="29" r="6" />
-                <circle cx="33" cy="29" r="6" />
-                <line x1="24" y1="14" x2="15" y2="29" opacity="0.4" />
-                <line x1="24" y1="14" x2="33" y2="29" opacity="0.4" />
-                <line x1="15" y1="29" x2="33" y2="29" opacity="0.4" />
-              </svg>
+            <div className="w-[104px] h-[104px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center overflow-hidden">
+              {spaceSrc ? (
+                <img
+                  src={spaceSrc}
+                  alt={`${SPACE_NAMES[spaceKey]} 심볼`}
+                  decoding="async"
+                  onError={() => setSpaceImgFailed(true)}
+                  className="w-[92px] h-[92px] object-contain select-none"
+                />
+              ) : (
+                <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
+                  <circle cx="24" cy="24" r="16" />
+                  <circle cx="24" cy="14" r="6" />
+                  <circle cx="15" cy="29" r="6" />
+                  <circle cx="33" cy="29" r="6" />
+                  <line x1="24" y1="14" x2="15" y2="29" opacity="0.4" />
+                  <line x1="24" y1="14" x2="33" y2="29" opacity="0.4" />
+                  <line x1="15" y1="29" x2="33" y2="29" opacity="0.4" />
+                </svg>
+              )}
             </div>
 
             {/* 3. 모임 케미 점수 */}
@@ -470,8 +492,8 @@ export default function RoomView({ code }: RoomViewProps) {
                     href={`#/room/${code}/me/${member.id}`}
                     className="p-4 bg-surface border border-line hover:border-ink-faint rounded-xl flex flex-col items-center justify-center text-center transition-colors group relative"
                   >
-                    <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center text-2xl relative mb-2">
-                      {member.character_emoji}
+                    <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center relative mb-2">
+                      <ZodiacAvatar member={member} size={38} fallbackEmoji={member.character_emoji} />
                       <span className="absolute -top-1 -right-1 w-5 h-5 bg-seal text-white text-xs flex items-center justify-center rounded-full font-sans font-semibold">
                         나
                       </span>
@@ -479,8 +501,11 @@ export default function RoomView({ code }: RoomViewProps) {
                     <span className="text-sm font-semibold text-ink truncate max-w-full">
                       {member.nickname}
                     </span>
+                    <span className="text-[11px] font-medium text-seal bg-seal/10 px-2 py-0.5 rounded-md mt-1">
+                      {calculateMemberRole(member).role}
+                    </span>
                     <span
-                      className="text-xs font-medium px-2 py-0.5 rounded-lg mt-1.5"
+                      className="text-xs font-medium px-2 py-0.5 rounded-lg mt-1"
                       style={{
                         backgroundColor: `${member.character_color}14`,
                         color: member.character_color,
@@ -505,14 +530,17 @@ export default function RoomView({ code }: RoomViewProps) {
                   }}
                   className="p-4 bg-surface border border-line hover:border-ink-faint rounded-xl flex flex-col items-center justify-center text-center transition-colors group relative cursor-pointer"
                 >
-                  <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center text-2xl relative mb-2">
-                    {member.character_emoji}
+                  <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center relative mb-2">
+                    <ZodiacAvatar member={member} size={38} fallbackEmoji={member.character_emoji} />
                   </div>
                   <span className="text-sm font-semibold text-ink truncate max-w-full">
                     {member.nickname}
                   </span>
+                  <span className="text-[11px] font-medium text-seal bg-seal/10 px-2 py-0.5 rounded-md mt-1">
+                    {calculateMemberRole(member).role}
+                  </span>
                   <span
-                    className="text-xs font-medium px-2 py-0.5 rounded-lg mt-1.5"
+                    className="text-xs font-medium px-2 py-0.5 rounded-lg mt-1"
                     style={{
                       backgroundColor: `${member.character_color}14`,
                       color: member.character_color,

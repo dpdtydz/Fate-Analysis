@@ -87,5 +87,17 @@ body {
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #print-section * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .page-break {
+    page-break-before: always !important;
+    break-before: page !important;
   }
 }

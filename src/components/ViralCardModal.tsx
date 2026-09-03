@@ -5,7 +5,7 @@ import { Member } from "../types";
 import { calculateTodayFortune } from "../utils/saju";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/analytics";
-import { zodiacImageSrc, roleImageSrc } from "./ZodiacAvatar";
+import { zodiacImageSrc, roleImageSrc, spaceImageSrc, SPACE_NAMES, SpaceKey } from "./ZodiacAvatar";
 import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
@@ -492,6 +492,57 @@ export default function ViralCardModal({
   const [capturedImgUrl, setCapturedImgUrl] = useState<string | null>(null);
   const [showLongPressGuide, setShowLongPressGuide] = useState(false);
 
+  // 3D Card Tilt & Holographic Sheen Interaction (Desktop Mouse & Mobile Gyroscope)
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, glareX: 50, glareY: 50, opacity: 0 });
+  const [isCapturing, setIsCapturing] = useState(false);
+
+  const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isCapturing) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+
+    const rotateX = ((y - centerY) / centerY) * -9; // Max 9 deg tilt
+    const rotateY = ((x - centerX) / centerX) * 9;
+    const glareX = (x / rect.width) * 100;
+    const glareY = (y / rect.height) * 100;
+
+    setTilt({ rotateX, rotateY, glareX, glareY, opacity: 0.6 });
+  };
+
+  const handleCardMouseLeave = () => {
+    setTilt({ rotateX: 0, rotateY: 0, glareX: 50, glareY: 50, opacity: 0 });
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleOrientation = (e: DeviceOrientationEvent) => {
+      if (isCapturing) return;
+      if (e.beta === null || e.gamma === null) return;
+      const clampedBeta = Math.max(-30, Math.min(30, e.beta - 45));
+      const clampedGamma = Math.max(-30, Math.min(30, e.gamma));
+
+      const rotateX = (clampedBeta / 30) * -10;
+      const rotateY = (clampedGamma / 30) * 10;
+      const glareX = ((clampedGamma + 30) / 60) * 100;
+      const glareY = ((clampedBeta + 30) / 60) * 100;
+
+      setTilt({ rotateX, rotateY, glareX, glareY, opacity: 0.45 });
+    };
+
+    if (typeof window !== "undefined" && window.DeviceOrientationEvent) {
+      window.addEventListener("deviceorientation", handleOrientation, true);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("deviceorientation", handleOrientation, true);
+      }
+    };
+  }, [isOpen, isCapturing]);
+
   // Synchronize activeTab when defaultTab changes or modal opens
   useEffect(() => {
     if (isOpen) {
@@ -688,12 +739,25 @@ export default function ViralCardModal({
   useEffect(() => setRoleImgFailed(false), [roleSrcCandidate]);
   const roleSrc = roleImgFailed ? null : roleSrcCandidate;
 
+  // 모임 공간 심볼 이미지 — 로드 실패 시 기존 상생 기하 라인 SVG로 되돌린다
+  const [spaceImgFailed, setSpaceImgFailed] = useState(false);
+  const spaceSrcCandidate = useMemo(
+    () => spaceImageSrc(groupStats?.spaceKey ?? null),
+    [groupStats?.spaceKey]
+  );
+  useEffect(() => setSpaceImgFailed(false), [spaceSrcCandidate]);
+  const spaceSrc = spaceImgFailed ? null : spaceSrcCandidate;
+
   if (!isOpen) return null;
 
   const handleCaptureAndShare = async () => {
     if (!cardRef.current || isGenerating) return;
 
+    setIsCapturing(true);
     setIsGenerating(true);
+    setTilt({ rotateX: 0, rotateY: 0, glareX: 50, glareY: 50, opacity: 0 });
+    await new Promise((r) => setTimeout(r, 40));
+
     logAnalyticsEvent({
       eventName: "share_soul_card_clean",
       category: "engagement",
@@ -890,12 +954,13 @@ export default function ViralCardModal({
           setTimeout(() => setCopiedMsg(""), 3500);
         }
       }
-    } catch (err: any) {
-      if (err.name !== "AbortError") {
-        console.error("Capture failed:", err);
-      }
+    } catch (err) {
+      console.error("Card capture failed:", err);
+      setCopiedMsg("이미지 생성에 실패했습니다. 다시 시도해 주세요.");
+      setTimeout(() => setCopiedMsg(""), 3000);
     } finally {
       setIsGenerating(false);
+      setIsCapturing(false);
     }
   };
 
@@ -975,14 +1040,35 @@ export default function ViralCardModal({
         </div>
 
         {/* ─────────────────────────────────────────────────────────────
-            규격 카드: 380px — 종이 #FCFCFA · 먹 #1C1D21 · 인주 #B3382C
-            캡처 호환을 위해 카드 내부는 토큰 값을 리터럴 hex로 사용
+            3D 원근감 래퍼 및 터치/마우스 자이로스코프 홀로그램 틸트
            ───────────────────────────────────────────────────────────── */}
         <div
-          ref={cardRef}
-          className="w-full bg-[#FCFCFA] rounded-xl p-7 sm:px-7 sm:py-8 shadow-[0_20px_50px_-20px_rgba(28,29,33,0.18)] select-none text-left border border-[#E7E7E2]"
-          style={{ fontFamily: '"Pretendard", system-ui, sans-serif' }}
+          className="w-full max-w-[380px] mx-auto relative transition-transform duration-100 ease-out"
+          style={{ perspective: "1000px" }}
+          onMouseMove={handleCardMouseMove}
+          onMouseLeave={handleCardMouseLeave}
         >
+          <div
+            ref={cardRef}
+            className="w-full bg-[#FCFCFA] rounded-2xl p-7 sm:px-7 sm:py-8 select-none text-left border border-[#E7E7E2] relative overflow-hidden transition-all duration-100 ease-out"
+            style={{
+              fontFamily: '"Pretendard", system-ui, sans-serif',
+              transform: isCapturing
+                ? "none"
+                : `rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale3d(1.01, 1.01, 1.01)`,
+              boxShadow: isCapturing
+                ? "0 20px 50px -20px rgba(28,29,33,0.18)"
+                : `${tilt.rotateY * -1.8}px ${tilt.rotateX * 1.8 + 20}px 45px -15px rgba(28,29,33,0.22)`,
+            }}
+          >
+            {/* Dynamic Holographic Sheen Overlay */}
+            <div
+              className="absolute inset-0 pointer-events-none rounded-2xl z-20 mix-blend-color-dodge transition-opacity duration-200"
+              style={{
+                opacity: isCapturing ? 0 : tilt.opacity,
+                background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(255,255,255,0.75) 0%, rgba(245,158,11,0.25) 30%, rgba(59,130,246,0.18) 55%, transparent 75%)`,
+              }}
+            />
           {/* ================= 1. TAB: 내 소울 카드 ================= */}
           {activeTab === "identity" && (
             <>
@@ -996,24 +1082,14 @@ export default function ViralCardModal({
                 </span>
               </div>
 
-              {/* 엠블럼: 띠×오행 캐릭터가 있으면 우선, 없으면 오행 아이콘.
-                  캐릭터는 정사각 투명 PNG라 원형 배경에 넣으면 발끝이 잘린다. */}
+              {/* 엠블럼: 내 소울 카드는 타고난 사주 오행 본연의 순수한 영혼 엠블럼 */}
               <div
-                className={`w-[128px] h-[128px] mx-auto mb-5 flex items-center justify-center ${
-                  zodiacSrc ? "" : `rounded-full ${colors.bg}`
-                }`}
+                className={`w-[128px] h-[128px] mx-auto mb-5 rounded-full flex items-center justify-center ${colors.bg} relative overflow-hidden shadow-inner border border-white/60`}
               >
-                {zodiacSrc ? (
-                  <img
-                    src={zodiacSrc}
-                    alt=""
-                    aria-hidden="true"
-                    /* html2canvas 캡처 대상이므로 lazy 금지 — 캡처 시점에 로드되어 있어야 한다 */
-                    className="w-full h-full object-contain select-none"
-                  />
-                ) : (
-                  spec.renderIcon(colors.stroke)
-                )}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-transparent pointer-events-none" />
+                <div className="relative z-10 transform scale-110">
+                  {spec.renderIcon(colors.stroke)}
+                </div>
               </div>
 
               {/* 이름 */}
@@ -1136,21 +1212,33 @@ export default function ViralCardModal({
                   GROUP · {groupStats.memberCount}인 결속
                 </span>
                 <span className={`text-xs font-medium tracking-[0.08em] whitespace-nowrap px-2.5 py-1 rounded-lg ${colors.text} ${colors.chipBg}`}>
-                  相生 SYNERGY
+                  {groupStats.spaceKey && SPACE_NAMES[groupStats.spaceKey as SpaceKey]
+                    ? `${SPACE_NAMES[groupStats.spaceKey as SpaceKey]}`
+                    : "相生 SYNERGY"}
                 </span>
               </div>
 
-              {/* 엠블럼: 상생 기하 라인 SVG */}
-              <div className={`w-[128px] h-[128px] mx-auto mb-5 rounded-full flex items-center justify-center ${colors.bg}`}>
-                <svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke={colors.stroke} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[72px] h-[72px]">
-                  <circle cx="24" cy="24" r="16" />
-                  <circle cx="24" cy="14" r="6" />
-                  <circle cx="15" cy="29" r="6" />
-                  <circle cx="33" cy="29" r="6" />
-                  <line x1="24" y1="14" x2="15" y2="29" opacity="0.4" />
-                  <line x1="24" y1="14" x2="33" y2="29" opacity="0.4" />
-                  <line x1="15" y1="29" x2="33" y2="29" opacity="0.4" />
-                </svg>
+              {/* 엠블럼: 모임 공간 이미지 (없거나 로드 실패 시 상생 기하 라인 SVG) */}
+              <div className={`w-[128px] h-[128px] mx-auto mb-5 rounded-full flex items-center justify-center overflow-hidden ${colors.bg}`}>
+                {spaceSrc ? (
+                  <img
+                    src={spaceSrc}
+                    alt={`${(groupStats.spaceKey && SPACE_NAMES[groupStats.spaceKey as SpaceKey]) ?? "모임 공간"} 심볼`}
+                    decoding="async"
+                    onError={() => setSpaceImgFailed(true)}
+                    className="w-[112px] h-[112px] object-contain select-none"
+                  />
+                ) : (
+                  <svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke={colors.stroke} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[72px] h-[72px]">
+                    <circle cx="24" cy="24" r="16" />
+                    <circle cx="24" cy="14" r="6" />
+                    <circle cx="15" cy="29" r="6" />
+                    <circle cx="33" cy="29" r="6" />
+                    <line x1="24" y1="14" x2="15" y2="29" opacity="0.4" />
+                    <line x1="24" y1="14" x2="33" y2="29" opacity="0.4" />
+                    <line x1="15" y1="29" x2="33" y2="29" opacity="0.4" />
+                  </svg>
+                )}
               </div>
 
               {/* 이름/헤드라인 */}
@@ -1225,43 +1313,50 @@ export default function ViralCardModal({
           {activeTab === "role" && roleAnalysis && (
             <>
               {/* 상단: 포지션 & 한자 칭호 배지 */}
-              <div className="flex items-center justify-between mb-6 gap-2">
-                <span className="text-xs font-mono tracking-[0.14em] text-[#8E8F98] whitespace-nowrap">
-                  POSITION · {spec.hanja}氣
+              <div className="flex items-center justify-between mb-5 gap-2">
+                <span className="text-xs font-mono tracking-[0.14em] text-[#8E8F98] whitespace-nowrap truncate max-w-[200px]">
+                  CREW ID · {roomTitle}
                 </span>
                 <span className={`text-xs font-medium tracking-[0.08em] whitespace-nowrap px-2.5 py-1 rounded-lg ${colors.text} ${colors.chipBg}`}>
                   {roleAnalysis.hanja} 칭호
                 </span>
               </div>
 
-              {/* 엠블럼: 내 띠 캐릭터가 역할을 연기하는 이미지 (없으면 플랫 라인 SVG) */}
-              <div className={`w-[128px] h-[128px] mx-auto mb-5 rounded-full flex items-center justify-center overflow-hidden ${colors.bg}`}>
+              {/* 엠블럼: 내 띠 캐릭터가 모임에서 활약하는 시그니처 소품 캐릭터 */}
+              <div className="w-[136px] h-[136px] mx-auto mb-3 flex items-center justify-center relative">
                 {roleSrc ? (
                   <img
                     src={roleSrc}
                     alt={`${roleAnalysis.role} 캐릭터`}
                     decoding="async"
                     onError={() => setRoleImgFailed(true)}
-                    className="w-[112px] h-[112px] object-contain select-none"
+                    className="w-full h-full object-contain select-none filter drop-shadow-sm"
                   />
                 ) : (
-                  <svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke={colors.stroke} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[72px] h-[72px]">
-                    <path d="M8 36 L12 16 L20 26 L24 12 L28 26 L36 16 L40 36 Z" />
-                    <line x1="8" y1="36" x2="40" y2="36" />
-                    <circle cx="24" cy="12" r="1.5" />
-                    <circle cx="12" cy="16" r="1.5" />
-                    <circle cx="36" cy="16" r="1.5" />
-                  </svg>
+                  <div className={`w-[128px] h-[128px] rounded-full flex items-center justify-center ${colors.bg}`}>
+                    <svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke={colors.stroke} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[72px] h-[72px]">
+                      <path d="M8 36 L12 16 L20 26 L24 12 L28 26 L36 16 L40 36 Z" />
+                      <line x1="8" y1="36" x2="40" y2="36" />
+                      <circle cx="24" cy="12" r="1.5" />
+                      <circle cx="12" cy="16" r="1.5" />
+                      <circle cx="36" cy="16" r="1.5" />
+                    </svg>
+                  </div>
                 )}
               </div>
 
               {/* 이름/헤드라인 */}
-              <h1 className="text-center font-serif text-[24px] font-semibold tracking-[-0.02em] leading-[1.3] text-[#1C1D21] mb-3">
-                {nickname}님은 <span className={colors.text}>{roleAnalysis.role}</span>
-              </h1>
+              <div className="text-center mb-4">
+                <span className="inline-block text-[11px] font-semibold text-seal bg-seal/10 px-2.5 py-0.5 rounded-full mb-1">
+                  모임 속 나의 페르소나
+                </span>
+                <h1 className="text-center font-serif text-[23px] font-semibold tracking-[-0.02em] leading-[1.3] text-[#1C1D21]">
+                  {nickname}님은 <span className={colors.text}>{roleAnalysis.role}</span>
+                </h1>
+              </div>
 
               {/* 한 줄 정의 */}
-              <p className="text-center text-sm font-medium leading-[1.6] text-[#55565E] max-w-[300px] mx-auto mb-6">
+              <p className="text-center text-sm font-medium leading-[1.6] text-[#55565E] max-w-[300px] mx-auto mb-5">
                 {roleAnalysis.tagline}
               </p>
 
@@ -1397,6 +1492,7 @@ export default function ViralCardModal({
               </div>
             </>
           )}
+          </div>
         </div>
 
         {/* 토스트 메시지 */}

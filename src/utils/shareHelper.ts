@@ -6,6 +6,10 @@ export interface ShareData {
   url: string;
   badge?: string;
   score?: number;
+  name?: string;
+  animal?: string;
+  elem?: string;
+  role?: string;
 }
 
 function showPCShareModal(text: string, url: string) {
@@ -118,13 +122,20 @@ function showPCShareModal(text: string, url: string) {
 
 export function shareToKakaoOrClipboard(data: ShareData): Promise<{ success: boolean; method: "kakao" | "clipboard" | "web_share" }> {
   return new Promise(async (resolve) => {
+    // Construct rich share URL with dynamic OG query params for KakaoTalk & Social Scrapers
+    let shareUrl = data.url;
+    if (data.name && !shareUrl.includes("name=")) {
+      const sep = shareUrl.includes("?") ? "&" : "?";
+      shareUrl = `${shareUrl}${sep}name=${encodeURIComponent(data.name)}&elem=${encodeURIComponent(data.elem || "")}&animal=${encodeURIComponent(data.animal || "")}&role=${encodeURIComponent(data.role || "")}`;
+    }
+
     // 1. Check Web Share API (Mobile Browsers: Safari iOS, Chrome Android etc.)
     if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
       try {
         await navigator.share({
           title: data.title,
           text: `${data.title}\n\n${data.description}\n\n결과 확인하기:`,
-          url: data.url,
+          url: shareUrl,
         });
         resolve({ success: true, method: "web_share" });
         return;
@@ -138,7 +149,7 @@ export function shareToKakaoOrClipboard(data: ShareData): Promise<{ success: boo
     }
 
     // 2. Fallback: Copy structured viral message to clipboard
-    const shareText = `[인연사주] ${data.title}\n\n${data.badge ? `${data.badge}\n` : ""}${data.score ? `인연 지수 ${data.score}점\n` : ""}\n"${data.description}"\n\n궁합과 사주 확인하기:\n${data.url}`;
+    const shareText = `[인연사주] ${data.title}\n\n${data.badge ? `${data.badge}\n` : ""}${data.score ? `인연 지수 ${data.score}점\n` : ""}\n"${data.description}"\n\n궁합과 사주 확인하기:\n${shareUrl}`;
 
     try {
       await navigator.clipboard.writeText(shareText);

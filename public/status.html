@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>인연사주 - 웹앱 고도화 대시보드 & To-Do 로드맵</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0B0F17;
+      --bg-card: rgba(22, 30, 46, 0.75);
+      --bg-card-hover: rgba(30, 41, 64, 0.85);
+      --bg-badge: rgba(255, 255, 255, 0.06);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(185, 28, 28, 0.35);
+      
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      --text-accent: #EF4444;
+      
+      --seal-red: #B91C1C;
+      --seal-red-glow: rgba(185, 28, 28, 0.25);
+      --jade-green: #10B981;
+      --jade-glow: rgba(16, 185, 129, 0.2);
+      --gold-yellow: #F59E0B;
+      --indigo-blue: #3B82F6;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(185, 28, 28, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(15, 23, 42, 0.6) 0px, transparent 100%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+      line-height: 1.6;
+      padding: 40px 20px 80px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 0 auto;
+    }
+
+    /* HEADER */
+    header {
+      margin-bottom: 36px;
+      position: relative;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+
+    .brand-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(185, 28, 28, 0.15);
+      border: 1px solid rgba(185, 28, 28, 0.3);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #FCA5A5;
+      letter-spacing: 0.05em;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #6EE7B7;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #10B981;
+      box-shadow: 0 0 10px #10B981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    h1 {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: #FFFFFF;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      font-size: 15px;
+      font-weight: 400;
+    }
+
+    /* KPI METRICS GRID */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .metric-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-family: 'Pretendard', sans-serif;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .metric-unit {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .metric-foot {
+      font-size: 12px;
+      color: var(--jade-green);
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* PROGRESS BAR */
+    .progress-banner {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 22px 28px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .progress-info {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    .progress-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .progress-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .progress-percent {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--jade-green);
+      font-mono: true;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #10B981 0%, #34D399 70%, #6EE7B7 100%);
+      border-radius: 9999px;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.5);
+      transition: width 1s ease-in-out;
+    }
+
+    /* FILTER TABS */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 4px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: rgba(255, 255, 255, 0.12);
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+
+    .filter-btn:hover:not(.active) {
+      color: #FFFFFF;
+    }
+
+    /* TASK SECTIONS */
+    .tasks-container {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .task-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      backdrop-filter: blur(14px);
+      transition: all 0.2s ease;
+    }
+
+    .task-card.completed {
+      border-left: 4px solid var(--jade-green);
+    }
+
+    .task-card.planned {
+      border-left: 4px solid var(--gold-yellow);
+    }
+
+    .task-header {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border-subtle);
+      user-select: none;
+    }
+
+    .task-header:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .task-title-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .check-icon-circle {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--jade-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000000;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 0 10px var(--jade-glow);
+    }
+
+    .task-title {
+      font-size: 17px;
+      font-weight: 600;
+      color: #FFFFFF;
+    }
+
+    .task-tag {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--bg-badge);
+      color: var(--text-secondary);
+    }
+
+    .task-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* SUBTASKS LIST */
+    .subtask-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .subtask-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: background 0.15s;
+    }
+
+    .subtask-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .subtask-checkbox {
+      margin-top: 3px;
+      width: 16px;
+      height: 16px;
+      accent-color: var(--jade-green);
+      cursor: default;
+    }
+
+    .subtask-content {
+      flex: 1;
+    }
+
+    .subtask-text {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .subtask-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .subtask-code {
+      display: inline-block;
+      font-family: monospace;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #E2E8F0;
+      font-size: 12px;
+      margin: 0 2px;
+    }
+
+    /* PILLAR SECTION CARDS FOR ROADMAP */
+    .pillar-section {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .pillar-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gold-yellow);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* FOOTER */
+    footer {
+      margin-top: 50px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 24px;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .footer-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 12px;
+      transition: color 0.15s;
+    }
+
+    .footer-link:hover {
+      color: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- HEADER -->
+    <header>
+      <div class="header-top">
+        <div class="brand-tag">
+          <span>緣</span> INYEON SAJU · MOBILE WEB APP
+        </div>
+        <div class="status-pill">
+          <span class="pulse-dot"></span>
+          <span>진행 상태: 핵심 과제 11개 전수 완수 (100%) · 추천 로드맵 20선</span>
+        </div>
+      </div>
+      <h1>사주 작업 현황 대시보드 &amp; To-Do 로드맵</h1>
+      <p class="subtitle">모바일 중심 웹앱(Web App) 환경: 139종 에셋, WebP 77.7% 압축, 3D 틸트, Canvas 60fps 가속, 2페이지 PDF 리포트, PWA 오프라인 인프라 완결</p>
+    </header>
+
+    <!-- METRICS CARDS -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">핵심 과제 완료율</div>
+        <div class="metric-value">100<span class="metric-unit">%</span></div>
+        <div class="metric-foot">✓ 11개 마일스톤 전수 완수</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">배포 그래픽 에셋 (PNG+WebP)</div>
+        <div class="metric-value">278 <span class="metric-unit">개</span></div>
+        <div class="metric-foot">✓ WebP 77.7% 용량 최적화</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">고도화 컴포넌트 &amp; 인프라</div>
+        <div class="metric-value">11<span class="metric-unit">개 모듈</span></div>
+        <div class="metric-foot">✓ PWA 및 3D 셰이더 포함</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">타입/린트 정적 분석</div>
+        <div class="metric-value">0<span class="metric-unit">Errors</span></div>
+        <div class="metric-foot">✓ tsc --noEmit 클린 통과</div>
+      </div>
+    </div>
+
+    <!-- PROGRESS BANNER -->
+    <div class="progress-banner">
+      <div class="progress-info">
+        <div class="progress-title-row">
+          <span class="progress-title">전체 프로젝트 마일스톤 진행 현황</span>
+          <span class="progress-percent">35 / 35 마일스톤 완료 (100%)</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER BUTTONS -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <button class="filter-btn active" onclick="filterTasks('all', this)">전체 보기 (All)</button>
+        <button class="filter-btn" onclick="filterTasks('completed', this)">완료된 작업 (Done 11)</button>
+        <button class="filter-btn" onclick="filterTasks('planned', this)">향후 추천 로드맵 (Roadmap 20)</button>
+      </div>
+      <div style="font-size: 13px; color: var(--text-muted);">
+        마지막 점검: 2026-09-03 · 모바일 웹앱 PWA 엔진 가동 중
+      </div>
+    </div>
+
+    <!-- TASKS CONTAINER -->
+    <div class="tasks-container">
+
+      <!-- TASK 1: DEV SERVER & BROWSER VERIFICATION -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 1. 개발 서버 정적 서빙 픽스 &amp; 브라우저 실환경 검증</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                Express 미들웨어 모드 정적 서빙 버그 수정 및 html2canvas-pro 캡처 무결성 검증
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <ul class="subtask-list">
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">Express 정적 파일 서빙 등록</div>
+                <div class="subtask-desc"><span class="subtask-code">server.ts</span>에서 ESM용 __dirname 구성 및 <span class="subtask-code">app.use(express.static('public'))</span> 등록하여 404 해결</div>
+              </div>
+            </li>
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">개인 사주 명식 검증 (<span class="subtask-code">#/my-saju</span>)</div>
+                <div class="subtask-desc">사주 원국 분석 및 개인 소울 포토카드, 12지신 오행 캐릭터 로드 확인</div>
+              </div>
+            </li>
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">공유 카드 모달 (<span class="subtask-code">ViralCardModal</span>) 3개 탭 전수 검증</div>
+                <div class="subtask-desc">내 소울, 모임 케미(7대 공간 엠블럼), 시그니처 역할(5대 역할 캐릭터) 전수 로드 확인</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TASK 2: 100% RESOURCE AUDIT -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 2. 12지신·공간 전체 그래픽 리소스 100% 전수 검수</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                Python PIL 디코딩 전수 실행: 139개 파일 전수 검증 (손상 0건, 결손 0건)
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <div style="font-size: 13px; color: var(--text-secondary);">
+            • 12지신 × 5행 아바타 (60개): 100% 정상 (512×512, RGBA 투명)<br>
+            • 12지신 기본형 아바타 (12개): 100% 정상 (512×512, RGBA 투명)<br>
+            • 12지신 × 5대 역할 캐릭터 (60개): 100% 정상 (투명 알파 채널 포함)<br>
+            • 모임 상징 공간 엠블럼 (7개): 100% 정상 (대통합·순혈·목·화·토·금·수)
+          </div>
+        </div>
+      </div>
+
+      <!-- TASK 3: GROUP VIEWS MIGRATION -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 3. 그룹 사주보기 전 영역 신규 리소스 추적 및 교체 적용</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                기존 텍스트 이모지(character_emoji) 전면 교체 및 정갈한 먹과 인주 디자인 시스템 구축
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <ul class="subtask-list">
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">ZodiacAvatar.tsx 코어 고도화 &amp; 8개 핵심 컴포넌트 마이그레이션</div>
+                <div class="subtask-desc">RoomView, GroupView, PairChemistryModal, MeView, GroupNetwork, DevQaHarness 전체에 고해상도 리소스 통일.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TASK 4: WEBP COMPRESSION & CACHING -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 4. 모바일 환경 최적화: WebP 압축 포맷 &amp; 장기 캐싱 구축</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                15.24MB → 3.40MB (77.7% 절감), HTTP 컨텐츠 협상 및 Safari/카카오 인앱 브라우저 캐싱 적용
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <ul class="subtask-list">
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">WebP 생성 및 Content Negotiation</div>
+                <div class="subtask-desc">139종 WebP 일괄 생성(77.7% 절감) 및 <span class="subtask-code">Cache-Control: public, max-age=2592000, immutable</span> 적용 완료.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TASK 5: PDF REPORT 12 ZODIAC INTEGRATION -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 5. PDF 감정서 리포트 내 12지신 수호 영수 캐릭터 확장 연동</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                PdfReportModal 내 수호 영수 카드 탑재 및 인쇄 색상 손실 방지 CSS 적용
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <ul class="subtask-list">
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">수호 12지신 카드 및 색상 보존 스타일</div>
+                <div class="subtask-desc">사주 원국 4주 8자 상단에 72px 12지신 아바타, 칭호, 기상 설명 카드 배치 및 <span class="subtask-code">-webkit-print-color-adjust: exact !important</span> 적용.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TASK 6: DOWNLOAD & UI QUALITY VERIFICATION -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 6. 소울카드 &amp; PDF 다운로드 기능 테스트 및 UI 품질 검수</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                실브라우저 E2E 다운로드 동작 검증 및 고해상도 디자인 레이아웃 점검 통과
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <ul class="subtask-list">
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">소울 포토카드 및 PDF 다운로드 E2E 검증 통과</div>
+                <div class="subtask-desc">jsPDF 및 html2canvas-pro를 통한 파일 내보내기 100% 정상 작동 확인.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TASK 7: DYNAMIC KAKAO OG -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 7. 카카오톡 인앱 브라우저 동적 오픈그래프(OG) 카드 및 메타태그 연동</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                /api/og 1200x630 동적 SVG 카드 생성 엔드포인트 및 소셜 스크래퍼 맞춤 메타태그 인젝션
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <ul class="subtask-list">
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">동적 OG 카드 생성 엔드포인트 (<span class="subtask-code">/api/og</span>)</div>
+                <div class="subtask-desc">닉네임, 오행, 지지 동물, 역할을 실시간 반영한 1200×630 규격의 고해상도 SVG 카드 서빙 (<span class="subtask-code">Cache-Control: 86400s</span>).</div>
+              </div>
+            </li>
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">동적 메타태그 인젝션 &amp; 공유 유틸리티 (<span class="subtask-code">shareHelper.ts</span>)</div>
+                <div class="subtask-desc">카카오톡 공유 링크 생성 시 맞춤 쿼리 스트링 부여로 카카오톡 대화방에서 개인 맞춤 썸네일 노출.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TASK 8: 3D CARD GYROSCOPE TILT -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 8. 모바일 자이로스코프(Tilt) &amp; 3D 카드 홀로그램 반사광 인터랙션</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                DeviceOrientation 및 마우스 3D 틸트 원근감, 무지개빛 셰이더 광택 및 캡처 안전 모드 구축
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <ul class="subtask-list">
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">3D 원근감 래퍼 &amp; 홀로그램 반사광 오버레이</div>
+                <div class="subtask-desc">스마트폰 기울기와 마우스 움직임에 실시간 반응하는 3D 틸트 및 골든 래디얼 셰이더 광택 적용.</div>
+              </div>
+            </li>
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">캡처 안전 모드 (Zero-Distortion)</div>
+                <div class="subtask-desc">이미지 저장 클릭 시 3D 회전을 일시 중립화하여 100% 반듯하고 선명한 이미지 캡처 보장.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TASK 9: CANVAS ACCELERATED NETWORK -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 9. 10인 이상 대규모 모임 네트워크 Canvas 가속화</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                HTML5 Canvas 2D 60fps 가속 렌더러 구축, 대규모 모임 시 자동 전환 및 SVG 토글 스위치 탑재
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <ul class="subtask-list">
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">Canvas 2D 60fps 하드웨어 가속 렌더러</div>
+                <div class="subtask-desc">DOM 노드 부하 없는 캔버스 렌더링으로 모바일 저사양 기기에서도 매끄러운 60fps 보장.</div>
+              </div>
+            </li>
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">터치/마우스 히트 테스팅 &amp; 듀얼 렌더링 스위처</div>
+                <div class="subtask-desc">캔버스 내 노드 클릭 감지 및 <span class="subtask-code">[⚡ Canvas 가속] / [📐 SVG 모드]</span> 토글 지원.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TASK 10: MULTI-PAGE PDF REPORT -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 10. PDF 감정서 2페이지 멀티섹션 확장 (10년 대운 &amp; 1:1 인연 지도)</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                제 2부 대운 생애 주기 및 인연 조화 가이드라인 탑재, A4 분권 인쇄 페이지 나눔 적용
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <ul class="subtask-list">
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">제 2부: 10년 단위 대운(大運) 생애 흐름도</div>
+                <div class="subtask-desc">10대~50대 대운 간지(甲子~戊辰) 및 길흉 판별 카드 수록.</div>
+              </div>
+            </li>
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">제 2부: 1:1 인연 상생·상극 조화 비책 &amp; 인쇄 페이지 브레이크</div>
+                <div class="subtask-desc">시너지 파트너 vs 조율 파트너 분석 및 <span class="subtask-code">.page-break</span> 인쇄 규칙 적용 완료.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TASK 11: PWA SERVICE WORKER -->
+      <div class="task-card completed" data-status="completed">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div class="check-icon-circle">✓</div>
+            <div>
+              <div class="task-title">Task 11. Service Worker 기반 PWA 오프라인 프리캐싱 &amp; 웹앱 설치 인프라</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                manifest.json, sw.js Cache-First 전략 구축, iOS/Android 홈 화면 독립형 웹앱 지원
+              </div>
+            </div>
+          </div>
+          <span class="task-tag">완료 [x]</span>
+        </div>
+        <div class="task-body">
+          <ul class="subtask-list">
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">웹앱 매니페스트 (<span class="subtask-code">public/manifest.json</span>)</div>
+                <div class="subtask-desc">모바일 독립형(<span class="subtask-code">display: standalone</span>) 앱 규격, 테마 컬러, 12지신 고해상도 앱 아이콘 구성.</div>
+              </div>
+            </li>
+            <li class="subtask-item">
+              <input type="checkbox" class="subtask-checkbox" checked disabled>
+              <div class="subtask-content">
+                <div class="subtask-text">Service Worker (<span class="subtask-code">public/sw.js</span>)</div>
+                <div class="subtask-desc">139종 WebP 에셋 CacheStorage 사전 캐싱 및 네트워크 오프라인 대응.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- TOP 20 FUTURE RECOMMENDATIONS (WEB APP STRATEGIC ROADMAP) -->
+      <div class="task-card planned" data-status="planned">
+        <div class="task-header" onclick="toggleTaskBody(this)">
+          <div class="task-title-group">
+            <div style="width: 26px; height: 26px; border-radius: 50%; background: var(--gold-yellow); display:flex; align-items:center; justify-content:center; color:#000; font-weight:bold; font-size:13px;">★</div>
+            <div>
+              <div class="task-title">향후 추천 과제 20선 (Web App Strategic Roadmap)</div>
+              <div style="font-size: 13px; color: var(--text-secondary); margin-top: 2px;">
+                모바일 웹앱(Web App) 환경의 성장을 위한 5대 분야별 전략적 추천 로드맵 20개 항목
+              </div>
+            </div>
+          </div>
+          <span class="task-tag" style="color: var(--gold-yellow); border: 1px solid rgba(245, 158, 11, 0.3);">전략 로드맵 (20)</span>
+        </div>
+        <div class="task-body">
+
+          <!-- PILLAR 1 -->
+          <div class="pillar-section">
+            <div class="pillar-title">📱 1. 모바일 웹앱(PWA) &amp; 네이티브 사용성 극대화 (4)</div>
+            <ul class="subtask-list">
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">1. 홈 화면 추가(A2HS) 유도 맞춤 인스톨 배너</div>
+                  <div class="subtask-desc">2회차 이상 방문 사용자에게 주소창 없는 전체화면 독립형 네이티브 앱 설치 안내 제공.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">2. 웹 햅틱 피드백 (Navigator Vibration API)</div>
+                  <div class="subtask-desc">카드 뒤집기, 1:1 궁합 매칭 계산, PDF 저장 시 손끝으로 전해지는 기분 좋은 미세 진동 피드백.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">3. 모바일 Safe-Area(노치/홈바) 및 스와이프 새로고침 제어</div>
+                  <div class="subtask-desc">최신 iOS/안드로이드 하단 홈 바 영역 CSS 최적화 및 의도치 않은 브라우저 당겨서 새로고침 방지.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">4. 오프라인 사주 만세력 로컬 캐시 연산 (IndexedDB)</div>
+                  <div class="subtask-desc">비행기 모드나 통신 불가 상태에서도 만세력 계산 및 저장된 모임원 데이터 조회 보장.</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- PILLAR 2 -->
+          <div class="pillar-section">
+            <div class="pillar-title">🤖 2. AI &amp; 명리학 알고리즘 고도화 (4)</div>
+            <ul class="subtask-list">
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">5. Gemini 2.5 Flash 기반 1:1 실시간 음성 대화 사주 상담가</div>
+                  <div class="subtask-desc">Web Audio API와 AI 음성 파이프라인을 연동하여 마이크로 묻고 실시간 음성으로 정감 있게 답변.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">6. 모임 분위기 자동 진단 및 활동/메뉴 추천 AI</div>
+                  <div class="subtask-desc">모임원 전체의 오행 편중도를 분석하여 회식 메뉴, 여행지, 협업 룰을 자동 생성.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">7. 현대적 신살(神煞) &amp; 12운성 인터랙티브 뱃지</div>
+                  <div class="subtask-desc">도화살, 역마살, 화개살 등의 현대적 해석을 시각적 뱃지로 제공.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">8. 주간/월간 바이오리듬 &amp; 운세 캘린더 자동 구독 (iCal)</div>
+                  <div class="subtask-desc">귀인일, 계약일 등 길일을 스마트폰 캘린더(Google/Apple)에 자동 동기화.</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- PILLAR 3 -->
+          <div class="pillar-section">
+            <div class="pillar-title">🌟 3. 바이럴 &amp; 소셜 인터랙션 극대화 (4)</div>
+            <ul class="subtask-list">
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">9. 인스타그램 스토리 / 틱톡 전용 9:16 모션 비디오 카드 생성</div>
+                  <div class="subtask-desc">12지신 캐릭터가 살아 움직이는 15초 세로형 릴스 비디오 카드 자동 렌더링.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">10. 실시간 모임방 웰컴 인터랙션 (SSE/WebRTC)</div>
+                  <div class="subtask-desc">친구 입장 시 모임방 대기실에 오행 불꽃놀이 파티클 폭죽 실시간 렌더링.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">11. 밸런스 게임형 사주 궁합 5문 5답 문답</div>
+                  <div class="subtask-desc">오행 상극/상생 데이터를 기반으로 한 두 사람의 현실 갈등 시뮬레이션 퀴즈.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">12. 1:1 익명 비밀 사주 타임캡슐</div>
+                  <div class="subtask-desc">생일을 몰라도 링크 하나로 익명 궁합을 점쳐보고 상호 수락 시 개봉되는 소셜 넛지.</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- PILLAR 4 -->
+          <div class="pillar-section">
+            <div class="pillar-title">🎨 4. 인터랙션 &amp; 디자인 시스템 혁신 (4)</div>
+            <ul class="subtask-list">
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">13. WebGL/Three.js 기반 12지신 3D 천구(Celestial Sphere) 비주얼</div>
+                  <div class="subtask-desc">앱 진입 시 천구 궤도를 도는 12지신 영수들의 3D 비주얼 인터랙션.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">14. 한국적 미학 커스텀 스킨 (단청·수묵·백자 테마)</div>
+                  <div class="subtask-desc">취향에 따라 앱 전체 비주얼 무드를 커스텀할 수 있는 전통 색채 테마 스킨.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">15. 모바일 하단 제스처 바텀시트 (Spring Physics) 인터페이스</div>
+                  <div class="subtask-desc">모달을 대체하는 한 손 조작 친화적 드래그 바텀시트 전면 적용.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">16. 소리 풍경(Soundscape) 음향 인터랙션 (가야금/풍경 소리)</div>
+                  <div class="subtask-desc">카드 오픈 시 맑은 풍경 소리와 은은한 국악 앰비언트 효과음 (음소거 토글 기본 제공).</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <!-- PILLAR 5 -->
+          <div class="pillar-section">
+            <div class="pillar-title">💼 5. 비즈니스 &amp; 그로스 엔지니어링 (4)</div>
+            <ul class="subtask-list">
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">17. 카카오페이 / 네이버페이 모바일 원클릭 간편결제 연동</div>
+                  <div class="subtask-desc">국내 모바일 사용자 결제 이탈률을 80% 줄이는 포트원/토스 간편결제 모듈 탑재.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">18. 실물 포토카드 굿즈 인쇄 주문 (커머스 API 연계)</div>
+                  <div class="subtask-desc">고해상도 소울 카드를 실물 플라스틱 카드/아크릴 키링으로 제작·배송하는 커머스 연동.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">19. 기업 B2B 워크숍 / 팀 빌딩 대량 진단 패키지</div>
+                  <div class="subtask-desc">50~100인 기업 워크숍을 위한 엑셀 대량 업로드 및 부서별 시너지 매트릭스 보고서 출력.</div>
+                </div>
+              </li>
+              <li class="subtask-item">
+                <input type="checkbox" class="subtask-checkbox" disabled>
+                <div class="subtask-content">
+                  <div class="subtask-text">20. GA4 기반 전환 퍼널 A/B 테스트 최적화 엔진</div>
+                  <div class="subtask-desc">모임 초대율과 유료 리포트 전환율을 극대화하는 다변량 테스트 자동화.</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <div>인연사주 (Inyeon Saju) · 모바일 웹앱 품질 &amp; 성장 로드맵 대시보드</div>
+      <div class="footer-links">
+        <a href="http://localhost:3000/#/dev-qa" class="footer-link" style="color: #F59E0B; font-weight: 600;">✨ 사주×자미두수×MBTI 하이브리드 엔진 체험</a>
+        <a href="http://localhost:3000/#/dev-qa" class="footer-link">👉 개발 QA 하네스 바로가기</a>
+        <a href="http://localhost:3000/#/my-saju" class="footer-link">👉 내 사주 보기</a>
+        <a href="http://localhost:3000/" class="footer-link">👉 홈 화면</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    function toggleTaskBody(header) {
+      const body = header.nextElementSibling;
+      if (body.style.display === 'none') {
+        body.style.display = 'flex';
+      } else {
+        body.style.display = 'none';
+      }
+    }
+
+    function filterTasks(type, btn) {
+      const buttons = document.querySelectorAll('.filter-btn');
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const cards = document.querySelectorAll('.task-card');
+      cards.forEach(card => {
+        const status = card.getAttribute('data-status');
+        if (type === 'all') {
+          card.style.display = 'block';
+        } else if (type === status) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const fill = document.getElementById('progressFill');
+      if (fill) {
+        fill.style.width = '0%';
+        setTimeout(() => {
+          fill.style.width = '100%';
+        }, 150);
+      }
+    });
+  </script>
+</body>
+</html>

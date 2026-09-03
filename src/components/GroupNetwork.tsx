@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { Member, PairAnalysis } from "../types";
-import { ArrowRightLeft, Filter, Smile, AlertTriangle, Lock, ChevronDown } from "lucide-react";
+import { ArrowRightLeft, Filter, Smile, AlertTriangle, Lock, ChevronDown, Zap } from "lucide-react";
+import ZodiacAvatar, { getMemberZodiacSrc } from "./ZodiacAvatar";
 
 interface GroupNetworkProps {
   members: Member[];
@@ -97,8 +98,9 @@ const getPairAsymmetricScores = (pair: PairAnalysis | undefined, m1: Member, m2:
 
 export default function GroupNetwork({ members, pairs, isPremium }: GroupNetworkProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
-  // Filter for high/low/all connections when a node is selected or in overview
   const [relationFilter, setRelationFilter] = useState<"all" | "good" | "bad">("all");
+  const [renderEngine, setRenderEngine] = useState<"canvas" | "svg">(members.length >= 8 ? "canvas" : "svg");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // 점수는 먹 농담(진하게=높음)으로 표현하고, 최고 구간(90+)에만 인주 한 점을 허용한다
   const getScoreColor = (score: number) => {
@@ -131,6 +133,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
         id: m.id,
         nickname: m.nickname,
         emoji: m.character_emoji,
+        imageSrc: getMemberZodiacSrc(m),
         color: m.character_color,
         element: m.saju?.daymaster?.element || "기운",
         rawMember: m,
@@ -278,10 +281,130 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
     return members.find((m) => m.id === selectedNodeId) || null;
   }, [members, selectedNodeId]);
 
+  // Canvas 2D Accelerated Renderer (60fps on mobile for large groups)
+  useEffect(() => {
+    if (renderEngine !== "canvas" || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 2 : 2;
+    canvas.width = svgSize * dpr;
+    canvas.height = svgSize * dpr;
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, svgSize, svgSize);
+
+    // 1. Guide circle
+    ctx.beginPath();
+    ctx.arc(center, center, radius, 0, Math.PI * 2);
+    ctx.strokeStyle = "#E7E7E2";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // 2. Lines
+    lines.forEach((line) => {
+      ctx.beginPath();
+      ctx.moveTo(line.x1, line.y1);
+      ctx.lineTo(line.x2, line.y2);
+      ctx.strokeStyle = line.color;
+      ctx.lineWidth = selectedNodeId ? 1.5 : 2;
+      ctx.globalAlpha = line.opacity;
+      ctx.stroke();
+
+      if (selectedNodeId) {
+        const mx = (line.x1 + line.x2) / 2;
+        const my = (line.y1 + line.y2) / 2;
+        ctx.fillStyle = line.color;
+        ctx.beginPath();
+        ctx.arc(mx, my, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    ctx.globalAlpha = 1;
+
+    // 3. Nodes
+    nodes.forEach((node) => {
+      const isSelected = selectedNodeId === node.id;
+      const elemHex = ELEMENT_HEX[node.element] || "#7D848E";
+
+      if (isSelected) {
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, nodeRadius + 5, 0, Math.PI * 2);
+        ctx.strokeStyle = "#B91C1C";
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
+      ctx.fillStyle = "#FCFAF6";
+      ctx.fill();
+      ctx.strokeStyle = isSelected ? "#B91C1C" : elemHex;
+      ctx.lineWidth = isSelected ? 2 : 1.5;
+      ctx.stroke();
+
+      ctx.font = `600 ${isLargeGroup ? "10px" : "12px"} "Pretendard", sans-serif`;
+      ctx.fillStyle = isSelected ? "#B91C1C" : "#1C1D21";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(node.nickname.slice(0, 2), node.x, node.y);
+
+      // Element badge
+      ctx.fillStyle = elemHex;
+      const bW = 16;
+      const bH = 9;
+      ctx.fillRect(node.x - bW / 2, node.y - nodeRadius - 7, bW, bH);
+      ctx.font = '600 7px "Pretendard", sans-serif';
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillText(node.element, node.x, node.y - nodeRadius - 2.5);
+
+      // Label below
+      ctx.font = '600 8.5px "Pretendard", sans-serif';
+      ctx.fillStyle = isSelected ? "#B91C1C" : "#55565E";
+      ctx.fillText(node.nickname, node.x, node.y + nodeRadius + 11);
+    });
+  }, [renderEngine, nodes, lines, selectedNodeId, svgSize, center, radius, nodeRadius, isLargeGroup]);
+
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const scale = svgSize / rect.width;
+    const clickX = (e.clientX - rect.left) * scale;
+    const clickY = (e.clientY - rect.top) * scale;
+
+    const clicked = nodes.find(
+      (n) => Math.hypot(clickX - n.x, clickY - n.y) <= nodeRadius + 10
+    );
+    if (clicked) {
+      setSelectedNodeId(selectedNodeId === clicked.id ? null : clicked.id);
+      setRelationFilter("all");
+    } else {
+      setSelectedNodeId(null);
+    }
+  };
+
   return (
     <div className="flex flex-col bg-surface p-5 border border-line rounded-xl relative overflow-hidden space-y-4">
       {/* Network Header */}
       <div className="text-center space-y-1.5">
+        <div className="flex items-center justify-between text-xs px-1">
+          <span className="text-ink-faint text-[11px]">
+            {renderEngine === "canvas" ? "⚡ Canvas 60fps 가속" : "📐 SVG 벡터"}
+          </span>
+          <button
+            type="button"
+            onClick={() => setRenderEngine(renderEngine === "canvas" ? "svg" : "canvas")}
+            className="px-2 py-0.5 rounded-lg bg-sunken hover:bg-line text-ink-soft text-[11px] font-medium transition-colors cursor-pointer border border-line flex items-center gap-1"
+          >
+            <Zap className="w-2.5 h-2.5" />
+            <span>{renderEngine === "canvas" ? "SVG로 전환" : "Canvas 가속"}</span>
+          </button>
+        </div>
         <h4 className="text-[15px] font-semibold text-ink">
           {selectedMember ? `${selectedMember.nickname}의 인연 관계도` : "모임 궁합 지도"}
         </h4>
@@ -334,11 +457,19 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
         </div>
       )}
 
-      {/* SVG Container: Dynamically scales based on member count */}
+      {/* Diagram Container: SVG or Canvas */}
       <div
         className="relative w-full mx-auto bg-sunken rounded-xl p-2 flex items-center justify-center overflow-visible"
         style={{ maxWidth: `${svgSize}px`, aspectRatio: "1/1" }}
       >
+        {renderEngine === "canvas" ? (
+          <canvas
+            ref={canvasRef}
+            onClick={handleCanvasClick}
+            className="w-full h-full cursor-pointer select-none rounded-xl"
+            style={{ width: "100%", height: "100%", touchAction: "none" }}
+          />
+        ) : (
         <svg
           viewBox={`0 0 ${svgSize} ${svgSize}`}
           className="w-full h-full text-xs overflow-visible select-none"
@@ -435,17 +566,30 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                   opacity={isConnected ? 1 : 0.25}
                 />
 
-                {/* Character Emoji inside Node */}
-                <text
-                  x={node.x}
-                  y={node.y + (isLargeGroup ? 4 : 5)}
-                  textAnchor="middle"
-                  fontSize={isSelected ? (isLargeGroup ? "16px" : "19px") : (isLargeGroup ? "13px" : "16px")}
-                  className="transition-all duration-300 select-none pointer-events-none"
-                  opacity={isConnected ? 1 : 0.25}
-                >
-                  {node.emoji}
-                </text>
+                {/* Character Image / Emoji inside Node */}
+                {node.imageSrc ? (
+                  <image
+                    href={node.imageSrc}
+                    x={node.x - (isSelected ? nodeRadius + 1 : nodeRadius - 1)}
+                    y={node.y - (isSelected ? nodeRadius + 1 : nodeRadius - 1)}
+                    width={(isSelected ? nodeRadius + 1 : nodeRadius - 1) * 2}
+                    height={(isSelected ? nodeRadius + 1 : nodeRadius - 1) * 2}
+                    preserveAspectRatio="xMidYMid meet"
+                    className="transition-all duration-300 select-none pointer-events-none"
+                    opacity={isConnected ? 1 : 0.25}
+                  />
+                ) : (
+                  <text
+                    x={node.x}
+                    y={node.y + (isLargeGroup ? 4 : 5)}
+                    textAnchor="middle"
+                    fontSize={isSelected ? (isLargeGroup ? "16px" : "19px") : (isLargeGroup ? "13px" : "16px")}
+                    className="transition-all duration-300 select-none pointer-events-none"
+                    opacity={isConnected ? 1 : 0.25}
+                  >
+                    {node.emoji}
+                  </text>
+                )}
 
                 {/* Element Tag bubble directly below circle (오행 데이터 색) */}
                 <g transform={`translate(${node.x}, ${node.y + (isSelected ? nodeRadius + 3 : nodeRadius)})`}>
@@ -500,6 +644,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
             );
           })}
         </svg>
+        )}
       </div>
 
       {/* Selected Member Details Panel */}
@@ -560,7 +705,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2">
                       <div className="flex items-center space-x-1.5 font-semibold text-ink text-xs">
-                        <span>{other.emoji}</span>
+                        <ZodiacAvatar member={other.rawMember} size={18} fallbackEmoji={other.emoji} />
                         <span>{other.nickname}님과의 인연</span>
                         <span className="text-xs px-1.5 py-0.5 bg-sunken text-ink-soft rounded-md font-medium">
                           {other.element} 기운 · {other.rawMember.mbti || "MBTI 없음"}

@@ -3,6 +3,9 @@ import Layout from "./Layout";
 import PairChemistryModal from "./PairChemistryModal";
 import ViralCardModal from "./ViralCardModal";
 import PdfReportModal from "./PdfReportModal";
+import HybridArchetypeDemoModal from "./HybridArchetypeDemoModal";
+import ZodiacAvatar from "./ZodiacAvatar";
+import { Sparkles, Layers } from "lucide-react";
 import { Member } from "../types";
 import { calculateSaju, getDynamicCharacter } from "../utils/saju";
 
@@ -52,6 +55,7 @@ export default function DevQaHarness() {
   const [targetIdx, setTargetIdx] = useState(1);
   const [viralOpen, setViralOpen] = useState(false);
   const [pdfOpen, setPdfOpen] = useState(false);
+  const [hybridDemoOpen, setHybridDemoOpen] = useState(false);
 
   return (
     <Layout title="개발 QA" showHomeButton>
@@ -74,16 +78,21 @@ export default function DevQaHarness() {
                   setTargetIdx(i);
                   if (i !== 0) setPairOpen(true);
                 }}
-                className={`p-3 rounded-xl text-left transition-colors cursor-pointer ${
+                className={`p-3 rounded-xl text-left transition-colors cursor-pointer flex items-center gap-3 ${
                   i === 0 ? "bg-sunken" : "bg-sunken hover:bg-line"
                 }`}
               >
-                <span className="block text-sm font-semibold text-ink">
-                  {m.nickname} {i === 0 && <span className="text-xs text-ink-faint">(나)</span>}
-                </span>
-                <span className="block text-xs text-ink-soft mt-0.5">
-                  {m.saju?.daymaster?.gan} {m.character_animal} · {m.mbti}
-                </span>
+                <div className="w-10 h-10 rounded-full bg-surface border border-line/60 flex items-center justify-center shrink-0 overflow-hidden">
+                  <ZodiacAvatar member={m} size={32} fallbackEmoji={m.character_emoji} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span className="block text-sm font-semibold text-ink truncate">
+                    {m.nickname} {i === 0 && <span className="text-xs text-ink-faint">(나)</span>}
+                  </span>
+                  <span className="block text-xs text-ink-soft mt-0.5 truncate">
+                    {m.saju?.daymaster?.gan} {m.character_animal} · {m.mbti}
+                  </span>
+                </div>
               </button>
             ))}
           </div>
@@ -108,6 +117,17 @@ export default function DevQaHarness() {
               className="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
             >
               감정서 리포트 모달
+            </button>
+          </div>
+
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => setHybridDemoOpen(true)}
+              className="w-full py-3.5 px-4 bg-gradient-to-r from-red-700 via-seal to-amber-700 hover:opacity-95 text-white text-sm font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow-lg"
+            >
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>사주 × 자미두수 × MBTI 하이브리드 엔진 체험</span>
             </button>
           </div>
         </div>
@@ -137,6 +157,11 @@ export default function DevQaHarness() {
         member={members[0]}
         roomTitle="QA 테스트 모임"
         roomCode="QATEST"
+      />
+
+      <HybridArchetypeDemoModal
+        isOpen={hybridDemoOpen}
+        onClose={() => setHybridDemoOpen(false)}
       />
     </Layout>
   );

@@ -903,14 +903,17 @@ def remove_backgrounds():
         from PIL import Image
     except ImportError:
         sys.exit("[ERROR] pip install rembg onnxruntime pillow 후 다시 실행하세요.")
-    files = sorted(RAW_DIR.glob("zodiac_*.png"))
+    files = []
+    for pattern in ("zodiac_*.png", "space_*.png"):
+        files.extend(RAW_DIR.glob(pattern))
+    files = sorted(set(files))
     if not files:
         sys.exit(f"[ERROR] {RAW_DIR} 에 처리할 이미지가 없습니다.")
     PNG_DIR.mkdir(parents=True, exist_ok=True)
     for f in files:
         out = PNG_DIR / f.name
         if out.exists():
-            print(f"[rembg] {f.name}: 이미 있음 — 스킵")
+            print(f"[rembg] {f.name}: 이미 있음 - 스킵")
             continue
         result = remove(Image.open(f))
         result.save(out)

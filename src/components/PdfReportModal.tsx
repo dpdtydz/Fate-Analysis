@@ -6,6 +6,7 @@ import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/analytics";
 import { exportElementToPdf, exportElementToImage } from "../utils/pdfGenerator";
 import { getUserPersonalProfile } from "../lib/firebase";
+import ZodiacAvatar, { BRANCH_TO_NAME, calculateMemberRole } from "./ZodiacAvatar";
 
 export interface PersonalSajuProfile {
   nickname?: string;
@@ -103,6 +104,14 @@ export default function PdfReportModal({
 
   const ganKey = daymasterGan[0] || "무";
   const ganInfo = GAN_DESCS[ganKey] || GAN_DESCS["무"];
+
+  // 12지신 수호 영수 및 시그니처 역할
+  const rawYearBranch = sajuData?.pillars?.year?.ji || mAny.character_animal || "오";
+  const yearBranch = typeof rawYearBranch === "string" && rawYearBranch.length > 0 ? rawYearBranch[0] : "오";
+  const rawDayBranch = sajuData?.pillars?.day?.ji || "해";
+  const dayBranch = typeof rawDayBranch === "string" && rawDayBranch.length > 0 ? rawDayBranch[0] : "해";
+  const zodiacAnimalName = BRANCH_TO_NAME[yearBranch] || BRANCH_TO_NAME[dayBranch] || "동물";
+  const signatureRole = calculateMemberRole(member || { saju: sajuData, mbti });
 
   // 1. Direct PDF File Download Handler
   const handleDownloadPdf = async () => {
@@ -341,6 +350,40 @@ export default function PdfReportModal({
               </div>
             </div>
 
+            {/* Guardian Zodiac & Signature Spirit Card (12지신 수호 영수) */}
+            <div className="bg-sunken p-4 rounded-xl flex items-center justify-between gap-4 text-left border border-line/60">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-surface border border-line flex items-center justify-center p-1 shrink-0 overflow-hidden shadow-xs">
+                  <ZodiacAvatar
+                    branch={yearBranch}
+                    element={daymasterElem}
+                    size={72}
+                    className="object-contain"
+                  />
+                </div>
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-semibold text-seal bg-seal/10 px-2 py-0.5 rounded-md">
+                      수호 12지신 영수
+                    </span>
+                    <span className="text-xs font-medium text-ink-faint">
+                      {signatureRole.hanja} · {signatureRole.role}
+                    </span>
+                  </div>
+                  <h2 className="font-serif text-base sm:text-lg font-semibold text-ink truncate">
+                    {daymasterElem} 기운을 품은 {zodiacAnimalName}의 기상
+                  </h2>
+                  <p className="text-xs text-ink-soft line-clamp-1 leading-relaxed">
+                    {signatureRole.tagline}
+                  </p>
+                </div>
+              </div>
+              <div className="hidden sm:block text-right shrink-0">
+                <div className="text-xs text-ink-faint font-mono">GUARDIAN ZODIAC</div>
+                <div className="text-xs font-semibold text-ink font-serif">{yearBranch}년(연지) {dayBranch}일(일지)</div>
+              </div>
+            </div>
+
             {/* 1. Four Pillars (사주팔자 원국표) */}
             <div className="space-y-2.5 text-left">
               <div className="flex items-center gap-1.5 border-b border-line pb-1.5">
@@ -456,6 +499,76 @@ export default function PdfReportModal({
                 <div className="pl-3 border-l-2 border-line">
                   <strong className="text-ink font-semibold block mb-0.5">개운에 도움이 되는 습관</strong>
                   사주 오행의 순환을 돕기 위해 자연 친화적 소품이나 식물, 은은한 조명을 가까이 두고 차분한 명상과 규칙적인 수면 루틴을 유지하는 것이 도움이 됩니다.
+                </div>
+              </div>
+            </div>
+
+            {/* ═══════════════════════════════════════════════════════════════
+                [제 2부] 10년 주기 대운(大運) 흐름 & 모임원 1:1 인연 지도 (Page 2)
+               ═══════════════════════════════════════════════════════════════ */}
+            <div className="page-break my-6 pt-6 border-t-2 border-dashed border-line/80 space-y-5 text-left">
+              <div className="flex items-center justify-between pb-2 border-b border-line">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-seal text-white text-[11px] font-bold flex items-center justify-center">2</span>
+                  <h3 className="font-serif text-base sm:text-lg font-semibold text-ink">
+                    제 2부: 10년 대운(大運) 흐름 &amp; 인연 궁합 지도
+                  </h3>
+                </div>
+                <span className="text-xs text-ink-faint font-mono">PAGE 2 OF 2</span>
+              </div>
+
+              {/* 10-Year Daeun Timeline */}
+              <div className="bg-sunken p-4 rounded-xl space-y-3 text-left">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-xs text-ink">10년 단위 대운(大運) 생애 흐름도</h4>
+                  <span className="text-[11px] text-ink-faint">순행/역행 기반 운기 주기</span>
+                </div>
+                <div className="grid grid-cols-5 gap-2 text-center text-xs">
+                  {[
+                    { age: "10대", ganji: "甲子", title: "학문·탐구", elem: "목", status: "길(吉)" },
+                    { age: "20대", ganji: "乙丑", title: "사회 진출", elem: "목", status: "평(平)" },
+                    { age: "30대", ganji: "丙寅", title: "도약·성취", elem: "화", status: "대길(大吉)" },
+                    { age: "40대", ganji: "丁卯", title: "안정·결실", elem: "화", status: "길(吉)" },
+                    { age: "50대", ganji: "戊辰", title: "명예·관리", elem: "토", status: "평(平)" },
+                  ].map((d, i) => (
+                    <div key={i} className="bg-surface p-2.5 rounded-lg border border-line space-y-1">
+                      <span className="text-[10px] text-ink-faint block">{d.age}</span>
+                      <span className="text-sm font-serif font-semibold text-seal block">{d.ganji}</span>
+                      <span className="text-[11px] font-medium text-ink block">{d.title}</span>
+                      <span className="text-[10px] text-emerald-600 font-medium block">{d.status}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-ink-soft leading-relaxed pt-1">
+                  대운은 10년마다 바뀌는 계절과 같은 큰 환경의 변화입니다. 30대 중반~40대는 화(火)의 온기가 더해져 본인의 잠재력이 꽃피는 상승기운입니다.
+                </p>
+              </div>
+
+              {/* 1:1 Inyeon Chemistry Map Guide */}
+              <div className="bg-sunken p-4 rounded-xl space-y-3 text-left">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-xs text-ink">모임 내 상호작용 및 1:1 인연 조화 비책</h4>
+                  <span className="text-[11px] text-seal font-semibold">오행 상생(相生) 원리</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 bg-surface rounded-xl border border-line space-y-1.5">
+                    <span className="font-semibold text-ink flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                      최고의 시너지 파트너: 목(木) &amp; 토(土) 기운
+                    </span>
+                    <p className="text-ink-soft text-[11px] leading-relaxed">
+                      나의 단단한 결단력에 따뜻한 활력을 불어넣어주는 성향입니다. 새로운 프로젝트나 아이디어를 기획할 때 상호보완적 성과를 냅니다.
+                    </p>
+                  </div>
+                  <div className="p-3 bg-surface rounded-xl border border-line space-y-1.5">
+                    <span className="font-semibold text-ink flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+                      조율이 필요한 파트너: 화(火) &amp; 금(金) 기운
+                    </span>
+                    <p className="text-ink-soft text-[11px] leading-relaxed">
+                      열정과 원칙이 부딪힐 수 있으므로, 대화 시 한 템포 경청하는 완충 규칙을 두면 서로의 추진력을 배가시킬 수 있습니다.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

@@ -3,6 +3,7 @@ import { Member } from "../types";
 import { X, ShieldCheck, Share2, Check } from "lucide-react";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/firebase";
+import ZodiacAvatar from "./ZodiacAvatar";
 
 interface PairChemistryModalProps {
   isOpen: boolean;
@@ -222,8 +223,8 @@ export default function PairChemistryModal({
             <X className="w-5 h-5" />
           </button>
 
-          <div className="w-14 h-14 mx-auto rounded-xl bg-sunken flex items-center justify-center text-3xl">
-            {targetMember.character_emoji}
+          <div className="w-14 h-14 mx-auto rounded-xl bg-sunken flex items-center justify-center overflow-hidden">
+            <ZodiacAvatar member={targetMember} size={48} fallbackEmoji={targetMember.character_emoji} />
           </div>
 
           <div className="space-y-1.5">
@@ -290,12 +291,12 @@ export default function PairChemistryModal({
             {/* My Avatar */}
             <div className="flex flex-col items-center">
               <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center text-xl"
+                className="w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden"
                 style={{
                   backgroundColor: `${myMember.character_color}15`,
                 }}
               >
-                {myMember.character_emoji}
+                <ZodiacAvatar member={myMember} size={36} fallbackEmoji={myMember.character_emoji} />
               </div>
               <span className="text-xs font-medium text-ink mt-1 truncate max-w-[64px]">
                 나 · {myMember.nickname}
@@ -311,12 +312,12 @@ export default function PairChemistryModal({
             {/* Target Member Avatar */}
             <div className="flex flex-col items-center">
               <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center text-xl"
+                className="w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden"
                 style={{
                   backgroundColor: `${targetMember.character_color}15`,
                 }}
               >
-                {targetMember.character_emoji}
+                <ZodiacAvatar member={targetMember} size={36} fallbackEmoji={targetMember.character_emoji} />
               </div>
               <span className="text-xs font-medium text-ink mt-1 truncate max-w-[64px]">
                 {targetMember.nickname}

@@ -17,6 +17,7 @@ import GoogleAds from "./GoogleAds";
 import { getSajuPillarsComprehensiveSynthesis } from "../utils/sajuSynthesis";
 import { calculateTodayFortune } from "../utils/saju";
 import ViralCardModal from "./ViralCardModal";
+import ZodiacAvatar, { getMemberZodiacSrc } from "./ZodiacAvatar";
 
 const ELEMENT_SPECS: Record<string, {
   hanja: string;
@@ -1260,9 +1261,15 @@ export default function MeView({ code, memberId }: MeViewProps) {
                   </div>
 
                   {/* 2. 엠블럼 */}
-                  <div className="w-[112px] h-[112px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center">
-                    {spec.renderIcon()}
-                  </div>
+                  {getMemberZodiacSrc(member) ? (
+                    <div className="w-[112px] h-[112px] mx-auto mb-4 flex items-center justify-center">
+                      <ZodiacAvatar member={member} size={112} />
+                    </div>
+                  ) : (
+                    <div className="w-[112px] h-[112px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center">
+                      {spec.renderIcon()}
+                    </div>
+                  )}
 
                   {/* 3. 이름 헤드라인 */}
                   <h1 className="text-center font-serif text-2xl font-semibold tracking-tight leading-snug text-ink mb-2">
@@ -1507,13 +1514,13 @@ export default function MeView({ code, memberId }: MeViewProps) {
                         return (
                           <div key={other.id} className="bg-surface border border-line p-5 rounded-xl space-y-4 text-left">
                             <div className="flex items-center gap-2 border-b border-line pb-2.5 text-sm font-semibold text-ink">
-                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center text-sm leading-none shrink-0">
-                                {member.character_emoji}
+                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center shrink-0 overflow-hidden">
+                                <ZodiacAvatar member={member} size={24} fallbackEmoji={member.character_emoji} />
                               </span>
                               <span>{member.nickname}</span>
                               <span className="text-ink-faint font-normal">×</span>
-                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center text-sm leading-none shrink-0">
-                                {other.character_emoji}
+                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center shrink-0 overflow-hidden">
+                                <ZodiacAvatar member={other} size={24} fallbackEmoji={other.character_emoji} />
                               </span>
                               <span>{other.nickname}</span>
                               <span className="ml-auto text-sm font-mono font-semibold text-ink shrink-0">{pair.score}점</span>
@@ -2369,13 +2376,13 @@ export default function MeView({ code, memberId }: MeViewProps) {
                         return (
                           <div key={otherMember.id} className="bg-surface border border-line p-5 rounded-xl space-y-4 text-left">
                             <div className="flex items-center gap-2 border-b border-line pb-2.5 text-sm font-semibold text-ink">
-                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center text-sm leading-none shrink-0">
-                                {member.character_emoji}
+                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center shrink-0 overflow-hidden">
+                                <ZodiacAvatar member={member} size={24} fallbackEmoji={member.character_emoji} />
                               </span>
                               <span>{member.nickname}</span>
                               <span className="text-ink-faint font-normal">×</span>
-                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center text-sm leading-none shrink-0">
-                                {otherMember.character_emoji}
+                              <span className="w-7 h-7 rounded-full bg-sunken flex items-center justify-center shrink-0 overflow-hidden">
+                                <ZodiacAvatar member={otherMember} size={24} fallbackEmoji={otherMember.character_emoji} />
                               </span>
                               <span>{otherMember.nickname}</span>
                               <span className="ml-auto text-sm font-mono font-semibold text-ink shrink-0">{pair.score}점</span>
