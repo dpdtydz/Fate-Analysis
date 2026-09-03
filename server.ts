@@ -1,11 +1,15 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, doc, deleteDoc } from "firebase/firestore";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -934,6 +938,70 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
     }
   });
 
+  // Dynamic OpenGraph Card Image Generator (SVG 1200x630) for KakaoTalk & Social Sharing
+  app.get("/api/og", (req, res) => {
+    const name = String(req.query.name || "인연사주").slice(0, 20);
+    const elem = String(req.query.elem || "금").slice(0, 5);
+    const animal = String(req.query.animal || "토끼").slice(0, 10);
+    const role = String(req.query.role || "스파크 메이커").slice(0, 20);
+
+    const elemColors: Record<string, { main: string; bg: string; badge: string }> = {
+      "목": { main: "#3E7C4F", bg: "#132318", badge: "木 WOOD" },
+      "화": { main: "#C24234", bg: "#2B1412", badge: "火 FIRE" },
+      "토": { main: "#B07C3F", bg: "#281D12", badge: "土 EARTH" },
+      "금": { main: "#EAB308", bg: "#2A2410", badge: "金 METAL" },
+      "수": { main: "#3B82F6", bg: "#111C2E", badge: "水 WATER" }
+    };
+
+    const cfg = elemColors[elem] || elemColors["금"];
+
+    const svg = `
+      <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#0B0F17" />
+            <stop offset="50%" stop-color="${cfg.bg}" />
+            <stop offset="100%" stop-color="#070A0F" />
+          </linearGradient>
+          <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="${cfg.main}" stop-opacity="0.35" />
+            <stop offset="100%" stop-color="${cfg.main}" stop-opacity="0" />
+          </radialGradient>
+        </defs>
+
+        <rect width="1200" height="630" fill="url(#bg)" />
+        <circle cx="900" cy="315" r="380" fill="url(#halo)" />
+
+        <rect x="60" y="60" width="1080" height="510" rx="24" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="2" />
+
+        <rect x="100" y="100" width="50" height="50" rx="10" fill="#B91C1C" />
+        <text x="125" y="135" fill="#FFFFFF" font-family="'Noto Serif KR', serif" font-size="26" font-weight="bold" text-anchor="middle">命</text>
+        <text x="165" y="135" fill="#F8FAFC" font-family="'Pretendard', sans-serif" font-size="24" font-weight="bold" letter-spacing="1">인연사주 · INYEON SAJU</text>
+
+        <rect x="100" y="210" width="160" height="42" rx="12" fill="rgba(255,255,255,0.08)" stroke="${cfg.main}" stroke-width="1.5" />
+        <text x="180" y="238" fill="${cfg.main}" font-family="'Pretendard', sans-serif" font-size="18" font-weight="bold" text-anchor="middle">${cfg.badge}</text>
+
+        <text x="100" y="320" fill="#FFFFFF" font-family="'Noto Serif KR', serif" font-size="52" font-weight="bold">${name} 님의 소울 카드</text>
+        
+        <text x="100" y="390" fill="#94A3B8" font-family="'Pretendard', sans-serif" font-size="28" font-weight="500">
+          수호 영수: <tspan fill="#F8FAFC" font-weight="bold">${animal}</tspan>  |  시그니처 역할: <tspan fill="${cfg.main}" font-weight="bold">${role}</tspan>
+        </text>
+
+        <text x="100" y="470" fill="#CBD5E1" font-family="'Noto Serif KR', serif" font-size="22" font-style="italic">
+          "${elem} 기운을 타고난 ${animal}의 기상으로 모임의 중심을 지킵니다"
+        </text>
+
+        <circle cx="920" cy="315" r="160" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.15)" stroke-width="2" />
+        <text x="920" y="300" fill="${cfg.main}" font-family="'Noto Serif KR', serif" font-size="64" font-weight="bold" text-anchor="middle">${elem}</text>
+        <text x="920" y="360" fill="#F8FAFC" font-family="'Pretendard', sans-serif" font-size="24" text-anchor="middle">${animal}</text>
+      </svg>
+    `.trim();
+
+    res.setHeader("Content-Type", "image/svg+xml");
+    res.setHeader("Cache-Control", "public, max-age=86400, stale-while-revalidate=43200");
+    res.send(svg);
+  });
+
   // Custom global error handler to ensure JSON responses for API errors
   app.use((err: any, req: any, res: any, next: any) => {
     console.error("[SERVER GLOBAL ERROR]:", err);
@@ -945,7 +1013,35 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
     });
   });
 
+  // WebP content negotiation & static cache control for mobile Safari & KakaoTalk in-app browser
+  const staticCacheOptions = {
+    maxAge: "30d",
+    etag: true,
+    lastModified: true,
+    setHeaders: (res: any, filePath: string) => {
+      if (/\.(webp|png|jpe?g|svg|ico|woff2?|ttf)$/i.test(filePath)) {
+        res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+      }
+    }
+  };
+
+  // Content negotiation for /zodiac/*.png requests -> transparently serve *.webp if client supports it
+  app.get("/zodiac/:file.png", (req, res, next) => {
+    const accept = (req.headers["accept"] as string) || "";
+    if (accept.includes("image/webp")) {
+      const webpPath = path.resolve(__dirname, "public", "zodiac", `${req.params.file}.webp`);
+      if (fs.existsSync(webpPath)) {
+        res.setHeader("Content-Type", "image/webp");
+        res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+        res.setHeader("Vary", "Accept");
+        return res.sendFile(webpPath);
+      }
+    }
+    next();
+  });
+
   if (process.env.NODE_ENV !== "production") {
+    app.use(express.static(path.resolve(__dirname, "public"), staticCacheOptions));
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -953,7 +1049,7 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, staticCacheOptions));
     app.get("*", (req, res) => {
       try {
         const indexPath = path.join(distPath, "index.html");
@@ -963,6 +1059,25 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
           const host = req.get("host");
           const baseUrl = `${protocol}://${host}`;
           html = html.replace(/%BASE_URL%/g, baseUrl);
+
+          // Dynamic OG meta tag injection for KakaoTalk & Social Scrapers
+          if (req.query.name) {
+            const qName = String(req.query.name);
+            const qElem = String(req.query.elem || "금");
+            const qAnimal = String(req.query.animal || "토끼");
+            const qRole = String(req.query.role || "스파크 메이커");
+            const ogImgUrl = `${baseUrl}/api/og?name=${encodeURIComponent(qName)}&elem=${encodeURIComponent(qElem)}&animal=${encodeURIComponent(qAnimal)}&role=${encodeURIComponent(qRole)}`;
+            const ogTitle = `${qName} 님의 인연사주 소울 카드`;
+            const ogDesc = `${qElem} 기운을 품은 ${qAnimal}의 기상 · ${qRole}. 우리들의 궁합과 케미를 확인해 보세요!`;
+
+            html = html.replace(/<meta property="og:title" content="[^"]*"/, `<meta property="og:title" content="${ogTitle}"`);
+            html = html.replace(/<meta property="og:description" content="[^"]*"/, `<meta property="og:description" content="${ogDesc}"`);
+            html = html.replace(/<meta property="og:image" content="[^"]*"/, `<meta property="og:image" content="${ogImgUrl}"`);
+            html = html.replace(/<meta property="twitter:title" content="[^"]*"/, `<meta property="twitter:title" content="${ogTitle}"`);
+            html = html.replace(/<meta property="twitter:description" content="[^"]*"/, `<meta property="twitter:description" content="${ogDesc}"`);
+            html = html.replace(/<meta property="twitter:image" content="[^"]*"/, `<meta property="twitter:image" content="${ogImgUrl}"`);
+          }
+
           res.send(html);
         } else {
           res.status(404).send("Not found");
