@@ -177,7 +177,29 @@ bg-seal text-white font-serif rounded-md — 한자 1글자 (緣, 命 등)
 | 1 | 토큰(`index.css`), `Layout`(헤더), `Footer`, `GatewayView`(첫 진입), `LandingView`(그룹 랜딩) | ✅ 완료 |
 | 2 | `SajuForm`, `MySajuView` (입력~개인 소울카드) | ✅ 완료 |
 | 3 | `CreateView`, `JoinView`, `RoomView`, `GroupView`, `GroupNetwork`, `MeView`, `SajuVisual`, `GoogleAds` + 모달 전체(`PremiumPaywall`, `PairChemistryModal`, `ViralCardModal`, `PdfReportModal`, `AuthModal`, `UpgradeToSocialModal`, `LegalModal`, `LoadingOverlay`, `SurveyPopup`, `KakaoOutlinkGuide`, `MbtiTest`) | ✅ 완료 |
+| 재작업 | `SajuVisual`(심층 리포트), `MySajuView`, `ShinsalBadges` — 2026-09-04 시스템 복구 | ✅ 완료 |
 | — | `AdminView` (관리자 전용, 사용자 미노출) | 별도 진행 |
+
+### 이탈 사례 기록 (2026-09-04)
+
+Phase 3에서 완료 처리된 `SajuVisual`이 이후 커밋(`c6e6bfa`)에서 시스템 밖으로 이탈했다.
+**완료 표시는 영구 보증이 아니다** — 새 기능을 얹을 때 이 문서를 다시 읽지 않으면 되돌아간다.
+
+이탈 당시 실측: 그라디언트 13개 · 장식 팔레트 색 229회 · 고유 배경 14종 ·
+고유 보더 24종 · 12px 미만 30곳 · 11px+bold 7곳 · 이모지 12곳 · 순서 아닌 번호 뱃지.
+
+복구 시 적용한 판단 기준 (재발 시 동일 적용):
+
+- **위계는 색이 아니라 타이포와 여백으로.** 섹션마다 다른 색 카드를 깔면 정작
+  중요한 것이 안 보인다. 배경은 paper / surface / sunken 3단으로 끝낸다.
+- **인주는 리포트 전체에 한 점.** 도입부 인용의 세로선(`border-l-2 border-seal`)
+  하나만 빨강이고, 그 아래는 전부 먹이다.
+- **오행색 판정 기준**: 그 색이 *데이터를 식별*하는가? (丙 일간 칩, 궁합 오행) → 허용.
+  분위기를 내는가? (섹션 배경, 강조 박스) → 금지.
+- **하드코딩 hex 금지에는 예외가 하나 있다**: 외부 브랜드색(카카오 `#FEE500` 등)은
+  브랜드 아이덴티티이므로 토큰화하지 않는다. 그 외 임의 hex는 전부 §2 토큰으로.
+- **이모지 제거 시 레이아웃 잔해를 함께 치운다**: 이모지를 지우면 그것을 감싸던
+  빈 컨테이너와 정렬용 들여쓰기(`pl-6`)가 고아로 남는다. 같이 제거할 것.
 
 작업 시 로직(상태, 핸들러, Firebase 호출, 분석 이벤트, id 속성)은 건드리지 않고 프레젠테이션만 바꾼다.
 

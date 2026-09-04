@@ -1049,7 +1049,7 @@ export default function MySajuView() {
                 if (!animalKr || !dayGan || !dayElem) return null;
                 return (
                   <div className="mx-auto max-w-[320px] bg-sunken/60 rounded-xl px-4 py-2.5 mb-4 border border-line/40">
-                    <p className="text-[11px] text-ink-faint leading-relaxed text-center">
+                    <p className="text-xs text-ink-faint leading-relaxed text-center">
                       <span className="font-semibold text-ink-soft">나의 일주</span>{' '}
                       <span className="font-mono text-ink">{dayGan}{dayJi}</span>에서{' '}
                       <span className="text-ink-soft">일지</span>{' '}
@@ -1120,7 +1120,7 @@ export default function MySajuView() {
                   {/* 1. 잘 맞는 유형 */}
                   <div className="space-y-2">
                     <p className="text-xs font-medium text-ink-soft flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#35B37E]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-wood" />
                       잘 맞는 유형 (BEST)
                     </p>
                     <div className="grid grid-cols-1 gap-2.5">
@@ -1129,11 +1129,11 @@ export default function MySajuView() {
                         const rep = getRepresentativeBranch(item.elem, ji);
                         const repSrc = rep ? zodiacImageSrc(rep.branch, rep.element) : null;
                         const elemStyle = {
-                          "목": { bg: "bg-[#EAF5EC]", border: "border-[#A3D9AC]", badge: "bg-[#3E7C4F]" },
-                          "화": { bg: "bg-[#FDF0EE]", border: "border-[#F5ABA5]", badge: "bg-[#C24234]" },
-                          "토": { bg: "bg-[#FAF4EB]", border: "border-[#E8CEAF]", badge: "bg-[#B07C3F]" },
-                          "금": { bg: "bg-[#F1F4F8]", border: "border-[#BCCAD9]", badge: "bg-[#5B6B7C]" },
-                          "수": { bg: "bg-[#EBF3FA]", border: "border-[#A8CDF2]", badge: "bg-[#2563EB]" },
+                          "목": { bg: "bg-sunken", border: "border-line", badge: "bg-wood" },
+                          "화": { bg: "bg-sunken", border: "border-line", badge: "bg-fire" },
+                          "토": { bg: "bg-sunken", border: "border-line", badge: "bg-earth" },
+                          "금": { bg: "bg-sunken", border: "border-line", badge: "bg-metal" },
+                          "수": { bg: "bg-sunken", border: "border-line", badge: "bg-water" },
                         }[item.elem] || { bg: "bg-white", border: "border-line", badge: "bg-ink" };
 
                         return (
@@ -1160,7 +1160,7 @@ export default function MySajuView() {
                                     {item.hanja}
                                   </span>
                                 )}
-                                <span className={`absolute top-1 left-1 w-4 h-4 rounded text-white font-serif text-[10px] font-bold flex items-center justify-center shadow-xs ${elemStyle.badge}`}>
+                                <span className={`absolute top-1 left-1 w-4 h-4 rounded text-white font-serif text-xs font-bold flex items-center justify-center shadow-xs ${elemStyle.badge}`}>
                                   {item.hanja}
                                 </span>
                               </div>
@@ -1179,14 +1179,14 @@ export default function MySajuView() {
                                       ({item.relationName})
                                     </span>
                                   </div>
-                                  <span className="text-xs font-bold font-mono text-[#35B37E] shrink-0 bg-[#35B37E]/10 px-2.5 py-0.5 rounded-full border border-[#35B37E]/20">
+                                  <span className="text-xs font-bold font-mono text-wood shrink-0 bg-sunken px-2.5 py-0.5 rounded-full border ">
                                     {item.score}점
                                   </span>
                                 </div>
                                 {/* 캐릭터 선정 근거 — 왜 이 동물이 대표인지 */}
                                 {rep?.relation && (
-                                  <p className="text-[10px] text-ink-faint mb-1 flex items-center gap-1">
-                                    <span className="inline-block w-1 h-1 rounded-full bg-[#35B37E]/60" />
+                                  <p className="text-xs text-ink-faint mb-1 flex items-center gap-1">
+                                    <span className="inline-block w-1 h-1 rounded-full bg-wood" />
                                     {item.elem} 기운 중 나와 <span className="font-semibold text-ink-soft">{rep.relation}</span> 관계인 <span className="font-semibold text-ink-soft">{rep.animal}띠</span>를 대표로 선정
                                   </p>
                                 )}
@@ -1209,7 +1209,7 @@ export default function MySajuView() {
                   {/* 2. 잘 안 맞는 유형 */}
                   <div className="space-y-2">
                     <p className="text-xs font-medium text-ink-soft flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#E0A82E]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-earth" />
                       잘 안 맞는 유형 (조율 필요)
                     </p>
                     <div className="grid grid-cols-1 gap-2.5">
@@ -1218,11 +1218,11 @@ export default function MySajuView() {
                         const rep = getRepresentativeBranch(item.elem, ji);
                         const repSrc = rep ? zodiacImageSrc(rep.branch, rep.element) : null;
                         const elemStyle = {
-                          "목": { bg: "bg-[#EAF5EC]", border: "border-[#A3D9AC]", badge: "bg-[#3E7C4F]" },
-                          "화": { bg: "bg-[#FDF0EE]", border: "border-[#F5ABA5]", badge: "bg-[#C24234]" },
-                          "토": { bg: "bg-[#FAF4EB]", border: "border-[#E8CEAF]", badge: "bg-[#B07C3F]" },
-                          "금": { bg: "bg-[#F1F4F8]", border: "border-[#BCCAD9]", badge: "bg-[#5B6B7C]" },
-                          "수": { bg: "bg-[#EBF3FA]", border: "border-[#A8CDF2]", badge: "bg-[#2563EB]" },
+                          "목": { bg: "bg-sunken", border: "border-line", badge: "bg-wood" },
+                          "화": { bg: "bg-sunken", border: "border-line", badge: "bg-fire" },
+                          "토": { bg: "bg-sunken", border: "border-line", badge: "bg-earth" },
+                          "금": { bg: "bg-sunken", border: "border-line", badge: "bg-metal" },
+                          "수": { bg: "bg-sunken", border: "border-line", badge: "bg-water" },
                         }[item.elem] || { bg: "bg-white", border: "border-line", badge: "bg-ink" };
 
                         return (
@@ -1249,7 +1249,7 @@ export default function MySajuView() {
                                     {item.hanja}
                                   </span>
                                 )}
-                                <span className={`absolute top-1 left-1 w-4 h-4 rounded text-white font-serif text-[10px] font-bold flex items-center justify-center shadow-xs ${elemStyle.badge}`}>
+                                <span className={`absolute top-1 left-1 w-4 h-4 rounded text-white font-serif text-xs font-bold flex items-center justify-center shadow-xs ${elemStyle.badge}`}>
                                   {item.hanja}
                                 </span>
                               </div>
@@ -1274,8 +1274,8 @@ export default function MySajuView() {
                                 </div>
                                 {/* 캐릭터 선정 근거 — 왜 이 동물이 대표인지 */}
                                 {rep?.relation && (
-                                  <p className="text-[10px] text-ink-faint mb-1 flex items-center gap-1">
-                                    <span className="inline-block w-1 h-1 rounded-full bg-[#E0A82E]/60" />
+                                  <p className="text-xs text-ink-faint mb-1 flex items-center gap-1">
+                                    <span className="inline-block w-1 h-1 rounded-full bg-earth" />
                                     {item.elem} 기운 중 나와 <span className="font-semibold text-ink-soft">{rep.relation}</span> 관계인 <span className="font-semibold text-ink-soft">{rep.animal}띠</span>를 대표로 선정
                                   </p>
                                 )}

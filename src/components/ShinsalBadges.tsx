@@ -191,7 +191,7 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
           </div>
           <div>
             <h4 className="text-sm font-semibold text-ink">현대적 신살(神煞) & 12운성 뱃지</h4>
-            <p className="text-[11px] text-ink-faint">클릭하면 숨겨진 현대적 능력치와 해설을 확인할 수 있어요</p>
+            <p className="text-xs text-ink-faint">클릭하면 숨겨진 현대적 능력치와 해설을 확인할 수 있어요</p>
           </div>
         </div>
       </div>
@@ -206,9 +206,8 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
             className="group flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-line hover:border-ink-soft bg-sunken hover:bg-surface text-xs font-medium text-ink transition-all duration-200 cursor-pointer shadow-xs active:scale-95"
             style={{ borderLeftColor: item.colorHex, borderLeftWidth: "3px" }}
           >
-            <span className="text-sm">{item.emoji}</span>
             <span className="font-semibold">{item.name}</span>
-            <span className="text-[10px] text-ink-faint group-hover:text-ink-soft transition-colors">
+            <span className="text-xs text-ink-faint group-hover:text-ink-soft transition-colors">
               {item.modernTitle.split("·")[0].trim()}
             </span>
           </button>
@@ -223,7 +222,7 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
           >
             <Crown className="w-3.5 h-3.5 text-seal" />
             <span className="font-semibold">{unseongData.name}</span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-seal text-white font-bold">
+            <span className="text-xs px-1.5 py-0.5 rounded-xl bg-seal text-white font-bold">
               활력 {unseongData.power}%
             </span>
           </button>
@@ -247,7 +246,6 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-xs"
                 style={{ backgroundColor: `${selectedShinsal.colorHex}15`, color: selectedShinsal.colorHex }}
               >
-                {selectedShinsal.emoji}
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
@@ -269,12 +267,12 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
               <p>{selectedShinsal.summary}</p>
               <div className="pt-2 border-t border-line space-y-1.5">
                 <div className="flex items-start gap-1.5">
-                  <span className="text-[11px] font-bold text-wood shrink-0">✦ 강점</span>
-                  <p className="text-[11px] text-ink">{selectedShinsal.positive}</p>
+                  <span className="text-xs font-bold text-wood shrink-0">강점</span>
+                  <p className="text-xs text-ink">{selectedShinsal.positive}</p>
                 </div>
                 <div className="flex items-start gap-1.5">
-                  <span className="text-[11px] font-bold text-fire shrink-0">✦ 조언</span>
-                  <p className="text-[11px] text-ink">{selectedShinsal.caution}</p>
+                  <span className="text-xs font-bold text-fire shrink-0">조언</span>
+                  <p className="text-xs text-ink">{selectedShinsal.caution}</p>
                 </div>
               </div>
             </div>
@@ -317,9 +315,9 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
                 <span className="text-ink">운명 에너지 레벨</span>
                 <span className="text-seal">{selectedUnseong.data.power}%</span>
               </div>
-              <div className="h-2 w-full bg-sunken rounded-full overflow-hidden">
+              <div className="h-2 w-full bg-sunken rounded-xl overflow-hidden">
                 <div
-                  className="h-full bg-seal rounded-full transition-all duration-500"
+                  className="h-full bg-seal rounded-xl transition-all duration-500"
                   style={{ width: `${selectedUnseong.data.power}%` }}
                 />
               </div>
