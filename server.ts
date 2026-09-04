@@ -1043,11 +1043,16 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
 
   // WebP content negotiation & static cache control for mobile Safari & KakaoTalk in-app browser
   const staticCacheOptions = {
+    index: false,
     maxAge: "30d",
     etag: true,
     lastModified: true,
     setHeaders: (res: any, filePath: string) => {
-      if (/\.(webp|png|jpe?g|svg|ico|woff2?|ttf)$/i.test(filePath)) {
+      if (/\.html$/i.test(filePath)) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
+      } else if (/\.(webp|png|jpe?g|svg|ico|woff2?|ttf|js|css)$/i.test(filePath)) {
         res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
       }
     }
@@ -1108,6 +1113,9 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
             html = html.replace(/<meta property="twitter:image" content="[^"]*"/, `<meta property="twitter:image" content="${ogImgUrl}"`);
           }
 
+          res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+          res.setHeader("Pragma", "no-cache");
+          res.setHeader("Expires", "0");
           res.send(html);
         } else {
           res.status(404).send("Not found");
