@@ -21,49 +21,69 @@
 # 코드가 없어(server.ts는 요청 Host 헤더로 base URL을 동적 계산) 넘기지 않는다.
 
 steps:
-  # 0) 이전 최신 이미지를 캐시용으로 가져오기 (첫 회나 없을 시 무시하고 진행)
+  # 0) 이전 캐시 이미지 가져오기 (builder 캐시 + latest 이미지)
   - id: PullCache
     name: gcr.io/cloud-builders/docker
     entrypoint: bash
     args:
       - -c
-      - docker pull ${_IMAGE_LATEST} || exit 0
+      - |
+        docker pull ${_IMAGE_BUILDER} || true
+        docker pull ${_IMAGE_LATEST} || true
 
-  # 1) 이미지 빌드 (이전 레이어 캐시 활용)
-  - id: Build
+  # 1) Builder 스테이지 빌드 (npm ci 및 의존성 캐시 확보)
+  - id: BuildBuilder
     name: gcr.io/cloud-builders/docker
+    env:
+      - 'DOCKER_BUILDKIT=1'
     args:
       - build
-      - --cache-from
-      - ${_IMAGE_LATEST}
-      - --build-arg
-      - VITE_ADSENSE_CLIENT_ID=${_ADSENSE_CLIENT_ID}
-      - --build-arg
-      - VITE_ADSENSE_SLOT_ID=${_ADSENSE_SLOT_ID}
-      - -t
-      - ${_IMAGE}
-      - -t
-      - ${_IMAGE_LATEST}
+      - --target=builder
+      - --cache-from=${_IMAGE_BUILDER}
+      - --cache-from=${_IMAGE_LATEST}
+      - --build-arg=BUILDKIT_INLINE_CACHE=1
+      - --build-arg=VITE_ADSENSE_CLIENT_ID=${_ADSENSE_CLIENT_ID}
+      - --build-arg=VITE_ADSENSE_SLOT_ID=${_ADSENSE_SLOT_ID}
+      - -t=${_IMAGE_BUILDER}
       - .
 
-  # 2) Artifact Registry로 푸시
+  # 2) 최종 Runner 이미지 빌드 (Builder 레이어 즉시 재활용)
+  - id: Build
+    name: gcr.io/cloud-builders/docker
+    env:
+      - 'DOCKER_BUILDKIT=1'
+    args:
+      - build
+      - --cache-from=${_IMAGE_BUILDER}
+      - --cache-from=${_IMAGE_LATEST}
+      - --build-arg=BUILDKIT_INLINE_CACHE=1
+      - --build-arg=VITE_ADSENSE_CLIENT_ID=${_ADSENSE_CLIENT_ID}
+      - --build-arg=VITE_ADSENSE_SLOT_ID=${_ADSENSE_SLOT_ID}
+      - -t=${_IMAGE}
+      - -t=${_IMAGE_LATEST}
+      - .
+
+  # 3) Artifact Registry로 배포용 이미지 푸시
   - id: Push
     name: gcr.io/cloud-builders/docker
     args:
       - push
       - ${_IMAGE}
 
+  # 4) 최신 태그 및 빌더 캐시 푸시
   - id: PushLatest
     name: gcr.io/cloud-builders/docker
     args:
       - push
       - ${_IMAGE_LATEST}
 
-  # 3) Cloud Run 배포. 기존 서비스가 AI Studio 소스 배포 방식(run.googleapis.com/sources
-  #    어노테이션, 컨테이너명 app-container)으로 만들어져 있어 `services update`를
-  #    컨테이너명 없이 호출하면 어노테이션이 가리키는 컨테이너를 찾지 못해 거부된다.
-  #    `gcloud run deploy`는 기존 컨테이너/설정을 유지한 채 이미지만 교체하므로
-  #    이 문제를 피해간다.
+  - id: PushBuilder
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_IMAGE_BUILDER}
+
+  # 5) Cloud Run 배포
   - id: Deploy
     name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
     entrypoint: gcloud
@@ -79,14 +99,18 @@ steps:
 images:
   - ${_IMAGE}
   - ${_IMAGE_LATEST}
+  - ${_IMAGE_BUILDER}
 
 substitutions:
   _REGION: asia-east1
   _SERVICE_NAME: service
   _IMAGE: asia-east1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/fate-analysis/service:${COMMIT_SHA}
   _IMAGE_LATEST: asia-east1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/fate-analysis/service:latest
+  _IMAGE_BUILDER: asia-east1-docker.pkg.dev/${PROJECT_ID}/cloud-run-source-deploy/fate-analysis/service:builder-cache
   _ADSENSE_CLIENT_ID: ""
   _ADSENSE_SLOT_ID: ""
 
 options:
+  env:
+    - 'DOCKER_BUILDKIT=1'
   logging: CLOUD_LOGGING_ONLY

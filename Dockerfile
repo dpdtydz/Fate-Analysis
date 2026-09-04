@@ -6,7 +6,7 @@ WORKDIR /app
 
 # 의존성 레이어 캐시: 매니페스트만 먼저 복사
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --prefer-offline --no-audit --progress=false
 
 # VITE_* 값은 vite가 빌드 타임에 클라이언트 번들에 인라인한다.
 # 런타임 환경변수로 넘겨봐야 이미 정적으로 구운 dist/assets에는 반영되지 않으므로
