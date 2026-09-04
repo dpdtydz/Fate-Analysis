@@ -22,7 +22,13 @@ import {
   Calendar,
   Lightbulb,
   Crown,
-  Unlock
+  Unlock,
+  BookOpen,
+  Award,
+  ShieldCheck,
+  Clock,
+  Compass,
+  HelpCircle
 } from "lucide-react";
 import { generatePersonalCoreNarrative } from "../utils/sajuSynthesis";
 
@@ -1496,243 +1502,402 @@ export default function SajuVisual({
             </div>
           </div>
 
-          {/* Section D: Actionable Life Manual (실전 사이다 처방전 · 인생 사용 설명서) */}
-          {(() => {
-            const dmGan = daymaster?.gan || "甲";
-            const guide = DAYMASTER_ACTION_GUIDES[dmGan] || DAYMASTER_ACTION_GUIDES["甲"];
-
-            const currentDaewoon = daewoon?.find((item, index) => {
-              const nextItem = daewoon[index + 1];
-              const endAge = nextItem ? nextItem.age - 1 : item.age + 9;
-              return currentAge >= item.age && currentAge <= endAge;
-            }) || (daewoon && daewoon[0]);
-
-            const activeSipsinTheme = !currentDaewoon ? "비겁" :
-              (currentDaewoon.stemSipsin === "비견" || currentDaewoon.stemSipsin === "겁재" || currentDaewoon.branchSipsin === "비견" || currentDaewoon.branchSipsin === "겁재") ? "비겁" :
-              (currentDaewoon.stemSipsin === "식신" || currentDaewoon.stemSipsin === "상관" || currentDaewoon.branchSipsin === "식신" || currentDaewoon.branchSipsin === "상관") ? "식상" :
-              (currentDaewoon.stemSipsin === "정재" || currentDaewoon.stemSipsin === "편재" || currentDaewoon.branchSipsin === "정재" || currentDaewoon.branchSipsin === "편재") ? "재성" :
-              (currentDaewoon.stemSipsin === "정관" || currentDaewoon.stemSipsin === "편관" || currentDaewoon.branchSipsin === "정관" || currentDaewoon.branchSipsin === "편관") ? "관성" : "인성";
-
-            const daewoonAction = SIPSIN_DAEWOON_ACTION[activeSipsinTheme] || SIPSIN_DAEWOON_ACTION["비겁"];
-
-            return (
-              <div className="space-y-4 pt-4 border-t border-line text-left">
-                {/* Title Banner */}
-                <div className="bg-surface border border-line p-5 rounded-2xl text-left space-y-3 shadow-xs">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-xl bg-seal/10 text-seal flex items-center justify-center">
-                        <Flame className="w-4 h-4" />
-                      </span>
-                      <div>
-                        <span className="text-[11px] font-bold text-seal tracking-wider uppercase">Action Prescription</span>
-                        <h4 className="text-base font-bold text-ink">
-                          실전 사이다 처방전 · 인생 사용 설명서
-                        </h4>
-                      </div>
+          {/* =========================================================================
+              [유료 심층 챕터 3 ~ 6: 무료분의 서사를 완벽히 계승한 5/6 심층 처방전]
+              - 미해금 시: 부드러운 블러 + 글래스모피즘 해금 카드
+              - 해금 시: 동일 세션에서 블러만 스르륵 해제되어 전체 에세이 완결
+             ========================================================================= */}
+          <div className="space-y-6 pt-4 border-t border-line text-left">
+            <div className="relative">
+              {/* 블러 래퍼 (미해금 시 블러 + 클릭 비활성화) */}
+              <div className={isPremium ? "space-y-6" : "space-y-6 filter blur-[7px] opacity-30 select-none pointer-events-none transition-all duration-700"}>
+                
+                {/* Chapter 3. 나를 부자로 만드는 핵심 무기와 돈 버는 구조 */}
+                <div className="space-y-3.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center text-seal font-bold text-xs">
+                      3
                     </div>
-                    <span className="text-xs px-2.5 py-1 rounded-full bg-sunken text-ink-soft font-medium">
-                      현실 100% 밀착
-                    </span>
+                    <h3 className="font-serif text-base sm:text-lg font-semibold text-ink">
+                      나를 부자로 만드는 핵심 무기와 돈 버는 구조
+                    </h3>
                   </div>
 
-                  {/* 핵심 진단: 무료 유저에게도 선명하게 오픈! */}
-                  <div className="p-3.5 bg-sunken rounded-xl text-xs text-ink leading-relaxed font-medium border border-line/60">
-                    💡 <strong>핵심 진단:</strong> {guide.coreSummary}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="bg-sunken p-4 rounded-xl border border-line/50 space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                        <Zap className="w-3.5 h-3.5 text-amber-500" />
+                        <span>나만의 치트키 무기</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                        {narrative.wealthEngine.coreWeapon}
+                      </p>
+                    </div>
+
+                    <div className="bg-sunken p-4 rounded-xl border border-line/50 space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                        <DollarSign className="w-3.5 h-3.5 text-[#2D6A4F]" />
+                        <span>실전 머니 파이프라인</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                        {narrative.wealthEngine.moneyPipeline}
+                      </p>
+                    </div>
+
+                    <div className="bg-sunken p-4 rounded-xl border border-line/50 space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                        <Briefcase className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>최적의 일하는 방식</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                        {narrative.wealthEngine.workStyle}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                {/* 점진적 블러 해제 (Progressive Blur Unlock) 영역 */}
-                <div className="relative">
-                  {/* 처방전 세부 카드 묶음 */}
-                  <div className={isPremium ? "space-y-4" : "space-y-4 filter blur-[6px] opacity-35 select-none pointer-events-none transition-all duration-700"}>
-                    {/* 3대 행동 강령 (DO) */}
-                    <div className="bg-surface border border-line p-5 rounded-2xl space-y-3 shadow-xs">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#2D6A4F]" />
-                        <span>지금 당장 내 삶에서 취해야 할 3대 행동 (DO)</span>
+                {/* Chapter 4. 앞으로 3년 내 맞이할 인생 타이밍 (대운 × 세운) */}
+                <div className="space-y-3.5 pt-4 border-t border-line">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center text-seal font-bold text-xs">
+                      4
+                    </div>
+                    <h3 className="font-serif text-base sm:text-lg font-semibold text-ink">
+                      앞으로 3년 내 맞이할 결정적 기회의 문 (2026 ~ 2028)
+                    </h3>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* 2026 */}
+                    <div className="bg-sunken p-4 rounded-xl border border-line/50 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-seal flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          2026년 · {narrative.threeYearTiming.year2026.theme}
+                        </span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-surface text-ink-faint font-mono">
+                          올해 운세
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                        {narrative.threeYearTiming.year2026.detail}
+                      </p>
+                      <p className="text-xs font-semibold text-ink pt-1 border-t border-line/40">
+                        💡 액션 플랜 : {narrative.threeYearTiming.year2026.action}
+                      </p>
+                    </div>
+
+                    {/* 2027 */}
+                    <div className="bg-sunken p-4 rounded-xl border border-line/50 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-indigo-600 flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          2027년 · {narrative.threeYearTiming.year2027.theme}
+                        </span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-surface text-ink-faint font-mono">
+                          내년 운세
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                        {narrative.threeYearTiming.year2027.detail}
+                      </p>
+                      <p className="text-xs font-semibold text-ink pt-1 border-t border-line/40">
+                        💡 액션 플랜 : {narrative.threeYearTiming.year2027.action}
+                      </p>
+                    </div>
+
+                    {/* 2028 */}
+                    <div className="bg-sunken p-4 rounded-xl border border-line/50 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#2D6A4F] flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          2028년 · {narrative.threeYearTiming.year2028.theme}
+                        </span>
+                        <span className="text-[11px] px-2 py-0.5 rounded-md bg-surface text-ink-faint font-mono">
+                          내후년 도약
+                        </span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                        {narrative.threeYearTiming.year2028.detail}
+                      </p>
+                      <p className="text-xs font-semibold text-ink pt-1 border-t border-line/40">
+                        💡 액션 플랜 : {narrative.threeYearTiming.year2028.action}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Chapter 5. 실전 사이다 처방전 · 인생 사용 설명서 */}
+                <div className="space-y-3.5 pt-4 border-t border-line">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center text-seal font-bold text-xs">
+                      5
+                    </div>
+                    <h3 className="font-serif text-base sm:text-lg font-semibold text-ink">
+                      실전 사이다 처방전 · 인생 사용 설명서
+                    </h3>
+                  </div>
+
+                  {/* 핵심 진단 */}
+                  <div className="p-4 bg-surface border border-line rounded-xl text-xs sm:text-sm text-ink leading-relaxed font-medium shadow-xs">
+                    💡 <strong>핵심 진단 :</strong> {narrative.prescription.coreSummary}
+                  </div>
+
+                  {/* 3대 행동 강령 (DO) */}
+                  <div className="bg-surface border border-line p-5 rounded-2xl space-y-3 shadow-xs">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-[#2D6A4F]" />
+                      <span>지금 당장 내 삶에서 취해야 할 3대 행동 (DO)</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                      <div className="bg-sunken p-3.5 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-1 text-[11px] font-semibold text-ink-soft">
+                            <Briefcase className="w-3 h-3 text-[#2D6A4F]" />
+                            <span>커리어 & 수익 창출</span>
+                          </div>
+                          <h5 className="text-xs font-bold text-ink mt-0.5">{narrative.prescription.careerDo.title}</h5>
+                          <p className="text-[11px] text-ink-soft leading-relaxed mt-1">{narrative.prescription.careerDo.desc}</p>
+                        </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
-                        {/* 1. Career */}
-                        <div className="bg-sunken p-3.5 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
-                          <div>
-                            <div className="flex items-center gap-1 text-[11px] font-semibold text-ink-soft">
-                              <Briefcase className="w-3 h-3 text-[#2D6A4F]" />
-                              <span>커리어 & 수익 창출</span>
-                            </div>
-                            <h5 className="text-xs font-bold text-ink mt-0.5">{guide.careerDo.title}</h5>
-                            <p className="text-[11px] text-ink-soft leading-relaxed mt-1">{guide.careerDo.desc}</p>
+                      <div className="bg-sunken p-3.5 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-1 text-[11px] font-semibold text-ink-soft">
+                            <DollarSign className="w-3 h-3 text-[#B07C3F]" />
+                            <span>재물 & 자산 방어</span>
                           </div>
-                        </div>
-
-                        {/* 2. Wealth */}
-                        <div className="bg-sunken p-3.5 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
-                          <div>
-                            <div className="flex items-center gap-1 text-[11px] font-semibold text-ink-soft">
-                              <DollarSign className="w-3 h-3 text-[#B07C3F]" />
-                              <span>재물 & 자산 방어</span>
-                            </div>
-                            <h5 className="text-xs font-bold text-ink mt-0.5">{guide.wealthDo.title}</h5>
-                            <p className="text-[11px] text-ink-soft leading-relaxed mt-1">{guide.wealthDo.desc}</p>
-                          </div>
-                        </div>
-
-                        {/* 3. Relations */}
-                        <div className="bg-sunken p-3.5 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
-                          <div>
-                            <div className="flex items-center gap-1 text-[11px] font-semibold text-ink-soft">
-                              <UserCheck className="w-3 h-3 text-seal" />
-                              <span>인간관계 & 선 긋기</span>
-                            </div>
-                            <h5 className="text-xs font-bold text-ink mt-0.5">{guide.relationDo.title}</h5>
-                            <p className="text-[11px] text-ink-soft leading-relaxed mt-1">{guide.relationDo.desc}</p>
-                          </div>
+                          <h5 className="text-xs font-bold text-ink mt-0.5">{narrative.prescription.wealthDo.title}</h5>
+                          <p className="text-[11px] text-ink-soft leading-relaxed mt-1">{narrative.prescription.wealthDo.desc}</p>
                         </div>
                       </div>
 
-                      {/* 치명적 지뢰밭 (DON'T) */}
-                      <div className="space-y-2 pt-2 border-t border-line">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-seal">
-                          <ShieldAlert className="w-3.5 h-3.5 text-seal" />
-                          <span>올해 절대 하지 말아야 할 치명적 지뢰밭 (DON'T)</span>
+                      <div className="bg-sunken p-3.5 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-1 text-[11px] font-semibold text-ink-soft">
+                            <UserCheck className="w-3 h-3 text-seal" />
+                            <span>인간관계 & 선 긋기</span>
+                          </div>
+                          <h5 className="text-xs font-bold text-ink mt-0.5">{narrative.prescription.relationDo.title}</h5>
+                          <p className="text-[11px] text-ink-soft leading-relaxed mt-1">{narrative.prescription.relationDo.desc}</p>
                         </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {guide.criticalDont.map((dont, dIdx) => (
-                            <div key={dIdx} className="bg-seal/5 border border-seal/15 p-3 rounded-xl text-left space-y-1">
-                              <div className="flex items-center gap-1 text-xs font-bold text-seal">
-                                <Ban className="w-3 h-3" />
-                                <span>{dont.title}</span>
-                              </div>
-                              <p className="text-[11px] text-ink-soft leading-relaxed">{dont.desc}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* 한 줄 핵심 공식 */}
-                      <div className="p-3 bg-surface border border-line rounded-xl text-xs text-ink font-semibold flex items-center gap-2">
-                        <Target className="w-4 h-4 text-seal shrink-0" />
-                        <span>{guide.breakthroughFormula}</span>
                       </div>
                     </div>
 
-                    {/* Section: 10년 대운 × 사이다 실천 솔루션 */}
-                    {currentDaewoon && (
-                      <div className="bg-sunken p-5 rounded-2xl text-left space-y-3.5 border border-line/60">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-line pb-3">
-                          <div>
-                            <span className="text-xs text-ink-faint">
-                              현재 {narrative.season.age}세 운세 구간 · {currentDaewoon.age}세 대운 ({currentDaewoon.stemSipsin}/{currentDaewoon.branchSipsin})
-                            </span>
-                            <h4 className="text-sm font-bold text-ink mt-0.5">
-                              현재 대운 현실 테마 : <span className="text-seal">{daewoonAction.theme}</span>
-                            </h4>
-                          </div>
-                          <span className="text-xs text-ink-faint bg-surface px-2.5 py-1 rounded-md self-start sm:self-auto font-mono border border-line">
-                            {currentDaewoon.ganzi} 대운
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                          <div className="bg-surface p-3.5 rounded-xl space-y-1 border border-line">
-                            <span className="font-bold text-[#2D6A4F] flex items-center gap-1">
-                              <Zap className="w-3.5 h-3.5" />
-                              지금 밀어붙여야 할 돌파구
-                            </span>
-                            <p className="text-ink-soft leading-relaxed">{daewoonAction.doAction}</p>
-                          </div>
-                          <div className="bg-surface p-3.5 rounded-xl space-y-1 border border-line">
-                            <span className="font-bold text-seal flex items-center gap-1">
-                              <Ban className="w-3.5 h-3.5" />
-                              반드시 피해야 할 함정
-                            </span>
-                            <p className="text-ink-soft leading-relaxed">{daewoonAction.dontAction}</p>
-                          </div>
-                        </div>
-
-                        <div className="p-3 bg-surface rounded-xl text-xs text-ink font-medium flex items-center gap-2 border border-line">
-                          <Sparkles className="w-4 h-4 text-seal shrink-0" />
-                          <span>{daewoonAction.timingAdvice}</span>
-                        </div>
+                    {/* 치명적 지뢰밭 (DON'T) */}
+                    <div className="space-y-2 pt-2 border-t border-line">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-seal">
+                        <ShieldAlert className="w-3.5 h-3.5 text-seal" />
+                        <span>올해 절대 하지 말아야 할 치명적 지뢰밭 (DON'T)</span>
                       </div>
-                    )}
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {narrative.prescription.criticalDont.map((dont, dIdx) => (
+                          <div key={dIdx} className="bg-seal/5 border border-seal/15 p-3 rounded-xl text-left space-y-1">
+                            <div className="flex items-center gap-1 text-xs font-bold text-seal">
+                              <Ban className="w-3 h-3" />
+                              <span>{dont.title}</span>
+                            </div>
+                            <p className="text-[11px] text-ink-soft leading-relaxed">{dont.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 한 줄 핵심 공식 */}
+                    <div className="p-3 bg-surface border border-line rounded-xl text-xs text-ink font-semibold flex items-center gap-2">
+                      <Target className="w-4 h-4 text-seal shrink-0" />
+                      <span>{narrative.prescription.breakthroughFormula}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Chapter 6. 평생을 지배하는 귀인과 피해야 할 악연의 조건 */}
+                <div className="space-y-3.5 pt-4 border-t border-line">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center text-seal font-bold text-xs">
+                      6
+                    </div>
+                    <h3 className="font-serif text-base sm:text-lg font-semibold text-ink">
+                      평생을 지배하는 귀인과 피해야 할 악연의 조건
+                    </h3>
                   </div>
 
-                  {/* 미해금 시 글래스모피즘 플로팅 해금 카드 */}
-                  {!isPremium && (
-                    <div className="absolute inset-0 z-10 flex items-center justify-center p-4 bg-gradient-to-t from-surface via-surface/90 to-transparent backdrop-blur-[2px] rounded-2xl">
-                      <div className="bg-surface/95 border border-line shadow-2xl rounded-2xl p-6 sm:p-7 max-w-md w-full text-center space-y-4 animate-fade-in backdrop-blur-md">
-                        <div className="w-12 h-12 rounded-2xl bg-seal/10 text-seal mx-auto flex items-center justify-center shadow-inner">
-                          <Crown className="w-6 h-6" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <span className="px-2.5 py-0.5 rounded-md bg-seal/10 text-seal text-xs font-bold font-mono tracking-wider border border-seal/20">
-                            나머지 5/6 평생 감정서 · 실전 처방전
-                          </span>
-                          <h4 className="font-serif text-lg font-bold text-ink">
-                            실전 사이다 솔루션 열람하기
-                          </h4>
-                          <p className="text-xs text-ink-soft leading-relaxed">
-                            {narrative.bridgePrompt}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* 귀인 */}
+                    <div className="bg-sunken p-4 rounded-xl border border-line/50 space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-[#2D6A4F]">
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>나를 살리는 진짜 귀인의 특징</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                        {narrative.relationshipFilter.nobleTraits}
+                      </p>
+                    </div>
+
+                    {/* 악연 */}
+                    <div className="bg-sunken p-4 rounded-xl border border-line/50 space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-seal">
+                        <UserX className="w-3.5 h-3.5" />
+                        <span>내 피를 말리는 피해야 할 악연의 패턴</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                        {narrative.relationshipFilter.toxicTraits}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 선 긋기 원칙 */}
+                  <div className="p-3.5 rounded-xl bg-line/30 border-l-4 border-seal">
+                    <p className="text-xs font-semibold text-ink mb-1">
+                      🛡️ 평생 후회 없는 인간관계 선 긋기 절대 공식
+                    </p>
+                    <p className="text-xs sm:text-sm text-ink-soft leading-relaxed font-medium">
+                      {narrative.relationshipFilter.boundaryRule}
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* 미해금 시 글래스모피즘 플로팅 해금 카드 */}
+              {!isPremium && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center p-4 bg-gradient-to-t from-surface via-surface/90 to-transparent backdrop-blur-[2px] rounded-2xl">
+                  <div className="bg-surface/95 border border-line shadow-2xl rounded-2xl p-6 sm:p-7 max-w-md w-full text-center space-y-4 animate-fade-in backdrop-blur-md">
+                    <div className="w-12 h-12 rounded-2xl bg-seal/10 text-seal mx-auto flex items-center justify-center shadow-inner">
+                      <Crown className="w-6 h-6" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <span className="px-2.5 py-0.5 rounded-md bg-seal/10 text-seal text-xs font-bold font-mono tracking-wider border border-seal/20">
+                        나머지 5/6 평생 감정서 · 실전 처방전
+                      </span>
+                      <h4 className="font-serif text-lg font-bold text-ink">
+                        실전 사이다 솔루션 열람하기
+                      </h4>
+                      <p className="text-xs text-ink-soft leading-relaxed">
+                        {narrative.bridgePrompt}
+                      </p>
+                    </div>
+
+                    {/* 해금 액션: 확인권 버튼 또는 쿠폰 입력 */}
+                    <div className="pt-2 space-y-3">
+                      {hasTicket ? (
+                        <div className="space-y-2">
+                          <button
+                            type="button"
+                            onClick={onUnlockWithTicket}
+                            className="w-full py-3.5 px-4 rounded-xl bg-seal hover:bg-seal-deep text-white font-semibold text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                          >
+                            <Sparkles className="w-4 h-4" />
+                            <span>확인권 1장으로 지금 즉시 열람</span>
+                          </button>
+                          <p className="text-xs text-ink-faint">
+                            보유 확인권 {ticketCount}장 · 열람 즉시 블러가 제거됩니다.
                           </p>
                         </div>
-
-                        {/* 해금 액션: 확인권 버튼 또는 쿠폰 입력 */}
-                        <div className="pt-2 space-y-3">
-                          {hasTicket ? (
-                            <div className="space-y-2">
-                              <button
-                                type="button"
-                                onClick={onUnlockWithTicket}
-                                className="w-full py-3.5 px-4 rounded-xl bg-seal hover:bg-seal-deep text-white font-semibold text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-98"
-                              >
-                                <Sparkles className="w-4 h-4" />
-                                <span>확인권 1장으로 지금 즉시 열람</span>
-                              </button>
-                              <p className="text-xs text-ink-faint">
-                                보유 확인권 {ticketCount}장 · 열람 즉시 블러가 제거됩니다.
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="space-y-2.5 text-left bg-sunken p-4 rounded-xl border border-line/60">
-                              <p className="text-xs text-ink-soft leading-relaxed">
-                                쿠폰 번호를 등록하면 화면 이동 없이 이 자리에서 즉시 해금됩니다.
-                              </p>
-                              <div className="flex gap-2">
-                                <input
-                                  type="text"
-                                  value={localCouponInput}
-                                  onChange={(e) => setLocalCouponInput(e.target.value.toUpperCase())}
-                                  placeholder="쿠폰 번호 입력"
-                                  maxLength={20}
-                                  className="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-1 focus:ring-ink bg-surface text-ink font-mono uppercase text-center placeholder:text-ink-faint border border-line"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => onApplyCoupon?.(localCouponInput)}
-                                  disabled={couponLoading || !localCouponInput.trim()}
-                                  className="px-4 py-2 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-xs sm:text-sm font-semibold rounded-xl transition-colors cursor-pointer shrink-0"
-                                >
-                                  {couponLoading ? "등록 중..." : "등록"}
-                                </button>
-                              </div>
-                              {couponError && (
-                                <p className="text-xs text-seal font-medium text-center mt-1">
-                                  {couponError}
-                                </p>
-                              )}
-                            </div>
+                      ) : (
+                        <div className="space-y-2.5 text-left bg-sunken p-4 rounded-xl border border-line/60">
+                          <p className="text-xs text-ink-soft leading-relaxed">
+                            쿠폰 번호를 등록하면 화면 이동 없이 이 자리에서 즉시 해금됩니다.
+                          </p>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={localCouponInput}
+                              onChange={(e) => setLocalCouponInput(e.target.value.toUpperCase())}
+                              placeholder="쿠폰 번호 입력"
+                              maxLength={20}
+                              className="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-1 focus:ring-ink bg-surface text-ink font-mono uppercase text-center placeholder:text-ink-faint border border-line"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => onApplyCoupon?.(localCouponInput)}
+                              disabled={couponLoading || !localCouponInput.trim()}
+                              className="px-4 py-2 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-xs sm:text-sm font-semibold rounded-xl transition-colors cursor-pointer shrink-0"
+                            >
+                              {couponLoading ? "등록 중..." : "등록"}
+                            </button>
+                          </div>
+                          {couponError && (
+                            <p className="text-xs text-seal font-medium text-center mt-1">
+                              {couponError}
+                            </p>
                           )}
                         </div>
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* =========================================================================
+              [바텀 하단: 전문 명리학적 분석 근거 및 학술적 배경 설명]
+              - 사용자가 리포트의 논리적·학술적 타당성을 신뢰할 수 있도록 명문화
+             ========================================================================= */}
+          <div className="pt-6 border-t border-line/80 space-y-4 text-left">
+            <div className="flex items-center gap-2">
+              <span className="w-7 h-7 rounded-lg bg-surface border border-line flex items-center justify-center text-ink-soft">
+                <BookOpen className="w-4 h-4" />
+              </span>
+              <div>
+                <h4 className="font-serif text-sm sm:text-base font-semibold text-ink">
+                  이 분석은 어떻게 도출되었는가? · 명리학 & 자미두수 정밀 산출 근거
+                </h4>
+                <p className="text-[11px] text-ink-faint">
+                  정통 역학 고전 원리와 현대 통계 알고리즘을 융합한 분석적 근거입니다.
+                </p>
               </div>
-            );
-          })()}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {/* 1. 사주 일주론 & 지장간 */}
+              <div className="bg-sunken p-4 rounded-xl border border-line/60 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                  <Award className="w-3.5 h-3.5 text-seal" />
+                  <span>1. 정통 사주 일주론(日柱論) 및 지장간 암장 해독</span>
+                </div>
+                <p className="text-[11px] text-ink-soft leading-relaxed">
+                  {narrative.astrologicalBasis.pillarBasis}
+                </p>
+              </div>
+
+              {/* 2. 10년 대운 절기 산출 */}
+              <div className="bg-sunken p-4 rounded-xl border border-line/60 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                  <Compass className="w-3.5 h-3.5 text-amber-600" />
+                  <span>2. 24절기 천문 역법 기반 10년 대운(大運) 산출식</span>
+                </div>
+                <p className="text-[11px] text-ink-soft leading-relaxed">
+                  {narrative.astrologicalBasis.daewoonBasis}
+                </p>
+              </div>
+
+              {/* 3. 자미두수 14정성 */}
+              <div className="bg-sunken p-4 rounded-xl border border-line/60 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>3. 송대 정통 자미두수(紫微斗數) 14정성 배치학</span>
+                </div>
+                <p className="text-[11px] text-ink-soft leading-relaxed">
+                  {narrative.astrologicalBasis.ziweiBasis}
+                </p>
+              </div>
+
+              {/* 4. 현대 심리 지표 교차 검증 */}
+              <div className="bg-sunken p-4 rounded-xl border border-line/60 space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#2D6A4F]" />
+                  <span>4. 융(Jung) 분석심리학 페르소나 교차 검증</span>
+                </div>
+                <p className="text-[11px] text-ink-soft leading-relaxed">
+                  {narrative.astrologicalBasis.psychologicalBasis}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       ) : currentTab === "saju" ? (
         <>
