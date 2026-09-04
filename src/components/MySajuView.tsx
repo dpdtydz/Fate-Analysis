@@ -1027,26 +1027,34 @@ export default function MySajuView() {
                       <span className="w-1.5 h-1.5 rounded-full bg-[#35B37E]" />
                       잘 맞는 유형 (BEST)
                     </p>
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-1 gap-2.5">
                       {spec.compatibility.best.map((item, idx) => {
                         const isExpanded = activeTipCard === `best-${idx}`;
                         const rep = getRepresentativeBranch(item.elem, ji);
                         const repSrc = rep ? zodiacImageSrc(rep.branch, rep.element) : null;
+                        const elemStyle = {
+                          "목": { bg: "bg-[#EAF5EC]", border: "border-[#A3D9AC]", badge: "bg-[#3E7C4F]" },
+                          "화": { bg: "bg-[#FDF0EE]", border: "border-[#F5ABA5]", badge: "bg-[#C24234]" },
+                          "토": { bg: "bg-[#FAF4EB]", border: "border-[#E8CEAF]", badge: "bg-[#B07C3F]" },
+                          "금": { bg: "bg-[#F1F4F8]", border: "border-[#BCCAD9]", badge: "bg-[#5B6B7C]" },
+                          "수": { bg: "bg-[#EBF3FA]", border: "border-[#A8CDF2]", badge: "bg-[#2563EB]" },
+                        }[item.elem] || { bg: "bg-white", border: "border-line", badge: "bg-ink" };
+
                         return (
                           <div
                             key={idx}
                             onClick={() => setActiveTipCard(isExpanded ? null : `best-${idx}`)}
-                            className="bg-sunken hover:bg-line/60 rounded-2xl p-3.5 transition-all cursor-pointer border border-transparent hover:border-line/70"
+                            className="bg-sunken hover:bg-line/60 rounded-2xl p-3.5 transition-all cursor-pointer border border-line/60 hover:border-line"
                           >
-                            <div className="flex items-start gap-3.5">
-                              {/* 선명한 캐릭터 아바타 (화이트 서클 + 테두리 + 입체감) */}
-                              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-white shadow-xs border border-line/80 flex items-center justify-center shrink-0 p-1 relative overflow-hidden">
+                            <div className="flex items-center gap-3.5">
+                              {/* 선명하고 큼직한 12지신 캐릭터 아바타 */}
+                              <div className={`w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-2xl ${elemStyle.bg} border-2 ${elemStyle.border} shadow-sm flex items-center justify-center shrink-0 relative overflow-hidden`}>
                                 {repSrc ? (
                                   <img
                                     src={repSrc}
                                     alt={`${rep!.element} 기운의 ${rep!.animal} 캐릭터`}
                                     decoding="async"
-                                    className="w-11 h-11 sm:w-12 sm:h-12 object-contain select-none filter drop-shadow-xs"
+                                    className="w-full h-full object-contain scale-[1.38] translate-y-1 select-none filter drop-shadow-sm"
                                   />
                                 ) : (
                                   <span
@@ -1056,20 +1064,26 @@ export default function MySajuView() {
                                     {item.hanja}
                                   </span>
                                 )}
+                                <span className={`absolute top-1 left-1 w-4 h-4 rounded text-white font-serif text-[10px] font-bold flex items-center justify-center shadow-xs ${elemStyle.badge}`}>
+                                  {item.hanja}
+                                </span>
                               </div>
 
                               {/* 텍스트 영역 */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1 gap-1.5">
                                   <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                                    <span className="font-semibold text-sm text-ink">
-                                      {rep?.animal ? `${rep.animal}띠 · ` : ""}{item.cardName}
+                                    <span className="font-bold text-base text-ink">
+                                      {rep?.animal ? `${rep.animal}띠` : item.cardName}
+                                    </span>
+                                    <span className="text-xs font-semibold text-ink-soft">
+                                      · {item.cardName}
                                     </span>
                                     <span className="text-xs text-ink-faint">
-                                      {item.relationName}
+                                      ({item.relationName})
                                     </span>
                                   </div>
-                                  <span className="text-xs font-semibold font-mono text-[#35B37E] shrink-0 bg-white/90 px-2 py-0.5 rounded-full border border-line/60">
+                                  <span className="text-xs font-bold font-mono text-[#35B37E] shrink-0 bg-[#35B37E]/10 px-2.5 py-0.5 rounded-full border border-[#35B37E]/20">
                                     {item.score}점
                                   </span>
                                 </div>
@@ -1078,7 +1092,7 @@ export default function MySajuView() {
                                 </p>
                                 {isExpanded && (
                                   <p className="mt-2.5 pt-2 border-t border-line text-xs text-ink-soft leading-relaxed animate-fade-in">
-                                    <strong className="text-ink">팁</strong> · {item.tip}
+                                    <strong className="text-ink">소통 팁</strong> · {item.tip}
                                   </p>
                                 )}
                               </div>
@@ -1095,26 +1109,34 @@ export default function MySajuView() {
                       <span className="w-1.5 h-1.5 rounded-full bg-[#E0A82E]" />
                       잘 안 맞는 유형 (조율 필요)
                     </p>
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-1 gap-2.5">
                       {spec.compatibility.caution.map((item, idx) => {
                         const isExpanded = activeTipCard === `caution-${idx}`;
                         const rep = getRepresentativeBranch(item.elem, ji);
                         const repSrc = rep ? zodiacImageSrc(rep.branch, rep.element) : null;
+                        const elemStyle = {
+                          "목": { bg: "bg-[#EAF5EC]", border: "border-[#A3D9AC]", badge: "bg-[#3E7C4F]" },
+                          "화": { bg: "bg-[#FDF0EE]", border: "border-[#F5ABA5]", badge: "bg-[#C24234]" },
+                          "토": { bg: "bg-[#FAF4EB]", border: "border-[#E8CEAF]", badge: "bg-[#B07C3F]" },
+                          "금": { bg: "bg-[#F1F4F8]", border: "border-[#BCCAD9]", badge: "bg-[#5B6B7C]" },
+                          "수": { bg: "bg-[#EBF3FA]", border: "border-[#A8CDF2]", badge: "bg-[#2563EB]" },
+                        }[item.elem] || { bg: "bg-white", border: "border-line", badge: "bg-ink" };
+
                         return (
                           <div
                             key={idx}
                             onClick={() => setActiveTipCard(isExpanded ? null : `caution-${idx}`)}
-                            className="bg-sunken hover:bg-line/60 rounded-2xl p-3.5 transition-all cursor-pointer border border-transparent hover:border-line/70"
+                            className="bg-sunken hover:bg-line/60 rounded-2xl p-3.5 transition-all cursor-pointer border border-line/60 hover:border-line"
                           >
-                            <div className="flex items-start gap-3.5">
-                              {/* 선명한 캐릭터 아바타 (투명도 opacity-60 제거하여 선명하게 표시) */}
-                              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-white shadow-xs border border-line/80 flex items-center justify-center shrink-0 p-1 relative overflow-hidden">
+                            <div className="flex items-center gap-3.5">
+                              {/* 선명하고 큼직한 12지신 캐릭터 아바타 (투명도 없이 100% 선명) */}
+                              <div className={`w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-2xl ${elemStyle.bg} border-2 ${elemStyle.border} shadow-sm flex items-center justify-center shrink-0 relative overflow-hidden`}>
                                 {repSrc ? (
                                   <img
                                     src={repSrc}
                                     alt={`${rep!.element} 기운의 ${rep!.animal} 캐릭터`}
                                     decoding="async"
-                                    className="w-11 h-11 sm:w-12 sm:h-12 object-contain select-none filter drop-shadow-xs"
+                                    className="w-full h-full object-contain scale-[1.38] translate-y-1 select-none filter drop-shadow-sm"
                                   />
                                 ) : (
                                   <span
@@ -1124,20 +1146,26 @@ export default function MySajuView() {
                                     {item.hanja}
                                   </span>
                                 )}
+                                <span className={`absolute top-1 left-1 w-4 h-4 rounded text-white font-serif text-[10px] font-bold flex items-center justify-center shadow-xs ${elemStyle.badge}`}>
+                                  {item.hanja}
+                                </span>
                               </div>
 
                               {/* 텍스트 영역 */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1 gap-1.5">
                                   <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                                    <span className="font-semibold text-sm text-ink">
-                                      {rep?.animal ? `${rep.animal}띠 · ` : ""}{item.cardName}
+                                    <span className="font-bold text-base text-ink">
+                                      {rep?.animal ? `${rep.animal}띠` : item.cardName}
+                                    </span>
+                                    <span className="text-xs font-semibold text-ink-soft">
+                                      · {item.cardName}
                                     </span>
                                     <span className="text-xs text-ink-faint">
-                                      {item.relationName}
+                                      ({item.relationName})
                                     </span>
                                   </div>
-                                  <span className="text-xs font-semibold font-mono text-ink-faint shrink-0 bg-white/90 px-2 py-0.5 rounded-full border border-line/60">
+                                  <span className="text-xs font-bold font-mono text-ink-faint shrink-0 bg-white/80 px-2.5 py-0.5 rounded-full border border-line/60">
                                     {item.score}점
                                   </span>
                                 </div>
@@ -1146,7 +1174,7 @@ export default function MySajuView() {
                                 </p>
                                 {isExpanded && (
                                   <p className="mt-2.5 pt-2 border-t border-line text-xs text-ink-soft leading-relaxed animate-fade-in">
-                                    <strong className="text-ink">팁</strong> · {item.tip}
+                                    <strong className="text-ink">조율 팁</strong> · {item.tip}
                                   </p>
                                 )}
                               </div>

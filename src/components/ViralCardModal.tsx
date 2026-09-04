@@ -1184,19 +1184,27 @@ export default function ViralCardModal({
                         {spec.compatibility.best.map((b, bi) => {
                           const rep = getRepresentativeBranch(b.elem, ji);
                           const repSrc = rep ? zodiacImageSrc(rep.branch, rep.element) : null;
+                          const elemStyle = {
+                            "목": { bg: "bg-[#EAF5EC]", border: "border-[#A3D9AC]", badge: "bg-[#3E7C4F]" },
+                            "화": { bg: "bg-[#FDF0EE]", border: "border-[#F5ABA5]", badge: "bg-[#C24234]" },
+                            "토": { bg: "bg-[#FAF4EB]", border: "border-[#E8CEAF]", badge: "bg-[#B07C3F]" },
+                            "금": { bg: "bg-[#F1F4F8]", border: "border-[#BCCAD9]", badge: "bg-[#5B6B7C]" },
+                            "수": { bg: "bg-[#EBF3FA]", border: "border-[#A8CDF2]", badge: "bg-[#2563EB]" },
+                          }[b.elem] || { bg: "bg-white", border: "border-line", badge: "bg-ink" };
+
                           return (
                             <div
                               key={bi}
-                              className="flex flex-col items-center text-center p-1.5 sm:p-2 bg-white rounded-xl border border-[#E7E7E2]/70 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+                              className="flex flex-col items-center text-center p-1.5 bg-white rounded-xl border border-[#E7E7E2]/70 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
                             >
-                              <div className="w-10 h-10 rounded-full bg-[#F4F4F1] flex items-center justify-center overflow-hidden mb-1.5 border border-white/80 shadow-inner">
+                              <div className={`w-12 h-12 rounded-2xl ${elemStyle.bg} border-2 ${elemStyle.border} shadow-xs flex items-center justify-center overflow-hidden mb-1 relative`}>
                                 {repSrc ? (
                                   <img
                                     src={repSrc}
                                     alt={`${rep?.animal || b.elem} 캐릭터`}
                                     crossOrigin="anonymous"
                                     decoding="async"
-                                    className="w-9 h-9 object-contain select-none filter drop-shadow-xs"
+                                    className="w-full h-full object-contain scale-[1.38] translate-y-0.5 select-none filter drop-shadow-xs"
                                   />
                                 ) : (
                                   <span
@@ -1206,12 +1214,15 @@ export default function ViralCardModal({
                                     {b.hanja}
                                   </span>
                                 )}
+                                <span className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded text-white font-serif text-[8px] font-bold flex items-center justify-center ${elemStyle.badge}`}>
+                                  {b.hanja}
+                                </span>
                               </div>
-                              <span className="text-xs font-bold text-[#1C1D21] leading-tight truncate w-full">
-                                {rep?.animal ? `${rep.animal}띠` : b.elem}
+                              <span className="text-[11px] font-bold text-[#1C1D21] leading-tight truncate max-w-full">
+                                {rep?.animal ? `${rep.animal}` : b.elem}
                               </span>
-                              <span className="text-[10px] font-medium text-[#35B37E] bg-[#35B37E]/10 px-1.5 py-0.5 rounded-full mt-1">
-                                {b.hanja} · {b.score}점
+                              <span className="text-[9px] font-bold text-[#35B37E] bg-[#35B37E]/10 px-1.5 py-0.5 rounded-full mt-0.5 leading-none">
+                                {b.score}점
                               </span>
                             </div>
                           );
@@ -1234,19 +1245,27 @@ export default function ViralCardModal({
                         {spec.compatibility.caution.map((c, ci) => {
                           const rep = getRepresentativeBranch(c.elem, ji);
                           const repSrc = rep ? zodiacImageSrc(rep.branch, rep.element) : null;
+                          const elemStyle = {
+                            "목": { bg: "bg-[#EAF5EC]", border: "border-[#A3D9AC]", badge: "bg-[#3E7C4F]" },
+                            "화": { bg: "bg-[#FDF0EE]", border: "border-[#F5ABA5]", badge: "bg-[#C24234]" },
+                            "토": { bg: "bg-[#FAF4EB]", border: "border-[#E8CEAF]", badge: "bg-[#B07C3F]" },
+                            "금": { bg: "bg-[#F1F4F8]", border: "border-[#BCCAD9]", badge: "bg-[#5B6B7C]" },
+                            "수": { bg: "bg-[#EBF3FA]", border: "border-[#A8CDF2]", badge: "bg-[#2563EB]" },
+                          }[c.elem] || { bg: "bg-white", border: "border-line", badge: "bg-ink" };
+
                           return (
                             <div
                               key={ci}
-                              className="flex flex-col items-center text-center p-1.5 sm:p-2 bg-white rounded-xl border border-[#E7E7E2]/70 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+                              className="flex flex-col items-center text-center p-1.5 bg-white rounded-xl border border-[#E7E7E2]/70 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
                             >
-                              <div className="w-10 h-10 rounded-full bg-[#F4F4F1] flex items-center justify-center overflow-hidden mb-1.5 border border-white/80 shadow-inner">
+                              <div className={`w-12 h-12 rounded-2xl ${elemStyle.bg} border-2 ${elemStyle.border} shadow-xs flex items-center justify-center overflow-hidden mb-1 relative`}>
                                 {repSrc ? (
                                   <img
                                     src={repSrc}
                                     alt={`${rep?.animal || c.elem} 캐릭터`}
                                     crossOrigin="anonymous"
                                     decoding="async"
-                                    className="w-9 h-9 object-contain select-none filter drop-shadow-xs"
+                                    className="w-full h-full object-contain scale-[1.38] translate-y-0.5 select-none filter drop-shadow-xs"
                                   />
                                 ) : (
                                   <span
@@ -1256,12 +1275,15 @@ export default function ViralCardModal({
                                     {c.hanja}
                                   </span>
                                 )}
+                                <span className={`absolute top-0.5 left-0.5 w-3.5 h-3.5 rounded text-white font-serif text-[8px] font-bold flex items-center justify-center ${elemStyle.badge}`}>
+                                  {c.hanja}
+                                </span>
                               </div>
-                              <span className="text-xs font-bold text-[#1C1D21] leading-tight truncate w-full">
-                                {rep?.animal ? `${rep.animal}띠` : c.elem}
+                              <span className="text-[11px] font-bold text-[#1C1D21] leading-tight truncate max-w-full">
+                                {rep?.animal ? `${rep.animal}` : c.elem}
                               </span>
-                              <span className="text-[10px] font-medium text-[#8E8F98] bg-black/5 px-1.5 py-0.5 rounded-full mt-1">
-                                {c.hanja} · {c.score}점
+                              <span className="text-[9px] font-bold text-[#8E8F98] bg-black/5 px-1.5 py-0.5 rounded-full mt-0.5 leading-none">
+                                {c.score}점
                               </span>
                             </div>
                           );
