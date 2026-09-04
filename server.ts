@@ -203,6 +203,81 @@ async function startServer() {
     return errStr || "AI 분석 도중 예상치 못한 오류가 발생했습니다.";
   };
 
+  // Robust Circuit Breaker Pattern for AI APIs to prevent quota runaway and cascading timeouts
+  class GeminiCircuitBreaker {
+    private failureCount = 0;
+    private state: "CLOSED" | "OPEN" | "HALF_OPEN" = "CLOSED";
+    private lastFailureTime = 0;
+    private readonly failureThreshold = 3; // 3 continuous failures trips the breaker
+    private readonly cooldownPeriodMs = 60 * 1000; // 60 seconds cooldown when OPEN
+    private lastErrorMessage = "";
+
+    public isOpen(): boolean {
+      if (this.state === "OPEN") {
+        const elapsed = Date.now() - this.lastFailureTime;
+        if (elapsed > this.cooldownPeriodMs) {
+          console.log("[CIRCUIT BREAKER] Cooldown elapsed (60s). Transitioning from OPEN to HALF_OPEN probe mode.");
+          this.state = "HALF_OPEN";
+          return false;
+        }
+        return true;
+      }
+      return false;
+    }
+
+    public recordSuccess() {
+      if (this.state === "HALF_OPEN" || this.failureCount > 0) {
+        console.log("[CIRCUIT BREAKER] Probe request succeeded. Circuit is now CLOSED and fully operational.");
+      }
+      this.failureCount = 0;
+      this.state = "CLOSED";
+      this.lastErrorMessage = "";
+    }
+
+    public recordFailure(error: any) {
+      this.failureCount++;
+      this.lastFailureTime = Date.now();
+      const errStr = typeof error === "string" ? error : (error?.message || String(error));
+      this.lastErrorMessage = errStr;
+
+      const lower = errStr.toLowerCase();
+      const isCriticalQuotaOrRate = 
+        lower.includes("resource_exhausted") ||
+        lower.includes("spending cap") ||
+        lower.includes("quota") ||
+        lower.includes("429");
+
+      // Immediate trip on critical quota exhaustion or reaching continuous failure threshold
+      if (isCriticalQuotaOrRate || this.failureCount >= this.failureThreshold) {
+        this.state = "OPEN";
+        console.warn(`[CIRCUIT BREAKER TRIPPED -> OPEN] Consecutive Failures: ${this.failureCount}. Reason: ${errStr.slice(0, 160)}`);
+      }
+    }
+
+    public getStatus() {
+      const open = this.isOpen();
+      const retryAfter = this.state === "OPEN"
+        ? Math.max(0, Math.ceil((this.cooldownPeriodMs - (Date.now() - this.lastFailureTime)) / 1000))
+        : 0;
+      return {
+        state: this.state,
+        isOpen: open,
+        failureCount: this.failureCount,
+        lastError: this.lastErrorMessage,
+        retryAfterSeconds: retryAfter,
+        message: open 
+          ? `현재 AI 분석 사용량이 일시적으로 급증하여 안전 차단기(서킷 브레이커)가 작동 중입니다. ${retryAfter}초 후 자동 복구 시험이 진행됩니다.`
+          : "AI 서비스가 정상 동작 중입니다."
+      };
+    }
+  }
+
+  const geminiCircuitBreaker = new GeminiCircuitBreaker();
+
+  app.get("/api/circuit-status", (req, res) => {
+    res.json(geminiCircuitBreaker.getStatus());
+  });
+
   app.get("/api/list-models", async (req, res) => {
     try {
       const ai = getGeminiClient();
@@ -286,6 +361,101 @@ async function startServer() {
       console.error("[SERVER clean-dummy-rooms ERROR]:", error);
       res.status(500).json({ error: "개발용 더미 방 데이터를 일괄 자동 청소하는 작업 중 오류가 발생했습니다." });
     }
+  });
+
+  // =========================================================================
+  // AI Circuit Breaker (서킷 브레이커: 장애/429 폭주 감지 및 폴백 안전장치)
+  // =========================================================================
+  type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
+
+  class GeminiCircuitBreaker {
+    private state: CircuitState = "CLOSED";
+    private failureCount: number = 0;
+    private readonly failureThreshold: number = 3;
+    private readonly cooldownMs: number = 60000; // 60s cooldown
+    private trippedAt: number = 0;
+    private lastError: string = "";
+    private tripCount: number = 0;
+
+    public isOpen(): boolean {
+      if (this.state === "OPEN") {
+        const now = Date.now();
+        if (now - this.trippedAt > this.cooldownMs) {
+          this.state = "HALF_OPEN";
+          console.log("[CIRCUIT BREAKER] Cooldown elapsed. State transitioned from OPEN to HALF_OPEN (probing Gemini).");
+          return false;
+        }
+        return true;
+      }
+      return false;
+    }
+
+    public recordSuccess(): void {
+      if (this.state !== "CLOSED") {
+        console.log(`[CIRCUIT BREAKER] API call succeeded. Circuit reset from ${this.state} to CLOSED.`);
+      }
+      this.state = "CLOSED";
+      this.failureCount = 0;
+      this.lastError = "";
+    }
+
+    public recordFailure(error: any): void {
+      const errorMsg = String(error?.message || error || "");
+      this.lastError = errorMsg;
+      this.failureCount++;
+
+      const isQuotaOrOverload =
+        errorMsg.includes("429") ||
+        errorMsg.includes("RESOURCE_EXHAUSTED") ||
+        errorMsg.includes("quota") ||
+        errorMsg.includes("Quota") ||
+        errorMsg.includes("overloaded") ||
+        errorMsg.includes("503") ||
+        errorMsg.includes("UNAVAILABLE") ||
+        errorMsg.includes("RATE_LIMIT");
+
+      if (isQuotaOrOverload || this.failureCount >= this.failureThreshold) {
+        this.state = "OPEN";
+        this.trippedAt = Date.now();
+        this.tripCount++;
+        console.warn(
+          `[CIRCUIT BREAKER] TRIPPED TO OPEN! Reason: ${isQuotaOrOverload ? "Quota/Overload detected" : "Consecutive failures threshold reached"}. Failures: ${this.failureCount}. Cooldown: ${this.cooldownMs / 1000}s. Error: ${errorMsg}`
+        );
+      }
+    }
+
+    public getStatus() {
+      const now = Date.now();
+      const remainingCooldown = this.state === "OPEN" ? Math.max(0, this.cooldownMs - (now - this.trippedAt)) : 0;
+      return {
+        state: this.state,
+        failureCount: this.failureCount,
+        tripCount: this.tripCount,
+        lastError: this.lastError,
+        cooldownRemainingMs: remainingCooldown,
+        isAvailable: !this.isOpen(),
+      };
+    }
+
+    public reset() {
+      this.state = "CLOSED";
+      this.failureCount = 0;
+      this.lastError = "";
+      this.trippedAt = 0;
+    }
+  }
+
+  const geminiCircuitBreaker = new GeminiCircuitBreaker();
+
+  // Endpoint to check circuit breaker status
+  app.get("/api/circuit-status", (req, res) => {
+    res.json(geminiCircuitBreaker.getStatus());
+  });
+
+  // Admin endpoint to manually reset circuit breaker
+  app.post("/api/circuit-reset", checkAdmin, (req, res) => {
+    geminiCircuitBreaker.reset();
+    res.json({ success: true, message: "AI 서킷 브레이커가 정상 리셋되었습니다.", status: geminiCircuitBreaker.getStatus() });
   });
 
   // Reusable helper function to generate personal Saju & MBTI analysis using Gemini 3.5 Flash
@@ -443,17 +613,28 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
       required: ["headline", "character_desc", "duality", "wealth", "career", "love", "health", "one_action", "four_areas", "keywords"]
     };
 
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
-        temperature: 0.15,
-      }
-    });
+    if (geminiCircuitBreaker.isOpen()) {
+      throw new Error("Gemini circuit breaker is currently OPEN due to overload or outages.");
+    }
 
-    return JSON.parse(response.text!.trim());
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: responseSchema,
+          temperature: 0.15,
+        }
+      });
+
+      const parsed = JSON.parse(response.text!.trim());
+      geminiCircuitBreaker.recordSuccess();
+      return parsed;
+    } catch (err) {
+      geminiCircuitBreaker.recordFailure(err);
+      throw err;
+    }
   }
 
 
@@ -503,35 +684,36 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
       (elem2 === "화" && elem1 === "금") ||
       (elem2 === "금" && elem1 === "목");
 
-    let saju1to2 = getHashScore(id1, id2, 11, 70, 94);
-    let saju2to1 = getHashScore(id1, id2, 33, 70, 94);
-    let sajuLabel = "온화하고 편안한 상생 조합";
+    // Dynamic Saju Score with Wide Variance (58 ~ 98)
+    let saju1to2 = getHashScore(id1, id2, 11, 68, 83);
+    let saju2to1 = getHashScore(id1, id2, 33, 68, 83);
+    let sajuLabel = "담백하고 편안한 상생 조합";
     let sajuDesc = "";
 
     if (isGeneratingSupport) {
-      saju1to2 = getHashScore(id1, id2, 17, 85, 98);
-      saju2to1 = getHashScore(id1, id2, 41, 80, 95);
+      saju1to2 = getHashScore(id1, id2, 17, 88, 98);
+      saju2to1 = getHashScore(id1, id2, 41, 84, 96);
       sajuLabel = "오행상생의 창조적 파트너";
       sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. ${g1}의 기운이 ${g2}을 부드럽게 북돋아 주어, ${nick1}님의 발상과 추진력이 ${nick2}님의 결실로 자연스럽게 연결되는 훌륭한 상생 궁합입니다.`;
     } else if (isReceivingSupport) {
-      saju1to2 = getHashScore(id1, id2, 23, 80, 95);
-      saju2to1 = getHashScore(id1, id2, 59, 85, 98);
+      saju1to2 = getHashScore(id1, id2, 23, 84, 96);
+      saju2to1 = getHashScore(id1, id2, 59, 88, 98);
       sajuLabel = "상생과 든든한 조력 기류";
       sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. ${g2}의 포근한 기운이 ${g1}을 든든하게 받쳐주어, 서로 깊은 정서적 안정감과 굳건한 신뢰를 형성하는 관계입니다.`;
     } else if (elem1 === elem2) {
-      saju1to2 = getHashScore(id1, id2, 15, 78, 93);
-      saju2to1 = getHashScore(id1, id2, 45, 78, 93);
+      saju1to2 = getHashScore(id1, id2, 15, 78, 92);
+      saju2to1 = getHashScore(id1, id2, 45, 78, 92);
       sajuLabel = "거울을 보듯 통하는 소울 조합";
       sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. 서로 같은 '${elem1}'의 오행 본질을 지녀 말하지 않아도 서로의 생각과 감정을 직관적으로 이해하는 소울메이트 기운입니다.`;
     } else if (isClash) {
-      saju1to2 = getHashScore(id1, id2, 19, 65, 82);
-      saju2to1 = getHashScore(id1, id2, 37, 65, 82);
+      saju1to2 = getHashScore(id1, id2, 19, 58, 69);
+      saju2to1 = getHashScore(id1, id2, 37, 58, 69);
       sajuLabel = "긴장 속에서 꽃피는 혁신 조합";
-      sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. ${g1}과 ${g2}의 기운이 긴장감 있는 텐션을 형성하나, 서로의 사각지대를 예리하게 보완해 주는 강력한 발전적 계기가 됩니다.`;
+      sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. ${g1}과 ${g2}의 기운이 팽팽한 텐션을 형성하나, 서로의 사각지대를 예리하게 짚어주는 지적 자극제 역할을 합니다.`;
     } else {
-      saju1to2 = getHashScore(id1, id2, 21, 75, 89);
-      saju2to1 = getHashScore(id1, id2, 51, 75, 89);
-      sajuLabel = "온화하고 편안한 상생 조합";
+      saju1to2 = getHashScore(id1, id2, 21, 69, 82);
+      saju2to1 = getHashScore(id1, id2, 51, 69, 82);
+      sajuLabel = "담백하고 온화한 조율 조합";
       sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. 불필요한 마찰 없이 물 흐르듯 잔잔하게 어우러지며 각자의 페이스를 존중해 주는 안정된 인연입니다.`;
     }
 
@@ -545,38 +727,70 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
     ];
     const zStar1 = ziweiStars[getHashScore(id1, id2, 3, 0, ziweiStars.length - 1)];
     const zStar2 = ziweiStars[getHashScore(id1, id2, 7, 0, ziweiStars.length - 1)];
-    const ziwei1to2 = getHashScore(id1, id2, 44, 72, 94);
-    const ziwei2to1 = getHashScore(id1, id2, 88, 72, 94);
+    const ziwei1to2 = getHashScore(id1, id2, 44, 68, 95);
+    const ziwei2to1 = getHashScore(id1, id2, 88, 68, 95);
     const ziweiDesc = `${nick1}님은 ${nick2}님에게 ${ziwei1to2}점, ${nick2}님은 ${nick1}님에게 ${ziwei2to1}점. ${nick1}님의 명궁 기저에 깃든 ${zStar1.name}(${zStar1.desc})과 ${nick2}님의 ${zStar2.name}(${zStar2.desc})이 서로의 기량을 돋보이게 하는 조화로운 별자리 인연입니다.`;
 
-    // MBTI
+    // MBTI: Dynamic differentiation based on 4-letter alignment
     const mbti1 = (m1.mbti || "").trim().toUpperCase();
     const mbti2 = (m2.mbti || "").trim().toUpperCase();
-    let mbti1to2 = 78;
-    let mbti2to1 = 78;
+    let mbti1to2 = 74;
+    let mbti2to1 = 74;
     let mbtiDesc = "";
     if (mbti1.length === 4 && mbti2.length === 4) {
       let matchCount = 0;
       for (let k = 0; k < 4; k++) {
         if (mbti1[k] === mbti2[k]) matchCount++;
       }
-      mbti1to2 = 70 + matchCount * 6 + getHashScore(id1, id2, 9, 0, 5);
-      mbti2to1 = 70 + matchCount * 6 + getHashScore(id1, id2, 19, 0, 5);
-      mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. ${mbti1} 성향의 ${nick1}님과 ${mbti2} 성향의 ${nick2}님이 만나 일상의 의사소통과 협업에서 서로의 시각을 넓혀주는 이상적인 성향 조화를 보여줍니다.`;
+      if (matchCount === 4) {
+        mbti1to2 = getHashScore(id1, id2, 9, 88, 96);
+        mbti2to1 = getHashScore(id1, id2, 19, 88, 96);
+        mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. 동일한 ${mbti1} 유형으로 생각의 알고리즘이 완벽히 일치하여 눈빛만 봐도 통하는 환상의 싱크로율입니다.`;
+      } else if (matchCount >= 2) {
+        mbti1to2 = getHashScore(id1, id2, 9, 78, 88);
+        mbti2to1 = getHashScore(id1, id2, 19, 78, 88);
+        mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. ${mbti1}과 ${mbti2}의 건강한 시너지로, 공통점은 나누고 다른 점은 배려하며 협업 효율이 높은 이상적 짝꿍입니다.`;
+      } else {
+        mbti1to2 = getHashScore(id1, id2, 9, 60, 72);
+        mbti2to1 = getHashScore(id1, id2, 19, 60, 72);
+        mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. ${mbti1}과 ${mbti2}의 극과 극 성향으로 초반 소통의 조율이 필요하나, 서로가 갖지 못한 맹점을 메워주는 보완적 조합입니다.`;
+      }
     } else {
-      mbti1to2 = getHashScore(id1, id2, 12, 72, 86);
-      mbti2to1 = getHashScore(id1, id2, 24, 72, 86);
+      mbti1to2 = getHashScore(id1, id2, 12, 67, 85);
+      mbti2to1 = getHashScore(id1, id2, 24, 67, 85);
       mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. 서로의 타고난 개성과 라이프스타일을 편견 없이 수용하며 자연스럽게 녹아드는 유연한 관계입니다.`;
     }
 
-    // Zodiac
+    // Zodiac: 4 Element Triplicities (Fire, Earth, Air, Water)
     const z1 = getWesternZodiac(m1.birth_date);
     const z2 = getWesternZodiac(m2.birth_date);
     const zName1 = typeof z1 === "object" && (z1 as any)?.name ? (z1 as any).name : String(z1 || "별자리");
     const zName2 = typeof z2 === "object" && (z2 as any)?.name ? (z2 as any).name : String(z2 || "별자리");
-    const zodiac1to2 = getHashScore(id1, id2, 29, 72, 95);
-    const zodiac2to1 = getHashScore(id1, id2, 69, 72, 95);
-    const zodiacDesc = `${nick1}님은 ${nick2}님에게 ${zodiac1to2}점, ${nick2}님은 ${nick1}님에게 ${zodiac2to1}점. ${zName1}의 감성과 ${zName2}의 에너지가 만나 새로운 활력을 일으키며 대화의 깊이를 더해주는 긍정적 성좌 조합입니다.`;
+
+    const getZodiacElement = (name: string): string => {
+      if (name.includes("양") || name.includes("사자") || name.includes("사수")) return "불";
+      if (name.includes("황소") || name.includes("처녀") || name.includes("염소")) return "흙";
+      if (name.includes("쌍둥이") || name.includes("천칭") || name.includes("물병")) return "공기";
+      return "물";
+    };
+    const zElem1 = getZodiacElement(zName1);
+    const zElem2 = getZodiacElement(zName2);
+    const isZodiacCompatible = (zElem1 === zElem2) ||
+      (zElem1 === "불" && zElem2 === "공기") || (zElem1 === "공기" && zElem2 === "불") ||
+      (zElem1 === "흙" && zElem2 === "물") || (zElem1 === "물" && zElem2 === "흙");
+    const isZodiacClash = (zElem1 === "불" && zElem2 === "물") || (zElem1 === "물" && zElem2 === "불") ||
+      (zElem1 === "흙" && zElem2 === "공기") || (zElem1 === "공기" && zElem2 === "흙");
+
+    let zodiac1to2 = getHashScore(id1, id2, 29, 70, 85);
+    let zodiac2to1 = getHashScore(id1, id2, 69, 70, 85);
+    if (isZodiacCompatible) {
+      zodiac1to2 = getHashScore(id1, id2, 29, 86, 97);
+      zodiac2to1 = getHashScore(id1, id2, 69, 86, 97);
+    } else if (isZodiacClash) {
+      zodiac1to2 = getHashScore(id1, id2, 29, 61, 73);
+      zodiac2to1 = getHashScore(id1, id2, 69, 61, 73);
+    }
+    const zodiacDesc = `${nick1}님은 ${nick2}님에게 ${zodiac1to2}점, ${nick2}님은 ${nick1}님에게 ${zodiac2to1}점. ${zName1}(${zElem1})과 ${zName2}(${zElem2})의 성좌 기운이 만나 ${isZodiacCompatible ? '매끄러운 화합과 활력' : isZodiacClash ? '팽팽한 긴장감과 신선한 자극' : '편안하고 담백한 동반'}을 형성합니다.`;
 
     const overallScore = Math.round((saju1to2 + saju2to1 + ziwei1to2 + ziwei2to1 + mbti1to2 + mbti2to1 + zodiac1to2 + zodiac2to1) / 8);
 
@@ -593,8 +807,33 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
     };
   }
 
-  app.post("/api/analyze", async (req, res) => {
+  // Graceful astrological fallback engine when AI is overloaded or circuit is OPEN
+  function synthesizeAstrologicalGroupAnalysis(members: any[], room_title: string, personalMap: Record<string, any>) {
+    const fallbackPairs: any[] = [];
+    for (let i = 0; i < members.length; i++) {
+      for (let j = i + 1; j < members.length; j++) {
+        fallbackPairs.push(generateRichPairAspects(members[i], members[j]));
+      }
+    }
+    const avgScore = Math.round(fallbackPairs.reduce((acc, p) => acc + (p.score || 75), 0) / (fallbackPairs.length || 1));
+    return {
+      personal: personalMap,
+      pairs: fallbackPairs,
+      group: {
+        overall_score: avgScore,
+        title: `${room_title || "우리 모임"}의 화합과 지혜로운 시너지`,
+        description: `${members.length}명의 서로 다른 고유 기운이 어우러져 각자의 강점이 돋보이고 부족함을 채워주는 균형 잡힌 인연 공동체입니다.`,
+        atmosphere: "서로의 개성을 있는 그대로 존중하며 편안한 유대감과 긍정적 에너지가 흐르는 분위기",
+        synergy_tips: "의견 차이가 생길 때는 각자의 성향과 의사결정 방식을 배려하며 조율하면 놀라운 시너지가 일어납니다."
+      },
+      circuit_breaker: {
+        triggered: true,
+        message: "현재 AI 트래픽 폭주로 인하여 서킷 브레이커가 가동되었습니다. 초정밀 명리학 및 성좌 연산 엔진으로 즉시 안전하게 분석되었습니다."
+      }
+    };
+  }
 
+  app.post("/api/analyze", async (req, res) => {
     try {
       let { room_title, members } = req.body;
       if (!members || !Array.isArray(members) || members.length === 0) {
@@ -606,13 +845,32 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
         members = members.slice(0, 16);
       }
 
+      const personalMap: Record<string, any> = {};
+
+      // Circuit Breaker Fast-Path: If circuit is OPEN due to API exhaustion/outage, return immediately without waiting for timeouts
+      if (geminiCircuitBreaker.isOpen()) {
+        console.warn("[SERVER /api/analyze] Gemini Circuit Breaker is active (OPEN). Returning instant high-precision astrology engine results.");
+        members.forEach((m: any) => {
+          personalMap[m.id] = m.personal_analysis || {
+            character_desc: `${m.nickname}님의 고유 성향입니다.`,
+            four_areas: {
+              essence: "사주와 성좌의 균형 잡힌 본질입니다.",
+              talent: "주도적이고 섬세한 실전 역량입니다.",
+              flow: "새로운 전환과 성장의 흐름에 있습니다.",
+              fortune: "긍정적 교류와 여유로운 휴식이 행운을 북돋웁니다."
+            },
+            keywords: ["신중함", "따뜻함", "추진력"]
+          };
+        });
+        return res.json(synthesizeAstrologicalGroupAnalysis(members, room_title, personalMap));
+      }
+
       const ai = getGeminiClient();
       if (!process.env.GEMINI_API_KEY) {
         return res.status(500).json({ error: "GEMINI_API_KEY가 설정되지 않았습니다." });
       }
 
       // Step 1: Ensure EVERY member has a personal_analysis (generate lazily if missing in parallel using gemini-3.5-flash)
-      const personalMap: Record<string, any> = {};
       
       await Promise.all(
         members.map(async (m: any) => {
@@ -734,6 +992,14 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
    - 4대 분야(saju, ziwei, mbti, zodiac)를 입체적으로 융합한 후, 최종적으로 종합 인연 지수(score), 시너지 타이틀(label), 그리고 전체 종합 궁합 해설(description)을 작성하십시오.
 6. **입력 데이터의 고유 식별자(member_id) 원본 유지 절대 원칙:**
    - 'pairs' 내의 'member_id_1'과 'member_id_2'는 무조건 입력 데이터의 멤버 'id' 값과 완벽하게 일치해야 합니다.
+7. **[점수 획일화 방지 및 분산 스펙트럼 강제 지침 - 극도로 중요]:**
+   - 모든 1:1 쌍에 70~75점대 점수가 천편일률적으로 몰리는 현상(Score Flattening)을 엄격히 금지합니다.
+   - 두 사람의 오행 상생/상극(생극제화), 자미두수 주성 조화, MBTI 및 별자리 성향 차이에 따라 58점부터 98점까지 넓고 역동적인 점수 스펙트럼을 부여하십시오:
+     * 최상위 환상의 상생 시너지 짝꿍: 90~98점
+     * 긍정적 지지와 온화한 화합 짝꿍: 80~88점
+     * 보통의 잔잔한 조율 및 상호 존중 짝꿍: 70~79점
+     * 극명한 기운 충돌 및 긴장감 속 혁신 짝꿍: 58~69점
+   - 점수는 1번->2번, 2번->1번이 상호 비대칭적이어야 하며(예: 한 쪽은 92점, 다른 쪽은 85점), 전체 멤버들의 궁합 목록이 다채롭고 생동감 있게 차별화되어야 합니다.
 
 ## 모임 이름: ${room_title || "친목모임"}
 
@@ -836,6 +1102,7 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
 
           const text = response.text!.trim();
           const parsed = JSON.parse(text);
+          geminiCircuitBreaker.recordSuccess();
 
           // Robust Self-Healing and mapping for member_ids to prevent fictional/sequential ID mismatches
           const originalMembers = members || [];
@@ -950,6 +1217,7 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
           break;
         } catch (innerErr) {
           console.warn(`Attempt ${attempts} failed:`, innerErr);
+          geminiCircuitBreaker.recordFailure(innerErr);
           if (attempts >= maxAttempts) throw innerErr;
           await sleep(2000 * attempts);
         }
@@ -957,8 +1225,19 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
 
       return res.json(finalResult);
     } catch (error: any) {
-      console.error("Analysis generation error:", error);
-      res.status(500).json({ error: formatGeminiError(error) });
+      console.error("Analysis generation error after all retries:", error);
+      geminiCircuitBreaker.recordFailure(error);
+
+      // Gracefully recover with high-precision astrological engine to ensure 100% uptime and prevent room crashes
+      console.log("[SERVER /api/analyze] Gracefully recovering with high-precision astrological engine.");
+      try {
+        const fallbackResult = synthesizeAstrologicalGroupAnalysis(members, room_title, personalMap);
+        fallbackResult.circuit_breaker.message = "현재 AI 트래픽 폭주 또는 응답 지연이 감지되어 서킷 브레이커가 작동했습니다. 초정밀 명리학 및 성좌 연산 엔진으로 신속하고 안전하게 분석되었습니다.";
+        return res.json(fallbackResult);
+      } catch (fbErr) {
+        console.error("Fallback synthesis also failed:", fbErr);
+        res.status(500).json({ error: formatGeminiError(error) });
+      }
     }
   });
 
@@ -967,6 +1246,13 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
       const { member } = req.body;
       if (!member) {
         return res.status(400).json({ error: "멤버 정보가 누락되었습니다." });
+      }
+
+      if (geminiCircuitBreaker.isOpen()) {
+        return res.status(429).json({
+          error: "현재 인공지능(AI) 사용량이 일시적으로 폭주하여 안전 모드가 작동 중입니다. 잠시 후 다시 시도해 주세요.",
+          circuit_breaker: true
+        });
       }
 
       const ai = getGeminiClient();
@@ -1121,12 +1407,14 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
           });
 
           finalResult = JSON.parse(response.text!.trim());
+          geminiCircuitBreaker.recordSuccess();
           if (finalResult?.today) {
             finalResult.today.score = deterministicTodayScore;
           }
           break;
         } catch (innerErr) {
           console.warn(`Horoscope attempt ${attempts} failed:`, innerErr);
+          geminiCircuitBreaker.recordFailure(innerErr);
           if (attempts >= maxAttempts) throw innerErr;
           await sleep(2000 * attempts);
         }
@@ -1135,6 +1423,7 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
       res.json(finalResult);
     } catch (error: any) {
       console.error("Horoscope generation error:", error);
+      geminiCircuitBreaker.recordFailure(error);
       res.status(500).json({ error: formatGeminiError(error) });
     }
   });

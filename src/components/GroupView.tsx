@@ -443,6 +443,7 @@ export default function GroupView({ code }: GroupViewProps) {
   });
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState("");
+  const [circuitNotice, setCircuitNotice] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [showAllPairs, setShowAllPairs] = useState(false);
@@ -668,6 +669,10 @@ export default function GroupView({ code }: GroupViewProps) {
       }
 
       const aiData = await response.json();
+
+      if (aiData.circuit_breaker?.triggered && aiData.circuit_breaker?.message) {
+        setCircuitNotice(aiData.circuit_breaker.message);
+      }
 
       // Ensure the user is authenticated prior to writing cache for security rules standard
       try {
@@ -1111,6 +1116,25 @@ export default function GroupView({ code }: GroupViewProps) {
                 조율 중...
               </span>
             </div>
+          </div>
+        )}
+
+        {/* AI Circuit Breaker Traffic Surge Alert Banner */}
+        {circuitNotice && (
+          <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl shadow-xs flex items-start justify-between gap-2.5 animate-fade-in text-left text-xs text-amber-200">
+            <div className="flex items-start gap-2">
+              <span className="text-base leading-none">⚡</span>
+              <div className="space-y-0.5">
+                <p className="font-semibold text-amber-300">인공지능(AI) 사용량 폭주 보호 모드 가동</p>
+                <p className="text-amber-200/90 leading-relaxed">{circuitNotice}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setCircuitNotice(null)}
+              className="text-amber-400/60 hover:text-amber-200 p-1 cursor-pointer transition-colors"
+            >
+              ✕
+            </button>
           </div>
         )}
 
