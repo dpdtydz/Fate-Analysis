@@ -30,6 +30,7 @@ export default function RoomView({ code }: RoomViewProps) {
   const [viralCardTab, setViralCardTab] = useState<"identity" | "fortune" | "group" | "role">("group");
   const [showDetailAccordion, setShowDetailAccordion] = useState(false);
   const [isGroupUnlocked, setIsGroupUnlocked] = useState(false);
+  const [isSecretUnlocked, setIsSecretUnlocked] = useState(false);
 
   const [localMemberId, setLocalMemberId] = useState<string>(() => localStorage.getItem(`saju_member_id_${code}`) || "");
 
@@ -41,6 +42,7 @@ export default function RoomView({ code }: RoomViewProps) {
 
   useEffect(() => {
     checkProductUnlock("group", code).then(setIsGroupUnlocked).catch(() => {});
+    checkProductUnlock("secret", code).then(setIsSecretUnlocked).catch(() => {});
   }, [code, isShopOpen]);
 
   useEffect(() => {
@@ -683,6 +685,7 @@ export default function RoomView({ code }: RoomViewProps) {
         myMember={myMemberInfo || null}
         targetMember={selectedTargetMember}
         roomCode={code}
+        isSecretUnlocked={isSecretUnlocked}
         onOpenShop={(tab) => {
           setShopTab(tab);
           setIsShopOpen(true);

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Member } from "../types";
-import { X, ShieldCheck, Share2, Check } from "lucide-react";
+import { X, ShieldCheck, Share2, Check, Sparkles, CheckCircle2, HeartHandshake, Compass } from "lucide-react";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
-import { logAnalyticsEvent } from "../lib/firebase";
+import { logAnalyticsEvent, checkProductUnlock } from "../lib/firebase";
 import ZodiacAvatar from "./ZodiacAvatar";
 
 interface PairChemistryModalProps {
@@ -11,6 +11,7 @@ interface PairChemistryModalProps {
   myMember: Member | null;
   targetMember: Member | null;
   roomCode?: string;
+  isSecretUnlocked?: boolean;
   onOpenShop?: (tab: "secret" | "pdf" | "group") => void;
   onJoinPrompt?: () => void;
 }
@@ -194,11 +195,32 @@ export default function PairChemistryModal({
   myMember,
   targetMember,
   roomCode,
+  isSecretUnlocked = false,
   onOpenShop,
   onJoinPrompt,
 }: PairChemistryModalProps) {
   const [activeTab, setActiveTab] = useState<"summary" | "ohaeng" | "psychology">("summary");
   const [shareSuccessMsg, setShareSuccessMsg] = useState("");
+  const [unlocked, setUnlocked] = useState<boolean>(() => {
+    if (isSecretUnlocked) return true;
+    if (typeof window !== "undefined") {
+      if (localStorage.getItem("saju_unlocked_secret") === "true") return true;
+      if (localStorage.getItem("saju_premium_unlocked_local") === "true") return true;
+      if (localStorage.getItem("saju_user_tier") === "premium" || localStorage.getItem("saju_user_tier") === "coupon") return true;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (isSecretUnlocked) {
+      setUnlocked(true);
+      return;
+    }
+    // Double-check with Firestore / user account
+    checkProductUnlock("secret", roomCode).then((res) => {
+      if (res) setUnlocked(true);
+    }).catch(() => {});
+  }, [isSecretUnlocked, roomCode, isOpen]);
 
   useEffect(() => {
     if (isOpen && targetMember) {
@@ -513,28 +535,75 @@ export default function PairChemistryModal({
           </p>
         </div>
 
-        {/* Premium Deep Unlock CTA */}
-        <div className="bg-sunken rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-left">
-            <h5 className="text-sm font-semibold text-ink">
-              두 사람의 심층 궁합 풀이
-            </h5>
-            <p className="text-xs text-ink-soft mt-0.5">
-              갈등 조율과 1:1 시너지 리포트를 더 깊이 볼 수 있어요.
-            </p>
-          </div>
+        {/* Premium Deep Unlock CTA / Unlocked Deep Synergy Section */}
+        {unlocked ? (
+          <div className="bg-surface border border-line rounded-xl p-4 sm:p-5 space-y-4 shadow-sm animate-fade-in">
+            {/* Header Badge */}
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-lg bg-seal/10 text-seal flex items-center justify-center">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </span>
+                <div>
+                  <h5 className="text-sm font-semibold text-ink">
+                    1:1 심층 인연 상성 풀이
+                  </h5>
+                  <span className="text-[11px] text-ink-soft">
+                    {myMember.nickname} × {targetMember.nickname} 전용 해독서
+                  </span>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-[11px] font-semibold border border-emerald-200 dark:border-emerald-800 shrink-0">
+                <CheckCircle2 className="w-3 h-3" />
+                해금 완료 · 평생 무제한
+              </span>
+            </div>
 
-          <button
-            onClick={() => {
-              logAnalyticsEvent("click_locked_feature", "monetization", { feature: "secret", from: "pair_modal" });
-              onClose();
-              if (onOpenShop) onOpenShop("secret");
-            }}
-            className="w-full sm:w-auto px-4 py-2.5 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors shrink-0 cursor-pointer"
-          >
-            심층 풀이 보기
-          </button>
-        </div>
+            {/* Deep Insight 1: Synergy Maximization */}
+            <div className="bg-sunken rounded-xl p-3.5 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-seal">
+                <HeartHandshake className="w-3.5 h-3.5" />
+                <span>시너지 극대화 처방</span>
+              </div>
+              <p className="text-xs text-ink leading-relaxed">
+                {analysis.label}: {analysis.desc} 두 사람이 협업하거나 대화할 때는 서로의 결정을 믿고 지지해 줄 때 본래 역량의 120% 이상의 상생 폭발력이 발현됩니다.
+              </p>
+            </div>
+
+            {/* Deep Insight 2: Conflict Resolution Guideline */}
+            <div className="bg-sunken rounded-xl p-3.5 space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-ink">
+                <Compass className="w-3.5 h-3.5 text-ink-soft" />
+                <span>갈등 조율 및 황금 대화법</span>
+              </div>
+              <p className="text-xs text-ink-soft leading-relaxed">
+                {myMember.saju?.daymaster?.gan || "나"} 기운과 {targetMember.saju?.daymaster?.gan || "상대"} 기운이 부딪힐 때는 즉각적인 논쟁보다 감정을 가라앉힐 수 있는 3분의 완충 시간(수/水 기운)을 갖는 것이 관계를 더욱 돈독하게 만듭니다.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-sunken rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="text-left">
+              <h5 className="text-sm font-semibold text-ink">
+                두 사람의 심층 궁합 풀이
+              </h5>
+              <p className="text-xs text-ink-soft mt-0.5">
+                갈등 조율과 1:1 시너지 리포트를 더 깊이 볼 수 있어요.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                logAnalyticsEvent("click_locked_feature", "monetization", { feature: "secret", from: "pair_modal" });
+                onClose();
+                if (onOpenShop) onOpenShop("secret");
+              }}
+              className="w-full sm:w-auto px-4 py-2.5 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors shrink-0 cursor-pointer"
+            >
+              심층 풀이 보기
+            </button>
+          </div>
+        )}
 
         {/* Close Button */}
         <button
