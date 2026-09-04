@@ -39,7 +39,9 @@ import {
   Coins,
   Ticket,
   Lightbulb,
-  Crown
+  Crown,
+  Moon,
+  ArrowRight
 } from "lucide-react";
 import GoogleAds from "./GoogleAds";
 import UpgradeToSocialModal from "./UpgradeToSocialModal";
@@ -47,6 +49,7 @@ import AuthModal from "./AuthModal";
 import ViralCardModal from "./ViralCardModal";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { calculateTodayFortune, calculateSaju, getDynamicCharacter } from "../utils/saju";
+import { generatePersonalCoreNarrative } from "../utils/sajuSynthesis";
 import ZodiacAvatar, { zodiacImageSrc } from "./ZodiacAvatar";
 import { getRepresentativeBranch } from "../utils/zodiacCompat";
 
@@ -1279,10 +1282,178 @@ export default function MySajuView() {
             )}
 
             {/* =========================================================================
+               [무료 1/6 핵심 심층 진단: 넌 어떤 사람이고, 지금 어떤 시기인가]
+               - 본질 분석 (겉과 속의 이중주) + 시기 분석 (현재 대운의 계절과 삶의 파도)
+               ========================================================================= */}
+            {profile.saju && (() => {
+              const narrative = generatePersonalCoreNarrative(
+                profile.saju,
+                profile.birth_date,
+                profile.nickname,
+                profile.mbti
+              );
+              return (
+                <div className="bg-surface border border-line rounded-2xl p-6 sm:p-7 space-y-6 text-left shadow-sm animate-fade-in">
+                  {/* 상단 뱃지 및 헤더 */}
+                  <div className="space-y-2 border-b border-line pb-4">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="px-2.5 py-0.5 rounded-md bg-seal/10 text-seal text-xs font-bold font-mono tracking-wider border border-seal/20">
+                        무료 심층 진단 · 1/6 핵심 인사이트
+                      </span>
+                      <span className="text-xs text-ink-faint">
+                        사주 일주론(日柱論) & 10년 대운(大運) 종합 해독
+                      </span>
+                    </div>
+                    <h2 className="font-serif text-xl sm:text-2xl font-semibold text-ink leading-snug">
+                      {profile.nickname}님의 진짜 본질과 지금 마주한 인생의 계절
+                    </h2>
+                    <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                      누구에게도 쉽게 털어놓지 못했던 내면의 이중성과, 지금 당신의 삶을 관통하는 운명의 계절을 짚어드립니다.
+                    </p>
+                  </div>
+
+                  {/* 1. 넌 진짜 어떤 사람인가: 겉과 속의 이중주 */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center text-seal font-bold text-xs">
+                        1
+                      </div>
+                      <h3 className="font-serif text-base sm:text-lg font-semibold text-ink">
+                        넌 진짜 어떤 사람인가 : 겉과 속의 이중주
+                      </h3>
+                    </div>
+
+                    {/* 핵심 메타포 비유 배너 */}
+                    <div className="p-4 rounded-xl bg-sunken/80 border border-line/70">
+                      <p className="text-xs text-seal font-semibold mb-1">
+                        타고난 그릇의 본질적 형상
+                      </p>
+                      <p className="font-serif text-sm sm:text-base font-semibold text-ink leading-relaxed">
+                        "{narrative.identity.headline}"
+                      </p>
+                    </div>
+
+                    {/* 겉과 속 2분할 카드 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                      {/* 겉 */}
+                      <div className="bg-sunken p-4 sm:p-4.5 rounded-xl space-y-2 border border-line/50">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                          <Sun className="w-3.5 h-3.5 text-amber-600" />
+                          <span>[겉] 세상이 보는 첫인상과 사회적 가면</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                          {narrative.identity.outer}
+                        </p>
+                      </div>
+
+                      {/* 속 */}
+                      <div className="bg-sunken p-4 sm:p-4.5 rounded-xl space-y-2 border border-line/50">
+                        <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                          <Moon className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>[속] 혼자 있을 때 마주하는 내면과 방어기제</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                          {narrative.identity.inner}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 교차 통찰 (공감 극대화) */}
+                    <div className="p-4 rounded-xl bg-line/30 border-l-4 border-seal">
+                      <p className="text-xs font-semibold text-ink mb-1">
+                        🎯 남들이 보는 나와 내가 아는 나의 결정적 간극
+                      </p>
+                      <p className="text-xs sm:text-sm text-ink-soft leading-relaxed font-medium">
+                        {narrative.identity.contrast}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 2. 지금 당신은 어떤 시기/계절을 지나고 있는가 */}
+                  <div className="space-y-4 pt-2 border-t border-line">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center text-seal font-bold text-xs">
+                        2
+                      </div>
+                      <h3 className="font-serif text-base sm:text-lg font-semibold text-ink">
+                        지금 당신은 어떤 시기인가 : 현재 대운과 삶의 파도
+                      </h3>
+                    </div>
+
+                    {/* 대운 요약 배너 */}
+                    <div className="p-4 rounded-xl bg-sunken/80 border border-line/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <Calendar className="w-3.5 h-3.5 text-seal" />
+                          <span className="text-xs font-bold text-seal">
+                            {narrative.season.seasonName}
+                          </span>
+                        </div>
+                        <p className="text-xs text-ink-faint">
+                          현재 만 {narrative.season.age}세 기준 · {narrative.season.daewoonAge}세 시작 {narrative.season.daewoonGanzi} 대운 ({narrative.season.daewoonSipsin} · {narrative.season.daewoonUnseong})
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 시기적 상세 파도 해설 */}
+                    <div className="p-4 sm:p-4.5 rounded-xl bg-sunken border border-line/50 space-y-2">
+                      <p className="text-xs font-semibold text-ink">
+                        🌊 지금 당신의 마음 밑바닥에서 요동치는 변화의 이유
+                      </p>
+                      <p className="text-xs sm:text-sm text-ink-soft leading-relaxed whitespace-pre-wrap">
+                        {narrative.season.seasonDetail}
+                      </p>
+                    </div>
+
+                    {/* 지금 시기의 행동 지침 */}
+                    <div className="p-4 rounded-xl bg-sunken border border-line/60 flex items-start gap-3">
+                      <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-xs font-bold text-ink block mb-0.5">
+                          지금 계절을 건너는 원 포인트 실전 지침
+                        </span>
+                        <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                          {narrative.season.seasonAction}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 3. 결제 전환 브릿지 (1/6 -> 5/6 안내) */}
+                  <div className="mt-6 pt-5 border-t border-line bg-gradient-to-br from-sunken via-sunken to-sunken/40 p-5 rounded-xl border border-line space-y-3.5 text-center sm:text-left">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-semibold text-seal">
+                          <Crown className="w-3.5 h-3.5" />
+                          <span>나머지 5/6의 인생 설계서가 기다리고 있습니다</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-ink-soft leading-relaxed max-w-xl">
+                          {narrative.bridgePrompt}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAnalysisTab("mix");
+                          const el = document.getElementById("analysis-tabs-anchor");
+                          if (el) el.scrollIntoView({ behavior: "smooth" });
+                        }}
+                        className="w-full sm:w-auto px-5 py-3 bg-seal hover:bg-seal-deep text-white text-xs sm:text-sm font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                      >
+                        <span>심층 평생 감정서 확인하기</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* =========================================================================
                [단일 계층 헤더 탭 메뉴: 내 사주 정밀 분석 & 리포트]
                - 중첩된 크리스마스트리형 다단 탭을 완전히 평탄화하여 1클릭으로 직관적 전환
                ========================================================================= */}
-            <div className="bg-surface border border-line rounded-xl p-4 sm:p-5 space-y-4">
+            <div id="analysis-tabs-anchor" className="bg-surface border border-line rounded-xl p-4 sm:p-5 space-y-4">
               {/* 상단 헤더 타이틀 */}
               <div>
                 <h3 className="font-serif text-lg font-semibold text-ink">정밀 분석 리포트</h3>

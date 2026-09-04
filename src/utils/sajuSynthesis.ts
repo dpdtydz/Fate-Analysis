@@ -265,3 +265,160 @@ export function getSajuPillarsComprehensiveSynthesis(saju: SajuData, nickname: s
     mindCareRemedy: profile?.remedy
   };
 }
+
+export interface PersonalCoreNarrative {
+  identity: {
+    headline: string;
+    outer: string;
+    inner: string;
+    contrast: string;
+  };
+  season: {
+    age: number;
+    daewoonGanzi: string;
+    daewoonAge: number;
+    daewoonSipsin: string;
+    daewoonUnseong: string;
+    seasonName: string;
+    seasonDetail: string;
+    seasonAction: string;
+  };
+  bridgePrompt: string;
+}
+
+export function generatePersonalCoreNarrative(
+  saju: SajuData,
+  birthDate: string,
+  nickname: string,
+  mbti?: string | null
+): PersonalCoreNarrative {
+  const dayGan = saju.pillars.day.gan;
+  const dayJi = saju.pillars.day.ji;
+  const key = dayGan + dayJi;
+  const profile = PILLAR_PROFILES[key];
+  const daymasterElement = saju.daymaster.element;
+
+  // 1. Calculate Age & Current Daewoon
+  const today = new Date();
+  let age = 30; // fallback
+  if (birthDate) {
+    const parts = birthDate.split("-");
+    if (parts.length >= 1) {
+      const birthYear = parseInt(parts[0], 10);
+      if (!isNaN(birthYear)) {
+        age = Math.max(1, today.getFullYear() - birthYear);
+      }
+    }
+  }
+
+  let currentDaewoon = saju.daewoon && saju.daewoon.length > 0 ? saju.daewoon[0] : null;
+  if (saju.daewoon && saju.daewoon.length > 0) {
+    for (const d of saju.daewoon) {
+      if (age >= d.age) {
+        currentDaewoon = d;
+      } else {
+        break;
+      }
+    }
+  }
+
+  // 2. Identity Narrative (겉과 속의 이중주)
+  const GAN_OUTER_TRAITS: Record<string, string> = {
+    "갑목": "첫인상에 묵직하고 당당한 기운이 풍깁니다. 남에게 고개 숙이거나 아쉬운 소리 하는 것을 본능적으로 꺼리며, 어떤 모임에 가도 상황을 파악하고 중심을 잡으려는 주체적인 걸음걸이를 보입니다.",
+    "을목": "부드럽고 사교적인 미소로 사람의 경계심을 단숨에 허뭅니다. 상황에 맞추어 유연하게 대처하며, 갈등을 만들기보다 온화하게 분위기를 조율하는 타고난 외유내강의 태도를 보입니다.",
+    "병화": "주변 공기를 단숨에 환하게 밝히는 솔직하고 화끈한 에너지가 돋보입니다. 말과 행동에 막힘이 없고 표정에 감정이 투명하게 드러나며, 결정을 내릴 때 머뭇거리지 않고 신속하게 치고 나갑니다.",
+    "정화": "차분하고 예의 바른 태도 속에 상대방의 미묘한 감정을 귀신같이 읽어내는 섬세함이 있습니다. 목소리가 따뜻하고 다정하며, 곁에 있는 사람에게 안정감과 깊은 집중력을 전합니다.",
+    "무토": "묵직한 바위산처럼 듬직하고 과묵한 신뢰감을 줍니다. 작은 일에 일희일비하지 않으며, 주변 사람들의 이야기를 잘 들어주고 묵묵히 자리를 지켜주는 든든한 맏형·맏언니 같은 인상을 풍깁니다.",
+    "기토": "포근하고 다정다감하여 누구라도 편하게 다가서게 만듭니다. 현실 감각이 뛰어나 상황의 실속을 야무지게 챙기며, 타인의 고충을 알뜰살뜰하게 챙겨주는 세심한 배려가 몸에 배어 있습니다.",
+    "경금": "서늘할 정도로 단호하고 명쾌한 카리스마가 있습니다. 맺고 끊음이 확실하며, 우유부단한 것을 견디지 못합니다. 한번 옳다고 믿은 원칙은 타협 없이 밀어붙이는 뚝심과 의리를 보여줍니다.",
+    "신금": "반짝이는 보석처럼 깔끔하고 정돈된 세련미가 흐릅니다. 눈매가 예리하고 관찰력이 뛰어나며, 군더더기 없는 정교한 일처리와 흐트러짐 없는 지적인 자존심을 겉으로 드러냅니다.",
+    "임수": "도도하게 흐르는 큰 강물처럼 스케일이 크고 여유로운 아우라를 띱니다. 생각의 폭이 넓어 어지간한 일은 너그럽게 품어주며, 임기응변과 통찰력이 뛰어나 어디서든 막힘이 없습니다.",
+    "계수": "맑은 샘물처럼 총명하고 영민한 눈빛을 지녔습니다. 상대의 마음을 조용히 관찰하며 본질을 꿰뚫어 보고, 부드러운 언어로 조화롭게 소통하며 막힌 흐름을 유연하게 뚫어냅니다."
+  };
+
+  const GAN_INNER_TRAITS: Record<string, string> = {
+    "갑목": "하지만 혼자 방 문을 닫고 들어왔을 때, 남들에게 털어놓지 못한 고독감과 책임감의 무게에 짓눌릴 때가 많습니다. '내가 무너지면 다 무너진다'는 압박감 때문에 약한 소리를 극도로 꺼리며, 모든 짐을 혼자 짊어지려 합니다.",
+    "을목": "상냥하게 웃고 있지만 마음속 깊은 곳에는 아무도 모르는 치열한 생존 본능과 계산이 돌아가고 있습니다. 타인에게 상처받을까 봐 미리 안전거리를 재는 예민한 방어기제가 작동하고 있습니다.",
+    "병화": "세상 가장 밝은 사람처럼 보이지만, 혼자 있을 때 급격한 공허감과 피로감이 밀려옵니다. 남들을 챙기느라 정작 자신의 에너지는 바닥나 있으며, 아무도 자신의 번아웃을 눈치채지 못한다는 서운함이 있습니다.",
+    "정화": "온화한 겉모습과 달리 속에는 한 치의 오차도 용납하지 않는 엄격한 기준과 뜨거운 집념이 도사리고 있습니다. 마음에 들지 않는 상황을 억지로 참다가 한계점에 닿으면 매섭게 돌아섭니다.",
+    "무토": "모든 것을 받아주는 듯하지만, 내면에는 아무에게도 열어주지 않는 단단한 성벽이 있습니다. 한번 신뢰를 잃은 사람은 겉으로는 웃으며 대하더라도 속으로는 완전히 정리해버리는 냉정함이 있습니다.",
+    "기토": "다정한 배려 뒤편에 '내가 준 만큼 인정받지 못하면 어쩌지'라는 인정 욕구와 서운함이 웅크리고 있습니다. 혼자 속으로 삭이고 삼키다가 홧병이나 피로로 신호가 오는 경우가 많습니다.",
+    "경금": "칼날처럼 강해 보이지만 속마음은 놀라울 만큼 단순하고 인정에 약합니다. 한번 믿은 사람에게는 간과 쓸개를 다 내어주다 배신당해 가슴에 깊은 흉터를 안고 살아가는 순정파입니다.",
+    "신금": "완벽해 보이는 겉모습 이면에는 자기 자신을 끊임없이 검열하고 채찍질하는 가혹한 피로감이 숨어 있습니다. 작은 실수에도 스스로를 용서하지 못해 남모르게 신경성 스트레스를 겪습니다.",
+    "임수": "태평해 보이지만 속에서는 수만 가지 시나리오와 최악의 경우를 먼저 계산하느라 머릿속이 24시간 쉬지 않고 돌아갑니다. 진짜 깊은 속마음은 세상 그 누구에게도 100% 털어놓지 않습니다.",
+    "계수": "부드러운 미소 아래에 날카로운 의심과 경계심이 자리 잡고 있습니다. 감정에 휘둘리는 것을 극도로 경계하며, 언제든 혼자서도 살아갈 수 있도록 내면의 독립성을 날카롭게 벼려놓습니다."
+  };
+
+  const dayGanKor = GAN_HANGUL[dayGan] || "일간";
+  const outerText = GAN_OUTER_TRAITS[dayGanKor] || `${dayGanKor}의 기운을 타고나 대외적으로 주관이 뚜렷하고 당당한 첫인상을 풍깁니다.`;
+  const innerText = GAN_INNER_TRAITS[dayGanKor] || "내면에는 남들에게 쉽게 털어놓지 못하는 고유한 불안과 높은 기준이 있어 혼자 감당하는 데 익숙합니다.";
+  
+  const mbtiText = mbti && mbti.length >= 4 ? ` (현대 심리 지표인 ${mbti}의 기질과도 맞물려)` : "";
+  const contrastText = `이 둘을 겹쳐 보면 진짜 ${nickname}님이 보입니다. 세상 사람들은 당신을 적극적이고 흔들림 없는 사람으로 보지만${mbtiText}, 실제로는 속으로 모든 상황을 치밀하게 계산하며 힘들다는 말을 마지막 순간까지 혼자 삼키는 사람입니다.`;
+
+  const headline = profile?.metaphor 
+    ? profile.metaphor 
+    : `${dayGanKor}의 기상으로 겉은 당당하게 시련을 돌파하지만, 속은 고요하게 칼날을 벼리는 입체적 인물`;
+
+  // 3. Season Narrative (지금 당신은 어떤 시기를 지나고 있는가)
+  const dGanzi = currentDaewoon?.ganzi || "대운";
+  const dAge = currentDaewoon?.age || 1;
+  const dSipsin = currentDaewoon?.stemSipsin || "비견";
+  const dUnseong = currentDaewoon?.unseong || "건록";
+
+  // Determine seasonal element from Daewoon Ganzi branch
+  const dBranch = dGanzi.length >= 2 ? dGanzi[1] : "";
+  let seasonTheme = "환절기";
+  let seasonName = `${age}세, 인생의 새로운 지평을 여는 전환기`;
+  let seasonDetail = "";
+  let seasonAction = "";
+
+  if (["인", "묘", "진", "寅", "卯", "辰"].some(c => dBranch.includes(c))) {
+    seasonTheme = "봄 (Spring)";
+    seasonName = `지금은 새싹이 언 땅을 뚫고 솟아오르는 '인생의 봄날' (${dGanzi} 대운)`;
+    seasonDetail = `현재 ${nickname}님은 사주 인생의 10년 주기 중 '봄(목 기운)'의 계절을 지나고 있습니다. 최근 1~2년 동안 '이대로는 안 되겠다, 새로운 도전을 시작해야겠다'는 갈증과 충동이 마음 밑바닥에서 꿈틀거렸던 이유가 바로 이 계절의 부름 때문입니다. 과거의 묵은 틀을 깨고 새로운 방향으로 싹을 틔워야 하는 과도기이며, 다소 서툴고 불안하더라도 첫 단추를 꿰는 추진력이 생명인 시기입니다.`;
+    seasonAction = "과거의 관성에 머물지 마세요. 70%의 확신만 들어도 새로운 배움이나 환경으로 과감히 발을 내딛으십시오.";
+  } else if (["사", "오", "미", "巳", "午", "未"].some(c => dBranch.includes(c))) {
+    seasonTheme = "여름 (Summer)";
+    seasonName = `지금은 무대 위에서 존재감을 활짝 꽃피우는 '뜨거운 여름' (${dGanzi} 대운)`;
+    seasonDetail = `현재 ${nickname}님은 인생의 화려한 확장과 성취를 거머쥐는 '여름(화 기운)'의 절정을 통과하고 있습니다. 활동 반경이 넓어지고 주변의 주목과 역할이 급증하여 하루하루가 숨가쁘게 돌아가는 시기입니다. 다만 열기가 너무 뜨거워지면 에너지가 일찍 고갈되거나 주변과의 속도 차이로 감정 마찰이 생길 수 있으니, 감정의 온도를 차분하게 식히는 호흡이 필요합니다.`;
+    seasonAction = "성과에 도취되어 무리하게 판을 벌리지 마세요. 실속을 다지며 내면의 체력을 비축하는 균형 감각이 필수입니다.";
+  } else if (["신", "유", "술", "申", "酉", "戌"].some(c => dBranch.includes(c))) {
+    seasonTheme = "가을 (Autumn)";
+    seasonName = `지금은 옥석을 가리고 알짜 결실을 거두는 '수확의 가을' (${dGanzi} 대운)`;
+    seasonDetail = `현재 ${nickname}님은 인생의 쓸데없는 군더더기를 털어내고 진짜 알짜배기 성과를 챙겨야 하는 '가을(금 기운)'의 계절에 와 있습니다. 최근 들어 '의미 없는 인간관계를 정리하고 싶다'거나 '내가 진짜 쥐어야 할 실속과 자산이 무엇인가'를 깊이 고민하게 되는 것은 사주의 자연스러운 흐름입니다. 냉철하게 현실을 분별하고 확실한 내 몫을 챙겨야 하는 결단의 계절입니다.`;
+    seasonAction = "미련 때문에 끌고 가던 불필요한 일과 관계를 과감히 가지치기하십시오. 단순해질수록 당신의 재물운이 급상승합니다.";
+  } else if (["해", "자", "축", "亥", "子", "丑"].some(c => dBranch.includes(c))) {
+    seasonTheme = "겨울 (Winter)";
+    seasonName = `지금은 물밑에서 거대한 지혜를 축적하는 '준비의 겨울' (${dGanzi} 대운)`;
+    seasonDetail = `현재 ${nickname}님은 화려한 겉보기보다는 내실을 다지고 지혜의 샘을 깊이 파야 하는 '겨울(수 기운)'의 계절을 지나고 있습니다. 겉으로는 일의 진행이 다소 더디거나 답답하게 느껴질 수 있지만, 이는 정체된 것이 아니라 다음 10년의 비상을 위해 씨앗에 영양분을 농축하는 가장 신성한 충전기입니다. 내실 있는 전문성을 기르고 멘탈을 정비할 때 엄청난 내공이 완성됩니다.`;
+    seasonAction = "조급하게 가시적 결과를 내려고 발버둥치지 마세요. 물밑에서 실력을 갈고닦으면 다음 계절에 폭발적으로 보상받습니다.";
+  } else {
+    seasonTheme = "환승역 (Transition)";
+    seasonName = `지금은 인생의 큰 궤도를 갈아타는 '환승역의 환절기' (${dGanzi} 대운)`;
+    seasonDetail = `현재 ${nickname}님은 기존에 익숙했던 가치관과 환경이 완전히 리셋되고 새로운 인생의 좌표로 갈아타는 '대운의 환승역'에 서 있습니다. 최근 내면에서 일어나는 혼란이나 고민은 방황이 아니라, 더 큰 그릇으로 성장하기 위한 탈피(脫皮)의 통증입니다. 중심을 단단히 잡고 나만의 기준을 세워야 하는 결정적 시기입니다.`;
+    seasonAction = "남들의 시선이나 조언에 휘둘리지 마세요. 내 마음의 나침반이 가리키는 본질에 집중할 때 운명의 문이 열립니다.";
+  }
+
+  const bridgePrompt = `지금 당신이 지나고 있는 [${seasonTheme}]의 파도를 넘어, 앞으로 3년 내 맞이할 결정적 기회의 문과 피해야 할 치명적 지뢰밭(DON'T), 그리고 평생 재물·직업의 실전 처방전은 심층 감정서에서 확인하실 수 있습니다.`;
+
+  return {
+    identity: {
+      headline,
+      outer: outerText,
+      inner: innerText,
+      contrast: contrastText
+    },
+    season: {
+      age,
+      daewoonGanzi: dGanzi,
+      daewoonAge: dAge,
+      daewoonSipsin: dSipsin,
+      daewoonUnseong: dUnseong,
+      seasonName,
+      seasonDetail,
+      seasonAction
+    },
+    bridgePrompt
+  };
+}
