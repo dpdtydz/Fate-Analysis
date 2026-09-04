@@ -270,6 +270,8 @@ export interface PersonalCoreNarrative {
   // 1. 넌 진짜 어떤 사람인가 (무료)
   identity: {
     headline: string;
+    shamanQuote: string; // 🔮 청월아씨의 사이다 족집게 한마디
+    tags: string[]; // 태그 칩 e.g. ['#완벽주의', '#외강내유', ...]
     coreEssence: string;
     outer: string;
     inner: string;
@@ -285,6 +287,7 @@ export interface PersonalCoreNarrative {
     daewoonSipsin: string;
     daewoonUnseong: string;
     seasonName: string;
+    shamanSeasonQuote?: string; // 계절 팩폭 한마디
     seasonDetail: string;
     seasonAction: string;
     seasonCaution: string;
@@ -392,6 +395,116 @@ export function generatePersonalCoreNarrative(
   const dayGanKor = GAN_HANGUL[dayGan] || "일간";
   const outerText = GAN_OUTER_TRAITS[dayGanKor] || `${dayGanKor}의 기운을 타고나 대외적으로 주관이 뚜렷하고 당당한 첫인상을 풍깁니다.`;
   const innerText = GAN_INNER_TRAITS[dayGanKor] || "내면에는 남들에게 쉽게 털어놓지 못하는 고유한 불안과 높은 기준이 있어 혼자 감당하는 데 익숙합니다.";
+  
+  // 청월아씨 무당언니 팩폭 프로필
+  const SHAMAN_PROFILES: Record<string, { quote: string; tags: string[]; seasonQuote: Record<string, string> }> = {
+    "갑목": {
+      quote: "남 밑에서 눈치 보고 굽신거리는 거 딱 질색이지? 넌 남 눈치 볼 게 아니라 네 깃발 꽂고 대장 노릇 해야 팔자가 펴!",
+      tags: ["#타고난대장", "#외강내강", "#독립만세", "#앞장서는추진력"],
+      seasonQuote: {
+        "봄": "지금 네 안에서 새싹이 꿈틀대는 거 안 느껴져? 망설이지 말고 네 판을 깔아!",
+        "여름": "지금 네 무대에 조명이 켜졌어! 온 세상이 널 주목할 때 제대로 질러!",
+        "가을": "소모적인 것들 싹 잘라내고 네 알짜 결실이랑 돈주머니만 챙겨!",
+        "겨울": "조급해하지 마. 지금은 내공을 채우는 시간이야. 때가 오면 네가 다 먹어."
+      }
+    },
+    "을목": {
+      quote: "착한 척 거절 못 해서 속으로 피눈물 흘리지 마. 정면승부 말고 영리하게 실속부터 챙겨!",
+      tags: ["#외유내강", "#실속파", "#친화력만렙", "#착한사람탈출"],
+      seasonQuote: {
+        "봄": "바람이 불어오고 있어. 유연하게 넝쿨을 뻗어 큰 기회를 휘감아!",
+        "여름": "꽃을 활짝 피울 때야. 네 매력과 인맥으로 사람들을 사로잡아!",
+        "가을": "실속 없는 관계는 칼같이 정리해. 네 손에 쥐어지는 이익만 봐!",
+        "겨울": "뿌리를 깊게 내릴 때야. 겉으로 드러내지 말고 물밑에서 힘을 길러."
+      }
+    },
+    "병화": {
+      quote: "방구석에 숨어있으면 병 난다! 네 얼굴이랑 이름을 전면에 내걸어야 돈이랑 사람이 쏟아져.",
+      tags: ["#무대체질", "#솔직담백", "#에너지폭발", "#뒤끝제로"],
+      seasonQuote: {
+        "봄": "열정에 불이 붙기 시작했어. 주저하지 말고 무대 앞으로 뛰어나가!",
+        "여름": "태양이 중천에 떴다! 존재감을 만천하에 각인시킬 절호의 타이밍이야.",
+        "가을": "기분파로 돈 쓰지 마. 번 돈은 금고에 꼭꼭 잠가둬야 내 돈 된다.",
+        "겨울": "잠시 불꽃을 식히고 멘탈을 재충전해. 무리하게 달리면 방전된다."
+      }
+    },
+    "정화": {
+      quote: "두루두루 잘하려 하지 마. 아무나 흉내 못 내는 1%의 정밀한 기술 하나로 세상 코를 납작하게 해줘!",
+      tags: ["#장인정신", "#초정밀디테일", "#겉따속냉", "#은근한승부사"],
+      seasonQuote: {
+        "봄": "새로운 영감이 마구 솟구치지? 네 독창적인 아이디어를 작품으로 빚어봐.",
+        "여름": "네 기술의 가치를 세상이 알아볼 때야. 몸값 올리고 확실하게 대우받아!",
+        "가을": "특허든 라이선스든 문서로 남겨. 네 기술을 평생 돈 나오는 시스템으로 굳혀!",
+        "겨울": "혼자만의 방에서 연구에 몰입해. 어둠 속에서 가장 밝게 빛나는 게 너야."
+      }
+    },
+    "무토": {
+      quote: "조급하게 잔기술 부리지 마라. 묵직하게 네 자리를 지키고 있으면 결국 사람들이 네 품으로 모여들어!",
+      tags: ["#태산같은신용", "#플랫폼보스", "#포용력끝판왕", "#흔들림없는중심"],
+      seasonQuote: {
+        "봄": "대지에 봄비가 내리듯 새 판이 짜이고 있어. 중심을 잡고 지휘봉을 쥐어!",
+        "여름": "만물이 네 터전 위에서 번영할 때야. 스케일 크게 사람들을 품어줘.",
+        "가을": "풍성한 수확의 계절이야. 네 곳간을 단단한 자산으로 가득 채워둬.",
+        "겨울": "바람이 불어도 산은 움직이지 않아. 뚝심 하나로 판을 묵직하게 버텨내."
+      }
+    },
+    "기토": {
+      quote: "남 좋은 일 그만하고 네 곳간부터 채워! 실속 차리는 건 나쁜 게 아니라 현명한 거야.",
+      tags: ["#알짜실속", "#곳간지기", "#생활력만렙", "#꼼꼼한살림꾼"],
+      seasonQuote: {
+        "봄": "씨앗을 알뜰하게 뿌려둘 때야. 일상에 매일 소비되는 곳에 줄을 대!",
+        "여름": "네 싹이 무럭무럭 자라고 있어. 충성 고객과 단골을 야무지게 묶어둬.",
+        "가을": "드디어 알곡을 거둘 시간이야. 통장에 꽂히는 진짜 현금만 계산해!",
+        "겨울": "새는 푼돈 철저히 막고 내실을 다져. 소리 없이 부자 되는 비결이야."
+      }
+    },
+    "경금": {
+      quote: "우유부단하게 질질 끌지 마. 결단하고 베어 넘겨야 새 길이 열려. 넌 칼을 쥐어야 사는 사주야!",
+      tags: ["#단칼결단", "#비효율처단", "#의리파", "#거침없는실행"],
+      seasonQuote: {
+        "봄": "새로운 개혁의 칼날을 뽑아들 때야. 비효율은 단칼에 베어버려!",
+        "여름": "불속에서 쇠를 벼려 명검이 되듯, 혹독한 시련을 거쳐 진짜 권력을 쥐게 돼.",
+        "가을": "네 칼날의 위력이 극대화되는 시기야. 판을 장악하고 깃발을 꽂아!",
+        "겨울": "칼집에 칼을 넣고 숨을 골라. 사소한 일에 날을 세우지 않는 게 지혜야."
+      }
+    },
+    "신금": {
+      quote: "보석은 흙탕물에 구르는 게 아니야. 남들 눈치 보며 네 가치 깎지 마. 세상이 네 기준에 맞추게 해!",
+      tags: ["#자체발광보석", "#완벽주의감옥", "#새벽폭풍검열", "#1프로의안목"],
+      seasonQuote: {
+        "봄": "새로운 물길로 나를 씻어낼 시간이야. 묵은 때를 벗고 새 판으로 가자!",
+        "여름": "화려한 조명 아래서 보석이 눈부시게 빛날 때야. 숨지 말고 존재감을 뿜어!",
+        "가을": "옥석을 가려서 알짜만 챙겨. 네 품격에 안 맞는 싸구려 일은 단칼에 거절해!",
+        "겨울": "맑은 물(임수)로 보석을 씻어내는 정화의 시간이야. 멘탈을 맑게 비워둬."
+      }
+    },
+    "임수": {
+      quote: "작은 웅덩이에 갇혀 살지 마. 넌 스케일 크게 바다로 나가야 돈맥이 터지는 큰 그릇이야!",
+      tags: ["#글로벌스케일", "#임기응변천재", "#큰물에서놀기", "#깊은바다의지혜"],
+      seasonQuote: {
+        "봄": "물길이 힘차게 터져 나오는 시기야. 새로운 시장으로 거침없이 흘러가!",
+        "여름": "가뭄에 단비처럼 네 지혜가 빛을 발해. 정보와 돈이 교차하는 길목을 잡아!",
+        "가을": "맑은 물줄기가 금빛으로 물드는 결실기야. 시스템 소득을 완성해!",
+        "겨울": "거대한 바다처럼 모든 것을 집어삼킬 내공을 모아. 다음 10년을 지배할 거야."
+      }
+    },
+    "계수": {
+      quote: "몸으로 때우는 건 네 팔자에 안 맞아. 사람 마음 훔치는 기획이랑 지식으로 평생 로열티 챙겨!",
+      tags: ["#심리꿰뚫기", "#지식자산가", "#가랑비침투력", "#영민한책사"],
+      seasonQuote: {
+        "봄": "메마른 대지를 적시는 단비처럼, 네 기획과 아이디어를 마음껏 싹틔워봐.",
+        "여름": "사람들의 타는 목마름을 채워주는 귀인이 될 때야. 상담, 교육, 브랜딩으로 승부해!",
+        "가을": "마르지 않는 옹달샘을 완성할 때야. 저작권과 지적 자산으로 금고를 채워!",
+        "겨울": "깊은 샘물에 얼음이 얼듯, 속마음을 숨기고 차분하게 지혜의 깊이를 더해."
+      }
+    }
+  };
+
+  const shamanInfo = SHAMAN_PROFILES[dayGanKor] || SHAMAN_PROFILES["신금"];
+  const shamanQuote = shamanInfo.quote;
+  const tags = profile?.keyword 
+    ? [...shamanInfo.tags.slice(0, 2), ...profile.keyword.split(",").map(k => `#${k.trim()}`).slice(0, 2)]
+    : shamanInfo.tags;
   
   // 1-1. 타고난 성품 그릇과 본질적 기질 (일주 심층 해독)
   const coreEssenceText = profile
@@ -751,11 +864,14 @@ export function generatePersonalCoreNarrative(
     psychologicalBasis: `칼 구스타프 융(Carl Jung)의 분석심리학적 페르소나(Persona) 및 그림자(Shadow) 이론, 그리고 현대 성격 지표(MBTI)의 8대 인지 기능 체계를 동양 역학의 음양 구조와 1:1 매핑하여 '세상이 보는 나'와 '혼자 있을 때의 나' 사이의 심리적 간극을 객관화했습니다.`
   };
 
-  const bridgePrompt = `지금 당신이 지나고 있는 [${seasonTheme}]의 파도를 넘어, 앞으로 3년 내 맞이할 결정적 기회의 문과 피해야 할 치명적 지뢰밭(DON'T), 그리고 평생 재물·직업의 실전 처방전은 심층 감정서에서 확인하실 수 있습니다.`;
+  const seasonSimpleKey = seasonTheme.includes("봄") ? "봄" : seasonTheme.includes("여름") ? "여름" : seasonTheme.includes("가을") ? "가을" : seasonTheme.includes("겨울") ? "겨울" : "봄";
+  const shamanSeasonQuote = shamanInfo.seasonQuote[seasonSimpleKey] || shamanInfo.seasonQuote["봄"];
 
   return {
     identity: {
       headline,
+      shamanQuote,
+      tags,
       coreEssence: coreEssenceText,
       outer: outerText,
       inner: innerText,
@@ -770,6 +886,7 @@ export function generatePersonalCoreNarrative(
       daewoonSipsin: dSipsin,
       daewoonUnseong: dUnseong,
       seasonName,
+      shamanSeasonQuote,
       seasonDetail,
       seasonAction,
       seasonCaution

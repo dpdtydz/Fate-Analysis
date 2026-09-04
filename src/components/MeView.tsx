@@ -1665,7 +1665,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
                   {/* 분석 탭 바 (모바일 가로 스크롤) */}
                   <div className="flex bg-sunken p-1 rounded-xl gap-1 overflow-x-auto no-scrollbar text-sm select-none">
                     {([
-                      { key: "mix", label: "통합 총평", premium: true },
+                      { key: "mix", label: "심층 리포트", premium: true },
                       { key: "fortune", label: "오늘의 운세", premium: false },
                       { key: "elements", label: "오행 밸런스", premium: false },
                       { key: "saju", label: "사주 만세력", premium: true },
