@@ -9,7 +9,7 @@ test.describe("인연사주 핵심 사용자 여정 E2E 회귀 테스트", () =>
 
   test("1. 메인 진입 및 사주 정보 입력 -> 내 소울 카드 생성 및 신살 뱃지 확인", async ({ page }) => {
     await page.goto("/#/my-saju");
-    await page.waitForLoadState("networkidle");
+    await page.waitForSelector("body");
 
     // 이름 입력
     const nameInput = page.locator("input[placeholder*='이름'], input[name='name']").first();
@@ -41,7 +41,7 @@ test.describe("인연사주 핵심 사용자 여정 E2E 회귀 테스트", () =>
 
   test("2. 모임 생성 및 룸 입장 -> 궁합 지도 및 캐릭터 렌더링 검증", async ({ page }) => {
     await page.goto("/#/groups");
-    await page.waitForLoadState("networkidle");
+    await page.waitForSelector("body");
 
     // 모임 생성 버튼 또는 인풋 확인
     const createBtn = page.locator("button:has-text('새 모임 만들기'), button:has-text('모임 개설')").first();
@@ -55,7 +55,7 @@ test.describe("인연사주 핵심 사용자 여정 E2E 회귀 테스트", () =>
 
   test("3. 프리미엄 확인권 / 페이월 모달 및 A/B 테스트 헤드라인 검증", async ({ page }) => {
     await page.goto("/#/my-saju");
-    await page.waitForLoadState("networkidle");
+    await page.waitForSelector("body");
 
     // 페이월 또는 확인권 열람 버튼 확인
     const paywallTrigger = page.locator("button:has-text('확인권'), button:has-text('해금'), button:has-text('심층 감정서')").first();
