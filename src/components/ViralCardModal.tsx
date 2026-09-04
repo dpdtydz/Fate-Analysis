@@ -6,6 +6,7 @@ import { calculateTodayFortune } from "../utils/saju";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/analytics";
 import { zodiacImageSrc, roleImageSrc, spaceImageSrc, SPACE_NAMES, SpaceKey, getMemberZodiacSrc } from "./ZodiacAvatar";
+import { getRepresentativeBranch } from "../utils/zodiacCompat";
 import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
@@ -1168,48 +1169,103 @@ export default function ViralCardModal({
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    {/* 잘 맞는 카드 */}
-                    <div className="bg-[#F4F4F1] rounded-xl p-2.5">
-                      <div className="text-xs font-medium text-[#55565E] mb-1.5">
-                        잘 맞는 카드
+                    {/* 잘 맞는 소울 */}
+                    <div className="bg-[#F4F4F1] rounded-xl p-2.5 flex flex-col justify-between">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-[#1C1D21] flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#35B37E]" />
+                          잘 맞는 소울
+                        </span>
+                        <span className="text-[10px] font-bold text-[#35B37E] bg-[#35B37E]/10 px-1.5 py-0.5 rounded">
+                          BEST
+                        </span>
                       </div>
-                      <div className="space-y-1">
-                        {spec.compatibility.best.map((b, bi) => (
-                          <div key={bi} className="text-xs text-[#55565E] flex items-center justify-between gap-1">
-                            <span className="flex items-center gap-1.5 min-w-0">
-                              <span
-                                className="w-5 h-5 shrink-0 rounded-md text-white font-serif text-xs flex items-center justify-center"
-                                style={{ backgroundColor: ELEM_HEX[b.elem] || "#1C1D21" }}
-                              >
-                                {b.hanja}
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {spec.compatibility.best.map((b, bi) => {
+                          const rep = getRepresentativeBranch(b.elem, ji);
+                          const repSrc = rep ? zodiacImageSrc(rep.branch, rep.element) : null;
+                          return (
+                            <div
+                              key={bi}
+                              className="flex flex-col items-center text-center p-1.5 sm:p-2 bg-white rounded-xl border border-[#E7E7E2]/70 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-[#F4F4F1] flex items-center justify-center overflow-hidden mb-1.5 border border-white/80 shadow-inner">
+                                {repSrc ? (
+                                  <img
+                                    src={repSrc}
+                                    alt={`${rep?.animal || b.elem} 캐릭터`}
+                                    crossOrigin="anonymous"
+                                    decoding="async"
+                                    className="w-9 h-9 object-contain select-none filter drop-shadow-xs"
+                                  />
+                                ) : (
+                                  <span
+                                    className="w-6 h-6 rounded-md text-white font-serif text-[11px] flex items-center justify-center"
+                                    style={{ backgroundColor: ELEM_HEX[b.elem] || "#1C1D21" }}
+                                  >
+                                    {b.hanja}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-xs font-bold text-[#1C1D21] leading-tight truncate w-full">
+                                {rep?.animal ? `${rep.animal}띠` : b.elem}
                               </span>
-                              <span className="truncate">{b.cardName}</span>
-                            </span>
-                            <span className="font-mono font-medium text-[#1C1D21] shrink-0">{b.score}</span>
-                          </div>
-                        ))}
+                              <span className="text-[10px] font-medium text-[#35B37E] bg-[#35B37E]/10 px-1.5 py-0.5 rounded-full mt-1">
+                                {b.hanja} · {b.score}점
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                    {/* 맞춰가야 할 카드 */}
-                    <div className="bg-[#F4F4F1] rounded-xl p-2.5">
-                      <div className="text-xs font-medium text-[#55565E] mb-1.5">
-                        맞춰가야 할 카드
+
+                    {/* 맞춰가야 할 소울 */}
+                    <div className="bg-[#F4F4F1] rounded-xl p-2.5 flex flex-col justify-between">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-semibold text-[#55565E] flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#E0A82E]" />
+                          맞춰갈 소울
+                        </span>
+                        <span className="text-[10px] font-bold text-[#8E8F98] bg-black/5 px-1.5 py-0.5 rounded">
+                          CAUTION
+                        </span>
                       </div>
-                      <div className="space-y-1">
-                        {spec.compatibility.caution.map((c, ci) => (
-                          <div key={ci} className="text-xs text-[#55565E] flex items-center justify-between gap-1">
-                            <span className="flex items-center gap-1.5 min-w-0">
-                              <span
-                                className="w-5 h-5 shrink-0 rounded-md text-white font-serif text-xs flex items-center justify-center"
-                                style={{ backgroundColor: ELEM_HEX[c.elem] || "#1C1D21" }}
-                              >
-                                {c.hanja}
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {spec.compatibility.caution.map((c, ci) => {
+                          const rep = getRepresentativeBranch(c.elem, ji);
+                          const repSrc = rep ? zodiacImageSrc(rep.branch, rep.element) : null;
+                          return (
+                            <div
+                              key={ci}
+                              className="flex flex-col items-center text-center p-1.5 sm:p-2 bg-white rounded-xl border border-[#E7E7E2]/70 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+                            >
+                              <div className="w-10 h-10 rounded-full bg-[#F4F4F1] flex items-center justify-center overflow-hidden mb-1.5 border border-white/80 shadow-inner">
+                                {repSrc ? (
+                                  <img
+                                    src={repSrc}
+                                    alt={`${rep?.animal || c.elem} 캐릭터`}
+                                    crossOrigin="anonymous"
+                                    decoding="async"
+                                    className="w-9 h-9 object-contain select-none filter drop-shadow-xs"
+                                  />
+                                ) : (
+                                  <span
+                                    className="w-6 h-6 rounded-md text-white font-serif text-[11px] flex items-center justify-center"
+                                    style={{ backgroundColor: ELEM_HEX[c.elem] || "#1C1D21" }}
+                                  >
+                                    {c.hanja}
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-xs font-bold text-[#1C1D21] leading-tight truncate w-full">
+                                {rep?.animal ? `${rep.animal}띠` : c.elem}
                               </span>
-                              <span className="truncate">{c.cardName}</span>
-                            </span>
-                            <span className="font-mono font-medium text-[#8E8F98] shrink-0">{c.score}</span>
-                          </div>
-                        ))}
+                              <span className="text-[10px] font-medium text-[#8E8F98] bg-black/5 px-1.5 py-0.5 rounded-full mt-1">
+                                {c.hanja} · {c.score}점
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
