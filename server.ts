@@ -534,6 +534,19 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
           type: Type.ARRAY,
           items: { type: Type.STRING },
           description: "2-3 custom witty personality keywords"
+        },
+        punchy_quote: {
+          type: Type.STRING,
+          description: "A direct, punchy, unvarnished insight penetrating their facade and true loneliness (e.g. 야, 너 솔직히 겉으론 쿨한 척 다 하면서 혼자 있을 땐 온갖 생각 다 하느라 머리 터지지?)"
+        },
+        tags: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING },
+          description: "3-4 witty hashtags capturing their duality (e.g. #완벽주의감옥, #새벽폭풍검열)"
+        },
+        season_quote: {
+          type: Type.STRING,
+          description: "One-line punchy seasonal action advice for their current daewoon timing"
         }
       },
       required: ["headline", "character_desc", "duality", "wealth", "career", "love", "health", "one_action", "four_areas", "keywords"]
@@ -562,6 +575,21 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
       throw err;
     }
   }
+
+  // Endpoint to generate personal AI analysis using Gemini 3.5 Flash (cached on client/DB after 1-time run)
+  app.post("/api/personal-analysis", async (req, res) => {
+    try {
+      const { member } = req.body;
+      if (!member) {
+        return res.status(400).json({ error: "회원 정보가 누락되었습니다." });
+      }
+      const personalAnalysis = await generatePersonalAnalysisForMember(member);
+      res.json({ success: true, personal_analysis: personalAnalysis });
+    } catch (err: any) {
+      console.error("Personal AI analysis failed:", err);
+      res.status(500).json({ error: formatGeminiError(err) });
+    }
+  });
 
 
   function generateRichPairAspects(m1: any, m2: any): any {

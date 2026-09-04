@@ -270,7 +270,7 @@ export interface PersonalCoreNarrative {
   // 1. 넌 진짜 어떤 사람인가 (무료)
   identity: {
     headline: string;
-    shamanQuote: string; // 🔮 청월아씨의 사이다 족집게 한마디
+    punchyQuote: string; // 🔮 사이다 족집게 한마디
     tags: string[]; // 태그 칩 e.g. ['#완벽주의', '#외강내유', ...]
     coreEssence: string;
     outer: string;
@@ -287,7 +287,7 @@ export interface PersonalCoreNarrative {
     daewoonSipsin: string;
     daewoonUnseong: string;
     seasonName: string;
-    shamanSeasonQuote?: string; // 계절 팩폭 한마디
+    punchySeasonQuote?: string; // 계절 팩폭 한마디
     seasonDetail: string;
     seasonAction: string;
     seasonCaution: string;
@@ -396,8 +396,8 @@ export function generatePersonalCoreNarrative(
   const outerText = GAN_OUTER_TRAITS[dayGanKor] || `${dayGanKor}의 기운을 타고나 대외적으로 주관이 뚜렷하고 당당한 첫인상을 풍깁니다.`;
   const innerText = GAN_INNER_TRAITS[dayGanKor] || "내면에는 남들에게 쉽게 털어놓지 못하는 고유한 불안과 높은 기준이 있어 혼자 감당하는 데 익숙합니다.";
   
-  // 청월아씨 무당언니 팩폭 프로필
-  const SHAMAN_PROFILES: Record<string, { quote: string; tags: string[]; seasonQuote: Record<string, string> }> = {
+  // 사이다 족집게 팩폭 프로필
+  const PUNCHY_PROFILES: Record<string, { quote: string; tags: string[]; seasonQuote: Record<string, string> }> = {
     "갑목": {
       quote: "남 밑에서 눈치 보고 굽신거리는 거 딱 질색이지? 넌 남 눈치 볼 게 아니라 네 깃발 꽂고 대장 노릇 해야 팔자가 펴!",
       tags: ["#타고난대장", "#외강내강", "#독립만세", "#앞장서는추진력"],
@@ -500,11 +500,11 @@ export function generatePersonalCoreNarrative(
     }
   };
 
-  const shamanInfo = SHAMAN_PROFILES[dayGanKor] || SHAMAN_PROFILES["신금"];
-  const shamanQuote = shamanInfo.quote;
+  const punchyInfo = PUNCHY_PROFILES[dayGanKor] || PUNCHY_PROFILES["신금"];
+  const punchyQuote = punchyInfo.quote;
   const tags = profile?.keyword 
-    ? [...shamanInfo.tags.slice(0, 2), ...profile.keyword.split(",").map(k => `#${k.trim()}`).slice(0, 2)]
-    : shamanInfo.tags;
+    ? [...punchyInfo.tags.slice(0, 2), ...profile.keyword.split(",").map(k => `#${k.trim()}`).slice(0, 2)]
+    : punchyInfo.tags;
   
   // 1-1. 타고난 성품 그릇과 본질적 기질 (일주 심층 해독)
   const coreEssenceText = profile
@@ -598,6 +598,9 @@ export function generatePersonalCoreNarrative(
     seasonAction = "남들의 시선이나 무책임한 조언에 휘둘리지 마세요. 내 마음의 나침반이 가리키는 본질에 집중할 때 비로소 운명의 문이 열립니다.";
     seasonCaution = "혼란스럽다고 해서 충동적으로 모든 것을 내팽개치지 마세요. 차분하게 내면을 정리하며 새로운 궤도를 설계해야 안전합니다.";
   }
+
+  const seasonKey = seasonTheme.includes("봄") ? "봄" : seasonTheme.includes("여름") ? "여름" : seasonTheme.includes("가을") ? "가을" : "겨울";
+  const punchySeasonQuote = punchyInfo.seasonQuote[seasonKey] || "지금은 내실을 다지는 시간이야. 때가 오면 네가 다 먹어.";
 
   // 4. [유료 심층 확장] 3. 나를 부자로 만드는 핵심 무기와 돈 버는 구조
   const WEAPON_MAP: Record<string, { weapon: string; pipeline: string; workStyle: string }> = {
@@ -864,13 +867,17 @@ export function generatePersonalCoreNarrative(
     psychologicalBasis: `칼 구스타프 융(Carl Jung)의 분석심리학적 페르소나(Persona) 및 그림자(Shadow) 이론, 그리고 현대 성격 지표(MBTI)의 8대 인지 기능 체계를 동양 역학의 음양 구조와 1:1 매핑하여 '세상이 보는 나'와 '혼자 있을 때의 나' 사이의 심리적 간극을 객관화했습니다.`
   };
 
-  const seasonSimpleKey = seasonTheme.includes("봄") ? "봄" : seasonTheme.includes("여름") ? "여름" : seasonTheme.includes("가을") ? "가을" : seasonTheme.includes("겨울") ? "겨울" : "봄";
-  const shamanSeasonQuote = shamanInfo.seasonQuote[seasonSimpleKey] || shamanInfo.seasonQuote["봄"];
+  // punchySeasonQuote는 위 seasonKey 분기(603행)에서 이미 산출됨 — 중복 선언 제거
+
+  // 9. [프리미엄 잠금 패널] 실전 처방전 열람을 안내하는 브릿지 문구
+  // dGanzi는 대운 미산출 시 "대운"으로 폴백되므로, 그때는 간지 표기를 생략한다
+  const daewoonPhrase = currentDaewoon?.ganzi ? `[${dGanzi}] 대운` : "현재 대운";
+  const bridgePrompt = `${nickname}님의 [${dayGan}${dayJi}] 일주와 ${daewoonPhrase}을 교차 분석한 실전 처방전이 준비되어 있습니다. 직업·재물·인간관계에서 지금 당장 무엇을 취하고 무엇을 끊어야 하는지 구체적인 행동 지침으로 확인해 보세요.`;
 
   return {
     identity: {
       headline,
-      shamanQuote,
+      punchyQuote,
       tags,
       coreEssence: coreEssenceText,
       outer: outerText,
@@ -886,7 +893,7 @@ export function generatePersonalCoreNarrative(
       daewoonSipsin: dSipsin,
       daewoonUnseong: dUnseong,
       seasonName,
-      shamanSeasonQuote,
+      punchySeasonQuote,
       seasonDetail,
       seasonAction,
       seasonCaution

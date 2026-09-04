@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { SajuData } from "../types";
+import { SajuData, PersonalAnalysis } from "../types";
 import { daymasterMap } from "../utils/saju";
 import { 
   Lock, 
@@ -29,7 +29,8 @@ import {
   Clock,
   Compass,
   HelpCircle,
-  ChevronDown
+  ChevronDown,
+  RefreshCw
 } from "lucide-react";
 import { generatePersonalCoreNarrative } from "../utils/sajuSynthesis";
 
@@ -51,6 +52,10 @@ interface SajuVisualProps {
   onApplyCoupon?: (code: string) => void;
   couponLoading?: boolean;
   couponError?: string | null;
+  personalAnalysis?: PersonalAnalysis;
+  isAiLoading?: boolean;
+  onRefreshAi?: () => void;
+  isAiGenerated?: boolean;
 }
 
 const starMeanings: Record<string, string> = {
@@ -881,7 +886,11 @@ export default function SajuVisual({
   onUnlockWithTicket,
   onApplyCoupon,
   couponLoading = false,
-  couponError = null
+  couponError = null,
+  personalAnalysis,
+  isAiLoading = false,
+  onRefreshAi,
+  isAiGenerated = false
 }: SajuVisualProps) {
   const [activeTab, setActiveTab] = useState<"mix" | "saju" | "ziwei">(showOnlyMix ? "mix" : "mix");
   const currentTab = selectedTab !== undefined ? selectedTab : activeTab;
@@ -894,12 +903,42 @@ export default function SajuVisual({
   const [expandedBlocks, setExpandedBlocks] = useState<Record<string, boolean>>({});
   const [localCouponInput, setLocalCouponInput] = useState("");
 
-  const narrative = generatePersonalCoreNarrative(
+  const fallbackNarrative = generatePersonalCoreNarrative(
     saju,
     birthDate,
     userName,
     mbti
   );
+
+  // Gemini 3.5 AI 실시간 분석 결과와 룰베이스 뼈대 정밀 병합
+  const narrative = {
+    ...fallbackNarrative,
+    identity: {
+      ...fallbackNarrative.identity,
+      headline: personalAnalysis?.headline || fallbackNarrative.identity.headline,
+      punchyQuote: personalAnalysis?.punchy_quote || fallbackNarrative.identity.punchyQuote,
+      tags: personalAnalysis?.tags && personalAnalysis.tags.length > 0 ? personalAnalysis.tags : fallbackNarrative.identity.tags,
+      outer: personalAnalysis?.duality?.outer || fallbackNarrative.identity.outer,
+      inner: personalAnalysis?.duality?.inner || fallbackNarrative.identity.inner,
+      contrast: personalAnalysis?.duality?.contrast || fallbackNarrative.identity.contrast,
+      coreEssence: personalAnalysis?.four_areas?.essence || fallbackNarrative.identity.coreEssence,
+      thinkingPattern: personalAnalysis?.character_desc || fallbackNarrative.identity.thinkingPattern,
+    },
+    season: {
+      ...fallbackNarrative.season,
+      punchySeasonQuote: personalAnalysis?.season_quote || fallbackNarrative.season.punchySeasonQuote,
+    },
+    wealthEngine: {
+      ...fallbackNarrative.wealthEngine,
+      coreWeapon: personalAnalysis?.career?.strength || fallbackNarrative.wealthEngine.coreWeapon,
+      moneyPipeline: personalAnalysis?.wealth?.earning || fallbackNarrative.wealthEngine.moneyPipeline,
+      workStyle: personalAnalysis?.career?.recommended_fields || fallbackNarrative.wealthEngine.workStyle,
+    },
+    prescription: {
+      ...fallbackNarrative.prescription,
+      coreSummary: personalAnalysis?.one_action || fallbackNarrative.prescription.coreSummary,
+    }
+  };
 
   const toggleBlock = (key: string) => {
     setExpandedBlocks(prev => ({ ...prev, [key]: !prev[key] }));
@@ -1279,18 +1318,28 @@ export default function SajuVisual({
 
       {currentTab === "mix" ? (
         <div className="space-y-6">
-          {/* Section A: 청월의 족집게 사이다 오프닝 카드 (촌스러운 옛날 뱃지 제거 및 현대적 무당언니 사이다 팩폭) */}
+          {/* Section A: 사이다 족집게 오프닝 카드 (AI 심층 분석 & 사이다 팩폭 요약) */}
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500/10 via-indigo-500/5 to-amber-500/10 border border-purple-500/25 p-5 sm:p-6 text-left shadow-xs space-y-3.5">
             <div className="flex items-center justify-between gap-2 flex-wrap pb-2 border-b border-purple-500/15">
               <div className="flex items-center gap-2.5">
                 <span className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center text-lg shadow-sm shrink-0 ring-2 ring-purple-400/30">
-                  🔮
+                  ⚡
                 </span>
                 <div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="text-xs font-bold text-purple-700 dark:text-purple-300">
-                      청월의 족집게 팩트폭격
+                      사이다 족집게 팩트폭격
                     </span>
+                    {isAiGenerated ? (
+                      <span className="text-[10px] font-semibold text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/40 px-2 py-0.5 rounded-full border border-purple-300 dark:border-purple-700 flex items-center gap-1">
+                        ✨ AI 정밀분석 완료
+                      </span>
+                    ) : isAiLoading ? (
+                      <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-300 flex items-center gap-1 animate-pulse">
+                        <RefreshCw className="w-2.5 h-2.5 animate-spin" />
+                        AI 분석 생성 중...
+                      </span>
+                    ) : null}
                     {isPremium && (
                       <span className="text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-0.5">
                         <Unlock className="w-2.5 h-2.5" />
@@ -1304,8 +1353,23 @@ export default function SajuVisual({
                 </div>
               </div>
 
+              <div className="flex items-center gap-2">
+                {onRefreshAi && (
+                  <button
+                    type="button"
+                    onClick={onRefreshAi}
+                    disabled={isAiLoading}
+                    className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-lg bg-surface border border-line hover:border-purple-400 text-ink-soft hover:text-purple-600 transition-colors disabled:opacity-50 cursor-pointer"
+                    title="최신 데이터로 AI 분석 다시 실행"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isAiLoading ? "animate-spin text-purple-600" : ""}`} />
+                    <span>{isAiLoading ? "분석 중..." : "AI 재분석"}</span>
+                  </button>
+                )}
+              </div>
+
               {narrative.identity.tags && narrative.identity.tags.length > 0 && (
-                <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="w-full flex items-center gap-1.5 flex-wrap pt-1">
                   {narrative.identity.tags.map((tag, tIdx) => (
                     <span
                       key={tIdx}
@@ -1318,12 +1382,12 @@ export default function SajuVisual({
               )}
             </div>
 
-            {/* 청월아씨 말풍선 팩폭 */}
+            {/* 사이다 족집게 말풍선 팩폭 */}
             <div className="bg-surface/95 backdrop-blur-xs p-4 sm:p-4.5 rounded-xl border border-purple-500/20 shadow-xs space-y-2">
               <div className="flex items-start gap-2.5">
                 <span className="text-base shrink-0 mt-0.5">💬</span>
                 <p className="font-serif text-sm sm:text-base font-bold text-ink leading-relaxed">
-                  "{narrative.identity.shamanQuote}"
+                  "{narrative.identity.punchyQuote}"
                 </p>
               </div>
               <p className="text-xs sm:text-sm text-ink-soft leading-relaxed pl-6 sm:pl-7">
@@ -1551,7 +1615,7 @@ export default function SajuVisual({
               <span className="text-[11px] font-medium text-ink-faint">현재 대운과 삶의 파도</span>
             </div>
 
-            {/* 대운 요약 배너 + 청월 멘트 */}
+            {/* 대운 요약 배너 + 족집게 멘트 */}
             <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-500/10 via-surface to-cyan-500/10 border border-blue-500/25 shadow-xs space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2.5">
@@ -1569,10 +1633,10 @@ export default function SajuVisual({
                 </div>
               </div>
 
-              {narrative.season.shamanSeasonQuote && (
+              {narrative.season.punchySeasonQuote && (
                 <div className="p-3.5 bg-surface/90 rounded-xl border border-blue-500/20 text-xs sm:text-sm font-semibold text-blue-800 dark:text-blue-300 leading-relaxed flex items-start gap-2.5 shadow-2xs">
                   <span className="text-sm shrink-0 mt-0.5">💬</span>
-                  <p className="leading-relaxed">"{narrative.season.shamanSeasonQuote}"</p>
+                  <p className="leading-relaxed">"{narrative.season.punchySeasonQuote}"</p>
                 </div>
               )}
             </div>

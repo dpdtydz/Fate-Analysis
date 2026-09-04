@@ -665,7 +665,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
     setCouponLoading(true);
     setCouponError("");
     try {
-      const res = await registerCouponCode(couponCode);
+      const res = await redeemCoupon(couponCode);
       if (res.success) {
         setIsPdfUnlocked(true);
         setIsPremium(true);

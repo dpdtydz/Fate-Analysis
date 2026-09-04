@@ -86,13 +86,27 @@ export const ELEMENT_TO_ITEM: Record<string, ItemKey> = {
 /** 모임 속 시그니처 역할 — ViralCardModal의 roleAnalysis.key와 같은 값 */
 export type RoleKey = "spark" | "healer" | "keeper" | "captain" | "sage";
 
-/** 역할(Role) → 대표 라이프스타일 소품 매핑 */
-export const ROLE_TO_ITEM: Record<RoleKey, ItemKey> = {
-  captain: "bowtie",     // 목 / 리더 캡틴
-  spark: "sunglasses",   // 화 / 분위기 비타민
-  healer: "scarf",       // 토 / 온기 메이커 (구 힐러)
-  sage: "glasses",       // 금 / 히든 책사 지략가
-  keeper: "headphones",  // 수 / 실속 밸런서 마이웨이
+/**
+ * 역할(Role) → 원형 "링(테두리)" 색상.
+ *
+ * 2축 분리 원칙 (assets/zodiac/ART_DIRECTION.md):
+ *   - 사주 본질(오행) = 캐릭터가 착용한 "소품"
+ *   - 모임 역할       = 캐릭터를 감싸는 "링 색"
+ *
+ * 왜 배경 원(fill)이 아니라 링(border)인가:
+ *   배경을 캐릭터 뒤에 깔면 색이 몸통·소품과 같은 레이어에서 경쟁한다.
+ *   실측 대비(캐릭터 몸통 #8FA9BF 기준) — healer 1.03, captain 1.14, keeper 1.25로
+ *   사실상 같은 색이었고, spark 빨강은 빨간 보타이·목도리와 1.04로 소품이 소실됐다.
+ *   링으로 바꾸면 캐릭터 바닥이 흰색으로 유지되어 몸통·소품 색과 물리적으로 겹치지 않는다.
+ *
+ * 색은 흰 배경 대비 3:1 이상을 확보하도록 조정했다(24px에서도 링이 읽혀야 함).
+ */
+export const ROLE_RING_COLOR: Record<RoleKey, string> = {
+  captain: "#3B8E3F",  // 목 / 리더 캡틴      — 흰배경 대비 4.10
+  spark: "#E53935",    // 화 / 분위기 비타민  — 4.23
+  healer: "#A67C0B",   // 토 / 온기 메이커    — 3.81
+  keeper: "#8A7A52",   // 금 / 실속 밸런서    — 4.21 (원래 #C9B896은 1.95로 너무 흐렸음)
+  sage: "#3A6E9E",     // 수 / 히든 책사      — 5.38
 };
 
 /** MBTI → 대표 라이프스타일 소품 매핑 */
@@ -156,15 +170,19 @@ export function zodiacImageSrc(
   return `/zodiac/zodiac_${animal}_item_${itemKey}.webp?v=${ASSET_VERSION}`;
 }
 
-/** 띠 × 역할 캐릭터 이미지 경로 (신규 WebP 매핑) */
+/**
+ * 띠 × 역할 캐릭터 이미지 경로.
+ *
+ * 역할은 더 이상 소품을 결정하지 않는다 — 소품은 항상 오행(사주 본질)에서 온다.
+ * 역할은 ROLE_RING_COLOR 링으로만 표현하므로, 여기서는 오행 소품을 그대로 쓴다.
+ * (element가 없으면 목(bowtie)로 폴백)
+ */
 export function roleImageSrc(
   branch?: string | null,
-  role?: RoleKey | null
+  _role?: RoleKey | null,
+  element?: string | null
 ): string | null {
-  const animal = branch ? BRANCH_TO_ANIMAL[branch] : null;
-  if (!animal) return null;
-  const itemKey = (role && ROLE_TO_ITEM[role]) || "bowtie";
-  return `/zodiac/zodiac_${animal}_item_${itemKey}.webp?v=${ASSET_VERSION}`;
+  return zodiacImageSrc(branch, element);
 }
 
 /** 멤버 객체로부터 곧바로 12지신 아바타 이미지 URL을 얻는다 */
@@ -208,17 +226,11 @@ export default function ZodiacAvatar({
     : { branch: null, element: null, item: null };
   const branch = branchProp ?? extracted.branch;
   const element = elementProp ?? extracted.element;
-  const item = itemProp ?? (role ? null : extracted.item);
+  // 역할 모드에서도 소품은 오행에서 온다 (2축 분리) — 역할은 링으로만 표현
+  const item = itemProp ?? extracted.item;
 
-  // 우선순위: 직접 지정 item > role > element 자동 매핑
-  let src: string | null = null;
-  if (item) {
-    src = zodiacItemSrc(branch, item);
-  } else if (role) {
-    src = roleImageSrc(branch, role);
-  } else {
-    src = zodiacImageSrc(branch, element);
-  }
+  // 소품 우선순위: 직접 지정 item > element 자동 매핑
+  const src = item ? zodiacItemSrc(branch, item) : zodiacImageSrc(branch, element);
 
   if (!src || imgFailed) {
     if (fallbackEmoji) {
@@ -235,6 +247,28 @@ export default function ZodiacAvatar({
   }
 
   const animalName = branch ? BRANCH_TO_NAME[branch] ?? "" : "";
+
+  // 역할 모드: 캐릭터를 역할색 링으로 감싼다 (2축 분리 — 소품=오행, 링=역할)
+  // 캐릭터 바닥은 흰색으로 유지 → 링 색이 몸통·소품 색과 겹치지 않는다.
+  if (role) {
+    const ring = Math.max(3, Math.round(size * 0.075));
+    const inner = size - ring * 2;
+    return (
+      <span
+        className={`inline-flex items-center justify-center shrink-0 rounded-full bg-white box-border ${className}`}
+        style={{ width: size, height: size, border: `${ring}px solid ${ROLE_RING_COLOR[role]}` }}
+      >
+        <img
+          src={src}
+          alt={`${animalName} 12지신 라이프스타일 캐릭터`}
+          decoding="async"
+          onError={() => setImgFailed(true)}
+          className="object-contain select-none shrink-0"
+          style={{ width: inner, height: inner }}
+        />
+      </span>
+    );
+  }
 
   return (
     <img
@@ -362,12 +396,15 @@ export const ROLE_DETAILS: Record<RoleKey, RoleDetail> = {
 
 /**
  * 사주 일간 오행과 MBTI 조합으로 모임 속 시그니처 역할을 산출한다.
- * 사주 본질 소울(일간 오행 소품)과 모임 속 역할의 소품이 절대 중복되지 않도록 보장한다.
+ *
+ * 소품 중복 회피용 역할 강제 전환(구 FALLBACK_DIFF)은 제거했다.
+ * 2축 분리(소품=오행 / 링=역할)로 겹칠 수 없게 되었고,
+ * 기존 로직은 겹침을 피하려다 역할 판정 자체를 왜곡했다.
+ * (예: 화(火) 사주 + ENFP는 실제로 spark인데 captain으로 표시됨)
  */
 export function calculateMemberRole(member?: { saju?: { daymaster?: { element?: string | null } | null } | null; mbti?: string | null } | null): MemberRoleInfo {
   const elem = member?.saju?.daymaster?.element || "목";
   const mbti = member?.mbti ? String(member.mbti).toUpperCase().trim() : "";
-  const soulItem = ELEMENT_TO_ITEM[elem] || "bowtie";
 
   let key: RoleKey = "sage";
 
@@ -389,18 +426,6 @@ export function calculateMemberRole(member?: { saju?: { daymaster?: { element?: 
     else if (elem === "목") key = "spark";
     else if (elem === "금") key = "healer";
     else key = "sage";
-  }
-
-  // 3. 만약 역할 소품이 사주 본질 소품과 겹치면 차별화된 역할로 전환 (절대 중복 방지)
-  if (ROLE_TO_ITEM[key] === soulItem) {
-    const FALLBACK_DIFF: Record<RoleKey, RoleKey> = {
-      spark: "captain",   // sunglasses(화) 겹침 -> bowtie(목)
-      healer: "keeper",   // scarf(토) 겹침 -> headphones(수)
-      keeper: "sage",     // headphones(수) 겹침 -> glasses(금)
-      captain: "spark",   // bowtie(목) 겹침 -> sunglasses(화)
-      sage: "healer",     // glasses(금) 겹침 -> scarf(토)
-    };
-    key = FALLBACK_DIFF[key] || "sage";
   }
 
   const roleMeta: Record<RoleKey, { role: string; hanja: string; tagline: string }> = {

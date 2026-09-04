@@ -5,7 +5,7 @@ import { Member } from "../types";
 import { calculateTodayFortune } from "../utils/saju";
 import { shareToKakaoOrClipboard, shareImageFileOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/analytics";
-import { zodiacImageSrc, roleImageSrc, spaceImageSrc, SPACE_NAMES, SpaceKey, getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS } from "./ZodiacAvatar";
+import { zodiacImageSrc, roleImageSrc, spaceImageSrc, SPACE_NAMES, SpaceKey, getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS, ROLE_RING_COLOR } from "./ZodiacAvatar";
 import { getRepresentativeBranch } from "../utils/zodiacCompat";
 import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -672,8 +672,8 @@ export default function ViralCardModal({
   const [roleImgFailed, setRoleImgFailed] = useState(false);
   const roleBranch = member?.saju?.pillars?.year?.ji || member?.saju?.pillars?.day?.ji || ji;
   const roleSrcCandidate = useMemo(
-    () => roleImageSrc(roleBranch, roleAnalysis?.key ?? null),
-    [roleBranch, roleAnalysis?.key]
+    () => roleImageSrc(roleBranch, roleAnalysis?.key ?? null, elem),
+    [roleBranch, roleAnalysis?.key, elem]
   );
   useEffect(() => setRoleImgFailed(false), [roleSrcCandidate]);
   const roleSrc = roleImgFailed ? null : roleSrcCandidate;
@@ -1351,13 +1351,20 @@ export default function ViralCardModal({
               {/* 엠블럼: 내 띠 캐릭터가 모임에서 활약하는 시그니처 소품 캐릭터 */}
               <div className="w-[136px] h-[136px] mx-auto mb-3 flex items-center justify-center relative">
                 {roleSrc ? (
-                  <img
-                    src={roleSrc}
-                    alt={`${roleAnalysis.role} 캐릭터`}
-                    decoding="async"
-                    onError={() => setRoleImgFailed(true)}
-                    className="w-full h-full object-contain select-none filter drop-shadow-sm"
-                  />
+                  /* 2축 분리: 소품=사주 오행, 링(테두리)=모임 역할.
+                     배경 fill이 아니라 링이어야 몸통·소품 색과 겹치지 않는다. */
+                  <span
+                    className="inline-flex items-center justify-center w-full h-full rounded-full bg-white box-border"
+                    style={{ border: `10px solid ${ROLE_RING_COLOR[roleAnalysis.key]}` }}
+                  >
+                    <img
+                      src={roleSrc}
+                      alt={`${roleAnalysis.role} 캐릭터`}
+                      decoding="async"
+                      onError={() => setRoleImgFailed(true)}
+                      className="w-full h-full object-contain select-none"
+                    />
+                  </span>
                 ) : (
                   <div className={`w-[128px] h-[128px] rounded-full flex items-center justify-center ${colors.bg}`}>
                     <svg width="72" height="72" viewBox="0 0 48 48" fill="none" stroke={colors.stroke} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[72px] h-[72px]">

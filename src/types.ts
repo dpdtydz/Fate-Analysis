@@ -180,6 +180,9 @@ export interface PersonalAnalysis {
     fortune: string;  // 財·緣·業·健
   };
   keywords: string[];
+  punchy_quote?: string;
+  tags?: string[];
+  season_quote?: string;
 }
 
 export interface SubCompatibility {
