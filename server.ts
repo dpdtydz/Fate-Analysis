@@ -457,6 +457,142 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
   }
 
 
+  function generateRichPairAspects(m1: any, m2: any): any {
+    const getHashScore = (str1: string, str2: string, seed: number, min = 68, max = 95) => {
+      const combined = [str1, str2].sort().join("");
+      let hash = 0;
+      for (let i = 0; i < combined.length; i++) {
+        hash = combined.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return Math.abs((hash + seed) % (max - min + 1)) + min;
+    };
+
+    const id1 = m1.id || "m1";
+    const id2 = m2.id || "m2";
+    const nick1 = m1.nickname || "멤버1";
+    const nick2 = m2.nickname || "멤버2";
+
+    const g1 = m1.saju?.daymaster?.gan || "갑목";
+    const g2 = m2.saju?.daymaster?.gan || "을목";
+    const elem1 = m1.saju?.daymaster?.element || "목";
+    const elem2 = m2.saju?.daymaster?.element || "목";
+
+    const isGeneratingSupport =
+      (elem1 === "목" && elem2 === "화") ||
+      (elem1 === "화" && elem2 === "토") ||
+      (elem1 === "토" && elem2 === "금") ||
+      (elem1 === "금" && elem2 === "수") ||
+      (elem1 === "수" && elem2 === "목");
+
+    const isReceivingSupport =
+      (elem2 === "목" && elem1 === "화") ||
+      (elem2 === "화" && elem1 === "토") ||
+      (elem2 === "토" && elem1 === "금") ||
+      (elem2 === "금" && elem1 === "수") ||
+      (elem2 === "수" && elem1 === "목");
+
+    const isClash =
+      (elem1 === "목" && elem2 === "토") ||
+      (elem1 === "토" && elem2 === "수") ||
+      (elem1 === "수" && elem2 === "화") ||
+      (elem1 === "화" && elem2 === "금") ||
+      (elem1 === "금" && elem2 === "목") ||
+      (elem2 === "목" && elem1 === "토") ||
+      (elem2 === "토" && elem1 === "수") ||
+      (elem2 === "수" && elem1 === "화") ||
+      (elem2 === "화" && elem1 === "금") ||
+      (elem2 === "금" && elem1 === "목");
+
+    let saju1to2 = getHashScore(id1, id2, 11, 70, 94);
+    let saju2to1 = getHashScore(id1, id2, 33, 70, 94);
+    let sajuLabel = "온화하고 편안한 상생 조합";
+    let sajuDesc = "";
+
+    if (isGeneratingSupport) {
+      saju1to2 = getHashScore(id1, id2, 17, 85, 98);
+      saju2to1 = getHashScore(id1, id2, 41, 80, 95);
+      sajuLabel = "오행상생의 창조적 파트너";
+      sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. ${g1}의 기운이 ${g2}을 부드럽게 북돋아 주어, ${nick1}님의 발상과 추진력이 ${nick2}님의 결실로 자연스럽게 연결되는 훌륭한 상생 궁합입니다.`;
+    } else if (isReceivingSupport) {
+      saju1to2 = getHashScore(id1, id2, 23, 80, 95);
+      saju2to1 = getHashScore(id1, id2, 59, 85, 98);
+      sajuLabel = "상생과 든든한 조력 기류";
+      sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. ${g2}의 포근한 기운이 ${g1}을 든든하게 받쳐주어, 서로 깊은 정서적 안정감과 굳건한 신뢰를 형성하는 관계입니다.`;
+    } else if (elem1 === elem2) {
+      saju1to2 = getHashScore(id1, id2, 15, 78, 93);
+      saju2to1 = getHashScore(id1, id2, 45, 78, 93);
+      sajuLabel = "거울을 보듯 통하는 소울 조합";
+      sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. 서로 같은 '${elem1}'의 오행 본질을 지녀 말하지 않아도 서로의 생각과 감정을 직관적으로 이해하는 소울메이트 기운입니다.`;
+    } else if (isClash) {
+      saju1to2 = getHashScore(id1, id2, 19, 65, 82);
+      saju2to1 = getHashScore(id1, id2, 37, 65, 82);
+      sajuLabel = "긴장 속에서 꽃피는 혁신 조합";
+      sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. ${g1}과 ${g2}의 기운이 긴장감 있는 텐션을 형성하나, 서로의 사각지대를 예리하게 보완해 주는 강력한 발전적 계기가 됩니다.`;
+    } else {
+      saju1to2 = getHashScore(id1, id2, 21, 75, 89);
+      saju2to1 = getHashScore(id1, id2, 51, 75, 89);
+      sajuLabel = "온화하고 편안한 상생 조합";
+      sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. 불필요한 마찰 없이 물 흐르듯 잔잔하게 어우러지며 각자의 페이스를 존중해 주는 안정된 인연입니다.`;
+    }
+
+    // Ziwei
+    const ziweiStars = [
+      { name: "자미성", desc: "중심을 잡고 품격을 지켜주는 기상" },
+      { name: "천부성", desc: "너그럽고 포근하게 품어주는 안정감" },
+      { name: "태양성", desc: "따뜻하고 시원시원한 친화력" },
+      { name: "무곡성", desc: "우직하고 의리 있는 성실함" },
+      { name: "천기성", desc: "기민하고 번뜩이는 영민함" }
+    ];
+    const zStar1 = ziweiStars[getHashScore(id1, id2, 3, 0, ziweiStars.length - 1)];
+    const zStar2 = ziweiStars[getHashScore(id1, id2, 7, 0, ziweiStars.length - 1)];
+    const ziwei1to2 = getHashScore(id1, id2, 44, 72, 94);
+    const ziwei2to1 = getHashScore(id1, id2, 88, 72, 94);
+    const ziweiDesc = `${nick1}님은 ${nick2}님에게 ${ziwei1to2}점, ${nick2}님은 ${nick1}님에게 ${ziwei2to1}점. ${nick1}님의 명궁 기저에 깃든 ${zStar1.name}(${zStar1.desc})과 ${nick2}님의 ${zStar2.name}(${zStar2.desc})이 서로의 기량을 돋보이게 하는 조화로운 별자리 인연입니다.`;
+
+    // MBTI
+    const mbti1 = (m1.mbti || "").trim().toUpperCase();
+    const mbti2 = (m2.mbti || "").trim().toUpperCase();
+    let mbti1to2 = 78;
+    let mbti2to1 = 78;
+    let mbtiDesc = "";
+    if (mbti1.length === 4 && mbti2.length === 4) {
+      let matchCount = 0;
+      for (let k = 0; k < 4; k++) {
+        if (mbti1[k] === mbti2[k]) matchCount++;
+      }
+      mbti1to2 = 70 + matchCount * 6 + getHashScore(id1, id2, 9, 0, 5);
+      mbti2to1 = 70 + matchCount * 6 + getHashScore(id1, id2, 19, 0, 5);
+      mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. ${mbti1} 성향의 ${nick1}님과 ${mbti2} 성향의 ${nick2}님이 만나 일상의 의사소통과 협업에서 서로의 시각을 넓혀주는 이상적인 성향 조화를 보여줍니다.`;
+    } else {
+      mbti1to2 = getHashScore(id1, id2, 12, 72, 86);
+      mbti2to1 = getHashScore(id1, id2, 24, 72, 86);
+      mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. 서로의 타고난 개성과 라이프스타일을 편견 없이 수용하며 자연스럽게 녹아드는 유연한 관계입니다.`;
+    }
+
+    // Zodiac
+    const z1 = getWesternZodiac(m1.birth_date);
+    const z2 = getWesternZodiac(m2.birth_date);
+    const zName1 = typeof z1 === "object" && (z1 as any)?.name ? (z1 as any).name : String(z1 || "별자리");
+    const zName2 = typeof z2 === "object" && (z2 as any)?.name ? (z2 as any).name : String(z2 || "별자리");
+    const zodiac1to2 = getHashScore(id1, id2, 29, 72, 95);
+    const zodiac2to1 = getHashScore(id1, id2, 69, 72, 95);
+    const zodiacDesc = `${nick1}님은 ${nick2}님에게 ${zodiac1to2}점, ${nick2}님은 ${nick1}님에게 ${zodiac2to1}점. ${zName1}의 감성과 ${zName2}의 에너지가 만나 새로운 활력을 일으키며 대화의 깊이를 더해주는 긍정적 성좌 조합입니다.`;
+
+    const overallScore = Math.round((saju1to2 + saju2to1 + ziwei1to2 + ziwei2to1 + mbti1to2 + mbti2to1 + zodiac1to2 + zodiac2to1) / 8);
+
+    return {
+      member_id_1: id1,
+      member_id_2: id2,
+      score: overallScore,
+      label: sajuLabel,
+      description: `${nick1}님과 ${nick2}님은 서로 다른 개성이 절묘한 균형을 이루며 시너지를 발휘하는 인연입니다. 4대 영역(사주·자미두수·MBTI·별자리)에서 서로의 장점을 지지하고 부족한 점을 보완해 주는 안정된 흐름을 지닙니다.`,
+      saju: { score_1_to_2: saju1to2, score_2_to_1: saju2to1, description: sajuDesc },
+      ziwei: { score_1_to_2: ziwei1to2, score_2_to_1: ziwei2to1, description: ziweiDesc },
+      mbti: { score_1_to_2: mbti1to2, score_2_to_1: mbti2to1, description: mbtiDesc },
+      zodiac: { score_1_to_2: zodiac1to2, score_2_to_1: zodiac2to1, description: zodiacDesc },
+    };
+  }
+
   app.post("/api/analyze", async (req, res) => {
 
     try {
@@ -761,40 +897,46 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
             parsed.pairs = [];
           }
 
+          // Sanitize existing pairs in case AI returned placeholder or '대조합'
+          if (Array.isArray(parsed.pairs)) {
+            parsed.pairs.forEach((pair: any) => {
+              if (pair) {
+                const m1 = originalMembers.find((m: any) => m.id === pair.member_id_1);
+                const m2 = originalMembers.find((m: any) => m.id === pair.member_id_2);
+                const hasDummy =
+                  !pair.saju?.description ||
+                  pair.saju.description.trim() === "대조합" ||
+                  pair.saju.description.trim().length < 5 ||
+                  !pair.ziwei?.description ||
+                  pair.ziwei.description.trim() === "대조합";
+
+                if (hasDummy && m1 && m2) {
+                  const enriched = generateRichPairAspects(m1, m2);
+                  pair.saju = enriched.saju;
+                  pair.ziwei = enriched.ziwei;
+                  pair.mbti = enriched.mbti;
+                  pair.zodiac = enriched.zodiac;
+                  if (!pair.description || pair.description.trim() === "대조합" || pair.description.trim().length < 5) {
+                    pair.description = enriched.description;
+                  }
+                  if (!pair.label || pair.label.trim() === "대조합") {
+                    pair.label = enriched.label;
+                  }
+                }
+              }
+            });
+          }
+
           for (let i = 0; i < originalMembers.length; i++) {
             for (let j = i + 1; j < originalMembers.length; j++) {
-              const id1 = originalMembers[i].id;
-              const id2 = originalMembers[j].id;
+              const m1 = originalMembers[i];
+              const m2 = originalMembers[j];
+              const id1 = m1.id;
+              const id2 = m2.id;
               if (id1 === id2) continue;
               const sortedKey = [id1, id2].sort().join("<=>");
               if (!existingPairsSet.has(sortedKey)) {
-                parsed.pairs.push({
-                  member_id_1: id1,
-                  member_id_2: id2,
-                  score: 75,
-                  label: "상생과 화합의 인연 메이트",
-                  description: "서로 다른 기운이 자연스럽게 합을 이루는 조화로운 인연입니다.",
-                  saju: {
-                    score_1_to_2: 75,
-                    score_2_to_1: 75,
-                    description: "대조합"
-                  },
-                  ziwei: {
-                    score_1_to_2: 75,
-                    score_2_to_1: 75,
-                    description: "대조합"
-                  },
-                  mbti: {
-                    score_1_to_2: 75,
-                    score_2_to_1: 75,
-                    description: "대조합"
-                  },
-                  zodiac: {
-                    score_1_to_2: 75,
-                    score_2_to_1: 75,
-                    description: "대조합"
-                  }
-                });
+                parsed.pairs.push(generateRichPairAspects(m1, m2));
                 existingPairsSet.add(sortedKey);
               }
             }

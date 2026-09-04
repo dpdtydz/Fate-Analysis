@@ -2,6 +2,7 @@ import React, { useMemo, useState, useRef, useEffect } from "react";
 import { Member, PairAnalysis } from "../types";
 import { ArrowRightLeft, Filter, Smile, AlertTriangle, Lock, ChevronDown, Zap, Trophy, Flame, Sparkles, Heart, Info, CheckCircle2 } from "lucide-react";
 import ZodiacAvatar, { getMemberZodiacSrc } from "./ZodiacAvatar";
+import { isDummyPair, generateDynamicPairCompatibility } from "../utils/pairChemistry";
 
 interface GroupNetworkProps {
   members: Member[];
@@ -206,11 +207,16 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
       );
     };
 
-    return pairs.find(
+    const found = pairs.find(
       (p) =>
         (matchIdOrName(p.member_id_1, nodeA) && matchIdOrName(p.member_id_2, nodeB)) ||
         (matchIdOrName(p.member_id_2, nodeA) && matchIdOrName(p.member_id_1, nodeB))
     );
+
+    if (!found || isDummyPair(found)) {
+      return generateDynamicPairCompatibility(nodeA.rawMember, nodeB.rawMember);
+    }
+    return found;
   };
 
   // Compute lines between nodes with filtering support

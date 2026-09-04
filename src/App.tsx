@@ -11,6 +11,7 @@ import KakaoOutlinkGuide from "./components/KakaoOutlinkGuide";
 import AdminView from "./components/AdminView";
 import DevQaHarness from "./components/DevQaHarness";
 import SurveyPopup from "./components/SurveyPopup";
+import GlobalAnalysisAlert from "./components/GlobalAnalysisAlert";
 import { processReferralReward } from "./lib/firebase";
 import { logAnalyticsEvent } from "./lib/analytics";
 
@@ -158,6 +159,7 @@ export default function App() {
 
   return (
     <>
+      <GlobalAnalysisAlert />
       <KakaoOutlinkGuide />
       {renderContent()}
       <SurveyPopup />

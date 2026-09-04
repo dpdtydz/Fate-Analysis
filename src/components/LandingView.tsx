@@ -10,7 +10,7 @@ import {
   getUserPersonalProfile,
   PersonalSajuProfile
 } from "../lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, deleteDoc } from "firebase/firestore";
 import {
   LogOut,
   Compass,
@@ -18,7 +18,7 @@ import {
   Trash2,
   RefreshCw,
   ArrowRight,
-  RotateCcw
+  CheckCircle2
 } from "lucide-react";
 import PremiumPaywall from "./PremiumPaywall";
 import { logAnalyticsEvent } from "../lib/analytics";
@@ -73,36 +73,8 @@ export default function LandingView() {
     return () => unsubscribe();
   }, []);
 
-  const [pendingDeleteRoom, setPendingDeleteRoom] = useState<{
-    code: string;
-    title: string;
-    role: string;
-    actionType: "delete_db" | "exclude_list";
-    roomObj: any;
-    timeoutId: any;
-  } | null>(null);
-
-  const handleImmediateCommit = async (pendingObj: any) => {
-    if (!pendingObj) return;
-    clearTimeout(pendingObj.timeoutId);
-    if (pendingObj.actionType === "delete_db") {
-      try {
-        const idToken = await currentUser?.getIdToken();
-        if (idToken) {
-          await fetch(`/api/admin/rooms/${pendingObj.code}`, {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${idToken}`
-            }
-          });
-        }
-      } catch (err) {
-        console.error("Failed immediate commit delete:", err);
-      }
-    } else {
-      await removeRoomFromHistory(pendingObj.code);
-    }
-  };
+  const [deletingRoomCode, setDeletingRoomCode] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     getUserPersonalProfile().then((p) => setMyProfile(p));
@@ -434,8 +406,9 @@ export default function LandingView() {
                             <div className="flex items-center gap-1 shrink-0">
                               <button
                                 type="button"
-                                title={room.role === "admin" ? "모임방 데이터 영구 삭제" : "목록에서 제외"}
-                                aria-label={room.role === "admin" ? "모임방 데이터 영구 삭제" : "목록에서 제외"}
+                                disabled={deletingRoomCode === room.code}
+                                title={room.role === "owner" || room.role === "admin" ? "모임방 데이터 영구 삭제" : "목록에서 제외"}
+                                aria-label={room.role === "owner" || room.role === "admin" ? "모임방 데이터 영구 삭제" : "목록에서 제외"}
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   e.preventDefault();
@@ -445,52 +418,66 @@ export default function LandingView() {
                                     return;
                                   }
 
-                                  // Commit any previously pending deletion immediately to keep action stack consistent
-                                  if (pendingDeleteRoom) {
-                                    await handleImmediateCommit(pendingDeleteRoom);
-                                  }
+                                  const codeToDelete = room.code;
+                                  const originalRooms = [...historyRooms];
 
-                                  const isSystemAdmin = currentUser?.email?.toLowerCase() === "lhs41977@gmail.com";
-                                  const actionType = (isSystemAdmin && room.role === "admin") ? "delete_db" : "exclude_list";
+                                  setDeletingRoomCode(codeToDelete);
+                                  // Optimistically remove from list immediately
+                                  setHistoryRooms((prev) => prev.filter((r) => r.code !== codeToDelete));
 
-                                  // Optimistically hide from UI immediately
-                                  setHistoryRooms((prev) => prev.filter((r) => r.code !== room.code));
+                                  try {
+                                    const isSystemAdmin = currentUser?.email?.toLowerCase() === "lhs41977@gmail.com";
+                                    const isOwnerOrAdmin = room.role === "owner" || room.role === "admin" || isSystemAdmin;
 
-                                  // Queue delayed backend operation
-                                  const timeoutId = setTimeout(async () => {
-                                    try {
-                                      if (actionType === "delete_db") {
+                                    // 1. If owner or admin, permanently delete the room document from Firestore
+                                    if (isOwnerOrAdmin) {
+                                      try {
+                                        await deleteDoc(doc(db, "rooms", codeToDelete));
+                                      } catch (dbErr) {
+                                        console.warn("Firestore deleteDoc room error (proceeding):", dbErr);
+                                      }
+                                    }
+
+                                    // 2. If system admin, call authoritative admin API as well
+                                    if (isSystemAdmin) {
+                                      try {
                                         const idToken = await currentUser?.getIdToken();
                                         if (idToken) {
-                                          await fetch(`/api/admin/rooms/${room.code}`, {
+                                          await fetch(`/api/admin/rooms/${codeToDelete}`, {
                                             method: "DELETE",
                                             headers: {
                                               Authorization: `Bearer ${idToken}`
                                             }
                                           });
                                         }
-                                      } else {
-                                        await removeRoomFromHistory(room.code);
+                                      } catch (apiErr) {
+                                        console.warn("Admin API delete error:", apiErr);
                                       }
-                                    } catch (err) {
-                                      console.error("Delayed execution failed:", err);
-                                    } finally {
-                                      setPendingDeleteRoom(null);
                                     }
-                                  }, 5000);
 
-                                  setPendingDeleteRoom({
-                                    code: room.code,
-                                    title: targetTitle,
-                                    role: room.role,
-                                    actionType,
-                                    roomObj: room,
-                                    timeoutId
-                                  });
+                                    // 3. Purge from user's joined_rooms and local storage cache immediately
+                                    await removeRoomFromHistory(codeToDelete);
+
+                                    // Success feedback
+                                    setToastMessage(`'${targetTitle}' 방이 삭제되었습니다.`);
+                                    setTimeout(() => {
+                                      setToastMessage((cur) => (cur?.includes(targetTitle) ? null : cur));
+                                    }, 2500);
+                                  } catch (err) {
+                                    console.error("방 삭제 처리 중 오류 발생:", err);
+                                    alert("방 삭제 중 오류가 발생했습니다. 다시 시도해 주세요.");
+                                    setHistoryRooms(originalRooms);
+                                  } finally {
+                                    setDeletingRoomCode(null);
+                                  }
                                 }}
-                                className="min-w-[40px] min-h-[40px] flex items-center justify-center text-ink-faint hover:text-seal rounded-xl hover:bg-sunken transition-colors cursor-pointer"
+                                className="min-w-[40px] min-h-[40px] flex items-center justify-center text-ink-faint hover:text-seal rounded-xl hover:bg-sunken transition-colors cursor-pointer disabled:opacity-50"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                {deletingRoomCode === room.code ? (
+                                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-seal" />
+                                ) : (
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                )}
                               </button>
                               <ChevronRight className="w-4 h-4 text-ink-faint" />
                             </div>
@@ -852,35 +839,13 @@ export default function LandingView() {
         }}
       />
 
-      {/* Delayed Undo Deletion Toast */}
-      {pendingDeleteRoom && (
-        <div className="fixed bottom-6 right-6 z-[100] max-w-sm w-full bg-ink text-white rounded-xl shadow-lg p-4 animate-slide-up">
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-xs font-medium truncate max-w-[200px]">
-              '{pendingDeleteRoom.title}' 방이 {pendingDeleteRoom.actionType === "delete_db" ? "삭제" : "제외"}되었습니다
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                // Clear countdown, restore list item
-                clearTimeout(pendingDeleteRoom.timeoutId);
-                setHistoryRooms(prev => {
-                  if (prev.some(r => r.code === pendingDeleteRoom.code)) return prev;
-                  return [pendingDeleteRoom.roomObj, ...prev];
-                });
-                setPendingDeleteRoom(null);
-              }}
-              className="px-2.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer shrink-0"
-              title="삭제 취소"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>되돌리기</span>
-            </button>
-          </div>
-          {/* Animated remaining progress countdown */}
-          <div className="mt-2.5 h-1 bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full bg-white/70 animate-[countdown_5s_linear_forwards]" />
-          </div>
+      {/* Deletion / Action Toast */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-[100] max-w-sm w-full bg-ink text-paper rounded-xl shadow-xl p-3.5 animate-slide-up flex items-center gap-2.5 border border-line">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span className="text-xs font-medium truncate flex-1">
+            {toastMessage}
+          </span>
         </div>
       )}
 
