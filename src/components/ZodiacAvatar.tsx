@@ -362,24 +362,56 @@ export const ROLE_DETAILS: Record<RoleKey, RoleDetail> = {
 
 /**
  * 사주 일간 오행과 MBTI 조합으로 모임 속 시그니처 역할을 산출한다.
+ * 사주 본질 소울(일간 오행 소품)과 모임 속 역할의 소품이 절대 중복되지 않도록 보장한다.
  */
 export function calculateMemberRole(member?: { saju?: { daymaster?: { element?: string | null } | null } | null; mbti?: string | null } | null): MemberRoleInfo {
   const elem = member?.saju?.daymaster?.element || "목";
-  const mbti = member?.mbti ? String(member.mbti).toUpperCase() : "";
+  const mbti = member?.mbti ? String(member.mbti).toUpperCase().trim() : "";
+  const soulItem = ELEMENT_TO_ITEM[elem] || "bowtie";
 
-  if (elem === "화" || (mbti.includes("E") && mbti.includes("P"))) {
-    return { key: "spark", role: "스파크 메이커", hanja: "和氣 (화기)", tagline: "모임의 분위기를 띄우며 어색함을 단숨에 녹여요" };
+  let key: RoleKey = "sage";
+
+  // 1. MBTI 성향 기반 1차 역할 선정
+  if (mbti.includes("E") && mbti.includes("P")) {
+    key = "spark";
+  } else if (mbti.includes("F") && mbti.includes("J")) {
+    key = "healer";
+  } else if (mbti.includes("T") && mbti.includes("J")) {
+    key = "keeper";
+  } else if (mbti.includes("E") && mbti.includes("J")) {
+    key = "captain";
+  } else if (mbti.includes("I")) {
+    key = "sage";
+  } else {
+    // 2. MBTI가 없을 때: 사주 일간의 대외적 발현 (본질과 겹치지 않는 상생/사회적 역할)
+    if (elem === "화") key = "captain";
+    else if (elem === "토") key = "keeper";
+    else if (elem === "목") key = "spark";
+    else if (elem === "금") key = "healer";
+    else key = "sage";
   }
-  if (elem === "토" || (mbti.includes("F") && mbti.includes("J"))) {
-    return { key: "healer", role: "멘탈 케어 힐러", hanja: "德厚 (덕후)", tagline: "누구 하나 소외되지 않도록 묵묵히 챙겨주는 안식처" };
+
+  // 3. 만약 역할 소품이 사주 본질 소품과 겹치면 차별화된 역할로 전환 (절대 중복 방지)
+  if (ROLE_TO_ITEM[key] === soulItem) {
+    const FALLBACK_DIFF: Record<RoleKey, RoleKey> = {
+      spark: "captain",   // sunglasses(화) 겹침 -> bowtie(목)
+      healer: "keeper",   // scarf(토) 겹침 -> headphones(수)
+      keeper: "sage",     // headphones(수) 겹침 -> glasses(금)
+      captain: "spark",   // bowtie(목) 겹침 -> sunglasses(화)
+      sage: "healer",     // glasses(금) 겹침 -> scarf(토)
+    };
+    key = FALLBACK_DIFF[key] || "sage";
   }
-  if (elem === "금" || (mbti.includes("T") && mbti.includes("J"))) {
-    return { key: "keeper", role: "실속 총무 & 밸런서", hanja: "信實 (신실)", tagline: "일정과 정산을 똑 부러지게 챙기며 빈틈을 막아요" };
-  }
-  if (elem === "목" || (mbti.includes("E") && mbti.includes("J"))) {
-    return { key: "captain", role: "카리스마 캡틴", hanja: "統率 (통솔)", tagline: "목표가 생기면 거침없이 전진하며 모두를 이끌어요" };
-  }
-  return { key: "sage", role: "히든 책사 & 브레인", hanja: "睿智 (예지)", tagline: "조용히 판을 읽고 결정적인 순간에 묘수를 던져요" };
+
+  const roleMeta: Record<RoleKey, { role: string; hanja: string; tagline: string }> = {
+    spark: { role: "스파크 메이커", hanja: "和氣 (화기)", tagline: "모임의 분위기를 띄우며 어색함을 단숨에 녹여요" },
+    healer: { role: "멘탈 케어 힐러", hanja: "德厚 (덕후)", tagline: "누구 하나 소외되지 않도록 묵묵히 챙겨주는 안식처" },
+    keeper: { role: "실속 총무 & 밸런서", hanja: "信實 (신실)", tagline: "일정과 정산을 똑 부러지게 챙기며 빈틈을 막아요" },
+    captain: { role: "카리스마 캡틴", hanja: "統率 (통솔)", tagline: "목표가 생기면 거침없이 전진하며 모두를 이끌어요" },
+    sage: { role: "히든 책사 & 브레인", hanja: "睿智 (예지)", tagline: "조용히 판을 읽고 결정적인 순간에 묘수를 던져요" },
+  };
+
+  return { key, ...roleMeta[key] };
 }
 
 /**

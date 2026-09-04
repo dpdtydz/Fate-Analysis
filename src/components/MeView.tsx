@@ -1356,10 +1356,15 @@ export default function MeView({ code, memberId }: MeViewProps) {
                 "申": "원숭이", "酉": "닭", "戌": "개", "亥": "돼지"
               };
               const dayJi = member.saju?.pillars?.day?.ji || member.saju?.pillars?.year?.ji || member.character_animal;
+              const yearJi = member.saju?.pillars?.year?.ji;
               const dayGan = member.saju?.daymaster?.gan;
               const dayElem = member.saju?.daymaster?.element || member.character_color || "금";
               const animalKr = dayJi ? BRANCH_TO_ANIMAL_KR[dayJi] : null;
+              const yearAnimalKr = yearJi ? BRANCH_TO_ANIMAL_KR[yearJi] : null;
               const itemName = dayElem ? ELEMENT_TO_ITEM_NAME[dayElem] : null;
+
+              // 역할 동물: 태어난 해의 띠(연지) 우선, 없으면 일지(dayJi)
+              const roleBranch = yearJi || dayJi;
 
               return (
                 <div className="w-full bg-surface rounded-xl p-6 sm:p-7 border border-line text-left animate-fade-in">
@@ -1412,12 +1417,12 @@ export default function MeView({ code, memberId }: MeViewProps) {
                     </div>
                   </div>
 
-                  {/* 2. 엠블럼: 모임 속 역할(role) vs 사주 본질(soul) 캐릭터 분리 */}
+                  {/* 2. 엠블럼: 모임 속 역할(role: 띠+역할소품) vs 사주 본질(soul: 일지+본질소품) 캐릭터 분리 */}
                   <div className="w-[112px] h-[112px] mx-auto mb-4 flex items-center justify-center">
                     {cardViewMode === "role" ? (
                       <ZodiacAvatar
                         member={member}
-                        branch={dayJi}
+                        branch={roleBranch}
                         role={roleInfo.key}
                         size={112}
                         fallbackEmoji={member.character_emoji}
@@ -1449,7 +1454,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
                     <div className="mx-auto max-w-[340px] bg-sunken/60 rounded-xl px-4 py-2.5 mb-3 border border-line/40">
                       {cardViewMode === "role" ? (
                         <p className="text-[11px] text-ink-faint leading-relaxed text-center">
-                          사주 일간 <span className="font-semibold text-seal">{dayElem} 기운</span>({spec.colorName})과 성향이 어우러져{' '}
+                          태어난 해의 <span className="font-semibold text-seal">{yearAnimalKr || animalKr}띠</span>와 성향이 어우러져{' '}
                           모임 안에서 <span className="font-semibold text-ink">{roleDetail.badge}</span> 역할을 톡톡히 해내요
                         </p>
                       ) : (

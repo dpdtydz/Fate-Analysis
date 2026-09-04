@@ -5,7 +5,7 @@ import { Member } from "../types";
 import { calculateTodayFortune } from "../utils/saju";
 import { shareToKakaoOrClipboard, shareImageFileOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/analytics";
-import { zodiacImageSrc, roleImageSrc, spaceImageSrc, SPACE_NAMES, SpaceKey, getMemberZodiacSrc } from "./ZodiacAvatar";
+import { zodiacImageSrc, roleImageSrc, spaceImageSrc, SPACE_NAMES, SpaceKey, getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS } from "./ZodiacAvatar";
 import { getRepresentativeBranch } from "../utils/zodiacCompat";
 import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
@@ -655,92 +655,25 @@ export default function ViralCardModal({
   // 3. 모임 속 시그니처 역할 분석 데이터
   const roleAnalysis = useMemo(() => {
     if (!isGroupMode) return null;
-
-    if (elem === "화" || (mbti.includes("E") && mbti.includes("P"))) {
-      return {
-        key: "spark" as const,
-        role: "스파크 메이커",
-        hanja: "和氣 (화기)",
-        tagline: '"모임의 분위기를 띄우며 어색함을 단숨에 녹여요"',
-        tags: ["분위기 메이커", "도파민 충전", "유쾌한 에너지", "대화 촉발"],
-        stats: [
-          { label: "분위기", val: 92, color: "#F0632E" },
-          { label: "순발력", val: 86, color: "#35B37E" },
-          { label: "도파민", val: 94, color: "#C0392B" },
-          { label: "약속 추진", val: 78, color: "#7C86A0" }
-        ],
-        desc: `${roomTitle}의 공기를 유쾌하게 이끄는 분위기 기둥이에요. 사람들의 기분을 빠르게 감지해 자연스럽게 웃음을 만들어냅니다.`
-      };
-    }
-    if (elem === "토" || (mbti.includes("F") && mbti.includes("J"))) {
-      return {
-        key: "healer" as const,
-        role: "멘탈 케어 힐러",
-        hanja: "德厚 (덕후)",
-        tagline: '"누구 하나 소외되지 않도록 묵묵히 챙겨주는 안식처"',
-        tags: ["깊은 공감", "멘탈 수호", "갈등 중재", "편안한 대화"],
-        stats: [
-          { label: "경청·공감", val: 95, color: "#E0A82E" },
-          { label: "멘탈 수호", val: 90, color: "#35B37E" },
-          { label: "갈등 중재", val: 85, color: "#3B5BFF" },
-          { label: "신뢰감", val: 92, color: "#C0392B" }
-        ],
-        desc: `${roomTitle}에서 모두가 마음 놓고 기댈 수 있는 따뜻한 쉼터예요. 세심한 배려로 모임의 지속력을 단단하게 지탱합니다.`
-      };
-    }
-    if (elem === "금" || (mbti.includes("T") && mbti.includes("J"))) {
-      return {
-        key: "keeper" as const,
-        role: "실속 총무 & 밸런서",
-        hanja: "信實 (신실)",
-        tagline: '"일정과 정산을 똑 부러지게 챙기며 빈틈을 막아요"',
-        tags: ["정산의 달인", "현실주의 기둥", "리스크 방어", "명쾌한 정리"],
-        stats: [
-          { label: "정산·실속", val: 96, color: "#7C86A0" },
-          { label: "실행력", val: 88, color: "#C0392B" },
-          { label: "리스크 방어", val: 91, color: "#E0A82E" },
-          { label: "팩트 체크", val: 85, color: "#3B5BFF" }
-        ],
-        desc: `${roomTitle}의 현실적인 기반을 지켜주는 든든한 조율자예요. 흐트러지기 쉬운 일정과 회비를 빈틈없이 정리해 모임의 신뢰를 만듭니다.`
-      };
-    }
-    if (elem === "목" || (mbti.includes("E") && mbti.includes("J"))) {
-      return {
-        key: "captain" as const,
-        role: "카리스마 캡틴",
-        hanja: "統率 (통솔)",
-        tagline: '"목표가 생기면 거침없이 전진하며 모두를 이끌어요"',
-        tags: ["추진 대장", "행동력", "결단력", "모임의 리더"],
-        stats: [
-          { label: "추진력", val: 94, color: "#35B37E" },
-          { label: "결단력", val: 89, color: "#C0392B" },
-          { label: "리더십", val: 91, color: "#E0A82E" },
-          { label: "의리 지수", val: 87, color: "#7C86A0" }
-        ],
-        desc: `${roomTitle}의 다음 단계를 열어가는 추진력의 원천이에요. 망설임 없는 행동으로 약속을 성사시키고 결속력을 끌어올립니다.`
-      };
-    }
+    const computed = calculateMemberRole(member);
+    const detail = ROLE_DETAILS[computed.key];
     return {
-      key: "sage" as const,
-      role: "히든 책사 & 전략가",
-      hanja: "睿智 (예지)",
-      tagline: '"조용히 판을 보다가 결정적인 꿀팁과 혜안을 전해요"',
-      tags: ["정보 탐색", "통찰력", "숨은 브레인", "위기 탈출"],
-      stats: [
-        { label: "정보 탐색", val: 94, color: "#3B5BFF" },
-        { label: "통찰력", val: 91, color: "#35B37E" },
-        { label: "전략 기획", val: 87, color: "#7C86A0" },
-        { label: "위기 대처", val: 84, color: "#C0392B" }
-      ],
-      desc: `${roomTitle}의 숨은 조언자이자 길잡이예요. 과묵하게 듣다가도 핵심을 짚어내어 최선의 선택지를 제시합니다.`
+      key: computed.key,
+      role: detail.role,
+      hanja: detail.hanja,
+      tagline: `"${detail.tagline}"`,
+      tags: detail.tags,
+      stats: detail.stats,
+      desc: detail.desc,
     };
-  }, [elem, mbti, roomTitle, isGroupMode]);
+  }, [member, isGroupMode]);
 
-  // 역할 캐릭터 이미지 — 아직 생성 전인 조합이면 로드 실패 시 기존 SVG로 되돌린다
+  // 역할 캐릭터 이미지: 태어난 해의 띠(연지) 우선 매핑하여 사주 본질 캐릭터와 확실히 분리
   const [roleImgFailed, setRoleImgFailed] = useState(false);
+  const roleBranch = member?.saju?.pillars?.year?.ji || member?.saju?.pillars?.day?.ji || ji;
   const roleSrcCandidate = useMemo(
-    () => roleImageSrc(ji, roleAnalysis?.key ?? null),
-    [ji, roleAnalysis?.key]
+    () => roleImageSrc(roleBranch, roleAnalysis?.key ?? null),
+    [roleBranch, roleAnalysis?.key]
   );
   useEffect(() => setRoleImgFailed(false), [roleSrcCandidate]);
   const roleSrc = roleImgFailed ? null : roleSrcCandidate;
