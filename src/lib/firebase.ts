@@ -485,6 +485,7 @@ export function saveUserPersonalProfile(profile: PersonalSajuProfile): void {
     
     // If user is authenticated, also sync to Firestore
     if (currentUid) {
+      swrCache.invalidate(`profile_${currentUid}`);
       setDoc(doc(db, "users", currentUid), {
         personalProfile: payload,
         updatedAt: Date.now()
@@ -495,30 +496,29 @@ export function saveUserPersonalProfile(profile: PersonalSajuProfile): void {
   }
 }
 
-// Get User Personal Saju Profile (Local & Cloud Sync)
+// Get User Personal Saju Profile (Local & Cloud Sync via SWR Cache)
 export async function getUserPersonalProfile(): Promise<PersonalSajuProfile | null> {
   try {
     const currentUid = auth.currentUser && !auth.currentUser.isAnonymous ? auth.currentUser.uid : null;
 
-    // 1. Try Firestore first if user is logged in
+    // 1. Try Firestore with SWR cache if user is logged in
     if (currentUid) {
-      const userSnap = await getDoc(doc(db, "users", currentUid));
-      if (userSnap.exists() && userSnap.data()?.personalProfile) {
-        const firestoreProfile = userSnap.data().personalProfile as PersonalSajuProfile;
-        localStorage.setItem("saju_my_personal_profile", JSON.stringify(firestoreProfile));
-        return firestoreProfile;
-      }
-      // If user is authenticated but has no profile in Firestore (e.g. freshly registered or re-registered after withdrawal),
-      // we must NOT fallback to stale previous account data in localStorage!
-      localStorage.removeItem("saju_my_personal_profile");
-      return null;
+      return await swrCache.get(`profile_${currentUid}`, async () => {
+        const userSnap = await getDoc(doc(db, "users", currentUid));
+        if (userSnap.exists() && userSnap.data()?.personalProfile) {
+          const firestoreProfile = userSnap.data().personalProfile as PersonalSajuProfile;
+          localStorage.setItem("saju_my_personal_profile", JSON.stringify(firestoreProfile));
+          return firestoreProfile;
+        }
+        localStorage.removeItem("saju_my_personal_profile");
+        return null;
+      }, 60 * 1000);
     }
 
     // 2. Fallback to localStorage ONLY for unauthenticated guest session
     const localStr = localStorage.getItem("saju_my_personal_profile");
     if (localStr) {
       const parsed = JSON.parse(localStr);
-      // If the cached profile belonged to a previous authenticated account, do not leak it
       if (parsed.ownerUid && parsed.ownerUid !== currentUid) {
         localStorage.removeItem("saju_my_personal_profile");
         return null;
@@ -1203,7 +1203,8 @@ export async function createOrUpdateCoupon(
 // 🎟️ SINGLE-USE TICKETS & INVITATION REWARDS
 // ==========================================
 
-import { UserTicketAccount, TicketProductType, UserTierType, TicketConsumptionRecord } from "../types";
+import { User, Room, Member, UserTicketAccount, TicketProductType, TicketConsumptionRecord } from "../types";
+import { swrCache } from "./swrCache";
 
 export async function getUserTicketAccount(targetUid?: string): Promise<UserTicketAccount> {
   const uid = targetUid || 
@@ -1215,26 +1216,48 @@ export async function getUserTicketAccount(targetUid?: string): Promise<UserTick
     localStorage.setItem("saju_fallback_guest_uid", uid);
   }
 
-  // Check Firestore first
+  // Check Firestore first with SWR cache
   try {
-    const ticketDocRef = doc(db, "user_tickets", uid);
-    const snap = await getDoc(ticketDocRef);
-    if (snap.exists()) {
-      const data = snap.data() as UserTicketAccount;
-      
-      // Update email if empty or changed
-      const currentEmail = auth.currentUser?.email;
-      if (currentEmail && data.userEmail !== currentEmail) {
-        data.userEmail = currentEmail;
-        await setDoc(ticketDocRef, { userEmail: currentEmail }, { merge: true });
+    return await swrCache.get(`ticket_${uid}`, async () => {
+      const ticketDocRef = doc(db, "user_tickets", uid);
+      const snap = await getDoc(ticketDocRef);
+      if (snap.exists()) {
+        const data = snap.data() as UserTicketAccount;
+        
+        // Update email if empty or changed
+        const currentEmail = auth.currentUser?.email;
+        if (currentEmail && data.userEmail !== currentEmail) {
+          data.userEmail = currentEmail;
+          await setDoc(ticketDocRef, { userEmail: currentEmail }, { merge: true });
+        }
+
+        // Sync local storage ticket cache
+        const totalTickets = (data.tickets.pdf || 0) + (data.tickets.secret || 0) + (data.tickets.group || 0) + (data.tickets.all || 0);
+        localStorage.setItem("saju_ticket_count", String(totalTickets));
+        localStorage.setItem("saju_user_tier", data.userTier || "free");
+        return data;
       }
 
-      // Sync local storage ticket cache
-      const totalTickets = (data.tickets.pdf || 0) + (data.tickets.secret || 0) + (data.tickets.group || 0) + (data.tickets.all || 0);
-      localStorage.setItem("saju_ticket_count", String(totalTickets));
-      localStorage.setItem("saju_user_tier", data.userTier || "free");
-      return data;
-    }
+      // Initialize new ticket account (Zero default tickets unless earned via coupon or referral)
+      const localSaved = localStorage.getItem(`saju_ticket_account_${uid}`);
+      if (localSaved) {
+        try {
+          return JSON.parse(localSaved) as UserTicketAccount;
+        } catch (e) {}
+      }
+
+      const initialAccount: UserTicketAccount = {
+        uid,
+        userEmail: auth.currentUser?.email || undefined,
+        userTier: "free",
+        tickets: { pdf: 0, secret: 0, group: 0, all: 0 },
+        consumedTickets: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      };
+      await setDoc(ticketDocRef, initialAccount, { merge: true });
+      return initialAccount;
+    }, 30 * 1000);
   } catch (err) {
     console.debug("Failed reading user_tickets from Firestore, using local fallback:", err);
   }
@@ -1336,6 +1359,7 @@ export async function consumeSingleUseTicket(
 
   // Save to Firestore user_tickets
   try {
+    swrCache.invalidate(`ticket_${account.userUid}`);
     await setDoc(doc(db, "user_tickets", account.userUid), cleanUndefined(account), { merge: true });
   } catch (e) {
     console.debug("Firestore update user_tickets skip:", e);

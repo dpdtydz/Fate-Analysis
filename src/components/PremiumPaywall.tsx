@@ -27,6 +27,7 @@ import {
 } from "../lib/firebase";
 import { UserTicketAccount, TicketProductType } from "../types";
 import { logAnalyticsEvent } from "../lib/analytics";
+import { getExperimentVariant, trackExperimentConversion } from "../lib/abTest";
 import UpgradeToSocialModal from "./UpgradeToSocialModal";
 import AuthModal from "./AuthModal";
 import PdfReportModal from "./PdfReportModal";
@@ -201,6 +202,7 @@ export default function PremiumPaywall({
           metadata: { couponCode: targetCode, productType: res.productType },
           roomCode
         });
+        trackExperimentConversion("paywall_headline_variant", "coupon_redeemed", { couponCode: targetCode });
         await syncUnlockStates();
       } else {
         setCouponErrorMsg(res.message);
@@ -377,7 +379,11 @@ export default function PremiumPaywall({
       {/* Header */}
       <div className="space-y-1.5">
         <h4 className="font-serif text-lg font-semibold text-ink">
-          {titleText || "1회 확인권으로 심층 분석 열람"}
+          {titleText || (
+            getExperimentVariant("paywall_headline_variant") === "B_urgent_coupon"
+              ? "🎁 오늘만 제공되는 무료 체험 쿠폰으로 심층 리포트 열람"
+              : "1회 확인권으로 심층 분석 열람"
+          )}
         </h4>
         <p className="text-sm text-ink-soft leading-relaxed">
           {subtitleText || "확인권 1장으로 심층 감정서를 한 번 열람할 수 있어요. 분석된 사주 데이터는 보관되므로 확인권을 다시 사용하면 같은 결과를 언제든 열람할 수 있어요."}

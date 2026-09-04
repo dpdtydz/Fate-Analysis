@@ -3,7 +3,7 @@ import { X, Share2, Check } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import { Member } from "../types";
 import { calculateTodayFortune } from "../utils/saju";
-import { shareToKakaoOrClipboard } from "../utils/shareHelper";
+import { shareToKakaoOrClipboard, shareImageFileOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/analytics";
 import { zodiacImageSrc, roleImageSrc, spaceImageSrc, SPACE_NAMES, SpaceKey, getMemberZodiacSrc } from "./ZodiacAvatar";
 import { getRepresentativeBranch } from "../utils/zodiacCompat";

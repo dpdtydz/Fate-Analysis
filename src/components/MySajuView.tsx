@@ -3,6 +3,7 @@ import Layout from "./Layout";
 import SajuVisual from "./SajuVisual";
 import SajuForm from "./SajuForm";
 import LoadingOverlay from "./LoadingOverlay";
+import ShinsalBadges from "./ShinsalBadges";
 import { 
   getUserPersonalProfile, 
   saveUserPersonalProfile, 
@@ -1192,6 +1193,13 @@ export default function MySajuView() {
                   </div>
                 </div>
               )}
+
+              {/* 현대적 신살(神煞) & 12운성 인터랙티브 뱃지 */}
+              <ShinsalBadges
+                sals={profile.saju?.special_sals || []}
+                unseong={profile.saju?.pillars?.day?.unseong || "건록"}
+                dayJi={profile.saju?.pillars?.day?.ji}
+              />
 
               {/* 하단 액션 버튼 */}
               <div className="grid grid-cols-2 gap-2 pt-2">

@@ -174,3 +174,59 @@ export function shareToKakaoOrClipboard(data: ShareData): Promise<{ success: boo
   });
 }
 
+/**
+ * 모바일 네이티브 공유 시트 (Web Share API 파일 직접 전송)
+ * 생성된 소울 카드 PNG 이미지를 카카오톡/인스타 DM 등으로 1초 만에 바로 공유
+ */
+export async function shareImageFileOrClipboard(options: {
+  file: File;
+  title: string;
+  text?: string;
+  url?: string;
+}): Promise<{ success: boolean; method: "native_file_share" | "clipboard_image" | "download" }> {
+  const { file, title, text, url } = options;
+
+  // 1. Web Share API Level 2: Native File Sharing
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title,
+        text: text ? `${text}\n${url || ""}` : (url || ""),
+      });
+      return { success: true, method: "native_file_share" };
+    } catch (err: any) {
+      if (err?.name === "AbortError") {
+        return { success: true, method: "native_file_share" };
+      }
+      console.warn("Native file share failed, falling back:", err);
+    }
+  }
+
+  // 2. Clipboard Image API (Desktop & modern browsers)
+  if (typeof ClipboardItem !== "undefined" && navigator.clipboard?.write) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ [file.type]: file })]);
+      return { success: true, method: "clipboard_image" };
+    } catch (clipErr) {
+      console.warn("Clipboard image write failed:", clipErr);
+    }
+  }
+
+  // 3. Fallback: Download file directly
+  try {
+    const objectUrl = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+    return { success: true, method: "download" };
+  } catch (downloadErr) {
+    console.error("Direct download failed:", downloadErr);
+    return { success: false, method: "download" };
+  }
+}
+

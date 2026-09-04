@@ -71,7 +71,24 @@ export default function KakaoOutlinkGuide() {
   }
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-paper text-ink flex flex-col justify-between p-6 overflow-y-auto font-sans">
+    <>
+      {/* 1. 상단 플로팅 퀵 액션 배너 (닫았더라도 항상 재진입 가능) */}
+      <aside aria-label="브라우저 전환 안내" className="fixed top-0 left-0 right-0 z-[99998] bg-[#FEE500] text-[#3C1E1E] px-4 py-2.5 shadow-md flex items-center justify-between text-xs font-semibold pt-safe animate-fade-in">
+        <div className="flex items-center gap-2 truncate pr-2">
+          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+          <span className="truncate">카카오톡 브라우저에서는 기능이 제한될 수 있습니다.</span>
+        </div>
+        <button
+          onClick={handleRetryRedirect}
+          className="shrink-0 bg-[#3C1E1E] text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-black transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          <span>외부 브라우저로 열기</span>
+        </button>
+      </aside>
+
+      {/* 2. 풀스크린 가이드 모달 */}
+      <div className="fixed inset-0 z-[99999] bg-paper text-ink flex flex-col justify-between p-6 overflow-y-auto font-sans">
       {/* Upper content */}
       <div className="max-w-md mx-auto w-full pt-8 space-y-8">
         {/* Header */}
@@ -189,5 +206,6 @@ export default function KakaoOutlinkGuide() {
         </button>
       </div>
     </div>
+    </>
   );
 }
