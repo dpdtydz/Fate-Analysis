@@ -1023,7 +1023,10 @@ export default function MySajuView() {
 
                   {/* 1. 잘 맞는 유형 */}
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-ink-soft">잘 맞는 유형</p>
+                    <p className="text-xs font-medium text-ink-soft flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#35B37E]" />
+                      잘 맞는 유형 (BEST)
+                    </p>
                     <div className="grid grid-cols-1 gap-2">
                       {spec.compatibility.best.map((item, idx) => {
                         const isExpanded = activeTipCard === `best-${idx}`;
@@ -1033,44 +1036,53 @@ export default function MySajuView() {
                           <div
                             key={idx}
                             onClick={() => setActiveTipCard(isExpanded ? null : `best-${idx}`)}
-                            className="bg-sunken hover:bg-line/60 rounded-xl p-3.5 transition-colors cursor-pointer"
+                            className="bg-sunken hover:bg-line/60 rounded-2xl p-3.5 transition-all cursor-pointer border border-transparent hover:border-line/70"
                           >
-                            <div className="flex items-center justify-between mb-1.5 gap-2">
-                              <div className="flex items-center gap-2 flex-wrap min-w-0">
+                            <div className="flex items-start gap-3.5">
+                              {/* 선명한 캐릭터 아바타 (화이트 서클 + 테두리 + 입체감) */}
+                              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-white shadow-xs border border-line/80 flex items-center justify-center shrink-0 p-1 relative overflow-hidden">
                                 {repSrc ? (
                                   <img
                                     src={repSrc}
                                     alt={`${rep!.element} 기운의 ${rep!.animal} 캐릭터`}
                                     decoding="async"
-                                    className="w-9 h-9 shrink-0 object-contain select-none"
+                                    className="w-11 h-11 sm:w-12 sm:h-12 object-contain select-none filter drop-shadow-xs"
                                   />
                                 ) : (
                                   <span
-                                    className="w-6 h-6 shrink-0 rounded-md text-white font-serif text-xs flex items-center justify-center select-none"
+                                    className="w-8 h-8 rounded-lg text-white font-serif text-sm font-bold flex items-center justify-center select-none"
                                     style={{ backgroundColor: ELEM_COLOR[item.elem] || "var(--color-ink)" }}
                                   >
                                     {item.hanja}
                                   </span>
                                 )}
-                                <span className="font-semibold text-sm text-ink">
-                                  {item.cardName}
-                                </span>
-                                <span className="text-xs text-ink-faint">
-                                  {item.relationName}
-                                </span>
                               </div>
-                              <span className="text-sm font-semibold font-mono text-ink shrink-0">
-                                {item.score}
-                              </span>
+
+                              {/* 텍스트 영역 */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1 gap-1.5">
+                                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                                    <span className="font-semibold text-sm text-ink">
+                                      {rep?.animal ? `${rep.animal}띠 · ` : ""}{item.cardName}
+                                    </span>
+                                    <span className="text-xs text-ink-faint">
+                                      {item.relationName}
+                                    </span>
+                                  </div>
+                                  <span className="text-xs font-semibold font-mono text-[#35B37E] shrink-0 bg-white/90 px-2 py-0.5 rounded-full border border-line/60">
+                                    {item.score}점
+                                  </span>
+                                </div>
+                                <p className="text-xs text-ink-soft leading-relaxed">
+                                  {item.oneLiner}
+                                </p>
+                                {isExpanded && (
+                                  <p className="mt-2.5 pt-2 border-t border-line text-xs text-ink-soft leading-relaxed animate-fade-in">
+                                    <strong className="text-ink">팁</strong> · {item.tip}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <p className="text-xs text-ink-soft leading-relaxed">
-                              {item.oneLiner}
-                            </p>
-                            {isExpanded && (
-                              <p className="mt-2 pt-2 border-t border-line text-xs text-ink-soft leading-relaxed animate-fade-in">
-                                <strong className="text-ink">팁</strong> · {item.tip}
-                              </p>
-                            )}
                           </div>
                         );
                       })}
@@ -1079,7 +1091,10 @@ export default function MySajuView() {
 
                   {/* 2. 잘 안 맞는 유형 */}
                   <div className="space-y-2">
-                    <p className="text-xs font-medium text-ink-soft">잘 안 맞는 유형</p>
+                    <p className="text-xs font-medium text-ink-soft flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#E0A82E]" />
+                      잘 안 맞는 유형 (조율 필요)
+                    </p>
                     <div className="grid grid-cols-1 gap-2">
                       {spec.compatibility.caution.map((item, idx) => {
                         const isExpanded = activeTipCard === `caution-${idx}`;
@@ -1089,44 +1104,53 @@ export default function MySajuView() {
                           <div
                             key={idx}
                             onClick={() => setActiveTipCard(isExpanded ? null : `caution-${idx}`)}
-                            className="bg-sunken hover:bg-line/60 rounded-xl p-3.5 transition-colors cursor-pointer"
+                            className="bg-sunken hover:bg-line/60 rounded-2xl p-3.5 transition-all cursor-pointer border border-transparent hover:border-line/70"
                           >
-                            <div className="flex items-center justify-between mb-1.5 gap-2">
-                              <div className="flex items-center gap-2 flex-wrap min-w-0">
+                            <div className="flex items-start gap-3.5">
+                              {/* 선명한 캐릭터 아바타 (투명도 opacity-60 제거하여 선명하게 표시) */}
+                              <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-white shadow-xs border border-line/80 flex items-center justify-center shrink-0 p-1 relative overflow-hidden">
                                 {repSrc ? (
                                   <img
                                     src={repSrc}
                                     alt={`${rep!.element} 기운의 ${rep!.animal} 캐릭터`}
                                     decoding="async"
-                                    className="w-9 h-9 shrink-0 object-contain select-none opacity-60"
+                                    className="w-11 h-11 sm:w-12 sm:h-12 object-contain select-none filter drop-shadow-xs"
                                   />
                                 ) : (
                                   <span
-                                    className="w-6 h-6 shrink-0 rounded-md text-white font-serif text-xs flex items-center justify-center select-none"
+                                    className="w-8 h-8 rounded-lg text-white font-serif text-sm font-bold flex items-center justify-center select-none"
                                     style={{ backgroundColor: ELEM_COLOR[item.elem] || "var(--color-ink)" }}
                                   >
                                     {item.hanja}
                                   </span>
                                 )}
-                                <span className="font-semibold text-sm text-ink">
-                                  {item.cardName}
-                                </span>
-                                <span className="text-xs text-ink-faint">
-                                  {item.relationName}
-                                </span>
                               </div>
-                              <span className="text-sm font-semibold font-mono text-ink-faint shrink-0">
-                                {item.score}
-                              </span>
+
+                              {/* 텍스트 영역 */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between mb-1 gap-1.5">
+                                  <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                                    <span className="font-semibold text-sm text-ink">
+                                      {rep?.animal ? `${rep.animal}띠 · ` : ""}{item.cardName}
+                                    </span>
+                                    <span className="text-xs text-ink-faint">
+                                      {item.relationName}
+                                    </span>
+                                  </div>
+                                  <span className="text-xs font-semibold font-mono text-ink-faint shrink-0 bg-white/90 px-2 py-0.5 rounded-full border border-line/60">
+                                    {item.score}점
+                                  </span>
+                                </div>
+                                <p className="text-xs text-ink-soft leading-relaxed">
+                                  {item.oneLiner}
+                                </p>
+                                {isExpanded && (
+                                  <p className="mt-2.5 pt-2 border-t border-line text-xs text-ink-soft leading-relaxed animate-fade-in">
+                                    <strong className="text-ink">팁</strong> · {item.tip}
+                                  </p>
+                                )}
+                              </div>
                             </div>
-                            <p className="text-xs text-ink-soft leading-relaxed">
-                              {item.oneLiner}
-                            </p>
-                            {isExpanded && (
-                              <p className="mt-2 pt-2 border-t border-line text-xs text-ink-soft leading-relaxed animate-fade-in">
-                                <strong className="text-ink">팁</strong> · {item.tip}
-                              </p>
-                            )}
                           </div>
                         );
                       })}
