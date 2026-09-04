@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useRef, useEffect } from "react";
 import { Member, PairAnalysis } from "../types";
-import { ArrowRightLeft, Filter, Smile, AlertTriangle, Lock, ChevronDown, Zap } from "lucide-react";
+import { ArrowRightLeft, Filter, Smile, AlertTriangle, Lock, ChevronDown, Zap, Trophy, Flame, Sparkles, Heart, Info, CheckCircle2 } from "lucide-react";
 import ZodiacAvatar, { getMemberZodiacSrc } from "./ZodiacAvatar";
 
 interface GroupNetworkProps {
@@ -99,6 +99,7 @@ const getPairAsymmetricScores = (pair: PairAnalysis | undefined, m1: Member, m2:
 export default function GroupNetwork({ members, pairs, isPremium }: GroupNetworkProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [relationFilter, setRelationFilter] = useState<"all" | "good" | "bad">("all");
+  const [highlightedPair, setHighlightedPair] = useState<[string, string] | null>(null);
   // Default to SVG for crisp vector rendering, animations, and high-fidelity character illustrations
   const [renderEngine, setRenderEngine] = useState<"svg" | "canvas">("svg");
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -118,12 +119,33 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
     return 0.5;
   };
 
-  // --- DYNAMIC SIZING FOR OPTIMAL AVATAR VISIBILITY ---
+  // --- DYNAMIC SIZING FOR UNRIVALED AVATAR VISIBILITY (ZERO OVERLAP) ---
   const isLargeGroup = members.length > 8;
-  const svgSize = isLargeGroup ? 420 : 370;
+  const svgSize = isLargeGroup ? 520 : 470;
   const center = svgSize / 2;
-  const radius = isLargeGroup ? 140 : 118;
-  const nodeRadius = isLargeGroup ? 21 : 25; // Large enough for face visibility
+  const radius = isLargeGroup ? 165 : 145;
+  const nodeRadius = isLargeGroup ? 28 : 34; // Generous size so 3D animal faces are crisp and clear!
+
+  // Pre-calculated ranking of pairs for the insight cards
+  const rankedPairs = useMemo(() => {
+    return [...pairs].sort((a, b) => b.score - a.score);
+  }, [pairs]);
+
+  const topSynergyPairs = useMemo(() => {
+    return rankedPairs.slice(0, 3);
+  }, [rankedPairs]);
+
+  const attentionPair = useMemo(() => {
+    return rankedPairs.length > 0 && rankedPairs[rankedPairs.length - 1].score < 68
+      ? rankedPairs[rankedPairs.length - 1]
+      : null;
+  }, [rankedPairs]);
+
+  const avgGroupScore = useMemo(() => {
+    if (!pairs || pairs.length === 0) return 75;
+    const total = pairs.reduce((sum, p) => sum + (p.score || 0), 0);
+    return Math.round(total / pairs.length);
+  }, [pairs]);
 
   // Coordinates for members in a circle
   const nodes = useMemo(() => {
@@ -220,16 +242,33 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
 
       // Apply relationship filter
       if (relationFilter === "good") {
-        activePairs = allAsymPairs.filter(p => p.avgScore >= 70);
+        activePairs = allAsymPairs.filter(p => p.avgScore >= 75);
       } else if (relationFilter === "bad") {
-        activePairs = allAsymPairs.filter(p => p.avgScore < 50);
+        activePairs = allAsymPairs.filter(p => p.avgScore < 60);
       } else {
         activePairs = allAsymPairs;
       }
     } else {
-      // Unselected state: show ONLY the top 4 strongest combinations in the group
-      const sortedPairs = [...pairs].sort((a, b) => b.score - a.score).slice(0, 4);
-      activePairs = sortedPairs.map((p) => {
+      // Unselected state: filter by highlightedPair or relationFilter
+      let pool = [...pairs];
+      if (highlightedPair) {
+        pool = pool.filter(p => {
+          const idA = p.member_id_1.trim().toLowerCase();
+          const idB = p.member_id_2.trim().toLowerCase();
+          const targetA = highlightedPair[0].trim().toLowerCase();
+          const targetB = highlightedPair[1].trim().toLowerCase();
+          return (idA === targetA && idB === targetB) || (idA === targetB && idB === targetA);
+        });
+      } else if (relationFilter === "good") {
+        pool = pool.filter(p => p.score >= 75);
+      } else if (relationFilter === "bad") {
+        pool = pool.filter(p => p.score < 60);
+      } else {
+        // Default: Top 5 strongest synergies
+        pool = pool.sort((a, b) => b.score - a.score).slice(0, 5);
+      }
+
+      activePairs = pool.map((p) => {
         const nodeA = findNode(p.member_id_1);
         const nodeB = findNode(p.member_id_2);
         if (!nodeA || !nodeB) return null;
@@ -243,7 +282,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
           score2to1,
           avgScore: p.score,
           color: getScoreColor(p.score),
-          opacity: getScoreOpacity(p.score),
+          opacity: highlightedPair ? 1 : getScoreOpacity(p.score),
         };
       }).filter((p) => p !== null) as any[];
     }
@@ -401,27 +440,51 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
       }
       ctx.restore();
 
-      // Element badge
-      ctx.fillStyle = elemHex;
-      const bW = 18;
-      const bH = 10;
+      // Element badge (placed at top-right corner of avatar, 100% free of character face)
+      const badgeX = node.x + nodeRadius * 0.72;
+      const badgeY = node.y - nodeRadius * 0.72;
+      ctx.save();
       ctx.beginPath();
-      ctx.roundRect(node.x - bW / 2, node.y + nodeRadius - 2, bW, bH, 3);
+      ctx.arc(badgeX, badgeY, 8.5, 0, Math.PI * 2);
+      ctx.fillStyle = elemHex;
       ctx.fill();
       ctx.strokeStyle = "#FFFFFF";
-      ctx.lineWidth = 0.8;
+      ctx.lineWidth = 1.5;
       ctx.stroke();
 
-      ctx.font = '700 7px "Pretendard", sans-serif';
+      ctx.font = '700 7.5px "Pretendard", sans-serif';
       ctx.fillStyle = "#FFFFFF";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(node.element, node.x, node.y + nodeRadius + 3);
+      ctx.fillText(node.element, badgeX, badgeY + 0.5);
+      ctx.restore();
 
-      // Label below
+      // Label placed outward away from the center (ZERO OVERLAP with circle)
+      const angle = Math.atan2(node.y - center, node.x - center);
+      const labelOffset = nodeRadius + (isLargeGroup ? 18 : 22);
+      const lx = node.x + labelOffset * Math.cos(angle);
+      const ly = node.y + labelOffset * Math.sin(angle);
+
+      // Label background pill
+      ctx.save();
       ctx.font = '700 9px "Pretendard", sans-serif';
-      ctx.fillStyle = isSelected ? "#B3382C" : "#1C1D21";
-      ctx.fillText(node.nickname, node.x, node.y + nodeRadius + 15);
+      const textMetrics = ctx.measureText(node.nickname);
+      const pillW = Math.max(36, textMetrics.width + 12);
+      const pillH = 17;
+
+      ctx.beginPath();
+      ctx.roundRect(lx - pillW / 2, ly - pillH / 2, pillW, pillH, pillH / 2);
+      ctx.fillStyle = isSelected ? "#B3382C" : "#FFFFFF";
+      ctx.fill();
+      ctx.strokeStyle = isSelected ? "#B3382C" : "#E2E8F0";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = isSelected ? "#FFFFFF" : "#1C1D21";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(node.nickname, lx, ly + 0.5);
+      ctx.restore();
     });
   }, [renderEngine, nodes, lines, selectedNodeId, svgSize, center, radius, nodeRadius, isLargeGroup]);
 
@@ -447,28 +510,51 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
   return (
     <div className="flex flex-col bg-surface p-5 border border-line rounded-xl relative overflow-hidden space-y-4">
       {/* Network Header */}
-      <div className="text-center space-y-1.5">
+      <div className="text-center space-y-2">
         <div className="flex items-center justify-between text-xs px-1">
           <span className="text-ink-faint text-[11px]">
-            {renderEngine === "canvas" ? "⚡ Canvas 60fps 가속" : "📐 SVG 벡터"}
+            {renderEngine === "canvas" ? "⚡ Canvas 60fps 가속" : "📐 SVG 고화질 벡터"}
           </span>
           <button
             type="button"
             onClick={() => setRenderEngine(renderEngine === "canvas" ? "svg" : "canvas")}
-            className="px-2 py-0.5 rounded-lg bg-sunken hover:bg-line text-ink-soft text-[11px] font-medium transition-colors cursor-pointer border border-line flex items-center gap-1"
+            className="px-2.5 py-1 rounded-lg bg-sunken hover:bg-line text-ink-soft text-[11px] font-medium transition-colors cursor-pointer border border-line flex items-center gap-1"
           >
-            <Zap className="w-2.5 h-2.5" />
+            <Zap className="w-3 h-3 text-seal" />
             <span>{renderEngine === "canvas" ? "SVG로 전환" : "Canvas 가속"}</span>
           </button>
         </div>
-        <h4 className="text-[15px] font-semibold text-ink">
-          {selectedMember ? `${selectedMember.nickname}의 인연 관계도` : "모임 궁합 지도"}
-        </h4>
-        <p className="text-xs text-ink-soft max-w-sm mx-auto leading-relaxed">
-          {selectedMember
-            ? `${selectedMember.nickname}님을 중심으로 각 멤버와 주고받는 양방향 점수를 보여드려요.`
-            : "모임에서 조화가 높은 대표 4쌍을 이어서 보여드려요. 멤버를 누르면 개인 기준으로 볼 수 있어요."}
-        </p>
+
+        <div>
+          <h4 className="text-base font-bold text-ink flex items-center justify-center gap-1.5">
+            {selectedMember ? `${selectedMember.nickname}님의 인연 관계도` : "모임 궁합 지도"}
+          </h4>
+          <p className="text-xs text-ink-soft max-w-md mx-auto leading-relaxed mt-0.5">
+            {selectedMember
+              ? `${selectedMember.nickname}님을 중심으로 각 멤버와 주고받는 상호 기운 점수(주는 기운 vs 받는 기운)입니다.`
+              : "모임 멤버들의 상호 오행 에너지 흐름과 시너지 케미를 시각화한 지도예요. 캐릭터를 누르면 1:1 심층 분석이 펼쳐집니다."}
+          </p>
+        </div>
+
+        {/* Quick Stats Banner (Unselected State) */}
+        {!selectedMember && topSynergyPairs.length > 0 && (
+          <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sunken border border-line text-xs font-semibold text-ink">
+              <span className="text-seal font-bold">모임 평균 케미</span>
+              <span className="font-mono text-seal font-extrabold">{avgGroupScore}점</span>
+            </div>
+            {topSynergyPairs[0] && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-seal/5 border border-seal/20 text-xs font-semibold text-seal">
+                <Flame className="w-3 h-3 text-seal" />
+                <span>최고 궁합</span>
+                <span className="font-bold">
+                  {findNode(topSynergyPairs[0].member_id_1)?.nickname} ♥ {findNode(topSynergyPairs[0].member_id_2)?.nickname}
+                </span>
+                <span className="font-mono font-extrabold">({topSynergyPairs[0].score}점)</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* FILTER BUTTONS: Solves clutter by letting users filter high/low connections */}
@@ -613,13 +699,13 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
             );
           })}
 
-          {/* 3. DRAW ROUND NODES & DETAILED DYNAMIC LABEL BADGES */}
+          {/* 3. DRAW ROUND NODES & DETAILED DYNAMIC LABEL BADGES (ZERO AVATAR OVERLAP) */}
           {nodes.map((node) => {
-            // Text placement calculation (pointing outward from the circle center)
-            const textOffset = isLargeGroup ? 24 : 28;
+            // Text placement calculation (pointing outward from circle center with generous clearance)
+            const labelOffset = nodeRadius + (isLargeGroup ? 20 : 26);
             const angle = Math.atan2(node.y - center, node.x - center);
-            const labelX = node.x + textOffset * Math.cos(angle);
-            const labelY = node.y + textOffset * Math.sin(angle);
+            const labelX = node.x + labelOffset * Math.cos(angle);
+            const labelY = node.y + labelOffset * Math.sin(angle);
 
             const isSelected = selectedNodeId === node.id;
 
@@ -640,6 +726,10 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
             }
 
             const elementHex = ELEMENT_HEX[node.element] || "#7D848E";
+
+            // Badge coordinates at top-right corner (1:30 position) - 100% free of character face
+            const badgeX = node.x + nodeRadius * 0.72;
+            const badgeY = node.y - nodeRadius * 0.72;
 
             return (
               <g
@@ -677,7 +767,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                   opacity={isConnected ? 1 : 0.3}
                 />
 
-                {/* Character Avatar Image (Clipped inside Circle) */}
+                {/* Character Avatar Image (Clipped inside Circle, Full & Clear) */}
                 {node.imageSrc ? (
                   <image
                     href={node.imageSrc}
@@ -695,7 +785,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                     x={node.x}
                     y={node.y + 5}
                     textAnchor="middle"
-                    fontSize={isLargeGroup ? "16px" : "19px"}
+                    fontSize={isLargeGroup ? "16px" : "20px"}
                     className="transition-all duration-300 select-none pointer-events-none"
                     opacity={isConnected ? 1 : 0.3}
                   >
@@ -703,51 +793,48 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                   </text>
                 )}
 
-                {/* Element Tag bubble directly below circle */}
-                <g transform={`translate(${node.x}, ${node.y + (isSelected ? nodeRadius + 3 : nodeRadius + 1)})`}>
-                  <rect
-                    x="-10"
-                    y="-5"
-                    width="20"
-                    height="10"
-                    rx="3"
+                {/* Element Pin Badge (Top-Right Corner, NEVER overlaps face) */}
+                <g transform={`translate(${badgeX}, ${badgeY})`}>
+                  <circle
+                    r="8.5"
                     fill={elementHex}
                     stroke="#FFFFFF"
-                    strokeWidth="0.8"
+                    strokeWidth="1.5"
+                    filter="url(#nodeShadow)"
                     opacity={isConnected ? 1 : 0.3}
                   />
                   <text
                     textAnchor="middle"
-                    y="3"
+                    y="2.5"
                     fill="#FFFFFF"
-                    fontSize="7px"
-                    fontWeight="700"
+                    fontSize="7.5px"
+                    fontWeight="800"
                     className="select-none pointer-events-none"
                   >
                     {node.element}
                   </text>
                 </g>
 
-                {/* NICKNAME & SCORE CARD COMBINED */}
+                {/* NICKNAME & SCORE PILL (Completely Outside Circle, ZERO Overlap) */}
                 <foreignObject
                   x={labelX - 38}
                   y={labelY - (asymmetricInfo ? 18 : 10)}
                   width="76"
-                  height={asymmetricInfo ? "36" : "20"}
+                  height={asymmetricInfo ? "36" : "22"}
                   className="overflow-visible pointer-events-none select-none transition-all duration-300"
                   opacity={isConnected ? 1 : 0.25}
                 >
                   <div className="flex flex-col items-center justify-center space-y-0.5">
-                    {/* Nickname plate */}
-                    <div className={`px-2 py-0.5 rounded-md text-[9px] font-bold tracking-tight shadow-sm truncate text-center w-full max-w-[68px] border ${
-                      isSelected ? "bg-seal text-white border-seal" : "bg-surface text-ink border-line"
+                    {/* Nickname pill */}
+                    <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight shadow-md truncate text-center w-auto max-w-[70px] border ${
+                      isSelected ? "bg-seal text-white border-seal ring-2 ring-seal/20" : "bg-white text-ink border-line"
                     }`}>
                       {node.nickname}
                     </div>
 
                     {/* Bi-directional score badge below nickname */}
                     {asymmetricInfo && isConnected && (
-                      <div className="flex items-center justify-center space-x-1 bg-ink text-paper px-1.5 py-0.5 rounded-sm text-[7px] font-mono shadow-sm">
+                      <div className="flex items-center justify-center space-x-1 bg-ink text-paper px-1.5 py-0.5 rounded-full text-[8px] font-mono shadow-sm">
                         <span>{asymmetricInfo.score1to2}점</span>
                         <span className="opacity-60">⇄</span>
                         <span>{asymmetricInfo.score2to1}점</span>
@@ -1038,8 +1125,9 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
           </div>
         </div>
       ) : (
-        <div className="mt-2 pt-3 border-t border-line w-full">
-          <div className="flex flex-wrap justify-center items-center gap-x-3.5 gap-y-1.5 text-[11px] text-ink-soft">
+        <div className="space-y-4 pt-2 w-full">
+          {/* Legend */}
+          <div className="flex flex-wrap justify-center items-center gap-x-3.5 gap-y-1.5 text-[11px] text-ink-soft py-1 border-t border-b border-line">
             <div className="flex items-center space-x-1.5">
               <span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: "#B3382C" }} />
               <span className="font-semibold text-seal">90점 이상 (환상 시너지)</span>
@@ -1057,6 +1145,129 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
               <span>50점 미만 (보완 필요)</span>
             </div>
           </div>
+
+          {/* Interactive Guide Tip */}
+          <div className="bg-sunken/80 rounded-xl p-3 flex items-start gap-2.5 text-left border border-line">
+            <Info className="w-4 h-4 text-seal shrink-0 mt-0.5" />
+            <div className="text-xs space-y-0.5">
+              <div className="font-bold text-ink">원 안의 캐릭터를 터치해 보세요!</div>
+              <p className="text-ink-soft leading-relaxed">
+                궁금한 멤버를 터치하면, 그 사람을 기준으로 모임 전원과의 <strong>1:1 기운 교환(주는 기운 vs 받는 기운)</strong> 및 4대 영역(사주·자미두수·MBTI·별자리) 상세 풀이가 열립니다.
+              </p>
+            </div>
+          </div>
+
+          {/* HALL OF FAME: TOP Synergy Combos */}
+          <div className="space-y-2.5 text-left">
+            <div className="flex items-center justify-between">
+              <h5 className="text-xs font-bold text-ink flex items-center gap-1.5">
+                <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                <span>모임 내 환상 시너지 TOP 콤비</span>
+              </h5>
+              <span className="text-[11px] text-ink-faint">터치 시 1:1 분석</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {topSynergyPairs.map((pair, idx) => {
+                const nodeA = findNode(pair.member_id_1);
+                const nodeB = findNode(pair.member_id_2);
+                if (!nodeA || !nodeB) return null;
+
+                const rankMedals = ["🥇", "🥈", "🥉"];
+                const isTop1 = idx === 0;
+
+                return (
+                  <button
+                    key={`top-pair-${idx}`}
+                    type="button"
+                    onClick={() => {
+                      setSelectedNodeId(nodeA.id);
+                      setRelationFilter("all");
+                    }}
+                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between hover:shadow-md ${
+                      isTop1 ? "bg-seal/5 border-seal/30 ring-1 ring-seal/20" : "bg-sunken border-line hover:border-ink/20"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold">{rankMedals[idx] || "✨"} {idx + 1}위</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                          pair.score >= 90 ? "bg-seal text-white" : "bg-ink text-paper"
+                        }`}>
+                          {pair.score}점
+                        </span>
+                      </div>
+
+                      {/* Avatars & Names */}
+                      <div className="flex items-center justify-center gap-2 my-1">
+                        <div className="flex flex-col items-center">
+                          <div className="w-8 h-8 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
+                            {nodeA.imageSrc ? (
+                              <img src={nodeA.imageSrc} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <span>{nodeA.emoji || "👤"}</span>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-semibold text-ink mt-0.5 max-w-[52px] truncate">{nodeA.nickname}</span>
+                        </div>
+
+                        <Heart className={`w-3.5 h-3.5 ${isTop1 ? "text-seal animate-pulse" : "text-ink-faint"}`} />
+
+                        <div className="flex flex-col items-center">
+                          <div className="w-8 h-8 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
+                            {nodeB.imageSrc ? (
+                              <img src={nodeB.imageSrc} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <span>{nodeB.emoji || "👤"}</span>
+                            )}
+                          </div>
+                          <span className="text-[10px] font-semibold text-ink mt-0.5 max-w-[52px] truncate">{nodeB.nickname}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-line/60 text-[10px] text-ink-soft text-center leading-tight">
+                      {pair.score >= 90
+                        ? "오행과 성향이 완벽히 맞물리는 모임의 특급 시너지 엔진!"
+                        : "서로에게 부족한 기운을 든든하게 채워주는 상생 케미"}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ATTENTION / ADVICE PAIR (If available) */}
+          {attentionPair && (() => {
+            const nodeA = findNode(attentionPair.member_id_1);
+            const nodeB = findNode(attentionPair.member_id_2);
+            if (!nodeA || !nodeB) return null;
+
+            return (
+              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3.5 text-left space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                    <span>조율이 필요한 케미 처방전</span>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-amber-500/10 text-amber-800 px-2 py-0.5 rounded-full">
+                    {attentionPair.score}점
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-xs font-semibold text-ink">{nodeA.nickname}</span>
+                    <span className="text-xs text-ink-faint">&</span>
+                    <span className="text-xs font-semibold text-ink">{nodeB.nickname}</span>
+                  </div>
+                  <p className="text-xs text-ink-soft leading-relaxed">
+                    서로 악의는 없으나 일 처리 속도나 소통 방식에서 뉘앙스 차이가 생길 수 있어요. 감정보다 <strong>명확한 역할 분담과 기록</strong>으로 소통하면 오히려 서로의 맹점을 커버하는 단단한 콤비가 됩니다.
+                  </p>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
     </div>

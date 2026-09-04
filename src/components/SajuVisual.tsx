@@ -1,7 +1,23 @@
 import React, { useState, useEffect } from "react";
 import { SajuData } from "../types";
 import { daymasterMap } from "../utils/saju";
-import { Lock } from "lucide-react";
+import { 
+  Lock, 
+  CheckCircle2, 
+  AlertTriangle, 
+  TrendingUp, 
+  ShieldAlert, 
+  Sparkles, 
+  DollarSign, 
+  Briefcase, 
+  UserCheck, 
+  UserX, 
+  Flame, 
+  ArrowRight, 
+  Ban, 
+  Zap,
+  Target
+} from "lucide-react";
 
 interface SajuVisualProps {
   saju: SajuData;
@@ -512,6 +528,251 @@ const ziweiStarDetails: Record<string, { title: string, desc: string, emoji: str
   "천상": { title: "신뢰와 원칙을 지키는 명재상 (천상)", emoji: "📜", desc: "공정함과 신의를 바탕으로 조화로운 중재를 이끄는 인장의 별입니다. 성실함과 균형 감각으로 조직과 사람들의 두터운 신망을 얻습니다." },
   "천량": { title: "어려움을 슬기롭게 풀어내는 원로 (천량)", emoji: "🌿", desc: "온화한 지혜와 보호 본능을 지닌 어른의 별입니다. 위기 상황을 길함으로 전환시키는 남다른 통솔력과 인덕을 발휘합니다." },
   "태음": { title: "은은한 달빛처럼 섬세한 감성가 (태음)", emoji: "🌙", desc: "차분하고 정갈하며 깊은 감수성을 지닌 달의 별입니다. 세심한 관찰력과 안정적인 자산 관리 능력으로 내실 있는 번영을 이룹니다." }
+};
+
+interface SajuActionGuide {
+  coreSummary: string;
+  careerDo: { title: string; desc: string };
+  wealthDo: { title: string; desc: string };
+  relationDo: { title: string; desc: string };
+  criticalDont: { title: string; desc: string }[];
+  breakthroughFormula: string;
+}
+
+const DAYMASTER_ACTION_GUIDES: Record<string, SajuActionGuide> = {
+  "甲": {
+    coreSummary: "남 밑에서 눈치 보며 부품으로 쓰이지 말고, 프로젝트 총괄 권한과 독점 지분을 확보해야 돈과 명예가 붙습니다.",
+    careerDo: {
+      title: "단독 추진 권한 확보",
+      desc: "지시받아 움직이기보다 '처음부터 끝까지 내가 이끄는' 신규 기획, 단독 프로젝트, 1인 사업 포지션을 선점하세요. 결단력이 곧 몸값입니다."
+    },
+    wealthDo: {
+      title: "잔돈 유출 차단 & 자산 잠금",
+      desc: "큰 그림만 보다가 잔돈이 줄줄 새기 쉽습니다. 현금을 손에 쥐고 있지 말고, 자동이체로 묶이는 적금이나 장기 실물 자산으로 먼저 묶어두세요."
+    },
+    relationDo: {
+      title: "훈수족 손절 & 실행파 연대",
+      desc: "내 자존심을 긁거나 매사 참견하는 사람은 망설임 없이 손절하세요. 묵묵히 내 비전을 지지하고 실무를 받쳐주는 파트너와만 손잡으세요."
+    },
+    criticalDont: [
+      { title: "총대 메기 금지", desc: "남의 억울함이나 단체 문제에 감정적으로 앞장서서 총대 메지 마세요. 뒤통수 맞고 혼자 덤터기 씁니다." },
+      { title: "무리한 문어발 확장 금지", desc: "첫 사업이나 기획이 궤도에 오르기도 전에 판을 키우면 자금줄이 마릅니다. 하나를 끝장내고 다음으로 넘어가세요." }
+    ],
+    breakthroughFormula: "주도권 없는 일에는 1분도 쓰지 마라. 내 깃발을 꽂을 수 있는 무대에서만 승부를 걸어라."
+  },
+  "乙": {
+    coreSummary: "정면충돌은 바보짓입니다. 넓은 인맥과 플랫폼, 조력자를 영리하게 엮는 중간자·협상가 포지션으로 실속을 극대화하세요.",
+    careerDo: {
+      title: "네트워크 & 플랫폼 독점",
+      desc: "혼자 모든 것을 만들려 하지 말고, 잘 나가는 큰 플랫폼이나 든든한 파트너의 등에 올라타 중개 마진과 실질적 수수료를 챙기세요."
+    },
+    wealthDo: {
+      title: "다각화 파이프라인 구축",
+      desc: "부업, 콘텐츠, 배당, 이자 등 푼돈이 모여 태산이 되는 다채널 머니 파이프라인을 구축할 때 가장 안정적으로 부가 증식됩니다."
+    },
+    relationDo: {
+      title: "감정 쓰레기통 사절",
+      desc: "착해서 거절 못 하니 주변에서 온갖 넋두리를 쏟아붓습니다. 징징대는 인간은 단칼에 연락을 늦추고, 내게 실질적 정보를 주는 사람만 만나세요."
+    },
+    criticalDont: [
+      { title: "우유부단한 무상 노동 금지", desc: "'좋은 게 좋은 거지'라며 계약서 없이 공짜로 일해주거나 거절 못 해 끌려다니는 순간 평생 호구 잡힙니다." },
+      { title: "정면 승부 고집 금지", desc: "힘으로 누르려는 상대와 싸우지 마세요. 우회해서 실리를 챙기는 것이 을목의 승리 공식입니다." }
+    ],
+    breakthroughFormula: "명분보다 실리다. 큰 나무에 넝쿨을 감고 올라가 태양을 가장 먼저 차지하라."
+  },
+  "丙": {
+    coreSummary: "골방에 숨어있으면 병 납니다. 얼굴과 이름을 전면에 내세우는 마케팅, 영업, 발표, 콘텐츠로 무대를 장악해야 인생이 풀립니다.",
+    careerDo: {
+      title: "퍼스널 브랜드 전면 배치",
+      desc: "스피치, 영상, 영업, 브랜딩 등 내 존재감 자체가 설득력이 되는 전면에 서세요. 숨어있지 말고 사람들의 시선을 모으는 자리를 차지하세요."
+    },
+    wealthDo: {
+      title: "기분파 충동 소비 계좌 분리",
+      desc: "통장에 돈이 보이면 기분 좋아 한턱내다 텅장 됩니다. 체크카드 한도를 묶고, 결제 계좌와 자산 보관 계좌를 완전히 분리하세요."
+    },
+    relationDo: {
+      title: "앞뒤 다른 이중인격자 즉시 손절",
+      desc: "앞에서는 찬양하고 뒤에서 시기 질투하는 사람은 즉시 잘라내세요. 내 화끈함을 차분하게 조율해 주는 냉철한 전략가를 곁에 두세요."
+    },
+    criticalDont: [
+      { title: "욱하는 순간 계약/이직 결정 금지", desc: "감정이 격해졌을 때 도장 찍거나 사표 던지지 마세요. 반드시 3일 뒤에 이성으로 다시 판단해야 후회가 없습니다." },
+      { title: "남의 비밀 폭로/설화(舌禍) 주의", desc: "솔직한 게 매력이지만 선을 넘으면 구설수로 돌아옵니다. 알면서도 모른 척 넘겨주는 여유를 장착하세요." }
+    ],
+    breakthroughFormula: "열정은 무대 위에서만 쏟아라. 감정은 식히고, 결과는 숫자로 증명하라."
+  },
+  "丁": {
+    coreSummary: "어설프게 두루두루 하지 마세요. 남들이 귀찮아서 기피하는 한 분야의 정밀한 디테일을 장악해 '대체 불가능한 전문가'가 되어야 합니다.",
+    careerDo: {
+      title: "틈새 초격차 전문성 확보",
+      desc: "디테일, 분석, 개발, 디자인, 라이선스 등 아무나 흉내 내지 못하는 깊이 있는 기술과 지적 자산을 파고들어 독보적 단가를 책정하세요."
+    },
+    wealthDo: {
+      title: "우상향 실물 자산 적립식 투자",
+      desc: "한 방 대박 노리는 급등주/코인 대신, 매월 정해진 날짜에 묵직하게 들어가는 우량 자산에 묻어두세요. 시간의 복리가 정화의 가장 큰 무기입니다."
+    },
+    relationDo: {
+      title: "에너지 뱀파이어 차단 & 신의파 교류",
+      desc: "내 속을 떠보고 기운을 갉아먹는 사람을 단칼에 쳐내세요. 말수가 적어도 약속과 신의를 100% 지키는 묵직한 사람과만 깊게 엮이세요."
+    },
+    criticalDont: [
+      { title: "속으로 삭이다 폭발하기 금지", desc: "불만을 참아두다 임계점을 넘겨 한 번에 판을 엎으면 내가 가해자가 됩니다. 서운한 건 그 자리에서 차분히 정색하고 짚으세요." },
+      { title: "불나방 같은 감정 소모 금지", desc: "내 모든 에너지를 엉뚱한 연애나 불필요한 인간관계에 쏟아붓지 마세요. 내 기술과 지갑에 먼저 불을 붙이세요." }
+    ],
+    breakthroughFormula: "용광로의 열기를 내 그릇에 모아라. 은근한 끈기가 세상을 바꾸는 무쇠를 만든다."
+  },
+  "戊": {
+    coreSummary: "조급하게 움직이면 손해 봅니다. 신뢰를 바탕으로 사람과 자산이 모여드는 거대한 플랫폼과 터전을 만들어 결국 살아남아 다 먹으세요.",
+    careerDo: {
+      title: "운영 총괄 & 신뢰 기반 포지셔닝",
+      desc: "플랫폼, 조직 관리, 자산 보관, 공급망 등 모두가 믿고 기댈 수 있는 터줏대감 자리를 지키세요. 버티는 자가 결국 시장을 장악합니다."
+    },
+    wealthDo: {
+      title: "부동산 & 안전 자산 집중",
+      desc: "토지, 건물, 채권, 배당주 등 눈에 보이는 안전 자산이 체질에 맞습니다. 과도한 레버리지 투자는 멘탈을 파괴하니 피하세요."
+    },
+    relationDo: {
+      title: "호구 취급하는 기생형 인간 퇴출",
+      desc: "내 넓은 도량을 만만하게 보고 무리한 부탁을 일삼는 인간은 오늘부로 차단하세요. 기브앤테이크가 투명한 실속파들과 동맹을 맺으세요."
+    },
+    criticalDont: [
+      { title: "고집 피우다 타이밍 놓치기 금지", desc: "세상이 바뀌는데 내 옛날 방식만 고수하면 고립됩니다. 흐름이 바뀌었다 싶으면 자존심 버리고 과감히 갈아타세요." },
+      { title: "지인 보증 및 무담보 대여 금지", desc: "사람 좋다는 소리 듣고 싶어서 돈 빌려주는 순간 돈도 잃고 원수 됩니다. 돈 앞에서는 피도 눈물도 없어야 합니다." }
+    ],
+    breakthroughFormula: "태산은 바람에 흔들리지 않는다. 신뢰의 뼈대를 세우고 뚝심으로 판을 지배하라."
+  },
+  "己": {
+    coreSummary: "알짜배기 실속 챙기기의 최강자입니다. 남의 밭 갈아주지 말고, 내 손으로 직접 수확물을 챙기는 실무 권한을 쥐어야 부자가 됩니다.",
+    careerDo: {
+      title: "재무/실무 핵심 키 장악",
+      desc: "겉치레 감투 대신 실질적인 예산 집행권, 정산 권한, 계약서 검토권을 손에 쥐세요. 실세는 항상 뒤에서 곳간을 쥐고 있는 법입니다."
+    },
+    wealthDo: {
+      title: "스마트 가성비 & 틈새 수익화",
+      desc: "새는 푼돈을 철저히 막고, 유휴 자원이나 작은 자투리 공간·시간을 현금으로 전환하는 틈새 재테크를 적극 가동하세요."
+    },
+    relationDo: {
+      title: "입만 산 허세꾼 1초 컷",
+      desc: "말만 번지르르하고 계산 흐린 사람과는 밥도 같이 먹지 마세요. 정직하고 손발 맞춰 일할 수 있는 성실한 실무형 인재와 엮이세요."
+    },
+    criticalDont: [
+      { title: "남의 일 뒤치다꺼리만 하다 지치기 금지", desc: "남들이 어질러놓은 일 수습하느라 정작 내 커리어를 못 챙깁니다. '내 담당 업무'가 아니면 냉정하게 손을 떼세요." },
+      { title: "소탐대실 계산법 주의", desc: "푼돈 아끼려다 큰 사람이나 결정적 기회를 놓치지 마세요. 쓸 때는 화끈하게 투자해야 큰 판이 열립니다." }
+    ],
+    breakthroughFormula: "남 좋은 일 그만하고 내 곳간을 채워라. 알짜 실속이 가장 강력한 권력이다."
+  },
+  "庚": {
+    coreSummary: "우유부단하게 망설이지 마세요. 판을 뒤엎고 썩은 환부를 도려내는 단칼의 결단력과 과감한 실행력으로 승부를 봐야 대성합니다.",
+    careerDo: {
+      title: "영업 돌파구 & 비효율 개혁 주도",
+      desc: "정체된 조직의 비효율을 정리하거나, 아무도 못 뚫는 신규 거래처를 개척하는 공격적 포지션에서 칼을 휘두르세요. 확실한 인센티브를 계약에 넣으세요."
+    },
+    wealthDo: {
+      title: "수익 실현 중심의 사이클 투자",
+      desc: "평생 쥐고 있기보다 목표 수익률에 도달하면 과감하게 익절하는 회전율 투자가 어울립니다. 단, 홧김에 지르는 베팅은 엄금입니다."
+    },
+    relationDo: {
+      title: "핑계 대는 패배자 손절 & 승부사 결속",
+      desc: "매사 '어렵다, 안 된다' 핑계만 대는 사람은 내 운까지 갉아먹습니다. 나보다 치열하고 전투적인 파트너와 경쟁하며 시너지를 내세요."
+    },
+    criticalDont: [
+      { title: "칼을 함부로 휘둘러 적 만들기 금지", desc: "말을 너무 날카롭게 해서 본의 아니게 원수를 만듭니다. 결론은 차갑게 내리되, 화법은 부드러운 포장지를 씌우세요." },
+      { title: "의리 때문에 불법/탈법에 발 담그기 금지", desc: "의리 지킨다고 부정한 일에 이름 올렸다간 독박 씁니다. 법과 원칙에 벗어난 부탁은 1초 만에 거절하세요." }
+    ],
+    breakthroughFormula: "망설임은 칼날을 무디게 할 뿐이다. 결단하고 베어 넘겨 새로운 영토를 정복하라."
+  },
+  "辛": {
+    coreSummary: "싸구려로 취급받지 마세요. 내 몸값을 깎으면서까지 남에게 맞추지 말고, 타의 추종을 불허하는 압도적 하이엔드 퀄리티로 단가를 3배 올리세요.",
+    careerDo: {
+      title: "프리미엄 & 하이엔드 포지셔닝",
+      desc: "대량 양산형 일 대신, 사소한 흠집 하나 없는 완벽한 결과물과 기획력으로 상위 1% 고객과 프로젝트를 타겟팅하세요."
+    },
+    wealthDo: {
+      title: "핵심 명품 자산 집중 투자",
+      desc: "애매한 잡동사니 여러 개 사지 마세요. 시간이 지나도 가치가 떨어지지 않는 입지 최고의 핵심 자산이나 최고급 장비에 한 번에 투자하세요."
+    },
+    relationDo: {
+      title: "무례한 선 넘는 인간 즉각 차단",
+      desc: "기본 예의가 없거나 약속을 밥 먹듯 어기는 사람은 상종하지 마세요. 내 결벽에 가까운 기준을 존중해 주는 품격 있는 소수와만 교류하세요."
+    },
+    criticalDont: [
+      { title: "자가당착 완벽주의 번아웃 금지", desc: "스스로에게 너무 가혹해서 시작조차 못 하거나 완벽하지 않다고 자책하지 마세요. 80% 상태에서 세상에 내놓고 다듬으세요." },
+      { title: "뒤끝과 집착으로 속 끓이기 금지", desc: "과거에 상처 준 인간을 계속 곱씹으며 내 에너지를 낭비하지 마세요. 최고의 복수는 내가 압도적으로 잘 사는 것입니다." }
+    ],
+    breakthroughFormula: "보석은 흙탕물에 뒹굴지 않는다. 내 가치를 알아주는 무대에서 최고가 되어라."
+  },
+  "壬": {
+    coreSummary: "작은 연못에 갇혀있지 마세요. 물길이 사방으로 뻗어나가는 무역, 글로벌, 플랫폼, 대규모 유통 등 스케일이 큰 판을 벌려야 운이 폭발합니다.",
+    careerDo: {
+      title: "스케일업 & 경계 없는 확장",
+      desc: "지역적 한계를 뛰어넘어 온라인, 해외, 신규 시장으로 영역을 넓히세요. 다양한 지식과 사람을 융합하는 총괄 기획자가 되세요."
+    },
+    wealthDo: {
+      title: "유동성 순환 & 레버리지 활용",
+      desc: "돈을 썩히지 말고 회전율과 현금 흐름을 극대화하세요. 저평가된 기회에 과감하게 유동성을 투입해 시세 차익을 거두세요."
+    },
+    relationDo: {
+      title: "소인배 손절 & 거물급 인맥 형성",
+      desc: "사소한 꼬투리 잡는 소인배와는 논쟁조차 하지 마세요. 통이 크고 미래 가치를 볼 줄 아는 리더들과 어깨를 나란히 하세요."
+    },
+    criticalDont: [
+      { title: "생각만 하다가 실행 미루기 금지", desc: "머릿속으로 바다를 그리는 데만 1년을 쓰지 마세요. 물길은 일단 터놓아야 흐릅니다. 오늘 당장 첫 삽을 뜨세요." },
+      { title: "너무 많은 비밀과 편법 금지", desc: "속을 너무 감추면 주변의 신뢰를 잃습니다. 투명하고 정당한 룰 위에서 움직여야 큰 배가 좌초하지 않습니다." }
+    ],
+    breakthroughFormula: "흘러야 썩지 않는다. 거대한 바다처럼 모든 지혜를 흡수하고 세상을 뒤덮어라."
+  },
+  "癸": {
+    coreSummary: "강요하지 않아도 사람의 마음을 훔치는 천재적인 공감력과 기획력이 무기입니다. 인간의 심리와 감성을 움직이는 영역에서 독점적 지위를 누리세요.",
+    careerDo: {
+      title: "감성 브랜딩 & 심리/기획 솔루션",
+      desc: "교육, 브랜딩, 인사, 마케팅, 심리 상담, 콘텐츠 등 사람의 마음을 파고들어 지갑을 열게 만드는 스토리를 설계하세요."
+    },
+    wealthDo: {
+      title: "가랑비 지출 철저 단속",
+      desc: "소액 결제, 불필요한 구독, 감정적 배달음식 소비 등 새는 구멍을 막으세요. 소액이라도 매달 씨앗돈을 만들어 불려야 큰비가 됩니다."
+    },
+    relationDo: {
+      title: "내 헌신을 당연시하는 착취자 손절",
+      desc: "내 다정함을 호구로 알고 마음껏 이용해 먹는 이기주의자는 즉각 차단하세요. 내게 영감을 주고 따뜻한 햇살(화 기운)이 되어줄 사람을 만나세요."
+    },
+    criticalDont: [
+      { title: "감정 기복과 우울의 늪에 빠지기 금지", desc: "생각이 꼬리를 물면 끝없는 비관으로 흐릅니다. 잡생각이 들 때는 즉시 몸을 움직여 땀을 흘리고 햇볕을 쬐세요." },
+      { title: "눈치 보느라 내 주장 숨기기 금지", desc: "상대 기분 맞추느라 정작 내 권리를 포기하지 마세요. 부드러운 미소 뒤에 서늘한 거절의 기술을 장착하세요." }
+    ],
+    breakthroughFormula: "가랑비가 바위를 뚫는다. 조용히 스며들어 사람들의 마음과 시장을 장악하라."
+  }
+};
+
+const SIPSIN_DAEWOON_ACTION: Record<string, { theme: string; doAction: string; dontAction: string; timingAdvice: string }> = {
+  "비겁": {
+    theme: "자립과 독립의 전성기 (내 깃발 꽂기)",
+    doAction: "남 밑에서 참는 시기는 끝났습니다. 내 기술과 지분을 온전히 소유할 수 있는 1인 창업, 이직, 독립 프로젝트를 과감하게 실행하세요.",
+    dontAction: "동업 및 친구/지인과의 돈거래 100% 절대 금지! 엮이는 순간 돈 잃고 원수 됩니다. 모든 일은 내 단독 명의로 하세요.",
+    timingAdvice: "지금은 타협할 때가 아니라 내 실력을 세상에 증명할 때입니다."
+  },
+  "식상": {
+    theme: "재능 폭발과 시장 진출 (콘텐츠 & 영업의 황금기)",
+    doAction: "머릿속으로 기획하던 아이디어를 즉시 세상에 내놓으세요. 신제품 런칭, 영업, SNS 콘텐츠 제작, 적극적인 PR이 폭발적인 수익으로 연결됩니다.",
+    dontAction: "말실수와 하극상 엄금! 윗사람이나 고객사에게 욱해서 들이받지 마세요. 불만은 말 대신 '압도적인 성과'로 보여줘야 이깁니다.",
+    timingAdvice: "가만히 있으면 손해입니다. 지금은 발로 뛰고 입을 열어야 돈이 들어옵니다."
+  },
+  "재성": {
+    theme: "현실적 결실과 자산 축적 (실속 챙기기)",
+    doAction: "명분보다 실리입니다. 내 주머니에 실제로 꽂히는 마진과 현금 흐름, 계약서의 수수료 조항을 1원 단위까지 꼼꼼히 챙겨 실리를 독점하세요.",
+    dontAction: "무리한 영끌 투기 금지! 벌어들인 돈을 담을 그릇이 없으면 썰물처럼 빠져나갑니다. 시드머니를 안전자산에 먼저 잠그세요.",
+    timingAdvice: "결실의 계절입니다. 뜬구름 잡는 계획을 버리고 현실적인 숫자에만 집중하세요."
+  },
+  "관성": {
+    theme: "조직 장악과 명예/직위 상승 (제도권 권력 잡기)",
+    doAction: "조직 내 감투를 쓰고 시스템의 룰 메이커가 되세요. 전문 자격증 취득, 공공 사업 수주, 제도권 내의 공식 라이선스 확보가 막대한 부를 부릅니다.",
+    dontAction: "탈법, 편법, 꼼수 절대 금지! 관재구설이 따를 수 있는 구간이니 세무, 법률, 계약 조항을 완벽하게 합법적으로 처리하세요.",
+    timingAdvice: "공식적인 명분과 브랜드를 앞세울 때 가장 큰 문이 열립니다."
+  },
+  "인성": {
+    theme: "내공 축적과 문서/권리 확보 (지적 자산 상품화)",
+    doAction: "몸으로 때우지 말고 머리와 권리로 승부하세요. 특허, 저작권, 학위, 자격증, 부동산 문서 등 나 대신 돈을 벌어다 줄 문서를 확보하세요.",
+    dontAction: "방구석에 박혀 생각만 하는 탁상공론 금지! 배운 지식을 즉시 돈이 되는 서비스나 강의, 책, 상품으로 만들어 유통하세요.",
+    timingAdvice: "귀인의 조력과 문서운이 들어오는 시기입니다. 든든한 멘토를 잡으세요."
+  }
 };
 
 // 오행 데이터 색 (design.md §2 — 데이터 표현 전용)
@@ -1085,174 +1346,163 @@ export default function SajuVisual({
               </div>
             </div>
 
-            {/* Harmonious Synthesis Paragraph */}
-            <div className="bg-sunken p-4 rounded-xl text-left space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-xs text-ink">
-                  융합 진단 · 조화의 미학
-                </span>
-                <button
-                  type="button"
-                  onClick={() => toggleBlock("synthesis_detail")}
-                  className="text-xs font-medium text-ink-soft hover:text-ink cursor-pointer"
-                >
-                  <span>{expandedBlocks["synthesis_detail"] ? "접기" : "심층 해설 보기"}</span>
-                </button>
-              </div>
-              <p className="text-xs text-ink-soft leading-relaxed">
-                {daymaster && daymaster.gan === "辛"
-                  ? "사주의 날카롭고 섬세한 신금(辛)과 자미두수 명궁의 기운이 결합하여, 높은 미적 안목과 전문적 성취력을 발휘하는 조화입니다."
-                  : "지상의 오행 본질과 천상의 별자리 성질이 서로를 보완하여, 균형 잡힌 대인관계 속에서 확고한 주체성을 지켜냅니다."}
-              </p>
-              {expandedBlocks["synthesis_detail"] && (
-                <div className="pt-2 border-t border-line text-xs text-ink-soft leading-relaxed animate-fade-in">
-                  {daymaster && daymaster.gan === "辛" ? (
-                    <>
-                      귀하의 중심 기운인 <strong>신금(辛金)</strong>은 본디 맑고 찬란한 광채를 내뿜는 완성된 보석입니다. 
-                      불필요한 구습에 얽매이지 않고 세련되게 가치를 창출하며, 사소한 오차를 용납하지 않는 명확성으로 인해 전문 지식 및 기획 창작 무대에서 사람들의 신뢰를 한몸에 받는 운명적 격을 지니고 있습니다.
-                    </>
-                  ) : (
-                    <>
-                      주변 사람들에게 긍정적인 영향력을 미치며, 감정적 조율과 이성적 통찰의 밸런스를 다듬어 평생의 안락과 품격을 지혜롭게 수호하는 흐름이 지속됩니다.
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+            {/* Section C: Actionable Life Manual (그래서 지금 뭐 해야 할까? 실전 처방전) */}
+            {(() => {
+              const dmGan = daymaster?.gan || "甲";
+              const guide = DAYMASTER_ACTION_GUIDES[dmGan] || DAYMASTER_ACTION_GUIDES["甲"];
 
-          {/* Section D: Three Shields & Protectors */}
-          <div className="space-y-3 pt-1">
-            <div className="text-xs font-medium text-ink-soft text-left">
-              나를 지켜주는 세 가지 수호 기운
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Protector 1: Saju Noble/Sal */}
-              <div className="bg-sunken p-4 rounded-xl text-left space-y-1.5">
-                <div className="text-xs text-ink-faint">
-                  지상의 수호신
-                </div>
-                <h4 className="font-semibold text-sm text-ink">
-                  {special_sals_list && special_sals_list.length > 0 ? special_sals_list[0] : "천을귀인"}
-                </h4>
-                <p className="text-xs text-ink-soft leading-relaxed">
-                  위기 때마다 뜻밖의 조력자나 기회가 찾아와 복덕으로 돌려세우는 길운입니다.
-                </p>
-              </div>
-
-              {/* Protector 2: Ziwei Lucky Star */}
-              <div className="bg-sunken p-4 rounded-xl text-left space-y-1.5">
-                <div className="text-xs text-ink-faint">
-                  천상의 지원군
-                </div>
-                <h4 className="font-semibold text-sm text-ink">
-                  {(() => {
-                    if (!ziwei || !ziwei.palaces) return "좌보·우필 귀인";
-                    const mingGong = Object.values(ziwei.palaces).find(p => p.name === "命宮");
-                    if (!mingGong) return "좌보·우필 귀인";
-                    const lucky = mingGong.stars.filter(s => s.type === "lucky").map(s => s.nameKr);
-                    if (lucky.length > 0) return lucky.slice(0, 2).join("과 ") + " 귀인";
-                    return "천괴·천월 귀인";
-                  })()}
-                </h4>
-                <p className="text-xs text-ink-soft leading-relaxed">
-                  별자리의 수호로 귀중한 멘토와 협력자의 지원을 받는 인덕입니다.
-                </p>
-              </div>
-
-              {/* Protector 3: Lucky Elements */}
-              <div className="bg-sunken p-4 rounded-xl text-left space-y-1.5">
-                <div className="text-xs text-ink-faint">
-                  개운開運 매개체
-                </div>
-                <h4 className="font-semibold text-sm text-ink">
-                  {daymaster && daymaster.gan === "辛" ? "수(水)와 토(土)의 조화" : "상생의 자연물과 공간"}
-                </h4>
-                <p className="text-xs text-ink-soft leading-relaxed">
-                  차분한 독서와 온화한 인테리어, 정갈한 생활 습관이 운을 보완합니다.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Section E: Life Flow Synthesis */}
-          <div className="space-y-3 pt-1">
-            <div className="text-xs font-medium text-ink-soft text-left">
-              현재 10년 대운大運 통합 흐름
-            </div>
-
-            {daewoon && (() => {
-              const currentDaewoon = daewoon.find((item, index) => {
+              const currentDaewoon = daewoon?.find((item, index) => {
                 const nextItem = daewoon[index + 1];
                 const endAge = nextItem ? nextItem.age - 1 : item.age + 9;
                 return currentAge >= item.age && currentAge <= endAge;
-              }) || daewoon[0];
+              }) || (daewoon && daewoon[0]);
 
-              const activeSipsinTheme = currentDaewoon.stemSipsin === "비견" || currentDaewoon.stemSipsin === "겁재" || currentDaewoon.branchSipsin === "비견" || currentDaewoon.branchSipsin === "겁재" ? "비겁" :
-                                        currentDaewoon.stemSipsin === "식신" || currentDaewoon.stemSipsin === "상관" || currentDaewoon.branchSipsin === "식신" || currentDaewoon.branchSipsin === "상관" ? "식상" :
-                                        currentDaewoon.stemSipsin === "정재" || currentDaewoon.stemSipsin === "편재" || currentDaewoon.branchSipsin === "정재" || currentDaewoon.branchSipsin === "편재" ? "재성" :
-                                        currentDaewoon.stemSipsin === "정관" || currentDaewoon.stemSipsin === "편관" || currentDaewoon.branchSipsin === "정관" || currentDaewoon.branchSipsin === "편관" ? "관성" : "인성";
+              const activeSipsinTheme = !currentDaewoon ? "비겁" :
+                (currentDaewoon.stemSipsin === "비견" || currentDaewoon.stemSipsin === "겁재" || currentDaewoon.branchSipsin === "비견" || currentDaewoon.branchSipsin === "겁재") ? "비겁" :
+                (currentDaewoon.stemSipsin === "식신" || currentDaewoon.stemSipsin === "상관" || currentDaewoon.branchSipsin === "식신" || currentDaewoon.branchSipsin === "상관") ? "식상" :
+                (currentDaewoon.stemSipsin === "정재" || currentDaewoon.stemSipsin === "편재" || currentDaewoon.branchSipsin === "정재" || currentDaewoon.branchSipsin === "편재") ? "재성" :
+                (currentDaewoon.stemSipsin === "정관" || currentDaewoon.stemSipsin === "편관" || currentDaewoon.branchSipsin === "정관" || currentDaewoon.branchSipsin === "편관") ? "관성" : "인성";
 
-              const synthesisFortuneDesc = 
-                activeSipsinTheme === "비겁" ? "현재 구간은 나 자신의 고유한 주체성과 추진력이 영그는 자립의 시기입니다. 굳은 뚝심으로 오랜 계획을 실행에 옮기기에 좋습니다." :
-                activeSipsinTheme === "식상" ? "현재 구간은 창의력과 다재다능한 아이디어가 세상에 널리 활용되는 가치 확장의 황금기입니다." :
-                activeSipsinTheme === "재성" ? "현재 구간은 실속 있는 자산 획득과 현실적 결실을 맺는 최고의 풍요 축적기입니다." :
-                activeSipsinTheme === "관성" ? "현재 구간은 조직과 사회에서 공로를 인정받고 확고한 입지와 명예를 다지는 전성기입니다." :
-                "현재 구간은 깊이 있는 지식을 쌓고 귀인의 도움과 문서운의 수혜를 얻어 내실을 탄탄히 다지는 준비기입니다.";
+              const daewoonAction = SIPSIN_DAEWOON_ACTION[activeSipsinTheme] || SIPSIN_DAEWOON_ACTION["비겁"];
 
               return (
-                <div className="bg-sunken p-4 sm:p-5 rounded-xl text-left space-y-3.5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b border-line pb-3">
-                    <div>
-                      <span className="text-xs text-ink-faint">
-                        현재 {currentAge}세 운세 구간
-                      </span>
-                      <h4 className="text-sm font-semibold text-ink mt-1">
-                        사주 대운 · {currentDaewoon.age}세 <span className="font-serif">{currentDaewoon.ganzi}</span> ({currentDaewoon.stemSipsin}/{currentDaewoon.branchSipsin})
-                      </h4>
-                    </div>
-                    {ziwei && ziwei.daXianList && (() => {
-                      const currentDaxian = ziwei.daXianList.find(dx => currentAge >= dx.ageStart && currentAge <= dx.ageEnd);
-                      if (!currentDaxian) return null;
-                      return (
-                        <div className="text-left sm:text-right bg-surface px-3 py-2 rounded-xl">
-                          <p className="text-xs text-ink-faint leading-none">자미두수 대한 (10년)</p>
-                          <p className="font-medium text-xs text-ink mt-1">
-                            {currentDaxian.ageStart}-{currentDaxian.ageEnd}세 {currentDaxian.palaceName} 대운
-                          </p>
+                <div className="space-y-4 pt-1">
+                  {/* Title Banner */}
+                  <div className="bg-surface border border-line p-5 rounded-2xl text-left space-y-3 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-8 h-8 rounded-xl bg-seal/10 text-seal flex items-center justify-center">
+                          <Flame className="w-4 h-4" />
+                        </span>
+                        <div>
+                          <span className="text-[11px] font-bold text-seal tracking-wider uppercase">Action Prescription</span>
+                          <h4 className="text-base font-bold text-ink">
+                            실전 사이다 처방전 · 인생 사용 설명서
+                          </h4>
                         </div>
-                      );
-                    })()}
-                  </div>
-
-                  <div className="space-y-3 text-xs text-ink-soft leading-relaxed">
-                    <p>
-                      <strong className="text-ink text-xs font-semibold block mb-1">명리와 명반이 함께 가리키는 흐름</strong>
-                      {synthesisFortuneDesc}
-                    </p>
-
-                    <div className="bg-surface p-3.5 rounded-xl space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-xs text-ink">개운을 위한 조언</span>
-                        <button
-                          type="button"
-                          onClick={() => toggleBlock("daewoon_action_plan")}
-                          className="text-xs font-medium text-ink-soft hover:text-ink cursor-pointer"
-                        >
-                          {expandedBlocks["daewoon_action_plan"] ? "접기" : "자세히 보기"}
-                        </button>
                       </div>
-                      <p className="text-xs text-ink-soft leading-relaxed">
-                        조급하게 외연을 넓히기보다 내실 있는 역량과 전문 자산을 차분히 쌓아가면 안정적인 성취를 완성하게 됩니다.
-                      </p>
-                      {expandedBlocks["daewoon_action_plan"] && (
-                        <p className="text-xs text-ink-faint leading-relaxed pt-1.5 border-t border-line animate-fade-in">
-                          사주와 자미두수가 함께 전하는 비결은 흐름에 순응하되 본연의 주체성을 잃지 않는 것입니다. 올해는 자격증 획득, 명예 강화, 깊이 있는 지적 자산 취득에 힘쓰면 단단한 성과를 다질 수 있습니다.
-                        </p>
-                      )}
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-sunken text-ink-soft font-medium">
+                        현실 100% 밀착
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-sunken rounded-xl text-xs text-ink leading-relaxed font-medium">
+                      💡 <strong>핵심 진단:</strong> {guide.coreSummary}
+                    </div>
+
+                    {/* 3대 행동 강령 (DO) */}
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#2D6A4F]" />
+                        <span>지금 당장 내 삶에서 취해야 할 3대 행동 (DO)</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+                        {/* 1. Career */}
+                        <div className="bg-sunken p-3.5 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-1 text-[11px] font-semibold text-ink-soft">
+                              <Briefcase className="w-3 h-3 text-[#2D6A4F]" />
+                              <span>커리어 & 수익 창출</span>
+                            </div>
+                            <h5 className="text-xs font-bold text-ink mt-0.5">{guide.careerDo.title}</h5>
+                            <p className="text-[11px] text-ink-soft leading-relaxed mt-1">{guide.careerDo.desc}</p>
+                          </div>
+                        </div>
+
+                        {/* 2. Wealth */}
+                        <div className="bg-sunken p-3.5 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-1 text-[11px] font-semibold text-ink-soft">
+                              <DollarSign className="w-3 h-3 text-[#B07C3F]" />
+                              <span>재물 & 자산 방어</span>
+                            </div>
+                            <h5 className="text-xs font-bold text-ink mt-0.5">{guide.wealthDo.title}</h5>
+                            <p className="text-[11px] text-ink-soft leading-relaxed mt-1">{guide.wealthDo.desc}</p>
+                          </div>
+                        </div>
+
+                        {/* 3. Relations */}
+                        <div className="bg-sunken p-3.5 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center gap-1 text-[11px] font-semibold text-ink-soft">
+                              <UserCheck className="w-3 h-3 text-seal" />
+                              <span>인간관계 & 선 긋기</span>
+                            </div>
+                            <h5 className="text-xs font-bold text-ink mt-0.5">{guide.relationDo.title}</h5>
+                            <p className="text-[11px] text-ink-soft leading-relaxed mt-1">{guide.relationDo.desc}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 치명적 지뢰밭 (DON'T) */}
+                    <div className="space-y-2 pt-2 border-t border-line">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-seal">
+                        <ShieldAlert className="w-3.5 h-3.5 text-seal" />
+                        <span>올해 절대 하지 말아야 할 치명적 지뢰밭 (DON'T)</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {guide.criticalDont.map((dont, dIdx) => (
+                          <div key={dIdx} className="bg-seal/5 border border-seal/15 p-3 rounded-xl text-left space-y-1">
+                            <div className="flex items-center gap-1 text-xs font-bold text-seal">
+                              <Ban className="w-3 h-3" />
+                              <span>{dont.title}</span>
+                            </div>
+                            <p className="text-[11px] text-ink-soft leading-relaxed">{dont.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 한 줄 핵심 공식 */}
+                    <div className="p-3 bg-surface border border-line rounded-xl text-xs text-ink font-semibold flex items-center gap-2">
+                      <Target className="w-4 h-4 text-seal shrink-0" />
+                      <span>{guide.breakthroughFormula}</span>
                     </div>
                   </div>
+
+                  {/* Section: 10년 대운 × 사이다 실천 솔루션 */}
+                  {currentDaewoon && (
+                    <div className="bg-sunken p-5 rounded-2xl text-left space-y-3.5">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-line pb-3">
+                        <div>
+                          <span className="text-xs text-ink-faint">
+                            현재 {currentAge}세 운세 구간 · {currentDaewoon.age}세 대운 ({currentDaewoon.stemSipsin}/{currentDaewoon.branchSipsin})
+                          </span>
+                          <h4 className="text-sm font-bold text-ink mt-0.5">
+                            현재 대운 현실 테마 : <span className="text-seal">{daewoonAction.theme}</span>
+                          </h4>
+                        </div>
+                        <span className="text-xs text-ink-faint bg-surface px-2.5 py-1 rounded-md self-start sm:self-auto font-mono">
+                          {currentDaewoon.ganzi} 대운
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div className="bg-surface p-3.5 rounded-xl space-y-1 border border-line">
+                          <span className="font-bold text-[#2D6A4F] flex items-center gap-1">
+                            <Zap className="w-3.5 h-3.5" />
+                            지금 밀어붙여야 할 돌파구
+                          </span>
+                          <p className="text-ink-soft leading-relaxed">{daewoonAction.doAction}</p>
+                        </div>
+                        <div className="bg-surface p-3.5 rounded-xl space-y-1 border border-line">
+                          <span className="font-bold text-seal flex items-center gap-1">
+                            <Ban className="w-3.5 h-3.5" />
+                            반드시 피해야 할 함정
+                          </span>
+                          <p className="text-ink-soft leading-relaxed">{daewoonAction.dontAction}</p>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-surface rounded-xl text-xs text-ink font-medium flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-seal shrink-0" />
+                        <span>{daewoonAction.timingAdvice}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })()}
