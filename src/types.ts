@@ -150,6 +150,29 @@ export interface Room {
 
 export interface PersonalAnalysis {
   character_desc: string;
+  headline?: string;
+  duality?: {
+    outer: string;
+    inner: string;
+    contrast: string;
+  };
+  wealth?: {
+    earning: string;
+    leak: string;
+  };
+  career?: {
+    strength: string;
+    recommended_fields: string;
+  };
+  love?: {
+    meeting_scene: string;
+    friction_point: string;
+  };
+  health?: {
+    signal: string;
+    recovery: string;
+  };
+  one_action?: string;
   four_areas: {
     essence: string;  // 本質 (본질)
     talent: string;   // 才能 (재능)

@@ -338,36 +338,91 @@ async function startServer() {
 ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
 
 당신은 대한민국에서 가장 영험하고 통찰력 깊은 사주명리학 대가이자 동서양 점성학(자미두수·황도12궁), 그리고 현대 심리학적 분석(MBTI)의 대가입니다.
-상대방의 사주원국과 명반을 펼쳐놓고 마주 앉아, 상대방이 살아오며 남몰래 삼켰던 눈물과 갈망, 그리고 앞으로 찬란하게 피어날 운명의 꽃을 이야기해주듯 **술술 읽히는 입체적 인생 드라마 스토리텔링**으로 평생 개인 감정서를 작성하십시오.
+상대방의 사주원국과 명반을 펼쳐놓고 마주 앉아, 상대방이 살아오며 남몰래 삼켰던 눈물과 갈망, 겉으로 보이는 모습과 속에서 실제로 움직이는 마음의 이중성, 그리고 돈과 일, 사랑에서 벌어지는 구체적인 현실 장면들을 **소름 돋게 정확하고 술술 읽히는 입체적 인생 드라마 서사**로 풀어내십시오.
 
 ## 대상자 핵심 정보:
 ${JSON.stringify(enrichedMemberInfo, null, 2)}
 
-## 핵심 작성 지침 (감성적 몰입과 살아있는 스토리텔링 극대화):
-1. **단어 풀이(X) -> 인생 드라마 서사(O):**
-   - "사주에 수(水)가 많아 지혜롭습니다"와 같은 지루한 교과서식 풀이는 절대 쓰지 마십시오.
-   - "마치 깊은 밤 아무도 모르게 흐르는 지하수처럼, 겉으로는 고요해 보여도 내면에서는 쉼 없이 수많은 생각과 감정의 물결이 소용돌이치고 계셨군요"와 같이 심리적 디테일을 시각화하듯 서술하십시오.
-2. **신점·명리학 대가의 살아있는 화법:**
-   - "남들은 당신을 보고 참 든든하고 단단하다고 말하지만, 실은 혼자 짊어진 짐이 무거워 남몰래 속을 끓였던 날들이 많으셨을 것입니다."
-   - 내담자의 무의식을 어루만지고, 왜 그런 성향을 가지게 되었는지의 운명적 배경을 따뜻하고 날카롭게 풀어주십시오.
-3. **MBTI 코드 영문 대문자 표기 절대 원칙:** 
-   - 모든 MBTI 코드(예: ENFP, INFJ 등)는 반드시 영문 대문자로만 표기해야 합니다.
-4. **어려운 한자 노출 절대 금지 & 쉬운 한글 묘사:**
-   - 모든 명리/점성 용어는 100% 쉬운 한글로만 표기하십시오.
-5. **각 영역별 작성 가이드:**
-   - character_desc: 내담자의 본질을 꿰뚫어 보는 품격 있는 총평 서사 (180~250자). 모호한 칭찬 대신, 이 사람이 현실에서 겪는 가장 큰 장벽과 그것을 돌파할 수 있는 결정적 무기를 짚어줄 것.
-   - essence (내면의 본질과 숨겨진 결핍): 겉으로 보이는 모습과 정반대인 마음속 깊은 갈망, 무엇이 이 사람을 진심으로 웃게 하고 외롭게 만드는지.
-   - talent (세상 속에서의 존재감과 날개): 세상이라는 무대에 섰을 때 남들에게 뿜어져 나오는 고유한 아우라와 결정적인 잠재력.
-   - flow (사람과 인연의 궤적): 사람을 대할 때 본능적으로 켜지는 마음의 방어벽, 어떤 사람 앞에서 비로소 무장해제되는지.
-   - fortune (현실 100% 사이다 처방전 & 인생 사용 설명서): "그래서 뭐 어쩌라고?"라는 말이 안 나오도록, 지금 당장 현실(직장/돈/인간관계)에서 취해야 할 3대 행동(DO: 내 지분 챙기기, 통장 잠그기, 선 긋기)과 절대 하지 말아야 할 실수(DON'T: 동업, 보증, 감정적 총대 메기)를 명쾌하게 명시하십시오.
+## 핵심 작성 원칙 (절대적 기준):
+1. **타이틀 / 한 줄 직관적 비유 (Metaphor):**
+   - 교과서적 수식어(예: "성실하고 온화한 사람")는 100% 금지합니다.
+   - 첫 문장만 읽어도 무릎을 탁 치게 만드는 감각적인 비유를 제시하십시오. (예: "센 불에 빠르게 구워 낸, 첫 입부터 강한 음식입니다.", "바위틈을 뚫고 솟아난 소나무처럼 겉은 꼿꼿한 선비이나 속은 타협 없는 칼날입니다.")
+2. **겉과 속의 이중주 (사주 천간/일간/명궁 vs 지지/지장간/신궁의 입체 해설):**
+   - **겉(첫인상과 행동):** 걸음걸이, 눈매, 말투, 결정 속도, 가만히 있어도 뿜어져 나오는 인상 ("생각보다 몸이 먼저 나가고, 하고 싶은 일이 생기면 준비가 다 되기 전에 이미 시작해 놓습니다").
+   - **속(내면과 방어기제):** 혼자 있을 때 드는 생각, 무의식적 불안, 최악의 경우를 먼저 계산하는 버릇, 남몰래 지고 있는 짐 ("힘들다는 말을 잘 하지 않고 혼자 버티다가 한계에 닿아서야 티가 납니다").
+   - **교차 통찰:** "이 둘을 겹쳐 보면 사람이 보입니다. 남들은 적극적이고 거침없는 사람으로 보지만, 실제로는 혼자 감당하는 데 익숙해서 힘들다는 말을 마지막까지 꺼내지 않는 사람입니다."
+3. **재물과 돈의 실전 장면:**
+   - 돈이 실제로 벌리고 불어나는 구체적 장면(직장 실무, 전문 기술, 온라인/해외, 비대면 등)을 짚으십시오.
+   - 돈이 새어 나가는 구멍(피로를 참다가 병원비나 홧김 보상 비용으로 빠져나가는 자리 등)을 정확히 명시하십시오.
+4. **직업과 성취:**
+   - 어떤 험지나 문제 앞에서 존재감이 드러나는지, 일을 대충 하는 태도에 얼마나 예민한지 묘사하고, 잘 맞는 구체적 업종/직무를 제시하십시오.
+5. **연애와 인연의 현실 장면:**
+   - 어디서 만나는지 (직장 협업, 취미, 활동 등), 왜 부딪치는지 (결정 속도 차이, 감정 표현 방식), 오래 가려면 무엇을 합의해야 하는지 명시하십시오.
+6. **건강과 쉼터:**
+   - 지칠 때 신호가 가장 먼저 오는 부위(장/소화, 어깨/관절, 수면 등)와 진짜 충전이 일어나는 회복 방식을 짚으십시오.
+7. **지금 당장 할 일을 하나만 고른다면:**
+   - 뜬구름 잡는 다짐이 아닌, 오늘 당장 취해야 할 원 포인트 돌파구를 단도직입적으로 처방하십시오.
+8. **문체 규칙:**
+   - 모호한 추측형(~일 수도 있습니다) 대신, 확신에 찬 단호한 어조(~합니다, ~입니다, ~겁니다, ~않습니다)를 유지하십시오.
+   - 모든 MBTI 코드는 대문자 영문(ENFP, INTJ 등)으로만 표기하십시오.
+   - 어려운 한자어나 외래 점성술 용어는 쓰지 말고 쉬운 한글로 풀어 쓰십시오.
 `;
 
     const responseSchema = {
       type: Type.OBJECT,
       properties: {
+        headline: {
+          type: Type.STRING,
+          description: "A sensory, poetic one-line metaphor capturing the person's core essence (e.g. 센 불에 빠르게 구워 낸, 첫 입부터 강한 음식입니다.)"
+        },
         character_desc: {
           type: Type.STRING,
-          description: "A summary description of the person's character combining eastern/western astrology and MBTI."
+          description: "A comprehensive summary narrative synthesizing their eastern/western astrology and MBTI in fluent storytelling style."
+        },
+        duality: {
+          type: Type.OBJECT,
+          properties: {
+            outer: { type: Type.STRING, description: "First impression, walking speed, decision speed, facial tension, and external behavior" },
+            inner: { type: Type.STRING, description: "True inner self, hidden burdens, calculating worst case, loneliness, defense mechanism" },
+            contrast: { type: Type.STRING, description: "The profound intersection: what people think they are vs who they actually are alone" }
+          },
+          required: ["outer", "inner", "contrast"]
+        },
+        wealth: {
+          type: Type.OBJECT,
+          properties: {
+            earning: { type: Type.STRING, description: "The realistic scenes where money is made (practical skills, salary, online, etc.)" },
+            leak: { type: Type.STRING, description: "Where money leaks out (fatigue, secret burdens, sudden spending, etc.)" }
+          },
+          required: ["earning", "leak"]
+        },
+        career: {
+          type: Type.OBJECT,
+          properties: {
+            strength: { type: Type.STRING, description: "Work style, intolerance for laziness, proving talent in difficult competitions" },
+            recommended_fields: { type: Type.STRING, description: "Specific industries and job titles that suit this chart" }
+          },
+          required: ["strength", "recommended_fields"]
+        },
+        love: {
+          type: Type.OBJECT,
+          properties: {
+            meeting_scene: { type: Type.STRING, description: "Where they actually meet their partner (colleagues, working together, events, etc.)" },
+            friction_point: { type: Type.STRING, description: "Why they clash (decision speed, communication) and key to long-lasting relationship" }
+          },
+          required: ["meeting_scene", "friction_point"]
+        },
+        health: {
+          type: Type.OBJECT,
+          properties: {
+            signal: { type: Type.STRING, description: "The first organ/body area that gives a warning signal when exhausted" },
+            recovery: { type: Type.STRING, description: "The exact lifestyle habit and environment needed for real recovery" }
+          },
+          required: ["signal", "recovery"]
+        },
+        one_action: {
+          type: Type.STRING,
+          description: "If you could pick only one thing to do right now, the exact actionable step."
         },
         four_areas: {
           type: Type.OBJECT,
@@ -382,10 +437,10 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
         keywords: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description: "2 custom witty personality keywords"
+          description: "2-3 custom witty personality keywords"
         }
       },
-      required: ["character_desc", "four_areas", "keywords"]
+      required: ["headline", "character_desc", "duality", "wealth", "career", "love", "health", "one_action", "four_areas", "keywords"]
     };
 
     const response = await ai.models.generateContent({

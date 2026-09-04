@@ -9,7 +9,7 @@ import { Member, PersonalAnalysis } from "../types";
 import { 
   Sparkles, ArrowLeft, Compass, Coins, Heart, Activity, LogIn, Crown, Printer,
   Sun, Calendar, Moon, MapPin, Clock, ShieldAlert, Gift, Briefcase, Award, ArrowUpRight,
-  Lock, Unlock, Lightbulb, Users
+  Lock, Unlock, Lightbulb, Users, Target, Flame, ShieldCheck, CheckCircle2, Zap
 } from "lucide-react";
 import MbtiTest, { MBTI_EXPLANATIONS } from "./MbtiTest";
 import PremiumPaywall from "./PremiumPaywall";
@@ -2207,28 +2207,99 @@ export default function MeView({ code, memberId }: MeViewProps) {
                   {/* Premium-Gated Lifetime Report Content */}
                   {aiAnalysis ? (
                     <div className="relative overflow-hidden rounded-xl">
-                    <div className={!isPdfUnlocked ? "filter blur-md opacity-30 select-none pointer-events-none space-y-5" : "space-y-5"}>
+                    <div className={!isPdfUnlocked ? "filter blur-md opacity-30 select-none pointer-events-none space-y-6" : "space-y-6"}>
+                      {/* 1. Life Core Metaphor Headline */}
+                      {aiAnalysis.headline && (
+                        <div className="p-4 sm:p-5 bg-gradient-to-r from-seal/10 via-surface to-seal/5 border border-seal/25 rounded-2xl text-center space-y-1 shadow-sm">
+                          <span className="text-[11px] font-bold text-seal tracking-wider uppercase flex items-center justify-center gap-1">
+                            <Sparkles className="w-3 h-3 text-seal" />
+                            <span>인생을 관통하는 본질 비유</span>
+                          </span>
+                          <h3 className="text-base sm:text-lg font-bold text-ink leading-snug">
+                            "{aiAnalysis.headline}"
+                          </h3>
+                        </div>
+                      )}
+
                       {/* Keywords representation */}
                       <div className="flex flex-wrap gap-1.5 justify-center">
                         {aiAnalysis.keywords.map((kw, idx) => (
                           <span
                             key={idx}
-                            className="px-3 py-1.5 bg-sunken rounded-lg text-xs font-medium text-ink-soft"
+                            className="px-3 py-1 bg-sunken border border-line rounded-full text-xs font-semibold text-ink-soft shadow-xs"
                           >
-                            {kw}
+                            #{kw}
                           </span>
                         ))}
                       </div>
 
                       {/* Character overview description */}
-                      <div className="p-5 bg-surface border border-line rounded-xl text-sm leading-relaxed text-ink-soft">
-                        <p className="whitespace-pre-line">{aiAnalysis.character_desc}</p>
+                      <div className="p-5 bg-surface border border-line rounded-2xl text-sm leading-relaxed text-ink-soft shadow-xs space-y-2">
+                        <div className="text-xs font-bold text-ink flex items-center gap-1.5 pb-1 border-b border-line/60">
+                          <Compass className="w-3.5 h-3.5 text-seal" />
+                          <span>운명 종합 감정 총평</span>
+                        </div>
+                        <p className="whitespace-pre-line leading-relaxed">{aiAnalysis.character_desc}</p>
                       </div>
 
-                      {/* 4 areas of interpreting */}
-                      <div className="grid grid-cols-1 gap-4">
-                        {/* 1. Essence */}
-                        <div id="essence-area" className="bg-surface border border-line p-5 rounded-xl space-y-2.5">
+                      {/* 2. Duality: 겉과 속의 이중주 (타고난 기질) */}
+                      {aiAnalysis.duality ? (
+                        <div className="bg-surface border border-line rounded-2xl p-5 space-y-4 shadow-xs">
+                          <div className="flex items-center justify-between border-b border-line pb-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-seal/10 flex items-center justify-center text-seal font-bold text-xs">
+                                01
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-ink">타고난 기질 — 겉과 속의 이중주</h4>
+                                <span className="text-[11px] text-ink-faint">천간(사회적 모습) vs 지지(혼자만의 본성)</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Outer */}
+                            <div className="bg-sunken/80 rounded-xl p-3.5 space-y-1.5 border border-line/50">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-ink flex items-center gap-1">
+                                  <span className="w-2 h-2 rounded-full bg-seal" />
+                                  <span>겉 · 첫인상과 행동 습관</span>
+                                </span>
+                                <span className="text-[10px] text-ink-faint">남들이 보는 나</span>
+                              </div>
+                              <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-line">
+                                {aiAnalysis.duality.outer}
+                              </p>
+                            </div>
+
+                            {/* Inner */}
+                            <div className="bg-sunken/80 rounded-xl p-3.5 space-y-1.5 border border-line/50">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-ink flex items-center gap-1">
+                                  <span className="w-2 h-2 rounded-full bg-ink" />
+                                  <span>속 · 내면과 방어기제</span>
+                                </span>
+                                <span className="text-[10px] text-ink-faint">혼자 있을 때의 나</span>
+                              </div>
+                              <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-line">
+                                {aiAnalysis.duality.inner}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Contrast Callout */}
+                          <div className="bg-seal/5 border border-seal/20 rounded-xl p-3.5 space-y-1">
+                            <div className="text-xs font-bold text-seal flex items-center gap-1.5">
+                              <Lightbulb className="w-3.5 h-3.5 text-seal" />
+                              <span>이 둘을 겹쳐 본 결정적 통찰</span>
+                            </div>
+                            <p className="text-xs text-ink-soft leading-relaxed">
+                              {aiAnalysis.duality.contrast}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div id="essence-area" className="bg-surface border border-line p-5 rounded-2xl space-y-2.5 shadow-xs">
                           <div className="flex items-center text-ink border-b border-line pb-2">
                             <Compass className="w-3.5 h-3.5 mr-1.5 text-ink-faint" />
                             <span className="text-[15px] font-semibold">{isMyOwnProfile ? "본질 — 타고난 기질과 천성" : `${member.nickname}님의 본질 — 타고난 기질과 천성`}</span>
@@ -2237,9 +2308,83 @@ export default function MeView({ code, memberId }: MeViewProps) {
                             {aiAnalysis.four_areas.essence}
                           </p>
                         </div>
+                      )}
 
-                        {/* 2. Talent */}
-                        <div id="talent-area" className="bg-surface border border-line p-5 rounded-xl space-y-2.5">
+                      {/* 3. Wealth: 재물과 돈 (버는 장면 vs 새는 구멍) */}
+                      {aiAnalysis.wealth ? (
+                        <div className="bg-surface border border-line rounded-2xl p-5 space-y-3.5 shadow-xs">
+                          <div className="flex items-center justify-between border-b border-line pb-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-600 font-bold text-xs">
+                                02
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-ink">재물과 돈 — 들어오는 통로 vs 새는 구멍</h4>
+                                <span className="text-[11px] text-ink-faint">현실에서 돈이 모이고 빠져나가는 자리</span>
+                              </div>
+                            </div>
+                            <Coins className="w-4 h-4 text-amber-500" />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="bg-sunken/80 rounded-xl p-3.5 space-y-1.5 border border-line/50">
+                              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                                <span className="text-emerald-600 font-bold">💰</span>
+                                <span>돈이 만들어지는 현실 장면</span>
+                              </span>
+                              <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-line">
+                                {aiAnalysis.wealth.earning}
+                              </p>
+                            </div>
+
+                            <div className="bg-sunken/80 rounded-xl p-3.5 space-y-1.5 border border-line/50">
+                              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                                <span className="text-rose-500 font-bold">⚠️</span>
+                                <span>돈이 새어 나가는 지점 (방어책)</span>
+                              </span>
+                              <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-line">
+                                {aiAnalysis.wealth.leak}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {/* 4. Career: 직업과 성취 (능력이 빛나는 무대) */}
+                      {aiAnalysis.career ? (
+                        <div className="bg-surface border border-line rounded-2xl p-5 space-y-3.5 shadow-xs">
+                          <div className="flex items-center justify-between border-b border-line pb-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-600 font-bold text-xs">
+                                03
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-ink">직업과 성취 — 능력이 폭발하는 무대</h4>
+                                <span className="text-[11px] text-ink-faint">어려운 문제를 해결하고 인정받는 환경</span>
+                              </div>
+                            </div>
+                            <Briefcase className="w-4 h-4 text-blue-500" />
+                          </div>
+
+                          <div className="space-y-3 text-xs text-ink-soft">
+                            <div className="bg-sunken/80 rounded-xl p-3.5 space-y-1 border border-line/50">
+                              <div className="font-bold text-ink">일하는 스타일과 무기</div>
+                              <p className="leading-relaxed whitespace-pre-line">{aiAnalysis.career.strength}</p>
+                            </div>
+
+                            <div className="p-3.5 bg-blue-500/5 border border-blue-500/20 rounded-xl space-y-1.5">
+                              <div className="font-bold text-blue-700 flex items-center gap-1.5">
+                                <Target className="w-3.5 h-3.5" />
+                                <span>추천 직무 및 특화 분야</span>
+                              </div>
+                              <p className="text-ink leading-relaxed font-medium">
+                                {aiAnalysis.career.recommended_fields}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div id="talent-area" className="bg-surface border border-line p-5 rounded-2xl space-y-2.5 shadow-xs">
                           <div className="flex items-center text-ink border-b border-line pb-2">
                             <Sparkles className="w-3.5 h-3.5 mr-1.5 text-ink-faint" />
                             <span className="text-[15px] font-semibold">{isMyOwnProfile ? "재능 — 타고난 천직과 재주" : `${member.nickname}님의 재능 — 타고난 천직과 재주`}</span>
@@ -2248,23 +2393,115 @@ export default function MeView({ code, memberId }: MeViewProps) {
                             {aiAnalysis.four_areas.talent}
                           </p>
                         </div>
+                      )}
 
-                        {/* 3. Flow */}
-                        <div id="flow-area" className="bg-surface border border-line p-5 rounded-xl space-y-3.5">
-                          <div className="flex items-center text-ink border-b border-line pb-2">
-                            <Activity className="w-3.5 h-3.5 mr-1.5 text-ink-faint" />
-                            <span className="text-[15px] font-semibold">{isMyOwnProfile ? "흐름 — 10년 대운(大運) 로드맵" : `흐름 — ${member.nickname}님의 10년 대운(大運) 로드맵`}</span>
+                      {/* 5. Love: 연애와 결혼 (만나는 장면 & 오래 가는 법) */}
+                      {aiAnalysis.love ? (
+                        <div className="bg-surface border border-line rounded-2xl p-5 space-y-3.5 shadow-xs">
+                          <div className="flex items-center justify-between border-b border-line pb-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-rose-500/10 flex items-center justify-center text-rose-600 font-bold text-xs">
+                                04
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-ink">연애와 인연 — 만나는 장면과 부딪치는 지점</h4>
+                                <span className="text-[11px] text-ink-faint">관계가 시작되는 곳과 현실 조율의 기술</span>
+                              </div>
+                            </div>
+                            <Heart className="w-4 h-4 text-rose-500" />
                           </div>
-                          <p className="text-sm text-ink-soft leading-relaxed whitespace-pre-line">
-                            {aiAnalysis.four_areas.flow}
-                          </p>
-                          <div className="mt-2.5 pt-3.5 border-t border-line">
-                            <SajuVisual saju={member.saju} showOnlyDaewoon={true} isPremium={isPdfUnlocked} />
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="bg-sunken/80 rounded-xl p-3.5 space-y-1.5 border border-line/50">
+                              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                                <span className="text-rose-500">📍</span>
+                                <span>인연이 맺어지는 현실 자리</span>
+                              </span>
+                              <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-line">
+                                {aiAnalysis.love.meeting_scene}
+                              </p>
+                            </div>
+
+                            <div className="bg-sunken/80 rounded-xl p-3.5 space-y-1.5 border border-line/50">
+                              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                                <span className="text-amber-600">⚡</span>
+                                <span>부딪치는 지점과 오래 가는 비결</span>
+                              </span>
+                              <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-line">
+                                {aiAnalysis.love.friction_point}
+                              </p>
+                            </div>
                           </div>
                         </div>
+                      ) : null}
 
-                        {/* 4. Fortune */}
-                        <div id="fortune-area" className="bg-surface border border-line p-5 rounded-xl space-y-2.5">
+                      {/* 6. Health: 몸의 신호와 쉼 (건강과 회복) */}
+                      {aiAnalysis.health ? (
+                        <div className="bg-surface border border-line rounded-2xl p-5 space-y-3.5 shadow-xs">
+                          <div className="flex items-center justify-between border-b border-line pb-2.5">
+                            <div className="flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-bold text-xs">
+                                05
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-bold text-ink">몸의 신호와 쉼 — 건강과 회복의 자리</h4>
+                                <span className="text-[11px] text-ink-faint">무리할 때 먼저 오는 신호 & 진짜 풀리는 쉼</span>
+                              </div>
+                            </div>
+                            <Activity className="w-4 h-4 text-emerald-500" />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="bg-sunken/80 rounded-xl p-3.5 space-y-1.5 border border-line/50">
+                              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                                <span className="text-rose-500">🩺</span>
+                                <span>지칠 때 신호가 먼저 오는 자리</span>
+                              </span>
+                              <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-line">
+                                {aiAnalysis.health.signal}
+                              </p>
+                            </div>
+
+                            <div className="bg-sunken/80 rounded-xl p-3.5 space-y-1.5 border border-line/50">
+                              <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                                <span className="text-emerald-600">🌿</span>
+                                <span>쉬어야 풀리는 나만의 회복법</span>
+                              </span>
+                              <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-line">
+                                {aiAnalysis.health.recovery}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {/* 7. Flow: 10년 대운(大運) 로드맵 */}
+                      <div id="flow-area" className="bg-surface border border-line p-5 rounded-2xl space-y-3.5 shadow-xs">
+                        <div className="flex items-center justify-between border-b border-line pb-2.5">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-600 font-bold text-xs">
+                              06
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-ink">
+                                {isMyOwnProfile ? "흐름 — 10년 대운(大運) 로드맵" : `흐름 — ${member.nickname}님의 10년 대운(大運) 로드맵`}
+                              </h4>
+                              <span className="text-[11px] text-ink-faint">삶의 계절이 바뀌는 결정적 타이밍</span>
+                            </div>
+                          </div>
+                          <Calendar className="w-4 h-4 text-purple-500" />
+                        </div>
+                        <p className="text-sm text-ink-soft leading-relaxed whitespace-pre-line">
+                          {aiAnalysis.four_areas.flow}
+                        </p>
+                        <div className="mt-2.5 pt-3.5 border-t border-line">
+                          <SajuVisual saju={member.saju} showOnlyDaewoon={true} isPremium={isPdfUnlocked} />
+                        </div>
+                      </div>
+
+                      {/* 8. Fallback Fortune if wealth/love not separated */}
+                      {(!aiAnalysis.wealth || !aiAnalysis.love) && aiAnalysis.four_areas.fortune && (
+                        <div id="fortune-area" className="bg-surface border border-line p-5 rounded-2xl space-y-2.5 shadow-xs">
                           <div className="flex items-center text-ink border-b border-line pb-2">
                             <Coins className="w-3.5 h-3.5 mr-1.5 text-ink-faint" />
                             <span className="text-[15px] font-semibold">{isMyOwnProfile ? "생활 기운 — 재물·인연·사업·건강 총평" : `${member.nickname}님의 생활 기운 — 재물·인연·사업·건강 총평`}</span>
@@ -2273,7 +2510,20 @@ export default function MeView({ code, memberId }: MeViewProps) {
                             {aiAnalysis.four_areas.fortune}
                           </p>
                         </div>
-                      </div>
+                      )}
+
+                      {/* 9. One Action: 지금 당장 할 일 단 하나 (사이다 현실 처방전) */}
+                      {aiAnalysis.one_action && (
+                        <div className="p-5 bg-gradient-to-br from-seal/15 via-surface to-seal/5 border-2 border-seal/30 rounded-2xl space-y-2 text-left shadow-md">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-seal uppercase tracking-wider">
+                            <Zap className="w-4 h-4 text-seal" />
+                            <span>지금 당장 할 일을 하나만 고른다면</span>
+                          </div>
+                          <p className="text-sm font-bold text-ink leading-relaxed">
+                            {aiAnalysis.one_action}
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Premium Upgrade Overlay for 3단계 */}
