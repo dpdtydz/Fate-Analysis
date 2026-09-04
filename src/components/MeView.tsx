@@ -1706,6 +1706,8 @@ export default function MeView({ code, memberId }: MeViewProps) {
                         onApplyCoupon={handleApplyCouponInMeView}
                         couponLoading={couponLoading}
                         couponError={couponError}
+                        personalAnalysis={aiAnalysis || member.personal_analysis}
+                        isAiGenerated={!!(aiAnalysis || member.personal_analysis)}
                       />
                     </div>
                   )}

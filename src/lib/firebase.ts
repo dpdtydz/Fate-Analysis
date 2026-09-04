@@ -26,7 +26,7 @@ import {
   deleteUser,
   User
 } from "firebase/auth";
-import { UserMembershipInfo } from "../types";
+import { UserMembershipInfo, PersonalAnalysis } from "../types";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBDxMgEkCLcYU3X--nJH4JYwnWrsgqljyA",
@@ -470,6 +470,10 @@ export interface PersonalSajuProfile {
   birthplace_city?: string | null;
   updatedAt?: number;
   ownerUid?: string | null;
+  /** Gemini 개인 분석 결과 캐시 — 생성 비용이 크므로 프로필에 저장해 재사용한다 */
+  personal_analysis?: PersonalAnalysis;
+  /** personal_analysis를 생성할 때 쓴 입력의 지문. 생일/시간/MBTI가 바뀌면 재생성 트리거 */
+  personal_analysis_key?: string;
 }
 
 // Save User Personal Saju Profile (Local & Cloud Sync)
@@ -626,6 +630,70 @@ export async function getUserPersonalProfile(): Promise<PersonalSajuProfile | nu
     console.error("Error reading personal saju profile:", err);
   }
   return null;
+}
+
+/**
+ * personal_analysis 캐시 무효화 키.
+ * AI 분석 입력에 실제로 들어가는 값만 포함한다 — 이 중 하나라도 바뀌면 재생성해야 한다.
+ * (닉네임은 분석 내용에 영향을 주지 않으므로 제외 — 개명만으로 재과금되지 않도록)
+ */
+export function buildPersonalAnalysisKey(p: {
+  birth_date: string;
+  birth_time?: string | null;
+  gender?: string;
+  mbti?: string | null;
+}): string {
+  return [p.birth_date, p.birth_time || "no_time", p.gender || "?", p.mbti || "no_mbti"].join("|");
+}
+
+/**
+ * 개인 AI 분석을 가져온다. 프로필에 캐시가 있고 입력이 그대로면 그것을 쓰고,
+ * 없거나 생일·시간·성별·MBTI가 바뀌었으면 서버에 재생성을 요청한 뒤 프로필에 저장한다.
+ *
+ * 실패해도 throw하지 않는다 — 호출부는 룰베이스 폴백으로 계속 렌더해야 하기 때문.
+ */
+export async function fetchPersonalAnalysis(
+  profile: PersonalSajuProfile,
+  opts?: { force?: boolean }
+): Promise<PersonalAnalysis | null> {
+  if (!profile?.saju || !profile.birth_date) return null;
+
+  const key = buildPersonalAnalysisKey(profile);
+  if (!opts?.force && profile.personal_analysis && profile.personal_analysis_key === key) {
+    return profile.personal_analysis;
+  }
+
+  try {
+    const res = await fetch("/api/personal-analysis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        member: {
+          id: profile.ownerUid || "self",
+          nickname: profile.nickname,
+          birth_date: profile.birth_date,
+          birth_time: profile.birth_time,
+          gender: profile.gender,
+          mbti: profile.mbti,
+          saju: profile.saju,
+        },
+      }),
+    });
+    if (!res.ok) {
+      console.debug("Personal analysis request failed:", res.status);
+      return profile.personal_analysis || null;
+    }
+    const data = await res.json();
+    const analysis = data?.personal_analysis as PersonalAnalysis | undefined;
+    if (!analysis) return profile.personal_analysis || null;
+
+    // 프로필에 캐시 저장 (localStorage + 로그인 시 Firestore 동기화)
+    saveUserPersonalProfile({ ...profile, personal_analysis: analysis, personal_analysis_key: key });
+    return analysis;
+  } catch (err) {
+    console.debug("Personal analysis fetch error:", err);
+    return profile.personal_analysis || null;
+  }
 }
 
 // Save room code to physical localStorage history to let user preserve list of rooms they opened or joined

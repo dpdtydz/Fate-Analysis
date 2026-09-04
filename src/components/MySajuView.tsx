@@ -15,10 +15,12 @@ import {
   activatePremiumSimulation,
   getUserTicketAccount,
   consumeSingleUseTicket,
-  redeemCoupon
+  redeemCoupon,
+  fetchPersonalAnalysis,
+  buildPersonalAnalysisKey
 } from "../lib/firebase";
 import { User } from "firebase/auth";
-import { UserTicketAccount } from "../types";
+import { UserTicketAccount, PersonalAnalysis } from "../types";
 import { 
   Sparkles, 
   Sun, 
@@ -508,6 +510,9 @@ export default function MySajuView() {
   const [inlineCouponInput, setInlineCouponInput] = useState("");
   const [inlineCouponError, setInlineCouponError] = useState("");
   const [inlineCouponLoading, setInlineCouponLoading] = useState(false);
+  // Gemini 개인 분석 — 프로필에 캐시되며, 없을 때만 서버에 생성 요청
+  const [personalAnalysis, setPersonalAnalysis] = useState<PersonalAnalysis | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
   const [activeTipCard, setActiveTipCard] = useState<string | null>(null);
   const [copiedCardMsg, setCopiedCardMsg] = useState("");
 
@@ -605,6 +610,43 @@ export default function MySajuView() {
       isMounted = false;
     };
   }, [currentUser]);
+
+  // Gemini 개인 분석 로드 — 프로필 캐시가 있으면 그대로 쓰고, 없거나 입력이 바뀌었으면 생성
+  const analysisKey = profile ? buildPersonalAnalysisKey(profile) : null;
+  useEffect(() => {
+    // 샘플 미리보기는 실제 사용자 데이터가 아니므로 AI를 호출하지 않는다
+    if (!profile?.saju || isSamplePreview) {
+      setPersonalAnalysis(null);
+      return;
+    }
+
+    // 캐시 적중: 네트워크 없이 즉시 반영
+    if (profile.personal_analysis && profile.personal_analysis_key === analysisKey) {
+      setPersonalAnalysis(profile.personal_analysis);
+      return;
+    }
+
+    let isMounted = true;
+    setAiLoading(true);
+    fetchPersonalAnalysis(profile)
+      .then((result) => {
+        if (!isMounted) return;
+        setPersonalAnalysis(result);
+        // fetchPersonalAnalysis가 프로필에 캐시를 저장했으므로 로컬 상태도 맞춰준다
+        if (result && analysisKey) {
+          setProfile((prev) =>
+            prev ? { ...prev, personal_analysis: result, personal_analysis_key: analysisKey } : prev
+          );
+        }
+      })
+      .finally(() => {
+        if (isMounted) setAiLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [analysisKey, isSamplePreview, profile?.saju]);
 
   const handleSaveProfile = (formData: {
     nickname: string;
@@ -1436,6 +1478,9 @@ export default function MySajuView() {
                     onApplyCoupon={handleApplyInlineCoupon}
                     couponLoading={inlineCouponLoading}
                     couponError={inlineCouponError}
+                    personalAnalysis={personalAnalysis || undefined}
+                    isAiLoading={aiLoading}
+                    isAiGenerated={!!personalAnalysis}
                   />
                 </div>
               )}
