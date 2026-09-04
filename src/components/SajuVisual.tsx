@@ -703,10 +703,10 @@ const DAYMASTER_ACTION_GUIDES: Record<string, SajuActionGuide> = {
     breakthroughFormula: "망설임은 칼날을 무디게 할 뿐이다. 결단하고 베어 넘겨 새로운 영토를 정복하라."
   },
   "辛": {
-    coreSummary: "싸구려로 취급받지 마세요. 내 몸값을 깎으면서까지 남에게 맞추지 말고, 타의 추종을 불허하는 압도적 하이엔드 퀄리티로 단가를 3배 올리세요.",
+    coreSummary: "당신의 고유한 가치를 결코 타협하지 마세요. 불필요하게 단가를 깎거나 남의 눈높이에 억지로 맞추지 말고, 타의 추종을 불허하는 압도적 완성도와 전문성으로 독보적인 포지션을 구축하세요.",
     careerDo: {
-      title: "프리미엄 & 하이엔드 포지셔닝",
-      desc: "대량 양산형 일 대신, 사소한 흠집 하나 없는 완벽한 결과물과 기획력으로 상위 1% 고객과 프로젝트를 타겟팅하세요."
+      title: "독보적인 전문성과 독자적 포지셔닝",
+      desc: "단순 반복형 일 대신, 사소한 오차 하나 없는 정교한 완성도와 깊이 있는 기획력으로 상위 레벨의 핵심 프로젝트를 주도하세요."
     },
     wealthDo: {
       title: "핵심 명품 자산 집중 투자",
@@ -1446,9 +1446,45 @@ export default function SajuVisual({
               <p className="text-xs font-semibold text-ink mb-1">
                 🎯 남들이 보는 나와 내가 아는 나의 결정적 간극
               </p>
-              <p className="text-xs sm:text-sm text-ink-soft leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-ink-soft leading-relaxed font-medium whitespace-pre-wrap">
                 {narrative.identity.contrast}
               </p>
+            </div>
+
+            {/* 심층 기질 및 오행 완충 분석 (총평 심화) */}
+            <div className="space-y-3 pt-1">
+              {narrative.identity.coreEssence && (
+                <div className="p-4 rounded-xl bg-sunken border border-line/60 text-left space-y-1.5">
+                  <span className="text-xs font-bold text-seal flex items-center gap-1.5">
+                    <span>🌿</span> 타고난 성품 그릇과 본질적 지향점
+                  </span>
+                  <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                    {narrative.identity.coreEssence}
+                  </p>
+                </div>
+              )}
+
+              {narrative.identity.thinkingPattern && (
+                <div className="p-4 rounded-xl bg-sunken border border-line/60 text-left space-y-1.5">
+                  <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                    <span>💡</span> 내면의 사고방식 및 의사결정 패턴
+                  </span>
+                  <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                    {narrative.identity.thinkingPattern}
+                  </p>
+                </div>
+              )}
+
+              {narrative.identity.ohaengBalance && (
+                <div className="p-4 rounded-xl bg-line/20 border border-line/60 text-left space-y-1.5">
+                  <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                    <span>⚖️</span> 오행 원국의 에너지 흐름 및 멘탈 완충 진단
+                  </span>
+                  <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                    {narrative.identity.ohaengBalance}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1488,17 +1524,33 @@ export default function SajuVisual({
               </p>
             </div>
 
-            {/* 지금 시기의 행동 지침 */}
-            <div className="p-4 rounded-xl bg-sunken border border-line/60 flex items-start gap-3">
-              <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-              <div>
-                <span className="text-xs font-bold text-ink block mb-0.5">
-                  지금 계절을 건너는 원 포인트 실전 지침
-                </span>
-                <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
-                  {narrative.season.seasonAction}
-                </p>
+            {/* 지금 시기의 행동 지침 & 경계 수칙 2분할 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="p-4 rounded-xl bg-sunken border border-line/60 flex items-start gap-3">
+                <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <div>
+                  <span className="text-xs font-bold text-ink block mb-1">
+                    지금 계절을 건너는 실전 행동 지침
+                  </span>
+                  <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                    {narrative.season.seasonAction}
+                  </p>
+                </div>
               </div>
+
+              {narrative.season.seasonCaution && (
+                <div className="p-4 rounded-xl bg-rose-500/5 border border-rose-500/20 flex items-start gap-3">
+                  <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-xs font-bold text-rose-600 dark:text-rose-400 block mb-1">
+                      반드시 주의해야 할 마음의 함정
+                    </span>
+                    <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                      {narrative.season.seasonCaution}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
