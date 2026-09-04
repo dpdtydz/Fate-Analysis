@@ -12,3 +12,5 @@ coverage/
 assets/zodiac/raw/
 assets/zodiac/refs/
 scripts/__pycache__/
+playwright-report/
+test-results/
