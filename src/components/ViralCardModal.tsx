@@ -5,7 +5,7 @@ import { Member } from "../types";
 import { calculateTodayFortune } from "../utils/saju";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent } from "../lib/analytics";
-import { zodiacImageSrc, roleImageSrc, spaceImageSrc, SPACE_NAMES, SpaceKey } from "./ZodiacAvatar";
+import { zodiacImageSrc, roleImageSrc, spaceImageSrc, SPACE_NAMES, SpaceKey, getMemberZodiacSrc } from "./ZodiacAvatar";
 import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
 
@@ -564,8 +564,13 @@ export default function ViralCardModal({
   const todayFortune = calculateTodayFortune(gan, elem);
   const colors = useMemo(() => getElementCardColors(elem), [elem]);
 
-  // 일지 × 일간 오행 캐릭터 — MySajuView 소울카드와 같은 기준
-  const zodiacSrc = useMemo(() => zodiacImageSrc(ji, elem), [ji, elem]);
+  // 일지 × 일간 오행 최신 12지신 라이프스타일 캐릭터
+  const [zodiacImgFailed, setZodiacImgFailed] = useState(false);
+  const zodiacSrcCandidate = useMemo(() => {
+    return getMemberZodiacSrc(member) || zodiacImageSrc(ji, elem);
+  }, [member, ji, elem]);
+  useEffect(() => setZodiacImgFailed(false), [zodiacSrcCandidate]);
+  const zodiacSrc = zodiacImgFailed ? null : zodiacSrcCandidate;
 
   // 1. 내 소울 카드 시리얼
   const cardSerial = useMemo(() => {
@@ -1082,14 +1087,24 @@ export default function ViralCardModal({
                 </span>
               </div>
 
-              {/* 엠블럼: 내 소울 카드는 타고난 사주 오행 본연의 순수한 영혼 엠블럼 */}
+              {/* 엠블럼: 최신 12지신 라이프스타일 캐릭터 (로드 실패 시 오행 라인 SVG 폴백) */}
               <div
-                className={`w-[128px] h-[128px] mx-auto mb-5 rounded-full flex items-center justify-center ${colors.bg} relative overflow-hidden shadow-inner border border-white/60`}
+                className={`w-[136px] h-[136px] mx-auto mb-5 rounded-full flex items-center justify-center ${colors.bg} relative overflow-hidden shadow-inner border border-white/60`}
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-transparent pointer-events-none" />
-                <div className="relative z-10 transform scale-110">
-                  {spec.renderIcon(colors.stroke)}
-                </div>
+                {zodiacSrc ? (
+                  <img
+                    src={zodiacSrc}
+                    alt={`${nickname}님의 소울 캐릭터`}
+                    decoding="async"
+                    onError={() => setZodiacImgFailed(true)}
+                    className="w-[116px] h-[116px] object-contain select-none filter drop-shadow-sm relative z-10"
+                  />
+                ) : (
+                  <div className="relative z-10 transform scale-110">
+                    {spec.renderIcon(colors.stroke)}
+                  </div>
+                )}
               </div>
 
               {/* 이름 */}

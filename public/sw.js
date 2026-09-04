@@ -1,5 +1,5 @@
-// Inyeon Saju PWA Service Worker (inyeon-saju-v1)
-const CACHE_NAME = "inyeon-saju-v1";
+// Inyeon Saju PWA Service Worker (inyeon-saju-v2)
+const CACHE_NAME = "inyeon-saju-v2";
 
 const PRECACHE_ASSETS = [
   "/",
@@ -7,8 +7,8 @@ const PRECACHE_ASSETS = [
   "/manifest.json",
   "/zodiac/space_balanced.webp",
   "/zodiac/space_metal.webp",
-  "/zodiac/zodiac_rabbit_metal.webp",
-  "/zodiac/zodiac_dragon_wood.webp"
+  "/zodiac/zodiac_rabbit_item_glasses.webp",
+  "/zodiac/zodiac_dragon_item_bowtie.webp"
 ];
 
 // Install Event: Pre-cache essential offline shell

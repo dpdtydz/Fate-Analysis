@@ -951,6 +951,36 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
 
     const cfg = elemColors[elem] || elemColors["금"];
 
+    const animalMap: Record<string, string> = {
+      "쥐": "rat", "소": "ox", "호랑이": "tiger", "토끼": "rabbit",
+      "용": "dragon", "뱀": "snake", "말": "horse", "양": "sheep",
+      "원숭이": "monkey", "닭": "rooster", "개": "dog", "돼지": "pig",
+      "rat": "rat", "ox": "ox", "tiger": "tiger", "rabbit": "rabbit",
+      "dragon": "dragon", "snake": "snake", "horse": "horse", "sheep": "sheep",
+      "monkey": "monkey", "rooster": "rooster", "dog": "dog", "pig": "pig"
+    };
+    const elemItemMap: Record<string, string> = {
+      "목": "bowtie", "화": "sunglasses", "토": "scarf", "금": "glasses", "수": "headphones",
+      "wood": "bowtie", "fire": "sunglasses", "earth": "scarf", "metal": "glasses", "water": "headphones"
+    };
+    const animalKey = animalMap[animal] || "rabbit";
+    const itemKey = elemItemMap[elem] || "bowtie";
+    const distPng = path.join(process.cwd(), "dist", "zodiac", `zodiac_${animalKey}_item_${itemKey}.png`);
+    const publicPng = path.join(process.cwd(), "public", "zodiac", `zodiac_${animalKey}_item_${itemKey}.png`);
+    const charPngPath = fs.existsSync(distPng) ? distPng : publicPng;
+    let characterImageSvg = `
+        <circle cx="920" cy="315" r="160" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.15)" stroke-width="2" />
+        <text x="920" y="300" fill="${cfg.main}" font-family="'Noto Serif KR', serif" font-size="64" font-weight="bold" text-anchor="middle">${elem}</text>
+        <text x="920" y="360" fill="#F8FAFC" font-family="'Pretendard', sans-serif" font-size="24" text-anchor="middle">${animal}</text>
+    `;
+    if (fs.existsSync(charPngPath)) {
+      const b64 = fs.readFileSync(charPngPath).toString("base64");
+      characterImageSvg = `
+        <circle cx="920" cy="315" r="170" fill="rgba(255,255,255,0.05)" stroke="${cfg.main}" stroke-width="2" />
+        <image href="data:image/png;base64,${b64}" x="780" y="175" width="280" height="280" preserveAspectRatio="xMidYMid meet" />
+      `;
+    }
+
     const svg = `
       <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -987,9 +1017,7 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
           "${elem} 기운을 타고난 ${animal}의 기상으로 모임의 중심을 지킵니다"
         </text>
 
-        <circle cx="920" cy="315" r="160" fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.15)" stroke-width="2" />
-        <text x="920" y="300" fill="${cfg.main}" font-family="'Noto Serif KR', serif" font-size="64" font-weight="bold" text-anchor="middle">${elem}</text>
-        <text x="920" y="360" fill="#F8FAFC" font-family="'Pretendard', sans-serif" font-size="24" text-anchor="middle">${animal}</text>
+        ${characterImageSvg}
       </svg>
     `.trim();
 
