@@ -973,6 +973,37 @@ export default function MySajuView() {
                 </h1>
               </div>
 
+              {/* 3.5. 캐릭터 선정 이유 — 왜 이 동물인지 직관적으로 설명 */}
+              {(() => {
+                const ELEMENT_TO_ITEM_NAME: Record<string, string> = {
+                  "목": "보타이", "화": "선글라스", "토": "목도리", "금": "스마트 안경", "수": "헤드폰"
+                };
+                const BRANCH_TO_ANIMAL_KR: Record<string, string> = {
+                  "子": "쥐", "丑": "소", "寅": "호랑이", "卯": "토끼",
+                  "辰": "용", "巳": "뱀", "午": "말", "未": "양",
+                  "申": "원숭이", "酉": "닭", "戌": "개", "亥": "돼지"
+                };
+                const dayJi = profile.saju?.pillars?.day?.ji;
+                const dayGan = profile.saju?.daymaster?.gan;
+                const dayElem = profile.saju?.daymaster?.element;
+                const animalKr = dayJi ? BRANCH_TO_ANIMAL_KR[dayJi] : null;
+                const itemName = dayElem ? ELEMENT_TO_ITEM_NAME[dayElem] : null;
+                if (!animalKr || !dayGan || !dayElem) return null;
+                return (
+                  <div className="mx-auto max-w-[320px] bg-sunken/60 rounded-xl px-4 py-2.5 mb-4 border border-line/40">
+                    <p className="text-[11px] text-ink-faint leading-relaxed text-center">
+                      <span className="font-semibold text-ink-soft">나의 일주</span>{' '}
+                      <span className="font-mono text-ink">{dayGan}{dayJi}</span>에서{' '}
+                      <span className="text-ink-soft">일지</span>{' '}
+                      <span className="font-semibold text-seal">{animalKr}</span>가 나의 동물,{' '}
+                      <span className="text-ink-soft">일간</span>{' '}
+                      <span className="font-semibold text-seal">{dayElem}</span> 기운이{' '}
+                      {itemName && <><span className="font-semibold text-ink">{itemName}</span> 소품으로</>} 표현돼요
+                    </p>
+                  </div>
+                );
+              })()}
+
               {/* 4. 한 줄 정의 */}
               <p className="text-center text-sm leading-relaxed text-ink-soft max-w-[300px] mx-auto mb-5">
                 {spec.quote}
@@ -1094,6 +1125,13 @@ export default function MySajuView() {
                                     {item.score}점
                                   </span>
                                 </div>
+                                {/* 캐릭터 선정 근거 — 왜 이 동물이 대표인지 */}
+                                {rep?.relation && (
+                                  <p className="text-[10px] text-ink-faint mb-1 flex items-center gap-1">
+                                    <span className="inline-block w-1 h-1 rounded-full bg-[#35B37E]/60" />
+                                    {item.elem} 기운 중 나와 <span className="font-semibold text-ink-soft">{rep.relation}</span> 관계인 <span className="font-semibold text-ink-soft">{rep.animal}띠</span>를 대표로 선정
+                                  </p>
+                                )}
                                 <p className="text-xs text-ink-soft leading-relaxed">
                                   {item.oneLiner}
                                 </p>
@@ -1176,6 +1214,13 @@ export default function MySajuView() {
                                     {item.score}점
                                   </span>
                                 </div>
+                                {/* 캐릭터 선정 근거 — 왜 이 동물이 대표인지 */}
+                                {rep?.relation && (
+                                  <p className="text-[10px] text-ink-faint mb-1 flex items-center gap-1">
+                                    <span className="inline-block w-1 h-1 rounded-full bg-[#E0A82E]/60" />
+                                    {item.elem} 기운 중 나와 <span className="font-semibold text-ink-soft">{rep.relation}</span> 관계인 <span className="font-semibold text-ink-soft">{rep.animal}띠</span>를 대표로 선정
+                                  </p>
+                                )}
                                 <p className="text-xs text-ink-soft leading-relaxed">
                                   {item.oneLiner}
                                 </p>
