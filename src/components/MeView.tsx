@@ -14,10 +14,10 @@ import {
 import MbtiTest, { MBTI_EXPLANATIONS } from "./MbtiTest";
 import PremiumPaywall from "./PremiumPaywall";
 import GoogleAds from "./GoogleAds";
-import { getSajuPillarsComprehensiveSynthesis, generatePersonalCoreNarrative } from "../utils/sajuSynthesis";
+import { getSajuPillarsComprehensiveSynthesis } from "../utils/sajuSynthesis";
 import { calculateTodayFortune } from "../utils/saju";
 import ViralCardModal from "./ViralCardModal";
-import ZodiacAvatar, { getMemberZodiacSrc } from "./ZodiacAvatar";
+import ZodiacAvatar, { getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS } from "./ZodiacAvatar";
 
 const ELEMENT_SPECS: Record<string, {
   hanja: string;
@@ -586,6 +586,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
   const [expandedPairs, setExpandedPairs] = useState<Record<string, boolean>>({});
   const [isViralModalOpen, setIsViralModalOpen] = useState(false);
   const [viralCardTab, setViralCardTab] = useState<"identity" | "fortune" | "group" | "role">("identity");
+  const [cardViewMode, setCardViewMode] = useState<"role" | "soul">("role");
   const isMaster = auth.currentUser?.email?.toLowerCase() === "lhs41977@gmail.com";
   const localMemberId = localStorage.getItem(`saju_member_id_${code}`) || "";
   const isViewingSelf = !localMemberId || localMemberId === memberId;
@@ -672,11 +673,19 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
   const syncUnlockStates = async () => {
     const status = await checkPremiumStatus();
-    setIsPremium(status);
     const pdfStatus = await checkProductUnlock("pdf");
     const secretStatus = await checkProductUnlock("secret");
     const groupStatus = await checkProductUnlock("group");
-    setIsPdfUnlocked(status || pdfStatus);
+
+    // 로컬 쿠폰 / 캐시 상태 교차 반영
+    const isCouponPersonalUnlocked =
+      localStorage.getItem("saju_unlocked_personal_report") === "true" ||
+      localStorage.getItem("saju_unlocked_pdf") === "true" ||
+      localStorage.getItem("saju_premium_unlocked_local") === "true";
+
+    const finalPdf = status || pdfStatus || isCouponPersonalUnlocked;
+    setIsPremium(status || isCouponPersonalUnlocked);
+    setIsPdfUnlocked(finalPdf);
     setIsSecretUnlocked(status || secretStatus);
     setIsGroupUnlocked(status || groupStatus);
   };
@@ -1223,7 +1232,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
           </div>
         ) : (
           <>
-            {/* Header Soul Card */}
+            {/* Header Soul / Role Card */}
             {(() => {
               const elemKey = member.saju?.daymaster?.element || "토";
               const rawG = member.saju?.daymaster?.gan || "무토";
@@ -1237,16 +1246,62 @@ export default function MeView({ code, memberId }: MeViewProps) {
               const serialNum = String(ganCode * 6 + jiCode + 1).padStart(3, "0");
               const cardSerial = `${spec.serialPrefix}-${serialNum} · ${g}${j}`;
 
+              // 모임 속 시그니처 역할 산출
+              const roleInfo = calculateMemberRole(member);
+              const roleDetail = ROLE_DETAILS[roleInfo.key] || ROLE_DETAILS["keeper"];
+
+              const ELEMENT_TO_ITEM_NAME: Record<string, string> = {
+                "목": "보타이", "화": "선글라스", "토": "목도리", "금": "스마트 안경", "수": "헤드폰"
+              };
+              const BRANCH_TO_ANIMAL_KR: Record<string, string> = {
+                "子": "쥐", "丑": "소", "寅": "호랑이", "卯": "토끼",
+                "辰": "용", "巳": "뱀", "午": "말", "未": "양",
+                "申": "원숭이", "酉": "닭", "戌": "개", "亥": "돼지"
+              };
+              const dayJi = member.saju?.pillars?.day?.ji;
+              const dayGan = member.saju?.daymaster?.gan;
+              const dayElem = member.saju?.daymaster?.element;
+              const animalKr = dayJi ? BRANCH_TO_ANIMAL_KR[dayJi] : null;
+              const itemName = dayElem ? ELEMENT_TO_ITEM_NAME[dayElem] : null;
+
               return (
                 <div className="w-full bg-surface rounded-xl p-6 sm:p-7 border border-line text-left animate-fade-in">
+                  {/* 모임 속 역할 vs 사주 본질 전환 탭 */}
+                  <div className="flex items-center justify-center p-1 bg-sunken rounded-xl max-w-xs mx-auto mb-5 border border-line/60">
+                    <button
+                      type="button"
+                      onClick={() => setCardViewMode("role")}
+                      className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        cardViewMode === "role"
+                          ? "bg-surface text-seal shadow-xs font-bold"
+                          : "text-ink-soft hover:text-ink"
+                      }`}
+                    >
+                      <Users className="w-3.5 h-3.5" />
+                      <span>모임 속 역할</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCardViewMode("soul")}
+                      className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        cardViewMode === "soul"
+                          ? "bg-surface text-ink shadow-xs font-bold"
+                          : "text-ink-soft hover:text-ink"
+                      }`}
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>사주 본질 소울</span>
+                    </button>
+                  </div>
+
                   {/* 1. 상단: 시리얼 & 오행 표기 */}
-                  <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-mono tracking-[0.14em] text-ink-faint">
-                      {cardSerial}
+                      {cardViewMode === "role" ? `ROLE · ${roleDetail.hanja}` : cardSerial}
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="text-xs tracking-[0.08em] text-ink-faint">
-                        {spec.hanja} {spec.en}
+                        {cardViewMode === "role" ? roleDetail.badge : `${spec.hanja} ${spec.en}`}
                       </span>
                       {isMyProfile && (
                         <button
@@ -1272,28 +1327,25 @@ export default function MeView({ code, memberId }: MeViewProps) {
                   )}
 
                   {/* 3. 이름 헤드라인 */}
-                  <h1 className="text-center font-serif text-2xl font-semibold tracking-tight leading-snug text-ink mb-2">
-                    {member.nickname}님은 <span className="text-seal">{spec.colorName}</span>
-                  </h1>
+                  {cardViewMode === "role" ? (
+                    <h1 className="text-center font-serif text-2xl font-semibold tracking-tight leading-snug text-ink mb-2">
+                      {member.nickname}님은 모임의 <span className="text-seal">【{roleDetail.role}】</span>
+                    </h1>
+                  ) : (
+                    <h1 className="text-center font-serif text-2xl font-semibold tracking-tight leading-snug text-ink mb-2">
+                      {member.nickname}님은 <span className="text-seal">{spec.colorName}</span>
+                    </h1>
+                  )}
 
-                  {/* 3.5. 캐릭터 선정 이유 — 일주로부터 동물·소품이 어떻게 결정되는지 */}
-                  {(() => {
-                    const ELEMENT_TO_ITEM_NAME: Record<string, string> = {
-                      "목": "보타이", "화": "선글라스", "토": "목도리", "금": "스마트 안경", "수": "헤드폰"
-                    };
-                    const BRANCH_TO_ANIMAL_KR: Record<string, string> = {
-                      "子": "쥐", "丑": "소", "寅": "호랑이", "卯": "토끼",
-                      "辰": "용", "巳": "뱀", "午": "말", "未": "양",
-                      "申": "원숭이", "酉": "닭", "戌": "개", "亥": "돼지"
-                    };
-                    const dayJi = member.saju?.pillars?.day?.ji;
-                    const dayGan = member.saju?.daymaster?.gan;
-                    const dayElem = member.saju?.daymaster?.element;
-                    const animalKr = dayJi ? BRANCH_TO_ANIMAL_KR[dayJi] : null;
-                    const itemName = dayElem ? ELEMENT_TO_ITEM_NAME[dayElem] : null;
-                    if (!animalKr || !dayGan || !dayElem) return null;
-                    return (
-                      <div className="mx-auto max-w-[320px] bg-sunken/60 rounded-xl px-4 py-2.5 mb-3 border border-line/40">
+                  {/* 3.5. 캐릭터 선정 이유 및 모임 역할 연결 */}
+                  {animalKr && dayGan && dayElem && (
+                    <div className="mx-auto max-w-[340px] bg-sunken/60 rounded-xl px-4 py-2.5 mb-3 border border-line/40">
+                      {cardViewMode === "role" ? (
+                        <p className="text-[11px] text-ink-faint leading-relaxed text-center">
+                          사주 일간 <span className="font-semibold text-seal">{dayElem} 기운</span>({spec.colorName})과 성향이 어우러져{' '}
+                          모임 안에서 <span className="font-semibold text-ink">{roleDetail.badge}</span> 역할을 톡톡히 해내요
+                        </p>
+                      ) : (
                         <p className="text-[11px] text-ink-faint leading-relaxed text-center">
                           <span className="font-semibold text-ink-soft">나의 일주</span>{' '}
                           <span className="font-mono text-ink">{dayGan}{dayJi}</span>에서{' '}
@@ -1303,18 +1355,18 @@ export default function MeView({ code, memberId }: MeViewProps) {
                           <span className="font-semibold text-seal">{dayElem}</span> 기운이{' '}
                           {itemName && <><span className="font-semibold text-ink">{itemName}</span> 소품으로</>} 표현돼요
                         </p>
-                      </div>
-                    );
-                  })()}
+                      )}
+                    </div>
+                  )}
 
                   {/* 4. 한 줄 정의 */}
-                  <p className="text-center text-sm leading-relaxed text-ink-soft max-w-[300px] mx-auto mb-5">
-                    {spec.quote}
+                  <p className="text-center text-sm leading-relaxed text-ink-soft max-w-[320px] mx-auto mb-5">
+                    {cardViewMode === "role" ? `"${roleDetail.tagline}"` : spec.quote}
                   </p>
 
                   {/* 5. 키워드 태그 */}
                   <div className="flex flex-wrap gap-1.5 justify-center mb-6">
-                    {spec.tags.map((tag, idx) => (
+                    {(cardViewMode === "role" ? roleDetail.tags : spec.tags).map((tag, idx) => (
                       <span
                         key={idx}
                         className="text-xs font-medium text-ink-soft bg-sunken px-3 py-1.5 rounded-lg"
@@ -1326,15 +1378,15 @@ export default function MeView({ code, memberId }: MeViewProps) {
 
                   {/* 6. 기질 스탯 4줄 */}
                   <div className="space-y-2.5 mb-6">
-                    {spec.stats.map((st, idx) => (
-                      <div key={idx} className="grid grid-cols-[48px_1fr_32px] items-center gap-2.5">
+                    {(cardViewMode === "role" ? roleDetail.stats : spec.stats).map((st, idx) => (
+                      <div key={idx} className="grid grid-cols-[56px_1fr_32px] items-center gap-2.5">
                         <span className="text-xs font-medium text-ink">
                           {st.label}
                         </span>
                         <div className="h-[7px] bg-sunken rounded-full overflow-hidden">
                           <div
-                            className="h-full rounded-full bg-ink/70 transition-all duration-500"
-                            style={{ width: `${st.val}%` }}
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{ width: `${st.val}%`, backgroundColor: st.color || "#B3382C" }}
                           />
                         </div>
                         <span className="text-xs font-mono text-right text-ink-faint">
@@ -1343,6 +1395,13 @@ export default function MeView({ code, memberId }: MeViewProps) {
                       </div>
                     ))}
                   </div>
+
+                  {/* 6.5. 역할 상세 설명 */}
+                  {cardViewMode === "role" && (
+                    <p className="p-3.5 bg-sunken/80 rounded-xl text-xs text-ink-soft leading-relaxed border border-line/40 mb-6 text-left">
+                      {roleDetail.desc}
+                    </p>
+                  )}
 
                   {/* 7. 소울 포토 카드 모달 트리거 */}
                   <div className="pt-4 border-t border-line flex flex-wrap items-center justify-between gap-2">
@@ -1353,12 +1412,12 @@ export default function MeView({ code, memberId }: MeViewProps) {
                       <button
                         type="button"
                         onClick={() => {
-                          setViralCardTab("identity");
+                          setViralCardTab("role");
                           setIsViralModalOpen(true);
                         }}
-                        className="px-3 py-1.5 bg-sunken hover:bg-line text-ink rounded-lg text-xs font-medium transition-colors cursor-pointer"
+                        className="px-3 py-1.5 bg-seal/10 text-seal hover:bg-seal/20 rounded-lg text-xs font-semibold transition-colors cursor-pointer border border-seal/20"
                       >
-                        내 소울
+                        역할 카드
                       </button>
                       <button
                         type="button"
@@ -1373,12 +1432,12 @@ export default function MeView({ code, memberId }: MeViewProps) {
                       <button
                         type="button"
                         onClick={() => {
-                          setViralCardTab("role");
+                          setViralCardTab("identity");
                           setIsViralModalOpen(true);
                         }}
                         className="px-3 py-1.5 bg-sunken hover:bg-line text-ink rounded-lg text-xs font-medium transition-colors cursor-pointer"
                       >
-                        역할
+                        내 소울
                       </button>
                     </div>
                   </div>
@@ -1473,171 +1532,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
                   </button>
                 </div>
 
-                {/* 무료 1/6 핵심 심층 진단: 넌 어떤 사람이고, 지금 어떤 시기인가 */}
-                {activeTab === "free" && member.saju && (() => {
-                  const narrative = generatePersonalCoreNarrative(
-                    member.saju,
-                    member.birth_date,
-                    member.nickname,
-                    member.mbti
-                  );
-                  return (
-                    <div className="bg-surface border border-line rounded-2xl p-6 sm:p-7 space-y-6 text-left shadow-sm animate-fade-in mt-4">
-                      {/* 상단 뱃지 및 헤더 */}
-                      <div className="space-y-2 border-b border-line pb-4">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="px-2.5 py-0.5 rounded-md bg-seal/10 text-seal text-xs font-bold font-mono tracking-wider border border-seal/20">
-                            무료 심층 진단 · 1/6 핵심 인사이트
-                          </span>
-                          <span className="text-xs text-ink-faint">
-                            사주 일주론(日柱論) & 10년 대운(大運) 종합 해독
-                          </span>
-                        </div>
-                        <h2 className="font-serif text-xl sm:text-2xl font-semibold text-ink leading-snug">
-                          {member.nickname}님의 진짜 본질과 지금 마주한 인생의 계절
-                        </h2>
-                        <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
-                          누구에게도 쉽게 털어놓지 못했던 내면의 이중성과, 지금 삶을 관통하는 운명의 계절을 짚어드립니다.
-                        </p>
-                      </div>
-
-                      {/* 1. 넌 진짜 어떤 사람인가: 겉과 속의 이중주 */}
-                      <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center text-seal font-bold text-xs">
-                            1
-                          </div>
-                          <h3 className="font-serif text-base sm:text-lg font-semibold text-ink">
-                            넌 진짜 어떤 사람인가 : 겉과 속의 이중주
-                          </h3>
-                        </div>
-
-                        {/* 핵심 메타포 비유 배너 */}
-                        <div className="p-4 rounded-xl bg-sunken/80 border border-line/70">
-                          <p className="text-xs text-seal font-semibold mb-1">
-                            타고난 그릇의 본질적 형상
-                          </p>
-                          <p className="font-serif text-sm sm:text-base font-semibold text-ink leading-relaxed">
-                            "{narrative.identity.headline}"
-                          </p>
-                        </div>
-
-                        {/* 겉과 속 2분할 카드 */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                          {/* 겉 */}
-                          <div className="bg-sunken p-4 sm:p-4.5 rounded-xl space-y-2 border border-line/50">
-                            <div className="flex items-center gap-2 text-xs font-semibold text-ink">
-                              <Sun className="w-3.5 h-3.5 text-amber-600" />
-                              <span>[겉] 세상이 보는 첫인상과 사회적 가면</span>
-                            </div>
-                            <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
-                              {narrative.identity.outer}
-                            </p>
-                          </div>
-
-                          {/* 속 */}
-                          <div className="bg-sunken p-4 sm:p-4.5 rounded-xl space-y-2 border border-line/50">
-                            <div className="flex items-center gap-2 text-xs font-semibold text-ink">
-                              <Moon className="w-3.5 h-3.5 text-indigo-500" />
-                              <span>[속] 혼자 있을 때 마주하는 내면과 방어기제</span>
-                            </div>
-                            <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
-                              {narrative.identity.inner}
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* 교차 통찰 */}
-                        <div className="p-4 rounded-xl bg-line/30 border-l-4 border-seal">
-                          <p className="text-xs font-semibold text-ink mb-1">
-                            🎯 남들이 보는 나와 내가 아는 나의 결정적 간극
-                          </p>
-                          <p className="text-xs sm:text-sm text-ink-soft leading-relaxed font-medium">
-                            {narrative.identity.contrast}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* 2. 지금 당신은 어떤 시기/계절을 지나고 있는가 */}
-                      <div className="space-y-4 pt-2 border-t border-line">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center text-seal font-bold text-xs">
-                            2
-                          </div>
-                          <h3 className="font-serif text-base sm:text-lg font-semibold text-ink">
-                            지금 당신은 어떤 시기인가 : 현재 대운과 삶의 파도
-                          </h3>
-                        </div>
-
-                        {/* 대운 요약 배너 */}
-                        <div className="p-4 rounded-xl bg-sunken/80 border border-line/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                          <div>
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <Calendar className="w-3.5 h-3.5 text-seal" />
-                              <span className="text-xs font-bold text-seal">
-                                {narrative.season.seasonName}
-                              </span>
-                            </div>
-                            <p className="text-xs text-ink-faint">
-                              현재 만 {narrative.season.age}세 기준 · {narrative.season.daewoonAge}세 시작 {narrative.season.daewoonGanzi} 대운 ({narrative.season.daewoonSipsin} · {narrative.season.daewoonUnseong})
-                            </p>
-                          </div>
-                        </div>
-
-                        {/* 시기적 상세 파도 해설 */}
-                        <div className="p-4 sm:p-4.5 rounded-xl bg-sunken border border-line/50 space-y-2">
-                          <p className="text-xs font-semibold text-ink">
-                            🌊 지금 당신의 마음 밑바닥에서 요동치는 변화의 이유
-                          </p>
-                          <p className="text-xs sm:text-sm text-ink-soft leading-relaxed whitespace-pre-wrap">
-                            {narrative.season.seasonDetail}
-                          </p>
-                        </div>
-
-                        {/* 지금 시기의 행동 지침 */}
-                        <div className="p-4 rounded-xl bg-sunken border border-line/60 flex items-start gap-3">
-                          <Lightbulb className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                          <div>
-                            <span className="text-xs font-bold text-ink block mb-0.5">
-                              지금 계절을 건너는 원 포인트 실전 지침
-                            </span>
-                            <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
-                              {narrative.season.seasonAction}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 3. 결제 전환 브릿지 (1/6 -> 5/6 안내) */}
-                      <div className="mt-6 pt-5 border-t border-line bg-gradient-to-br from-sunken via-sunken to-sunken/40 p-5 rounded-xl border border-line space-y-3.5 text-center sm:text-left">
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-semibold text-seal">
-                              <Crown className="w-3.5 h-3.5" />
-                              <span>나머지 5/6의 인생 설계서가 기다리고 있습니다</span>
-                            </div>
-                            <p className="text-xs sm:text-sm text-ink-soft leading-relaxed max-w-xl">
-                              {narrative.bridgePrompt}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveTab("premium");
-                              window.scrollTo({ top: 400, behavior: "smooth" });
-                            }}
-                            className="w-full sm:w-auto px-5 py-3 bg-seal hover:bg-seal-deep text-white text-xs sm:text-sm font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
-                          >
-                            <span>심층 평생 감정서 확인하기</span>
-                            <ArrowRight className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* 1단계: 동양의 명리학적 일주 및 사주명식 */}
+                {/* 사주명식과 일주 풀이 (통합 총평 및 6대 챕터) */}
                 {activeTab === "free" && (
                   <div className="space-y-3 text-left animate-fade-in mt-6">
                     <div className="border-b border-line pb-2">
@@ -1647,8 +1542,8 @@ export default function MeView({ code, memberId }: MeViewProps) {
                     </div>
                     <SajuVisual
                       saju={member.saju}
-                      hideMix={true}
-                      isPremium={isPdfUnlocked}
+                      hideMix={false}
+                      isPremium={isPdfUnlocked || isPremium}
                       userName={member.nickname}
                       birthDate={member.birth_date}
                       mbti={member.mbti}

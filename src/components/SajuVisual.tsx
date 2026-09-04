@@ -1291,7 +1291,7 @@ export default function SajuVisual({
                 </span>
               ) : (
                 <span className="text-xs text-ink-faint">
-                  1/6 무료 심층 스토리텔링 공개 중
+                  사주 일주론 & 10년 대운 종합 분석
                 </span>
               )}
             </div>
@@ -1822,7 +1822,7 @@ export default function SajuVisual({
                     </div>
                     <div className="space-y-1.5">
                       <span className="px-2.5 py-0.5 rounded-md bg-seal/10 text-seal text-xs font-bold font-mono tracking-wider border border-seal/20">
-                        나머지 5/6 평생 감정서 · 실전 처방전
+                        심층 평생 감정서 · 실전 처방전
                       </span>
                       <h4 className="font-serif text-lg font-bold text-ink">
                         실전 사이다 솔루션 열람하기

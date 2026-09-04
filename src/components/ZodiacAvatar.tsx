@@ -278,6 +278,89 @@ export interface MemberRoleInfo {
   tagline: string;
 }
 
+export interface RoleDetail {
+  role: string;
+  badge: string;
+  hanja: string;
+  tagline: string;
+  tags: string[];
+  stats: { label: string; val: number; color: string }[];
+  desc: string;
+}
+
+export const ROLE_DETAILS: Record<RoleKey, RoleDetail> = {
+  spark: {
+    role: "스파크 메이커",
+    badge: "에너지 충전기",
+    hanja: "和氣 (화기)",
+    tagline: "모임의 분위기를 띄우며 어색함을 단숨에 녹여요",
+    tags: ["분위기 메이커", "유쾌한 소통", "텐션 업", "케미 촉매"],
+    stats: [
+      { label: "친화력", val: 92, color: "#F0632E" },
+      { label: "추진력", val: 84, color: "#E0A82E" },
+      { label: "공감력", val: 76, color: "#35B37E" },
+      { label: "조정력", val: 68, color: "#3B5BFF" }
+    ],
+    desc: "모임에 활기를 불어넣는 스파크예요. 특유의 밝고 거침없는 에너지로 어색한 공기를 단숨에 녹이며, 모두가 즐겁게 대화할 수 있는 마당을 열어줍니다."
+  },
+  healer: {
+    role: "멘탈 케어 힐러",
+    badge: "마음 안식처",
+    hanja: "德厚 (덕후)",
+    tagline: "누구 하나 소외되지 않도록 묵묵히 챙겨주는 안식처",
+    tags: ["멘탈 케어", "따뜻한 경청", "감정 완충", "속 깊은 위로"],
+    stats: [
+      { label: "공감력", val: 95, color: "#35B37E" },
+      { label: "포용력", val: 88, color: "#E0A82E" },
+      { label: "신뢰도", val: 82, color: "#3B5BFF" },
+      { label: "결단력", val: 60, color: "#7C86A0" }
+    ],
+    desc: "모임 멤버들의 마음을 살피는 온화한 치유자예요. 겉으로 드러나지 않는 작은 서운함이나 피로까지 세심하게 감싸 안아주며 모임의 정서적 버팀목이 됩니다."
+  },
+  keeper: {
+    role: "실속 총무 & 밸런서",
+    badge: "살림꾼 밸런서",
+    hanja: "信實 (신실)",
+    tagline: "일정과 정산을 똑 부러지게 챙기며 빈틈을 막아요",
+    tags: ["칼같은 정산", "완벽한 일정", "실속 관리", "든든한 신의"],
+    stats: [
+      { label: "결단력", val: 90, color: "#7C86A0" },
+      { label: "정확도", val: 94, color: "#3B5BFF" },
+      { label: "신용도", val: 86, color: "#E0A82E" },
+      { label: "순발력", val: 68, color: "#F0632E" }
+    ],
+    desc: "모임이 흔들림 없이 굴러가도록 지탱하는 핵심 뼈대예요. 흐지부지될 수 있는 약속이나 돈 계산을 군더더기 없이 명쾌하게 정리해 분란을 사전에 예방합니다."
+  },
+  captain: {
+    role: "카리스마 캡틴",
+    badge: "행동대장 리더",
+    hanja: "統率 (통솔)",
+    tagline: "목표가 생기면 거침없이 전진하며 모두를 이끌어요",
+    tags: ["결정적 추진", "방향 제시", "모임 총괄", "든든한 의리"],
+    stats: [
+      { label: "추진력", val: 96, color: "#F0632E" },
+      { label: "통솔력", val: 90, color: "#B3382C" },
+      { label: "실행력", val: 85, color: "#E0A82E" },
+      { label: "유연성", val: 64, color: "#35B37E" }
+    ],
+    desc: "모임의 나아갈 방향을 제시하고 행동으로 옮기게 하는 리더예요. 주저하는 순간 과감하게 결단을 내려 모임을 하나로 뭉치게 만듭니다."
+  },
+  sage: {
+    role: "히든 책사 & 브레인",
+    badge: "지략가 나침반",
+    hanja: "睿智 (예지)",
+    tagline: "조용히 판을 읽고 결정적인 순간에 묘수를 던져요",
+    tags: ["깊은 통찰", "전략적 조언", "핵심 간파", "비밀 금고"],
+    stats: [
+      { label: "통찰력", val: 94, color: "#3B5BFF" },
+      { label: "분석력", val: 88, color: "#7C86A0" },
+      { label: "기획력", val: 82, color: "#35B37E" },
+      { label: "친화력", val: 65, color: "#F0632E" }
+    ],
+    desc: "모임의 전체 흐름과 인간관계를 한 발짝 뒤에서 지켜보는 지혜로운 책사예요. 중요한 선택의 기로마다 군더더기 없는 통찰로 올바른 해답을 짚어냅니다."
+  }
+};
+
 /**
  * 사주 일간 오행과 MBTI 조합으로 모임 속 시그니처 역할을 산출한다.
  */
