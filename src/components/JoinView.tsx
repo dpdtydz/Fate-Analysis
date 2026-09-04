@@ -96,7 +96,8 @@ export default function JoinView({ code }: JoinViewProps) {
 
       // 2. Create unique guest member ID
       const guestMemberId = "member_" + Math.random().toString(36).substring(2, 11);
-      const nowStr = new Date().toISOString();
+      const now = new Date();
+      const nowStr = now.toISOString();
 
       // 3. Save member document to rooms/{code}/members/{guestMemberId}
       const payload: any = {
