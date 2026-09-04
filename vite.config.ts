@@ -24,19 +24,13 @@ export default defineConfig(() => {
         output: {
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              if (id.includes('react') || id.includes('react-dom')) {
-                return 'vendor-react';
-              }
+              // Completely isolated heavy third-party packages
               if (id.includes('firebase')) {
                 return 'vendor-firebase';
               }
-              if (id.includes('lucide-react')) {
-                return 'vendor-icons';
-              }
-              if (id.includes('html2canvas') || id.includes('jspdf') || id.includes('dompurify')) {
+              if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('dompurify')) {
                 return 'vendor-export';
               }
-              return 'vendor-libs';
             }
           },
         },
