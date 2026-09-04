@@ -1279,8 +1279,31 @@ export async function consumeSingleUseTicket(
   productType: TicketProductType,
   context?: { roomCode?: string; pairKey?: string; label?: string },
   targetUid?: string
-): Promise<{ success: boolean; message: string; remainingTickets: number }> {
+): Promise<{ success: boolean; message: string; remainingTickets: number; alreadyUnlocked?: boolean }> {
   const account = await getUserTicketAccount(targetUid);
+  const remaining = (account.tickets.pdf || 0) + (account.tickets.secret || 0) + (account.tickets.group || 0) + (account.tickets.all || 0);
+
+  // 1. Idempotency Guard: Check if the user has ALREADY unlocked this product
+  const normType = productType === "pdf" ? "personal_report" : productType;
+  const isAlreadyUnlocked = 
+    localStorage.getItem(`saju_unlocked_${productType}`) === "true" ||
+    localStorage.getItem(`saju_unlocked_${normType}`) === "true" ||
+    localStorage.getItem("saju_premium_unlocked_local") === "true";
+
+  if (isAlreadyUnlocked) {
+    // Ensure cloud sync without deducting tickets
+    try {
+      await activatePremiumSimulation(account.userUid, normType as any);
+    } catch (e) {}
+
+    return {
+      success: true,
+      alreadyUnlocked: true,
+      message: `✓ 이미 해금 완료된 콘텐츠입니다. 확인권 차감 없이 바로 열람합니다. (잔여 확인권: ${remaining}장)`,
+      remainingTickets: remaining
+    };
+  }
+
   const currentSpecific = account.tickets[productType] || 0;
   const currentAll = account.tickets.all || 0;
 
@@ -1311,24 +1334,34 @@ export async function consumeSingleUseTicket(
   account.userTier = "coupon"; // Elevated to coupon/trial user
   account.updatedAt = new Date().toISOString();
 
-  // Save to Firestore & local storage
+  // Save to Firestore user_tickets
   try {
     await setDoc(doc(db, "user_tickets", account.userUid), cleanUndefined(account), { merge: true });
   } catch (e) {
     console.debug("Firestore update user_tickets skip:", e);
   }
 
+  // CRITICAL: Synchronize permanent unlock in Firestore users collection so checkProductUnlock recognizes it!
+  try {
+    await activatePremiumSimulation(account.userUid, normType as any);
+  } catch (e) {
+    console.debug("Failed to sync activatePremiumSimulation on consume ticket:", e);
+  }
+
   localStorage.setItem(`saju_ticket_account_${account.userUid}`, JSON.stringify(account));
   localStorage.setItem(`saju_unlocked_${productType}`, "true");
+  if (productType === "pdf") {
+    localStorage.setItem("saju_unlocked_personal_report", "true");
+  }
   localStorage.setItem("saju_user_tier", "coupon");
 
-  const remaining = (account.tickets.pdf || 0) + (account.tickets.secret || 0) + (account.tickets.group || 0) + (account.tickets.all || 0);
-  localStorage.setItem("saju_ticket_count", String(remaining));
+  const newRemaining = (account.tickets.pdf || 0) + (account.tickets.secret || 0) + (account.tickets.group || 0) + (account.tickets.all || 0);
+  localStorage.setItem("saju_ticket_count", String(newRemaining));
 
   return {
     success: true,
-    message: `🎫 1회 확인권 1장을 소모하여 ${record.label}을(를) 확인합니다! (남은 티켓: ${remaining}장)`,
-    remainingTickets: remaining
+    message: `🎫 1회 확인권 1장을 소모하여 ${record.label}을(를) 확인합니다! (남은 확인권: ${newRemaining}장)`,
+    remainingTickets: newRemaining
   };
 }
 

@@ -736,6 +736,12 @@ export default function MySajuView() {
   };
 
   const handleUnlockWithCoupon = async () => {
+    if (isCouponUnlocked) {
+      setCouponMsg("이미 심층 감정서가 해금되어 있습니다.");
+      setTimeout(() => setCouponMsg(""), 3000);
+      return;
+    }
+
     const pdfTickets = (ticketAccount?.tickets?.pdf || 0) + (ticketAccount?.tickets?.all || 0);
     if (pdfTickets > 0) {
       setLoading(true);

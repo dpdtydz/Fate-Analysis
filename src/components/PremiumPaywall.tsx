@@ -613,6 +613,33 @@ export default function PremiumPaywall({
         </div>
       )}
 
+      {/* 내 보유 혜택 & 해금 현황 요약 대시보드 */}
+      <div className="bg-sunken rounded-xl p-3.5 space-y-2 border border-line/60">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-seal" />
+            내 보유 혜택 & 해금 현황
+          </span>
+          <span className="text-[11px] text-ink-faint">
+            총 확인권 {totalTickets}장
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-1.5 text-center">
+          <div className={`p-2 rounded-lg border text-xs ${isPdfUnlocked ? 'bg-surface border-seal/40 text-seal font-semibold' : 'bg-surface/50 border-line text-ink-soft'}`}>
+            <div className="text-[11px] truncate">📑 PDF 감정서</div>
+            <div className="text-[10px] mt-0.5 font-medium">{isPdfUnlocked ? "해금 완료" : `잔여 ${pdfTickets}장`}</div>
+          </div>
+          <div className={`p-2 rounded-lg border text-xs ${isSecretUnlocked ? 'bg-surface border-seal/40 text-seal font-semibold' : 'bg-surface/50 border-line text-ink-soft'}`}>
+            <div className="text-[11px] truncate">🔮 비밀 인연</div>
+            <div className="text-[10px] mt-0.5 font-medium">{isSecretUnlocked ? "해금 완료" : `잔여 ${secretTickets}장`}</div>
+          </div>
+          <div className={`p-2 rounded-lg border text-xs ${isGroupUnlocked ? 'bg-surface border-seal/40 text-seal font-semibold' : 'bg-surface/50 border-line text-ink-soft'}`}>
+            <div className="text-[11px] truncate">👥 그룹 총평</div>
+            <div className="text-[10px] mt-0.5 font-medium">{isGroupUnlocked ? "해금 완료" : `잔여 ${groupTickets}장`}</div>
+          </div>
+        </div>
+      </div>
+
       {/* Tab Navigation */}
       <div className="flex bg-sunken p-1 rounded-xl gap-1 text-xs">
         <button
@@ -804,40 +831,54 @@ export default function PremiumPaywall({
           </div>
 
           <div className="space-y-2">
-            <div className="flex flex-col sm:flex-row gap-2">
-              {secretTickets > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => handleConsumeTicket("secret")}
-                  disabled={ticketLoading}
-                  className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <span>확인권 1장으로 열람 (잔여 {secretTickets}장)</span>
-                </button>
-              ) : isPaymentEnabled ? (
-                <>
+            {isSecretUnlocked || isPremium ? (
+              <div className="bg-sunken rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-seal shrink-0" />
+                  <div>
+                    <span className="text-sm font-semibold text-ink block">이미 해금 완료된 콘텐츠예요</span>
+                    <span className="text-xs text-ink-soft">1:1 비밀 인연 등급과 성향 상성 궤적을 평생 무제한 열람할 수 있습니다.</span>
+                  </div>
+                </div>
+                <span className="px-3.5 py-1.5 bg-surface text-ink text-xs font-semibold rounded-lg shrink-0 border border-line">
+                  평생 무료 열람 중
+                </span>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-2">
+                {secretTickets > 0 ? (
                   <button
                     type="button"
-                    onClick={() => handleInitiatePurchase({
-                      id: "item_secret",
-                      title: "1:1 심층 인연 등급 & 기질 상성 해독권",
-                      price: 1900,
-                      type: "secret",
-                      ticketCount: 1,
-                    })}
-                    className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    onClick={() => handleConsumeTicket("secret")}
+                    disabled={ticketLoading}
+                    className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <span>₩1,900 결제하고 열람</span>
+                    <span>확인권 1장으로 열람 (잔여 {secretTickets}장)</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => focusCouponInput("SECRET2026")}
-                    className="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
-                  >
-                    쿠폰·초대로 받기
-                  </button>
-                </>
-              ) : (
+                ) : isPaymentEnabled ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleInitiatePurchase({
+                        id: "item_secret",
+                        title: "1:1 심층 인연 등급 & 기질 상성 해독권",
+                        price: 1900,
+                        type: "secret",
+                        ticketCount: 1,
+                      })}
+                      className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <span>₩1,900 결제하고 열람</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => focusCouponInput("SECRET2026")}
+                      className="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+                    >
+                      쿠폰·초대로 받기
+                    </button>
+                  </>
+                ) : (
                 <button
                   type="button"
                   onClick={() => focusCouponInput("SECRET2026")}
@@ -847,6 +888,7 @@ export default function PremiumPaywall({
                 </button>
               )}
             </div>
+            )}
 
             {/* Direct Feedback Below Secret Action Button */}
             {ticketSuccessMsg && (
@@ -898,40 +940,54 @@ export default function PremiumPaywall({
           </div>
 
           <div className="space-y-2">
-            <div className="flex flex-col sm:flex-row gap-2">
-              {groupTickets > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => handleConsumeTicket("group")}
-                  disabled={ticketLoading}
-                  className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <span>확인권 1장으로 열람 (잔여 {groupTickets}장)</span>
-                </button>
-              ) : isPaymentEnabled ? (
-                <>
+            {isGroupUnlocked || isPremium ? (
+              <div className="bg-sunken rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-seal shrink-0" />
+                  <div>
+                    <span className="text-sm font-semibold text-ink block">이미 해금 완료된 콘텐츠예요</span>
+                    <span className="text-xs text-ink-soft">모임 전체 오행 분포와 1:1 전수 궁합 총괄 리포트를 평생 무제한 열람할 수 있습니다.</span>
+                  </div>
+                </div>
+                <span className="px-3.5 py-1.5 bg-surface text-ink text-xs font-semibold rounded-lg shrink-0 border border-line">
+                  평생 무료 열람 중
+                </span>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-2">
+                {groupTickets > 0 ? (
                   <button
                     type="button"
-                    onClick={() => handleInitiatePurchase({
-                      id: "item_group",
-                      title: "모임 전체 인원 오행 상생 궁합 총괄 보고서",
-                      price: 3900,
-                      type: "group",
-                      ticketCount: 1,
-                    })}
-                    className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    onClick={() => handleConsumeTicket("group")}
+                    disabled={ticketLoading}
+                    className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <span>₩3,900 결제하고 열람</span>
+                    <span>확인권 1장으로 열람 (잔여 {groupTickets}장)</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => focusCouponInput("GROUP2026")}
-                    className="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
-                  >
-                    쿠폰·초대로 받기
-                  </button>
-                </>
-              ) : (
+                ) : isPaymentEnabled ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleInitiatePurchase({
+                        id: "item_group",
+                        title: "모임 전체 인원 오행 상생 궁합 총괄 보고서",
+                        price: 3900,
+                        type: "group",
+                        ticketCount: 1,
+                      })}
+                      className="flex-1 py-3 px-4 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <span>₩3,900 결제하고 열람</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => focusCouponInput("GROUP2026")}
+                      className="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+                    >
+                      쿠폰·초대로 받기
+                    </button>
+                  </>
+                ) : (
                 <button
                   type="button"
                   onClick={() => focusCouponInput("GROUP2026")}
@@ -941,6 +997,7 @@ export default function PremiumPaywall({
                 </button>
               )}
             </div>
+            )}
 
             {/* Direct Feedback Below Group Action Button */}
             {ticketSuccessMsg && (

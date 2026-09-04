@@ -99,29 +99,31 @@ const getPairAsymmetricScores = (pair: PairAnalysis | undefined, m1: Member, m2:
 export default function GroupNetwork({ members, pairs, isPremium }: GroupNetworkProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [relationFilter, setRelationFilter] = useState<"all" | "good" | "bad">("all");
-  const [renderEngine, setRenderEngine] = useState<"canvas" | "svg">(members.length >= 8 ? "canvas" : "svg");
+  // Default to SVG for crisp vector rendering, animations, and high-fidelity character illustrations
+  const [renderEngine, setRenderEngine] = useState<"svg" | "canvas">("svg");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // 점수는 먹 농담(진하게=높음)으로 표현하고, 최고 구간(90+)에만 인주 한 점을 허용한다
+  // 점수는 먹 농담(진하게=높음)과 인주(90+), 조화(70+)로 표현
   const getScoreColor = (score: number) => {
-    if (score >= 90) return "#B3382C"; // 인주 — 최고 구간에만
-    return "#1C1D21";                  // 먹 — 농담은 opacity로
+    if (score >= 90) return "#B3382C"; // 인주 (최고 구간 90+)
+    if (score >= 75) return "#2D6A4F"; // 청록 (우수 상생 75~89)
+    if (score >= 50) return "#4A4E69"; // 온화 (보통 50~74)
+    return "#8D99AE";                  // 주의 (50 미만)
   };
 
   const getScoreOpacity = (score: number) => {
     if (score >= 90) return 1;
-    if (score >= 70) return 0.85;
-    if (score >= 50) return 0.55;
-    if (score >= 30) return 0.4;
-    return 0.3;
+    if (score >= 70) return 0.9;
+    if (score >= 50) return 0.7;
+    return 0.5;
   };
 
-  // --- REVOLUTIONARY DYNAMIC SIZING FOR MANY MEMBERS ---
+  // --- DYNAMIC SIZING FOR OPTIMAL AVATAR VISIBILITY ---
   const isLargeGroup = members.length > 8;
-  const svgSize = isLargeGroup ? 440 : 340;
+  const svgSize = isLargeGroup ? 420 : 370;
   const center = svgSize / 2;
-  const radius = isLargeGroup ? 145 : 105;
-  const nodeRadius = isLargeGroup ? 14 : 18;
+  const radius = isLargeGroup ? 140 : 118;
+  const nodeRadius = isLargeGroup ? 21 : 25; // Large enough for face visibility
 
   // Coordinates for members in a circle
   const nodes = useMemo(() => {
@@ -304,24 +306,41 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // 2. Lines
+    // 2. Lines & Score Badges
     lines.forEach((line) => {
+      const isHighScore = line.avgScore >= 90;
+      const isGoodScore = line.avgScore >= 75;
+
       ctx.beginPath();
       ctx.moveTo(line.x1, line.y1);
       ctx.lineTo(line.x2, line.y2);
       ctx.strokeStyle = line.color;
-      ctx.lineWidth = selectedNodeId ? 1.5 : 2;
+      ctx.lineWidth = isHighScore ? 3.5 : (selectedNodeId ? 2 : 2.5);
       ctx.globalAlpha = line.opacity;
       ctx.stroke();
 
-      if (selectedNodeId) {
-        const mx = (line.x1 + line.x2) / 2;
-        const my = (line.y1 + line.y2) / 2;
-        ctx.fillStyle = line.color;
-        ctx.beginPath();
-        ctx.arc(mx, my, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
+      // Score badge on line midpoint
+      const mx = (line.x1 + line.x2) / 2;
+      const my = (line.y1 + line.y2) / 2;
+      const badgeW = isHighScore ? 34 : 28;
+      const badgeH = 14;
+
+      ctx.save();
+      ctx.globalAlpha = 0.95;
+      ctx.fillStyle = isHighScore ? "#B3382C" : (isGoodScore ? "#2D6A4F" : "#1C1D21");
+      ctx.beginPath();
+      ctx.roundRect(mx - badgeW / 2, my - badgeH / 2, badgeW, badgeH, badgeH / 2);
+      ctx.fill();
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = '700 8px monospace';
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`${Math.round(line.avgScore)}점`, mx, my + 0.5);
+      ctx.restore();
     });
 
     ctx.globalAlpha = 1;
@@ -334,38 +353,75 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
       if (isSelected) {
         ctx.beginPath();
         ctx.arc(node.x, node.y, nodeRadius + 5, 0, Math.PI * 2);
-        ctx.strokeStyle = "#B91C1C";
+        ctx.strokeStyle = "#B3382C";
         ctx.lineWidth = 2.5;
         ctx.stroke();
       }
 
+      ctx.save();
+      // Outer border circle
       ctx.beginPath();
       ctx.arc(node.x, node.y, nodeRadius, 0, Math.PI * 2);
-      ctx.fillStyle = "#FCFAF6";
+      ctx.fillStyle = "#FFFFFF";
       ctx.fill();
-      ctx.strokeStyle = isSelected ? "#B91C1C" : elemHex;
-      ctx.lineWidth = isSelected ? 2 : 1.5;
+      ctx.strokeStyle = isSelected ? "#B3382C" : elemHex;
+      ctx.lineWidth = isSelected ? 3 : 2.5;
       ctx.stroke();
 
-      ctx.font = `600 ${isLargeGroup ? "10px" : "12px"} "Pretendard", sans-serif`;
-      ctx.fillStyle = isSelected ? "#B91C1C" : "#1C1D21";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(node.nickname.slice(0, 2), node.x, node.y);
+      // Inner image clipping
+      if (node.imageSrc) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(node.x, node.y, nodeRadius - 1.5, 0, Math.PI * 2);
+        ctx.clip();
+        
+        // Cache or render image
+        const img = new Image();
+        img.src = node.imageSrc;
+        if (img.complete && img.naturalWidth > 0) {
+          ctx.drawImage(
+            img,
+            node.x - nodeRadius * 1.15,
+            node.y - nodeRadius * 1.15,
+            nodeRadius * 2.3,
+            nodeRadius * 2.3
+          );
+        } else {
+          ctx.font = `${isLargeGroup ? "14px" : "17px"} "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(node.emoji || "👤", node.x, node.y + 1);
+        }
+        ctx.restore();
+      } else {
+        ctx.font = `${isLargeGroup ? "14px" : "17px"} "Apple Color Emoji", "Segoe UI Emoji", sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(node.emoji || "👤", node.x, node.y + 1);
+      }
+      ctx.restore();
 
       // Element badge
       ctx.fillStyle = elemHex;
-      const bW = 16;
-      const bH = 9;
-      ctx.fillRect(node.x - bW / 2, node.y - nodeRadius - 7, bW, bH);
-      ctx.font = '600 7px "Pretendard", sans-serif';
+      const bW = 18;
+      const bH = 10;
+      ctx.beginPath();
+      ctx.roundRect(node.x - bW / 2, node.y + nodeRadius - 2, bW, bH, 3);
+      ctx.fill();
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      ctx.font = '700 7px "Pretendard", sans-serif';
       ctx.fillStyle = "#FFFFFF";
-      ctx.fillText(node.element, node.x, node.y - nodeRadius - 2.5);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(node.element, node.x, node.y + nodeRadius + 3);
 
       // Label below
-      ctx.font = '600 8.5px "Pretendard", sans-serif';
-      ctx.fillStyle = isSelected ? "#B91C1C" : "#55565E";
-      ctx.fillText(node.nickname, node.x, node.y + nodeRadius + 11);
+      ctx.font = '700 9px "Pretendard", sans-serif';
+      ctx.fillStyle = isSelected ? "#B3382C" : "#1C1D21";
+      ctx.fillText(node.nickname, node.x, node.y + nodeRadius + 15);
     });
   }, [renderEngine, nodes, lines, selectedNodeId, svgSize, center, radius, nodeRadius, isLargeGroup]);
 
@@ -474,6 +530,23 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
           viewBox={`0 0 ${svgSize} ${svgSize}`}
           className="w-full h-full text-xs overflow-visible select-none"
         >
+          <defs>
+            {/* Soft Shadow Filter for Nodes */}
+            <filter id="nodeShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodColor="#000000" floodOpacity="0.12" />
+            </filter>
+            {/* Glow Filter for High Synergy Lines */}
+            <filter id="synergyGlow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#B3382C" floodOpacity="0.4" />
+            </filter>
+            {/* Dynamic Clip Paths for Circular Avatars */}
+            {nodes.map((node) => (
+              <clipPath key={`clip-${node.id}`} id={`clip-${node.id}`}>
+                <circle cx={node.x} cy={node.y} r={nodeRadius - 2} />
+              </clipPath>
+            ))}
+          </defs>
+
           {/* 1. Quiet guide circle */}
           <circle
             cx={center}
@@ -481,25 +554,61 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
             r={radius}
             fill="none"
             stroke="#E7E7E2"
-            strokeWidth="1"
+            strokeWidth="1.2"
             strokeDasharray="4,4"
           />
 
-          {/* 2. Relationship lines — 먹 농담으로 점수 표현 */}
+          {/* 2. Relationship lines — 고품질 궁합 선 및 중앙 점수 뱃지 */}
           {lines.map((line, idx) => {
+            const isHighScore = line.avgScore >= 90;
+            const isGoodScore = line.avgScore >= 75;
+            const mx = (line.x1 + line.x2) / 2;
+            const my = (line.y1 + line.y2) / 2;
+            const badgeW = isHighScore ? 36 : 30;
+            const badgeH = 15;
+
             return (
               <g key={`line-${idx}`} className="transition-all duration-300">
+                {/* Connection Line */}
                 <line
                   x1={line.x1}
                   y1={line.y1}
                   x2={line.x2}
                   y2={line.y2}
                   stroke={line.color}
-                  strokeWidth={selectedNodeId ? "1.5" : "2"}
+                  strokeWidth={isHighScore ? "3.5" : selectedNodeId ? "2" : "2.5"}
                   strokeLinecap="round"
                   strokeOpacity={line.opacity}
+                  filter={isHighScore ? "url(#synergyGlow)" : undefined}
                   className="transition-all duration-300"
                 />
+
+                {/* Score Badge floating on the line midpoint */}
+                <g transform={`translate(${mx}, ${my})`} className="cursor-pointer">
+                  <rect
+                    x={-badgeW / 2}
+                    y={-badgeH / 2}
+                    width={badgeW}
+                    height={badgeH}
+                    rx={badgeH / 2}
+                    fill={isHighScore ? "#B3382C" : isGoodScore ? "#2D6A4F" : "#1C1D21"}
+                    stroke="#FFFFFF"
+                    strokeWidth="1"
+                    opacity={0.95}
+                    filter="url(#nodeShadow)"
+                  />
+                  <text
+                    textAnchor="middle"
+                    y={3.5}
+                    fill="#FFFFFF"
+                    fontSize="8px"
+                    fontWeight="700"
+                    fontFamily="monospace"
+                    className="select-none pointer-events-none"
+                  >
+                    {Math.round(line.avgScore)}점
+                  </text>
+                </g>
               </g>
             );
           })}
@@ -507,7 +616,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
           {/* 3. DRAW ROUND NODES & DETAILED DYNAMIC LABEL BADGES */}
           {nodes.map((node) => {
             // Text placement calculation (pointing outward from the circle center)
-            const textOffset = isLargeGroup ? 20 : 25;
+            const textOffset = isLargeGroup ? 24 : 28;
             const angle = Math.atan2(node.y - center, node.x - center);
             const labelX = node.x + textOffset * Math.cos(angle);
             const labelY = node.y + textOffset * Math.sin(angle);
@@ -541,7 +650,7 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                   setRelationFilter("all"); // Reset filter when switching nodes
                 }}
               >
-                {/* Static ring around selected node */}
+                {/* Selected Node Pulsing Halo */}
                 {isSelected && (
                   <circle
                     cx={node.x}
@@ -549,93 +658,99 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                     r={nodeRadius + 6}
                     fill="none"
                     stroke="#B3382C"
-                    strokeWidth="1.5"
+                    strokeWidth="2"
                     strokeDasharray="4,2"
+                    className="animate-spin-slow"
                   />
                 )}
 
-                {/* Main Node Circle */}
+                {/* Main Node Background & Shadow */}
                 <circle
                   cx={node.x}
                   cy={node.y}
-                  r={isSelected ? nodeRadius + 3 : nodeRadius}
-                  fill={isSelected ? "#B3382C" : "#FCFCFA"}
+                  r={isSelected ? nodeRadius + 2 : nodeRadius}
+                  fill="#FFFFFF"
                   stroke={isSelected ? "#B3382C" : elementHex}
-                  strokeWidth="2"
+                  strokeWidth={isSelected ? "3" : "2.5"}
+                  filter="url(#nodeShadow)"
                   className="transition-all duration-300"
-                  opacity={isConnected ? 1 : 0.25}
+                  opacity={isConnected ? 1 : 0.3}
                 />
 
-                {/* Character Image / Emoji inside Node */}
+                {/* Character Avatar Image (Clipped inside Circle) */}
                 {node.imageSrc ? (
                   <image
                     href={node.imageSrc}
-                    x={node.x - (isSelected ? nodeRadius + 1 : nodeRadius - 1)}
-                    y={node.y - (isSelected ? nodeRadius + 1 : nodeRadius - 1)}
-                    width={(isSelected ? nodeRadius + 1 : nodeRadius - 1) * 2}
-                    height={(isSelected ? nodeRadius + 1 : nodeRadius - 1) * 2}
-                    preserveAspectRatio="xMidYMid meet"
+                    clipPath={`url(#clip-${node.id})`}
+                    x={node.x - nodeRadius * 1.15}
+                    y={node.y - nodeRadius * 1.15}
+                    width={nodeRadius * 2.3}
+                    height={nodeRadius * 2.3}
+                    preserveAspectRatio="xMidYMid slice"
                     className="transition-all duration-300 select-none pointer-events-none"
-                    opacity={isConnected ? 1 : 0.25}
+                    opacity={isConnected ? 1 : 0.3}
                   />
                 ) : (
                   <text
                     x={node.x}
-                    y={node.y + (isLargeGroup ? 4 : 5)}
+                    y={node.y + 5}
                     textAnchor="middle"
-                    fontSize={isSelected ? (isLargeGroup ? "16px" : "19px") : (isLargeGroup ? "13px" : "16px")}
+                    fontSize={isLargeGroup ? "16px" : "19px"}
                     className="transition-all duration-300 select-none pointer-events-none"
-                    opacity={isConnected ? 1 : 0.25}
+                    opacity={isConnected ? 1 : 0.3}
                   >
-                    {node.emoji}
+                    {node.emoji || "👤"}
                   </text>
                 )}
 
-                {/* Element Tag bubble directly below circle (오행 데이터 색) */}
-                <g transform={`translate(${node.x}, ${node.y + (isSelected ? nodeRadius + 3 : nodeRadius)})`}>
+                {/* Element Tag bubble directly below circle */}
+                <g transform={`translate(${node.x}, ${node.y + (isSelected ? nodeRadius + 3 : nodeRadius + 1)})`}>
                   <rect
-                    x="-9"
-                    y="-4"
-                    width="18"
-                    height="9"
-                    rx="2"
+                    x="-10"
+                    y="-5"
+                    width="20"
+                    height="10"
+                    rx="3"
                     fill={elementHex}
-                    opacity={isConnected ? 0.95 : 0.25}
+                    stroke="#FFFFFF"
+                    strokeWidth="0.8"
+                    opacity={isConnected ? 1 : 0.3}
                   />
                   <text
                     textAnchor="middle"
                     y="3"
-                    fill="#FCFCFA"
-                    fontSize="6px"
+                    fill="#FFFFFF"
+                    fontSize="7px"
+                    fontWeight="700"
                     className="select-none pointer-events-none"
                   >
                     {node.element}
                   </text>
                 </g>
 
-                {/* NICKNAME & SCORE CARD COMBINED: Solves 100% of line clutters */}
+                {/* NICKNAME & SCORE CARD COMBINED */}
                 <foreignObject
-                  x={labelX - 35}
-                  y={labelY - (asymmetricInfo ? 17 : 9)}
-                  width="70"
-                  height={asymmetricInfo ? "32" : "18"}
+                  x={labelX - 38}
+                  y={labelY - (asymmetricInfo ? 18 : 10)}
+                  width="76"
+                  height={asymmetricInfo ? "36" : "20"}
                   className="overflow-visible pointer-events-none select-none transition-all duration-300"
-                  opacity={isConnected ? 1 : 0.2}
+                  opacity={isConnected ? 1 : 0.25}
                 >
                   <div className="flex flex-col items-center justify-center space-y-0.5">
                     {/* Nickname plate */}
-                    <div className={`px-1.5 py-0.5 rounded-md text-[8px] font-semibold tracking-tight bg-paper truncate text-center w-full max-w-[60px] ${
-                      isSelected ? "text-seal" : "text-ink"
+                    <div className={`px-2 py-0.5 rounded-md text-[9px] font-bold tracking-tight shadow-sm truncate text-center w-full max-w-[68px] border ${
+                      isSelected ? "bg-seal text-white border-seal" : "bg-surface text-ink border-line"
                     }`}>
                       {node.nickname}
                     </div>
 
                     {/* Bi-directional score badge below nickname */}
                     {asymmetricInfo && isConnected && (
-                      <div className="flex items-center justify-center space-x-0.5 bg-ink text-paper px-1 py-0.5 rounded-sm text-[6.5px] font-mono">
-                        <span>{asymmetricInfo.score1to2}</span>
-                        <span className="opacity-60">·</span>
-                        <span>{asymmetricInfo.score2to1}</span>
+                      <div className="flex items-center justify-center space-x-1 bg-ink text-paper px-1.5 py-0.5 rounded-sm text-[7px] font-mono shadow-sm">
+                        <span>{asymmetricInfo.score1to2}점</span>
+                        <span className="opacity-60">⇄</span>
+                        <span>{asymmetricInfo.score2to1}점</span>
                       </div>
                     )}
                   </div>
@@ -924,26 +1039,22 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
         </div>
       ) : (
         <div className="mt-2 pt-3 border-t border-line w-full">
-          <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1.5 text-xs text-ink-soft">
-            <div className="flex items-center space-x-1">
-              <span className="w-2.5 h-2.5 bg-seal rounded-full inline-block" />
-              <span>90점 이상</span>
+          <div className="flex flex-wrap justify-center items-center gap-x-3.5 gap-y-1.5 text-[11px] text-ink-soft">
+            <div className="flex items-center space-x-1.5">
+              <span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: "#B3382C" }} />
+              <span className="font-semibold text-seal">90점 이상 (환상 시너지)</span>
             </div>
-            <div className="flex items-center space-x-1">
-              <span className="w-2.5 h-2.5 bg-ink rounded-full inline-block opacity-85" />
-              <span>70–89점</span>
+            <div className="flex items-center space-x-1.5">
+              <span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: "#2D6A4F" }} />
+              <span className="font-medium text-ink">75–89점 (상생 케미)</span>
             </div>
-            <div className="flex items-center space-x-1">
-              <span className="w-2.5 h-2.5 bg-ink rounded-full inline-block opacity-55" />
-              <span>50–69점</span>
+            <div className="flex items-center space-x-1.5">
+              <span className="w-2.5 h-2.5 rounded-full inline-block opacity-75" style={{ backgroundColor: "#4A4E69" }} />
+              <span>50–74점 (조화)</span>
             </div>
-            <div className="flex items-center space-x-1">
-              <span className="w-2.5 h-2.5 bg-ink rounded-full inline-block opacity-40" />
-              <span>30–49점</span>
-            </div>
-            <div className="flex items-center space-x-1">
-              <span className="w-2.5 h-2.5 bg-ink rounded-full inline-block opacity-30" />
-              <span>30점 미만</span>
+            <div className="flex items-center space-x-1.5">
+              <span className="w-2.5 h-2.5 rounded-full inline-block opacity-50" style={{ backgroundColor: "#8D99AE" }} />
+              <span>50점 미만 (보완 필요)</span>
             </div>
           </div>
         </div>
