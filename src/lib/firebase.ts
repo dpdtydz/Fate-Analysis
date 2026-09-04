@@ -496,34 +496,131 @@ export function saveUserPersonalProfile(profile: PersonalSajuProfile): void {
   }
 }
 
-// Get User Personal Saju Profile (Local & Cloud Sync via SWR Cache)
+// Get User Personal Saju Profile (Local & Cloud Sync via SWR Cache with Self-Healing Room Fallback)
 export async function getUserPersonalProfile(): Promise<PersonalSajuProfile | null> {
   try {
     const currentUid = auth.currentUser && !auth.currentUser.isAnonymous ? auth.currentUser.uid : null;
 
-    // 1. Try Firestore with SWR cache if user is logged in
+    // 1. If authenticated, try Firestore users/{currentUid}
     if (currentUid) {
-      return await swrCache.get(`profile_${currentUid}`, async () => {
-        const userSnap = await getDoc(doc(db, "users", currentUid));
-        if (userSnap.exists() && userSnap.data()?.personalProfile) {
-          const firestoreProfile = userSnap.data().personalProfile as PersonalSajuProfile;
-          localStorage.setItem("saju_my_personal_profile", JSON.stringify(firestoreProfile));
-          return firestoreProfile;
+      const firestoreProfile = await swrCache.get(`profile_${currentUid}`, async () => {
+        try {
+          const userSnap = await getDoc(doc(db, "users", currentUid));
+          if (userSnap.exists() && userSnap.data()?.personalProfile?.saju) {
+            const profileData = userSnap.data().personalProfile as PersonalSajuProfile;
+            localStorage.setItem("saju_my_personal_profile", JSON.stringify(profileData));
+            return profileData;
+          }
+        } catch (e) {
+          console.debug("Firestore personal profile lookup error:", e);
         }
-        localStorage.removeItem("saju_my_personal_profile");
         return null;
-      }, 60 * 1000);
+      }, 30 * 1000);
+
+      if (firestoreProfile) {
+        return firestoreProfile;
+      }
     }
 
-    // 2. Fallback to localStorage ONLY for unauthenticated guest session
+    // 2. Check local storage fallback (Never delete if valid saju is present; migrate to user doc!)
     const localStr = localStorage.getItem("saju_my_personal_profile");
     if (localStr) {
-      const parsed = JSON.parse(localStr);
-      if (parsed.ownerUid && parsed.ownerUid !== currentUid) {
-        localStorage.removeItem("saju_my_personal_profile");
-        return null;
+      try {
+        const parsed = JSON.parse(localStr);
+        if (parsed && parsed.saju) {
+          // If user is authenticated, migrate/sync this local profile to Firestore
+          if (currentUid && (!parsed.ownerUid || parsed.ownerUid !== currentUid)) {
+            parsed.ownerUid = currentUid;
+            parsed.updatedAt = Date.now();
+            localStorage.setItem("saju_my_personal_profile", JSON.stringify(parsed));
+            swrCache.invalidate(`profile_${currentUid}`);
+            setDoc(doc(db, "users", currentUid), { personalProfile: parsed }, { merge: true }).catch(() => {});
+          }
+          return parsed;
+        }
+      } catch (e) {
+        console.debug("Local personal profile parse error:", e);
       }
-      return parsed;
+    }
+
+    // 3. Fallback: Search user's joined/created rooms for existing registered saju member data
+    const roomHistory = getRoomHistory(); // [{ code, role, title, updatedAt }]
+    const candidateCodes: string[] = roomHistory.map(r => r.code);
+
+    // If authenticated, also fetch joined_rooms from Firestore
+    if (currentUid) {
+      try {
+        const joinedRoomsSnap = await getDocs(collection(db, "users", currentUid, "joined_rooms"));
+        joinedRoomsSnap.forEach((d) => {
+          if (!candidateCodes.includes(d.id)) {
+            candidateCodes.push(d.id);
+          }
+        });
+      } catch (e) {
+        console.debug("Error fetching user joined rooms for profile recovery:", e);
+      }
+    }
+
+    // Check candidate rooms in order of recency
+    for (const code of candidateCodes.slice(0, 5)) {
+      try {
+        // A. Check specific member ID stored in localStorage
+        const storedMemberId = localStorage.getItem(`saju_member_id_${code}`);
+        if (storedMemberId) {
+          const memSnap = await getDoc(doc(db, "rooms", code, "members", storedMemberId));
+          if (memSnap.exists()) {
+            const data = memSnap.data();
+            if (data?.saju && data?.birth_date) {
+              const recoveredProfile: PersonalSajuProfile = {
+                nickname: data.nickname || auth.currentUser?.displayName || "나",
+                gender: data.gender || "남성",
+                birth_date: data.birth_date,
+                birth_time: data.birth_time || null,
+                saju: data.saju,
+                character_emoji: data.character_emoji || "🐯",
+                character_animal: data.character_animal || "호랑이",
+                character_color: data.character_color || "#35B37E",
+                mbti: data.mbti || null,
+                birthplace_region: data.birthplace_region || null,
+                birthplace_city: data.birthplace_city || null,
+                updatedAt: Date.now(),
+                ownerUid: currentUid
+              };
+              saveUserPersonalProfile(recoveredProfile);
+              return recoveredProfile;
+            }
+          }
+        }
+
+        // B. If authenticated, query room members where user_uid === currentUid
+        if (currentUid) {
+          const membersSnap = await getDocs(collection(db, "rooms", code, "members"));
+          for (const mDoc of membersSnap.docs) {
+            const mData = mDoc.data();
+            if (mData.user_uid === currentUid && mData.saju && mData.birth_date) {
+              const recoveredProfile: PersonalSajuProfile = {
+                nickname: mData.nickname || auth.currentUser?.displayName || "나",
+                gender: mData.gender || "남성",
+                birth_date: mData.birth_date,
+                birth_time: mData.birth_time || null,
+                saju: mData.saju,
+                character_emoji: mData.character_emoji || "🐯",
+                character_animal: mData.character_animal || "호랑이",
+                character_color: mData.character_color || "#35B37E",
+                mbti: mData.mbti || null,
+                birthplace_region: mData.birthplace_region || null,
+                birthplace_city: mData.birthplace_city || null,
+                updatedAt: Date.now(),
+                ownerUid: currentUid
+              };
+              saveUserPersonalProfile(recoveredProfile);
+              return recoveredProfile;
+            }
+          }
+        }
+      } catch (err) {
+        console.debug(`Failed to inspect room ${code} for personal profile recovery:`, err);
+      }
     }
   } catch (err) {
     console.error("Error reading personal saju profile:", err);

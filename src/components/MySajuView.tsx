@@ -17,6 +17,7 @@ import {
   consumeSingleUseTicket,
   redeemCoupon
 } from "../lib/firebase";
+import { User } from "firebase/auth";
 import { UserTicketAccount } from "../types";
 import { 
   Sparkles, 
@@ -510,8 +511,16 @@ export default function MySajuView() {
   const [activeTipCard, setActiveTipCard] = useState<string | null>(null);
   const [copiedCardMsg, setCopiedCardMsg] = useState("");
 
-  const currentUser = auth.currentUser;
+  const [currentUser, setCurrentUser] = useState<User | null>(() => auth.currentUser);
   const membership = getUserMembershipInfo(currentUser);
+
+  // Reactive listener for Firebase Auth state initialization & login transitions
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged((u) => {
+      setCurrentUser(u);
+    });
+    return () => unsub();
+  }, []);
 
   // Real-time listener for global session / logout / account deletion events
   useEffect(() => {
@@ -543,6 +552,7 @@ export default function MySajuView() {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
     const loadProfile = async () => {
       if (window.location.hash.includes("preview=sample") || isSamplePreview) {
         setIsSamplePreview(true);
@@ -556,41 +566,44 @@ export default function MySajuView() {
         setLoading(true);
       }
       try {
-        if (!currentUser) {
-          // If unauthenticated / logged out, check guest profile or reset
-          const saved = await getUserPersonalProfile();
-          if (saved) {
-            setProfile(saved);
-            cachedPersonalProfile = saved;
-          }
-          setIsCouponUnlocked(false);
-          setTicketAccount(null);
-        } else {
-          // Authenticated: load strict profile from Firestore
-          const saved = await getUserPersonalProfile();
+        const saved = await getUserPersonalProfile();
+        if (!isMounted) return;
+
+        if (saved && saved.saju) {
           setProfile(saved);
           cachedPersonalProfile = saved;
+          setIsEditing(false);
+        }
 
+        if (currentUser && !currentUser.isAnonymous) {
           const unlocked = await checkProductUnlock("personal_report", currentUser.uid);
+          if (!isMounted) return;
           setIsCouponUnlocked(unlocked);
           cachedIsCouponUnlocked = unlocked;
 
           try {
             const acc = await getUserTicketAccount(currentUser.uid);
-            setTicketAccount(acc);
+            if (isMounted) setTicketAccount(acc);
           } catch (e) {
             console.debug("Failed to load user ticket account in MySajuView:", e);
           }
+        } else {
+          setIsCouponUnlocked(false);
+          setTicketAccount(null);
         }
 
         personalProfileHasLoadedOnce = true;
       } catch (err) {
         console.error("Failed to load personal profile:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
   }, [currentUser]);
 
   const handleSaveProfile = (formData: {

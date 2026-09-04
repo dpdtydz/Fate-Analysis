@@ -116,20 +116,21 @@ export default function JoinView({ code }: JoinViewProps) {
       }
       await setDoc(doc(db, "rooms", code, "members", guestMemberId), payload);
 
-      // Only initialize central personal profile if user has NO profile at all yet
-      if (!personalProfile) {
-        saveUserPersonalProfile({
-          nickname: sajuForm.nickname,
-          gender: (sajuForm.gender as "남성" | "여성") || "남성",
-          birth_date: sajuForm.birth_date,
-          birth_time: sajuForm.birth_time,
-          saju: sajuForm.saju,
-          character_emoji: sajuForm.character_emoji,
-          character_animal: sajuForm.character_animal,
-          character_color: sajuForm.character_color,
-          mbti: sajuForm.mbti || null,
-        });
-      }
+      // Always save and sync central personal profile so it is immediately accessible in My Saju
+      saveUserPersonalProfile({
+        nickname: sajuForm.nickname,
+        gender: (sajuForm.gender as "남성" | "여성") || "남성",
+        birth_date: sajuForm.birth_date,
+        birth_time: sajuForm.birth_time,
+        saju: sajuForm.saju,
+        character_emoji: sajuForm.character_emoji,
+        character_animal: sajuForm.character_animal,
+        character_color: sajuForm.character_color,
+        mbti: sajuForm.mbti || null,
+        birthplace_region: sajuForm.birthplace_region || null,
+        birthplace_city: sajuForm.birthplace_city || null,
+        updatedAt: now.getTime(),
+      });
 
       // 4. CACHE INVALIDATION strictly matching requirements
       const cacheRef = doc(db, "rooms", code, "analysis", "result");
