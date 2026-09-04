@@ -568,7 +568,7 @@ export default function ViralCardModal({
   // 일지 × 일간 오행 최신 12지신 라이프스타일 캐릭터
   const [zodiacImgFailed, setZodiacImgFailed] = useState(false);
   const zodiacSrcCandidate = useMemo(() => {
-    return getMemberZodiacSrc(member) || zodiacImageSrc(ji, elem);
+    return zodiacImageSrc(ji, elem) || getMemberZodiacSrc(member);
   }, [member, ji, elem]);
   useEffect(() => setZodiacImgFailed(false), [zodiacSrcCandidate]);
   const zodiacSrc = zodiacImgFailed ? null : zodiacSrcCandidate;

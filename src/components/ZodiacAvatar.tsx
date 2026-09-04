@@ -127,9 +127,8 @@ export function extractMemberZodiacProps(member?: any): {
     "목";
   const element = typeof rawElement === "string" ? rawElement : "목";
 
-  // MBTI가 있으면 MBTI 기반 매핑, 없으면 오행 기반 소품 배정
-  const mbti = member.mbti ? String(member.mbti).toUpperCase().trim() : "";
-  const item = MBTI_TO_ITEM[mbti] || ELEMENT_TO_ITEM[element] || "bowtie";
+  // 사주 본질(60갑자 소울): 일간 오행(목: 보타이, 화: 선글라스, 토: 목도리, 금: 스마트 안경, 수: 헤드폰)이 기준
+  const item = (element && ELEMENT_TO_ITEM[element]) || "bowtie";
 
   return { branch, element, item };
 }
@@ -209,7 +208,7 @@ export default function ZodiacAvatar({
     : { branch: null, element: null, item: null };
   const branch = branchProp ?? extracted.branch;
   const element = elementProp ?? extracted.element;
-  const item = itemProp ?? extracted.item;
+  const item = itemProp ?? (role ? null : extracted.item);
 
   // 우선순위: 직접 지정 item > role > element 자동 매핑
   let src: string | null = null;

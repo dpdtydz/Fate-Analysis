@@ -1355,9 +1355,9 @@ export default function MeView({ code, memberId }: MeViewProps) {
                 "辰": "용", "巳": "뱀", "午": "말", "未": "양",
                 "申": "원숭이", "酉": "닭", "戌": "개", "亥": "돼지"
               };
-              const dayJi = member.saju?.pillars?.day?.ji;
+              const dayJi = member.saju?.pillars?.day?.ji || member.saju?.pillars?.year?.ji || member.character_animal;
               const dayGan = member.saju?.daymaster?.gan;
-              const dayElem = member.saju?.daymaster?.element;
+              const dayElem = member.saju?.daymaster?.element || member.character_color || "금";
               const animalKr = dayJi ? BRANCH_TO_ANIMAL_KR[dayJi] : null;
               const itemName = dayElem ? ELEMENT_TO_ITEM_NAME[dayElem] : null;
 
@@ -1412,16 +1412,26 @@ export default function MeView({ code, memberId }: MeViewProps) {
                     </div>
                   </div>
 
-                  {/* 2. 엠블럼 */}
-                  {getMemberZodiacSrc(member) ? (
-                    <div className="w-[112px] h-[112px] mx-auto mb-4 flex items-center justify-center">
-                      <ZodiacAvatar member={member} size={112} />
-                    </div>
-                  ) : (
-                    <div className="w-[112px] h-[112px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center">
-                      {spec.renderIcon()}
-                    </div>
-                  )}
+                  {/* 2. 엠블럼: 모임 속 역할(role) vs 사주 본질(soul) 캐릭터 분리 */}
+                  <div className="w-[112px] h-[112px] mx-auto mb-4 flex items-center justify-center">
+                    {cardViewMode === "role" ? (
+                      <ZodiacAvatar
+                        member={member}
+                        branch={dayJi}
+                        role={roleInfo.key}
+                        size={112}
+                        fallbackEmoji={member.character_emoji}
+                      />
+                    ) : (
+                      <ZodiacAvatar
+                        member={member}
+                        branch={dayJi}
+                        element={dayElem}
+                        size={112}
+                        fallbackEmoji={member.character_emoji}
+                      />
+                    )}
+                  </div>
 
                   {/* 3. 이름 헤드라인 */}
                   {cardViewMode === "role" ? (
