@@ -15,11 +15,11 @@ coverage
 *.log
 .DS_Store
 
-# 생성 원본/중간본 (재생성 가능, 대용량)
-assets/zodiac/raw
-assets/zodiac/refs
-scripts/__pycache__
-
+# 빌드에 불필요한 로컬 리소스/스크립트/문서 (대용량 제외)
+assets
+scripts
+SCRATCHPAD.*
 README.md
 design.md
 seal-prompts.md
+walkthrough.md

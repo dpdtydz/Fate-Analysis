@@ -21,9 +21,6 @@ ENV VITE_ADSENSE_SLOT_ID=$VITE_ADSENSE_SLOT_ID
 COPY . .
 RUN npm run build
 
-# devDependencies 제거해 런타임에 넘길 node_modules를 슬림화
-RUN npm prune --omit=dev
-
 # ---- runtime stage ----
 FROM node:22-slim AS runner
 WORKDIR /app
