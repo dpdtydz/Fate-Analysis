@@ -1645,7 +1645,14 @@ export default function MeView({ code, memberId }: MeViewProps) {
                         사주명식과 일주 풀이
                       </h2>
                     </div>
-                    <SajuVisual saju={member.saju} hideMix={true} isPremium={isPdfUnlocked} />
+                    <SajuVisual
+                      saju={member.saju}
+                      hideMix={true}
+                      isPremium={isPdfUnlocked}
+                      userName={member.nickname}
+                      birthDate={member.birth_date}
+                      mbti={member.mbti}
+                    />
                   </div>
                 )}
 
