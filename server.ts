@@ -1,15 +1,11 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, doc, deleteDoc } from "firebase/firestore";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -1029,7 +1025,9 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
   app.get("/zodiac/:file.png", (req, res, next) => {
     const accept = (req.headers["accept"] as string) || "";
     if (accept.includes("image/webp")) {
-      const webpPath = path.resolve(__dirname, "public", "zodiac", `${req.params.file}.webp`);
+      const distWebp = path.join(process.cwd(), "dist", "zodiac", `${req.params.file}.webp`);
+      const publicWebp = path.join(process.cwd(), "public", "zodiac", `${req.params.file}.webp`);
+      const webpPath = fs.existsSync(distWebp) ? distWebp : publicWebp;
       if (fs.existsSync(webpPath)) {
         res.setHeader("Content-Type", "image/webp");
         res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
@@ -1041,7 +1039,7 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
   });
 
   if (process.env.NODE_ENV !== "production") {
-    app.use(express.static(path.resolve(__dirname, "public"), staticCacheOptions));
+    app.use(express.static(path.resolve(process.cwd(), "public"), staticCacheOptions));
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
