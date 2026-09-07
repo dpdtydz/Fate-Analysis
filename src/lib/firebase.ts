@@ -1426,7 +1426,7 @@ export async function createOrUpdateCoupon(
 // 🎟️ SINGLE-USE TICKETS & INVITATION REWARDS
 // ==========================================
 
-import { User, Room, Member, UserTicketAccount, TicketProductType, TicketConsumptionRecord } from "../types";
+import { Room, Member, UserTicketAccount, TicketProductType, TicketConsumptionRecord, UserTierType } from "../types";
 import { swrCache } from "./swrCache";
 
 export async function getUserTicketAccount(targetUid?: string): Promise<UserTicketAccount> {
@@ -1469,14 +1469,16 @@ export async function getUserTicketAccount(targetUid?: string): Promise<UserTick
         } catch (e) {}
       }
 
+      const referralCode = "REF-" + uid.slice(0, 5).toUpperCase();
       const initialAccount: UserTicketAccount = {
-        uid,
-        userEmail: auth.currentUser?.email || undefined,
-        userTier: "free",
+        userUid: uid,
+        userEmail: auth.currentUser?.email || null,
+        referralCode,
+        invitedCount: 0,
         tickets: { pdf: 0, secret: 0, group: 0, all: 0 },
-        consumedTickets: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now()
+        consumedHistory: [],
+        userTier: "free",
+        updatedAt: new Date().toISOString()
       };
       await setDoc(ticketDocRef, initialAccount, { merge: true });
       return initialAccount;

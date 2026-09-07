@@ -1203,8 +1203,8 @@ export default function MySajuView() {
                                 </div>
                                 {/* 캐릭터 선정 근거 — 왜 이 동물이 대표인지 */}
                                 {rep?.relation && (
-                                  <p className="text-xs text-ink-faint mb-1 flex items-center gap-1">
-                                    <span className="inline-block w-1 h-1 rounded-xl bg-wood" />
+                                  <p className="text-xs text-ink-faint mb-1 leading-relaxed break-keep-all">
+                                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-wood align-middle mr-1.5 -translate-y-px" />
                                     {item.elem} 기운 중 나와 <span className="font-semibold text-ink-soft">{rep.relation}</span> 관계인 <span className="font-semibold text-ink-soft">{rep.animal}띠</span>를 대표로 선정
                                   </p>
                                 )}
@@ -1292,8 +1292,8 @@ export default function MySajuView() {
                                 </div>
                                 {/* 캐릭터 선정 근거 — 왜 이 동물이 대표인지 */}
                                 {rep?.relation && (
-                                  <p className="text-xs text-ink-faint mb-1 flex items-center gap-1">
-                                    <span className="inline-block w-1 h-1 rounded-xl bg-earth" />
+                                  <p className="text-xs text-ink-faint mb-1 leading-relaxed break-keep-all">
+                                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-earth align-middle mr-1.5 -translate-y-px" />
                                     {item.elem} 기운 중 나와 <span className="font-semibold text-ink-soft">{rep.relation}</span> 관계인 <span className="font-semibold text-ink-soft">{rep.animal}띠</span>를 대표로 선정
                                   </p>
                                 )}

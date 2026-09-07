@@ -128,8 +128,8 @@ export default function JoinView({ code }: JoinViewProps) {
         character_animal: sajuForm.character_animal,
         character_color: sajuForm.character_color,
         mbti: sajuForm.mbti || null,
-        birthplace_region: sajuForm.birthplace_region || null,
-        birthplace_city: sajuForm.birthplace_city || null,
+        birthplace_region: (sajuForm as any).birthplace_region || null,
+        birthplace_city: (sajuForm as any).birthplace_city || null,
         updatedAt: now.getTime(),
       });
 

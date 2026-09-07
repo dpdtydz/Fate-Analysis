@@ -936,8 +936,10 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
   }
 
   app.post("/api/analyze", async (req, res) => {
+    let { room_title, members } = req.body;
+    const personalMap: Record<string, any> = {};
+
     try {
-      let { room_title, members } = req.body;
       if (!members || !Array.isArray(members) || members.length === 0) {
         return res.status(400).json({ error: "분석할 멤버 정보가 없습니다." });
       }
@@ -946,8 +948,6 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
       if (members.length > 16) {
         members = members.slice(0, 16);
       }
-
-      const personalMap: Record<string, any> = {};
 
       // Circuit Breaker Fast-Path: If circuit is OPEN due to API exhaustion/outage, return immediately without waiting for timeouts
       if (geminiCircuitBreaker.isOpen()) {

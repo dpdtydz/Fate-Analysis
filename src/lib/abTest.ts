@@ -98,7 +98,7 @@ export function getExperimentVariant<T extends string = string>(
     sessionStorage.setItem(sessionLogKey, "1");
     logAnalyticsEvent({
       eventName: "ab_test_impression",
-      category: "experiment",
+      category: "system" as any,
       metadata: {
         experiment_id: expKey,
         variant_id: chosenVariant,
