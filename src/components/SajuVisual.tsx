@@ -30,7 +30,11 @@ import {
   Compass,
   HelpCircle,
   ChevronDown,
-  RefreshCw
+  RefreshCw,
+  Heart,
+  Coins,
+  Activity,
+  Users
 } from "lucide-react";
 import { generatePersonalCoreNarrative } from "../utils/sajuSynthesis";
 
@@ -937,6 +941,41 @@ export default function SajuVisual({
     prescription: {
       ...fallbackNarrative.prescription,
       coreSummary: personalAnalysis?.one_action || fallbackNarrative.prescription.coreSummary,
+    },
+    lifeThemes: {
+      love: {
+        title: fallbackNarrative.lifeThemes.love.title,
+        story: personalAnalysis?.love?.meeting_scene
+          ? `${personalAnalysis.love.meeting_scene} ${personalAnalysis.love.friction_point ? personalAnalysis.love.friction_point : ""}`.trim()
+          : fallbackNarrative.lifeThemes.love.story,
+        tip: personalAnalysis?.love?.bridge || fallbackNarrative.lifeThemes.love.tip,
+      },
+      wealth: {
+        title: fallbackNarrative.lifeThemes.wealth.title,
+        story: personalAnalysis?.wealth?.earning
+          ? `${personalAnalysis.wealth.earning} ${personalAnalysis.wealth.leak ? personalAnalysis.wealth.leak : ""}`.trim()
+          : fallbackNarrative.lifeThemes.wealth.story,
+        tip: personalAnalysis?.wealth?.bridge || fallbackNarrative.lifeThemes.wealth.tip,
+      },
+      lifeRelation: {
+        title: fallbackNarrative.lifeThemes.lifeRelation.title,
+        story: personalAnalysis?.closing || fallbackNarrative.lifeThemes.lifeRelation.story,
+        tip: fallbackNarrative.lifeThemes.lifeRelation.tip,
+      },
+      health: {
+        title: fallbackNarrative.lifeThemes.health.title,
+        story: personalAnalysis?.health?.signal
+          ? `${personalAnalysis.health.signal} ${personalAnalysis.health.recovery ? personalAnalysis.health.recovery : ""}`.trim()
+          : fallbackNarrative.lifeThemes.health.story,
+        tip: personalAnalysis?.health?.bridge || fallbackNarrative.lifeThemes.health.tip,
+      },
+      career: {
+        title: fallbackNarrative.lifeThemes.career.title,
+        story: personalAnalysis?.career?.strength
+          ? `${personalAnalysis.career.strength} ${personalAnalysis.career.recommended_fields ? personalAnalysis.career.recommended_fields : ""}`.trim()
+          : fallbackNarrative.lifeThemes.career.story,
+        tip: personalAnalysis?.career?.bridge || fallbackNarrative.lifeThemes.career.tip,
+      },
     }
   };
 
@@ -1451,6 +1490,178 @@ export default function SajuVisual({
                   {narrative.identity.contrast}
                 </p>
               </div>
+
+              {/* 📖 다섯 갈래 인생 서사 (연애 | 재물 | 인생(관계) | 건강 | 직장) */}
+              <div className="pt-3 space-y-4 text-left">
+                <div className="pb-1">
+                  <span className="text-[11px] font-mono tracking-widest uppercase text-seal font-bold block">
+                    인생 서사 오중주 · 5 LIFE THEMES
+                  </span>
+                  <h4 className="font-serif text-lg sm:text-xl font-semibold text-ink mt-0.5">
+                    삶을 채우는 다섯 가지 이야기
+                  </h4>
+                  <p className="text-xs text-ink-faint mt-1 leading-relaxed">
+                    연애와 인연, 재물과 곳간, 인생과 관계, 몸과 마음의 신호, 잠재력이 폭발하는 직업 무대까지 사람이 마주 앉아 들려주듯 조용히 풀어드립니다.
+                  </p>
+                </div>
+
+                <div className="space-y-3.5">
+                  {/* 제1장 · 연애 */}
+                  <div className="bg-surface p-5 sm:p-5.5 rounded-2xl border border-line shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
+                          <Heart className="w-3.5 h-3.5 text-seal" />
+                        </span>
+                        <span className="font-bold text-ink">제1장 · 연애와 인연의 결</span>
+                      </div>
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0">
+                        연애운
+                      </span>
+                    </div>
+                    <h5 className="font-serif text-base sm:text-lg font-semibold text-ink leading-snug break-keep-all">
+                      {narrative.lifeThemes.love.title}
+                    </h5>
+                    <p className="text-sm text-ink/90 font-medium leading-relaxed break-keep-all whitespace-pre-wrap pl-3 border-l-2 border-seal/30">
+                      {narrative.lifeThemes.love.story}
+                    </p>
+                    {narrative.lifeThemes.love.tip && (
+                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                          도사의 조언
+                        </span>
+                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
+                          {narrative.lifeThemes.love.tip}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 제2장 · 재물 */}
+                  <div className="bg-surface p-5 sm:p-5.5 rounded-2xl border border-line shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
+                          <Coins className="w-3.5 h-3.5 text-seal" />
+                        </span>
+                        <span className="font-bold text-ink">제2장 · 재물과 부의 그릇</span>
+                      </div>
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0">
+                        재물운
+                      </span>
+                    </div>
+                    <h5 className="font-serif text-base sm:text-lg font-semibold text-ink leading-snug break-keep-all">
+                      {narrative.lifeThemes.wealth.title}
+                    </h5>
+                    <p className="text-sm text-ink/90 font-medium leading-relaxed break-keep-all whitespace-pre-wrap pl-3 border-l-2 border-seal/30">
+                      {narrative.lifeThemes.wealth.story}
+                    </p>
+                    {narrative.lifeThemes.wealth.tip && (
+                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                          도사의 조언
+                        </span>
+                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
+                          {narrative.lifeThemes.wealth.tip}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 제3장 · 인생(관계) */}
+                  <div className="bg-surface p-5 sm:p-5.5 rounded-2xl border border-line shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
+                          <Users className="w-3.5 h-3.5 text-seal" />
+                        </span>
+                        <span className="font-bold text-ink">제3장 · 인생과 인간관계의 선</span>
+                      </div>
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0">
+                        인생·관계운
+                      </span>
+                    </div>
+                    <h5 className="font-serif text-base sm:text-lg font-semibold text-ink leading-snug break-keep-all">
+                      {narrative.lifeThemes.lifeRelation.title}
+                    </h5>
+                    <p className="text-sm text-ink/90 font-medium leading-relaxed break-keep-all whitespace-pre-wrap pl-3 border-l-2 border-seal/30">
+                      {narrative.lifeThemes.lifeRelation.story}
+                    </p>
+                    {narrative.lifeThemes.lifeRelation.tip && (
+                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                          도사의 조언
+                        </span>
+                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
+                          {narrative.lifeThemes.lifeRelation.tip}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 제4장 · 건강 */}
+                  <div className="bg-surface p-5 sm:p-5.5 rounded-2xl border border-line shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
+                          <Activity className="w-3.5 h-3.5 text-seal" />
+                        </span>
+                        <span className="font-bold text-ink">제4장 · 몸과 마음의 신호와 쉼</span>
+                      </div>
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0">
+                        건강운
+                      </span>
+                    </div>
+                    <h5 className="font-serif text-base sm:text-lg font-semibold text-ink leading-snug break-keep-all">
+                      {narrative.lifeThemes.health.title}
+                    </h5>
+                    <p className="text-sm text-ink/90 font-medium leading-relaxed break-keep-all whitespace-pre-wrap pl-3 border-l-2 border-seal/30">
+                      {narrative.lifeThemes.health.story}
+                    </p>
+                    {narrative.lifeThemes.health.tip && (
+                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                          도사의 조언
+                        </span>
+                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
+                          {narrative.lifeThemes.health.tip}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 제5장 · 직장 */}
+                  <div className="bg-surface p-5 sm:p-5.5 rounded-2xl border border-line shadow-2xs space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
+                          <Briefcase className="w-3.5 h-3.5 text-seal" />
+                        </span>
+                        <span className="font-bold text-ink">제5장 · 잠재력이 폭발하는 직업 무대</span>
+                      </div>
+                      <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0">
+                        직장·사업운
+                      </span>
+                    </div>
+                    <h5 className="font-serif text-base sm:text-lg font-semibold text-ink leading-snug break-keep-all">
+                      {narrative.lifeThemes.career.title}
+                    </h5>
+                    <p className="text-sm text-ink/90 font-medium leading-relaxed break-keep-all whitespace-pre-wrap pl-3 border-l-2 border-seal/30">
+                      {narrative.lifeThemes.career.story}
+                    </p>
+                    {narrative.lifeThemes.career.tip && (
+                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                          도사의 조언
+                        </span>
+                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
+                          {narrative.lifeThemes.career.tip}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* 📜 [전환 구분자] 이야기에서 명리학적 근거로 넘어가는 챕터 브레이크 */}
@@ -1467,7 +1678,7 @@ export default function SajuVisual({
                 </div>
               </div>
               <p className="text-xs text-ink-faint mt-1.5 pl-4.5 leading-relaxed">
-                "왜 내가 이런 기질을 가지게 되었을까?" — 앞서 짚어드린 이야기들의 뿌리가 되는 사주 원국과 별의 배치를 조목조목 짚어드립니다.
+                "왜 내가 연애할 때 이런 감정을 겪고, 돈과 사람을 어떻게 대해야 할까?" — 앞서 풀어드린 다섯 갈래 이야기의 뿌리가 되는 사주 원국과 별의 배치를 조목조목 짚어드립니다.
               </p>
             </div>
 
