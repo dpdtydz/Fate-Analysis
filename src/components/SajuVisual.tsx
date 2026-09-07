@@ -1382,194 +1382,239 @@ export default function SajuVisual({
           </div>
 
 
-          {/* Section B: 1. 넌 진짜 어떤 사람인가 (타고난 성품 그릇과 기질) */}
-          <div className="space-y-4 text-left">
-            <div className="pt-2">
-              <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
-                어떤 사람인가
-              </h3>
-              <p className="text-xs text-ink-faint mt-1">타고난 성품과 기질</p>
-            </div>
+          {/* Section B: 1. 넌 진짜 어떤 사람인가 */}
+          <div className="space-y-6 text-left">
+            {/* 🌊 [구간 1] 소설처럼 물 흐르는 서사 구간 (사람이 마주 앉아 조용히 풀어주는 이야기) */}
+            <div className="space-y-5">
+              <div className="pt-2">
+                <span className="text-[11px] font-mono tracking-widest uppercase text-seal font-bold block">
+                  이야기 편 · THE NARRATIVE
+                </span>
+                <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink mt-0.5">
+                  어떤 사람인가
+                </h3>
+                <p className="text-xs text-ink-faint mt-1">겉과 속의 인격 독해</p>
+              </div>
 
-            {/* 사주 일간(나) + 자미두수 명궁 2열 카드 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-              {/* Saju Daymaster card */}
-              {daymaster && (
-                <div className="bg-surface p-4.5 rounded-xl flex flex-col justify-between border border-line">
-                  <div className="space-y-2.5">
-                    <div className="flex items-center gap-3">
-                      <span className={`w-11 h-11 shrink-0 rounded-xl bg-sunken font-serif text-xl font-semibold flex items-center justify-center shadow-xs ${getGanElementStyle(daymaster.gan).text}`}>
-                        {daymaster.gan}
+              {/* 겉과 속 2분할 카드 - 시각적 대비 극대화 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {/* 겉 (세상이 보는 나) */}
+                <div className="bg-surface p-4 sm:p-4.5 rounded-xl space-y-2.5 border border-line text-left">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-ink min-w-0">
+                      <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
+                        <Sun className="w-3.5 h-3.5 text-ink" />
                       </span>
-                      <div className="text-left">
-                        <span className="text-xs font-medium text-ink-faint">사주 일간 (나)</span>
-                        <h4 className="text-[15px] font-semibold text-ink mt-0.5">
-                          {daymasterDetails[daymaster.gan]?.title || `${daymaster.gan} 기운`}
-                        </h4>
-                      </div>
+                      <span className="truncate sm:whitespace-normal font-bold">
+                        [겉] 세상이 보는 첫인상과 사회적 가면
+                      </span>
                     </div>
-                    <p className="text-xs text-ink font-semibold text-left">
-                      핵심 키워드 · {daymasterDetails[daymaster.gan]?.keyword || "남다른 주체성과 미적 안목"}
-                    </p>
-                    <p className="text-sm text-ink-soft leading-relaxed text-left">
-                      {daymasterDetails[daymaster.gan]?.desc || "나 자신을 상징하는 고귀한 기틀로, 섬세하고 창의적인 지혜와 예리한 비즈니스 통찰이 깃들어 있습니다."}
-                    </p>
-                  </div>
-                  <div className="mt-3 pt-2.5 border-t border-line text-sm text-ink-faint text-left">
-                    일간 {daymaster.gan}은 사주 여덟 글자 중 나 자신의 본질을 다스리는 가장 중요한 뼈대입니다.
-                  </div>
-                </div>
-              )}
-
-              {/* Ziwei Ming Gong Star card */}
-              <div className="bg-surface p-4.5 rounded-xl flex flex-col justify-between border border-line">
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-3">
-                    <span className="w-11 h-11 shrink-0 rounded-xl bg-sunken font-serif text-xl font-semibold text-ink flex items-center justify-center">
-                      命
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0 whitespace-nowrap">
+                      사회적 페르소나
                     </span>
-                    <div className="text-left">
-                      <span className="text-xs font-medium text-ink-faint">자미두수 명궁命宮</span>
-                      <h4 className="text-[15px] font-semibold text-ink mt-0.5">
-                        {(() => {
-                          if (!ziwei || !ziwei.palaces) return "명성 가득한 성좌";
-                          const mingGong = Object.values(ziwei.palaces).find(p => p.name === "命宮");
-                          if (!mingGong) return "명성 가득한 성좌";
-                          const mainStars = mingGong.stars.filter(s => s.type === "main");
-                          if (mainStars.length === 0) return "안정적 독창성 (독좌 명반)";
-                          return mainStars.map(s => s.nameKr).join("·") + " 성좌";
-                        })()}
-                      </h4>
+                  </div>
+                  <p className="text-sm text-ink font-medium leading-relaxed break-keep-all">
+                    {narrative.identity.outer}
+                  </p>
+                </div>
+
+                {/* 속 (혼자 있을 때의 나) */}
+                <div className="bg-surface p-4 sm:p-4.5 rounded-xl space-y-2.5 border border-line text-left">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-ink min-w-0">
+                      <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
+                        <Moon className="w-3.5 h-3.5 text-ink" />
+                      </span>
+                      <span className="truncate sm:whitespace-normal font-bold">
+                        [속] 혼자 있을 때 마주하는 내면과 방어기제
+                      </span>
                     </div>
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0 whitespace-nowrap">
+                      진짜 속마음
+                    </span>
                   </div>
-                  
-                  {(() => {
-                    if (!ziwei || !ziwei.palaces) return null;
-                    const mingGong = Object.values(ziwei.palaces).find(p => p.name === "命宮");
-                    if (!mingGong) return null;
-                    const mainStars = mingGong.stars.filter(s => s.type === "main");
-                    
-                    if (mainStars.length === 0) {
-                      return (
-                        <div className="space-y-1 text-left">
-                          <p className="text-xs text-ink font-semibold">
-                            핵심 키워드 · 온화한 환경 적응과 자급자족력
-                          </p>
-                          <p className="text-sm text-ink-soft leading-relaxed">
-                            명궁에 주성이 없는 명반(무정지격)은 대자연의 에너지를 유연하게 받아안는 특별한 사교성과 흡수력을 가집니다. 상대방의 매력을 거울처럼 흡수해 내 것으로 다듬는 능력이 일품입니다.
-                          </p>
-                        </div>
-                      );
-                    }
-
-                    const firstStar = mainStars[0].nameKr;
-                    const info = ziweiStarDetails[firstStar];
-                    return (
-                      <div className="space-y-1 text-left">
-                        <p className="text-xs text-ink font-semibold">
-                          핵심 키워드 · {info ? info.title : `${firstStar}의 카리스마와 리더십`}
-                        </p>
-                        <p className="text-sm text-ink-soft leading-relaxed">
-                          {info ? info.desc : "나의 인생 전체를 관장하는 하늘의 별빛으로, 높은 시선과 기품을 유지하여 사람들의 이목을 사로잡고 큰 뜻을 도모하기에 훌륭한 자질을 제공합니다."}
-                        </p>
-                      </div>
-                    );
-                  })()}
-
-                  <div className="mt-3 pt-2.5 border-t border-line text-sm text-ink-faint text-left">
-                    명궁命宮은 나에게 부여된 천명과 평생의 외적 페르소나를 규정합니다.
-                  </div>
+                  <p className="text-sm text-ink font-medium leading-relaxed break-keep-all">
+                    {narrative.identity.inner}
+                  </p>
                 </div>
               </div>
-            </div>
 
-            {/* 겉과 속 2분할 카드 - 시각적 대비 극대화 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
-              {/* 겉 (세상이 보는 나) */}
-              <div className="bg-surface p-4 sm:p-4.5 rounded-xl space-y-2.5 border border-line text-left">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-ink min-w-0">
-                    <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
-                      <Sun className="w-3.5 h-3.5 text-ink" />
-                    </span>
-                    <span className="truncate sm:whitespace-normal font-bold">
-                      [겉] 세상이 보는 첫인상과 사회적 가면
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0 whitespace-nowrap">
-                    사회적 페르소나
-                  </span>
+              {/* 교차 통찰 (공감 극대화 - 족집게 간극) */}
+              <div className="text-left space-y-2.5 bg-surface/60 p-5 rounded-xl border border-line/60">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-4 bg-seal rounded-full" />
+                  <h4 className="font-serif text-base sm:text-lg font-semibold text-ink">
+                    남들이 보는 나, 내가 아는 나
+                  </h4>
                 </div>
-                <p className="text-sm text-ink font-medium leading-relaxed break-keep-all">
-                  {narrative.identity.outer}
-                </p>
-              </div>
-
-              {/* 속 (혼자 있을 때의 나) */}
-              <div className="bg-surface p-4 sm:p-4.5 rounded-xl space-y-2.5 border border-line text-left">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-ink min-w-0">
-                    <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
-                      <Moon className="w-3.5 h-3.5 text-ink" />
-                    </span>
-                    <span className="truncate sm:whitespace-normal font-bold">
-                      [속] 혼자 있을 때 마주하는 내면과 방어기제
-                    </span>
-                  </div>
-                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0 whitespace-nowrap">
-                    진짜 속마음
-                  </span>
-                </div>
-                <p className="text-sm text-ink font-medium leading-relaxed break-keep-all">
-                  {narrative.identity.inner}
+                <p className="text-sm text-ink leading-relaxed font-medium whitespace-pre-wrap pl-3.5 border-l border-line">
+                  {narrative.identity.contrast}
                 </p>
               </div>
             </div>
 
-            {/* 교차 통찰 (공감 극대화 - 족집게 간극) */}
-            <div className="text-left space-y-3 border-t border-line pt-6">
-              <h4 className="font-serif text-lg font-semibold text-ink">
-                남들이 보는 나, 내가 아는 나
-              </h4>
-              <p className="text-sm text-ink leading-relaxed font-medium whitespace-pre-wrap">
-                {narrative.identity.contrast}
+            {/* 📜 [전환 구분자] 이야기에서 명리학적 근거로 넘어가는 챕터 브레이크 */}
+            <div className="pt-6 pb-2 text-left">
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-6 bg-seal rounded-full" />
+                <div>
+                  <span className="text-[11px] font-mono tracking-widest uppercase text-seal font-bold block">
+                    심층 해설편 · THE ROOTS & EVIDENCE
+                  </span>
+                  <h4 className="font-serif text-lg sm:text-xl font-bold text-ink tracking-tight">
+                    왜 이런 기운이 흐르는가 · 명리학적 심층 근거
+                  </h4>
+                </div>
+              </div>
+              <p className="text-xs text-ink-faint mt-1.5 pl-4.5 leading-relaxed">
+                "왜 내가 이런 기질을 가지게 되었을까?" — 앞서 짚어드린 이야기들의 뿌리가 되는 사주 원국과 별의 배치를 조목조목 짚어드립니다.
               </p>
             </div>
 
-            {/* 심층 기질 및 오행 완충 분석 */}
-            <div className="divide-y divide-line">
-              {narrative.identity.coreEssence && (
-                <div className="py-5 text-left space-y-2">
-                  <span className="text-[15px] font-semibold text-ink block">
-                    타고난 성품 그릇과 본질적 지향점
-                  </span>
-                  <p className="text-sm text-ink-soft leading-relaxed">
-                    {narrative.identity.coreEssence}
-                  </p>
-                </div>
-              )}
+            {/* 🏛️ [구간 2] 자세한 내용이 궁금하다면 서술식으로 알려주는 명리학적 근거 구간 (명암과 배경의 확실한 전환) */}
+            <div className="bg-sunken/45 rounded-2xl p-4.5 sm:p-6 border border-line space-y-5">
+              {/* 사주 일간(나) + 자미두수 명궁 2열 카드 (근거의 시발점) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {/* Saju Daymaster card */}
+                {daymaster && (
+                  <div className="bg-surface p-4.5 rounded-xl flex flex-col justify-between border border-line shadow-2xs">
+                    <div className="space-y-2.5">
+                      <div className="flex items-center gap-3">
+                        <span className={`w-11 h-11 shrink-0 rounded-xl bg-sunken font-serif text-xl font-semibold flex items-center justify-center shadow-xs ${getGanElementStyle(daymaster.gan).text}`}>
+                          {daymaster.gan}
+                        </span>
+                        <div className="text-left">
+                          <span className="text-xs font-medium text-ink-faint">사주 일간 (나의 뼈대)</span>
+                          <h4 className="text-[15px] font-semibold text-ink mt-0.5">
+                            {daymasterDetails[daymaster.gan]?.title || `${daymaster.gan} 기운`}
+                          </h4>
+                        </div>
+                      </div>
+                      <p className="text-xs text-ink font-semibold text-left">
+                        핵심 키워드 · {daymasterDetails[daymaster.gan]?.keyword || "남다른 주체성과 미적 안목"}
+                      </p>
+                      <p className="text-sm text-ink-soft leading-relaxed text-left break-keep-all">
+                        {daymasterDetails[daymaster.gan]?.desc || "나 자신을 상징하는 고귀한 기틀로, 섬세하고 창의적인 지혜와 예리한 비즈니스 통찰이 깃들어 있습니다."}
+                      </p>
+                    </div>
+                    <div className="mt-3 pt-2.5 border-t border-line text-xs text-ink-faint text-left">
+                      일간 {daymaster.gan}은 사주 여덟 글자 중 나 자신의 본질을 다스리는 가장 중요한 뼈대입니다.
+                    </div>
+                  </div>
+                )}
 
-              {narrative.identity.thinkingPattern && (
-                <div className="py-5 text-left space-y-2">
-                  <span className="text-[15px] font-semibold text-ink block">
-                    내면의 사고방식 및 의사결정 패턴
-                  </span>
-                  <p className="text-sm text-ink-soft leading-relaxed">
-                    {narrative.identity.thinkingPattern}
-                  </p>
-                </div>
-              )}
+                {/* Ziwei Ming Gong Star card */}
+                <div className="bg-surface p-4.5 rounded-xl flex flex-col justify-between border border-line shadow-2xs">
+                  <div className="space-y-2.5">
+                    <div className="flex items-center gap-3">
+                      <span className="w-11 h-11 shrink-0 rounded-xl bg-sunken font-serif text-xl font-semibold text-ink flex items-center justify-center">
+                        命
+                      </span>
+                      <div className="text-left">
+                        <span className="text-xs font-medium text-ink-faint">자미두수 명궁命宮 (하늘의 별)</span>
+                        <h4 className="text-[15px] font-semibold text-ink mt-0.5">
+                          {(() => {
+                            if (!ziwei || !ziwei.palaces) return "명성 가득한 성좌";
+                            const mingGong = Object.values(ziwei.palaces).find(p => p.name === "命宮");
+                            if (!mingGong) return "명성 가득한 성좌";
+                            const mainStars = mingGong.stars.filter(s => s.type === "main");
+                            if (mainStars.length === 0) return "안정적 독창성 (독좌 명반)";
+                            return mainStars.map(s => s.nameKr).join("·") + " 성좌";
+                          })()}
+                        </h4>
+                      </div>
+                    </div>
+                    
+                    {(() => {
+                      if (!ziwei || !ziwei.palaces) return null;
+                      const mingGong = Object.values(ziwei.palaces).find(p => p.name === "命宮");
+                      if (!mingGong) return null;
+                      const mainStars = mingGong.stars.filter(s => s.type === "main");
+                      
+                      if (mainStars.length === 0) {
+                        return (
+                          <div className="space-y-1 text-left">
+                            <p className="text-xs text-ink font-semibold">
+                              핵심 키워드 · 온화한 환경 적응과 자급자족력
+                            </p>
+                            <p className="text-sm text-ink-soft leading-relaxed break-keep-all">
+                              명궁에 주성이 없는 명반(무정지격)은 대자연의 에너지를 유연하게 받아안는 특별한 사교성과 흡수력을 가집니다. 상대방의 매력을 거울처럼 흡수해 내 것으로 다듬는 능력이 일품입니다.
+                            </p>
+                          </div>
+                        );
+                      }
 
-              {narrative.identity.ohaengBalance && (
-                <div className="py-5 text-left space-y-2">
-                  <span className="text-[15px] font-semibold text-ink block">
-                    오행 원국의 에너지 흐름 및 멘탈 완충 진단
-                  </span>
-                  <p className="text-sm text-ink-soft leading-relaxed">
-                    {narrative.identity.ohaengBalance}
-                  </p>
+                      const firstStar = mainStars[0].nameKr;
+                      const info = ziweiStarDetails[firstStar];
+                      return (
+                        <div className="space-y-1 text-left">
+                          <p className="text-xs text-ink font-semibold">
+                            핵심 키워드 · {info ? info.title : `${firstStar}의 카리스마와 리더십`}
+                          </p>
+                          <p className="text-sm text-ink-soft leading-relaxed break-keep-all">
+                            {info ? info.desc : "나의 인생 전체를 관장하는 하늘의 별빛으로, 높은 시선과 기품을 유지하여 사람들의 이목을 사로잡고 큰 뜻을 도모하기에 훌륭한 자질을 제공합니다."}
+                          </p>
+                        </div>
+                      );
+                    })()}
+
+                    <div className="mt-3 pt-2.5 border-t border-line text-xs text-ink-faint text-left">
+                      명궁命宮은 나에게 부여된 천명과 평생의 외적 페르소나를 규정합니다.
+                    </div>
+                  </div>
                 </div>
-              )}
+              </div>
+
+              {/* 서술식 심층 근거 3대 세부 카드 */}
+              <div className="space-y-3 pt-1">
+                {narrative.identity.coreEssence && (
+                  <div className="bg-surface p-4.5 sm:p-5 rounded-xl border border-line shadow-2xs text-left space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <h5 className="font-serif text-base font-bold text-ink">
+                        타고난 성품 그릇과 본질적 지향점
+                      </h5>
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded-lg bg-sunken text-ink-faint shrink-0">
+                        원국의 본질
+                      </span>
+                    </div>
+                    <p className="text-sm text-ink-soft leading-relaxed break-keep-all">
+                      {narrative.identity.coreEssence}
+                    </p>
+                  </div>
+                )}
+
+                {narrative.identity.thinkingPattern && (
+                  <div className="bg-surface p-4.5 sm:p-5 rounded-xl border border-line shadow-2xs text-left space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <h5 className="font-serif text-base font-bold text-ink">
+                        내면의 사고방식 및 의사결정 패턴
+                      </h5>
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded-lg bg-sunken text-ink-faint shrink-0">
+                        심리 메커니즘
+                      </span>
+                    </div>
+                    <p className="text-sm text-ink-soft leading-relaxed break-keep-all">
+                      {narrative.identity.thinkingPattern}
+                    </p>
+                  </div>
+                )}
+
+                {narrative.identity.ohaengBalance && (
+                  <div className="bg-surface p-4.5 sm:p-5 rounded-xl border border-line shadow-2xs text-left space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <h5 className="font-serif text-base font-bold text-ink">
+                        오행 원국의 에너지 흐름 및 멘탈 완충 진단
+                      </h5>
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded-lg bg-sunken text-ink-faint shrink-0">
+                        에너지 완충
+                      </span>
+                    </div>
+                    <p className="text-sm text-ink-soft leading-relaxed break-keep-all">
+                      {narrative.identity.ohaengBalance}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
