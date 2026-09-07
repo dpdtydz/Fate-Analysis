@@ -54,6 +54,7 @@ import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { calculateTodayFortune, calculateSaju, getDynamicCharacter } from "../utils/saju";
 import { generatePersonalCoreNarrative } from "../utils/sajuSynthesis";
 import ZodiacAvatar, { zodiacImageSrc } from "./ZodiacAvatar";
+import HoroscopePanel from "./HoroscopePanel";
 import { getRepresentativeBranch } from "../utils/zodiacCompat";
 
 // Sample Profile Generator for Zero-Login 1-Second Instant Preview
@@ -934,7 +935,7 @@ export default function MySajuView() {
               <button
                 type="button"
                 onClick={() => setIsEditing(false)}
-                className="w-full py-3 bg-sunken hover:bg-line text-ink font-semibold text-sm rounded-xl transition-colors text-center cursor-pointer"
+                className="w-full py-3 bg-sunken text-ink font-semibold text-sm rounded-xl transition-colors text-center cursor-pointer"
               >
                 수정 취소하고 기존 카드 보기
               </button>
@@ -1003,7 +1004,7 @@ export default function MySajuView() {
                      캐릭터일 때는 원형 배경 없이 그대로 놓고, 폴백 SVG일 때만 원형 배경을 준다. */}
               <div
                 className={`relative w-[112px] h-[112px] mx-auto mb-4 flex items-center justify-center ${
-                  zodiacSrc ? "" : "rounded-full bg-sunken overflow-hidden"
+                  zodiacSrc ? "" : "rounded-xl bg-sunken overflow-hidden"
                 }`}
               >
                 {zodiacSrc ? (
@@ -1013,7 +1014,7 @@ export default function MySajuView() {
                 )}
                 {profile.character_emoji && (
                   <div
-                    className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-surface flex items-center justify-center text-lg shadow-sm"
+                    className="absolute -bottom-1 -right-1 w-9 h-9 rounded-xl bg-surface flex items-center justify-center text-lg shadow-sm"
                     title={profile.character_animal || "소울 동물"}
                   >
                     {profile.character_emoji}
@@ -1048,7 +1049,7 @@ export default function MySajuView() {
                 const itemName = dayElem ? ELEMENT_TO_ITEM_NAME[dayElem] : null;
                 if (!animalKr || !dayGan || !dayElem) return null;
                 return (
-                  <div className="mx-auto max-w-[320px] bg-sunken/60 rounded-xl px-4 py-2.5 mb-4 border border-line/40">
+                  <div className="mx-auto max-w-[320px] bg-sunken/60 rounded-xl px-4 py-2.5 mb-4">
                     <p className="text-xs text-ink-faint leading-relaxed text-center">
                       <span className="font-semibold text-ink-soft">나의 일주</span>{' '}
                       <span className="font-mono text-ink">{dayGan}{dayJi}</span>에서{' '}
@@ -1086,9 +1087,9 @@ export default function MySajuView() {
                     <span className="text-xs font-medium text-ink">
                       {st.label}
                     </span>
-                    <div className="h-[7px] bg-sunken rounded-full overflow-hidden">
+                    <div className="h-[7px] bg-sunken rounded-xl overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-ink/70 transition-all duration-500"
+                        className="h-full rounded-xl bg-ink/70 transition-all duration-500"
                         style={{ width: `${st.val}%` }}
                       />
                     </div>
@@ -1120,7 +1121,7 @@ export default function MySajuView() {
                   {/* 1. 잘 맞는 유형 */}
                   <div className="space-y-2">
                     <p className="text-xs font-medium text-ink-soft flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-wood" />
+                      <span className="w-1.5 h-1.5 rounded-xl bg-wood" />
                       잘 맞는 유형 (BEST)
                     </p>
                     <div className="grid grid-cols-1 gap-2.5">
@@ -1140,11 +1141,11 @@ export default function MySajuView() {
                           <div
                             key={idx}
                             onClick={() => setActiveTipCard(isExpanded ? null : `best-${idx}`)}
-                            className="bg-sunken hover:bg-line/60 rounded-2xl p-3.5 transition-all cursor-pointer border border-line/60 hover:border-line"
+                            className="bg-sunken/60 rounded-xl p-3.5 transition-all cursor-pointer hover:border-line"
                           >
                             <div className="flex items-center gap-3.5">
                               {/* 선명하고 큼직한 12지신 캐릭터 아바타 */}
-                              <div className={`w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-2xl ${elemStyle.bg} border-2 ${elemStyle.border} shadow-sm flex items-center justify-center shrink-0 relative overflow-hidden`}>
+                              <div className={`w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-xl ${elemStyle.bg} flex items-center justify-center shrink-0 relative overflow-hidden`}>
                                 {repSrc ? (
                                   <img
                                     src={repSrc}
@@ -1179,14 +1180,14 @@ export default function MySajuView() {
                                       ({item.relationName})
                                     </span>
                                   </div>
-                                  <span className="text-xs font-bold font-mono text-wood shrink-0 bg-sunken px-2.5 py-0.5 rounded-full border ">
+                                  <span className="text-xs font-bold font-mono text-wood shrink-0 bg-sunken px-2.5 py-0.5 rounded-xl">
                                     {item.score}점
                                   </span>
                                 </div>
                                 {/* 캐릭터 선정 근거 — 왜 이 동물이 대표인지 */}
                                 {rep?.relation && (
                                   <p className="text-xs text-ink-faint mb-1 flex items-center gap-1">
-                                    <span className="inline-block w-1 h-1 rounded-full bg-wood" />
+                                    <span className="inline-block w-1 h-1 rounded-xl bg-wood" />
                                     {item.elem} 기운 중 나와 <span className="font-semibold text-ink-soft">{rep.relation}</span> 관계인 <span className="font-semibold text-ink-soft">{rep.animal}띠</span>를 대표로 선정
                                   </p>
                                 )}
@@ -1209,7 +1210,7 @@ export default function MySajuView() {
                   {/* 2. 잘 안 맞는 유형 */}
                   <div className="space-y-2">
                     <p className="text-xs font-medium text-ink-soft flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-earth" />
+                      <span className="w-1.5 h-1.5 rounded-xl bg-earth" />
                       잘 안 맞는 유형 (조율 필요)
                     </p>
                     <div className="grid grid-cols-1 gap-2.5">
@@ -1229,11 +1230,11 @@ export default function MySajuView() {
                           <div
                             key={idx}
                             onClick={() => setActiveTipCard(isExpanded ? null : `caution-${idx}`)}
-                            className="bg-sunken hover:bg-line/60 rounded-2xl p-3.5 transition-all cursor-pointer border border-line/60 hover:border-line"
+                            className="bg-sunken/60 rounded-xl p-3.5 transition-all cursor-pointer hover:border-line"
                           >
                             <div className="flex items-center gap-3.5">
                               {/* 선명하고 큼직한 12지신 캐릭터 아바타 (투명도 없이 100% 선명) */}
-                              <div className={`w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-2xl ${elemStyle.bg} border-2 ${elemStyle.border} shadow-sm flex items-center justify-center shrink-0 relative overflow-hidden`}>
+                              <div className={`w-16 h-16 sm:w-[68px] sm:h-[68px] rounded-xl ${elemStyle.bg} flex items-center justify-center shrink-0 relative overflow-hidden`}>
                                 {repSrc ? (
                                   <img
                                     src={repSrc}
@@ -1268,14 +1269,14 @@ export default function MySajuView() {
                                       ({item.relationName})
                                     </span>
                                   </div>
-                                  <span className="text-xs font-bold font-mono text-ink-faint shrink-0 bg-white/80 px-2.5 py-0.5 rounded-full border border-line/60">
+                                  <span className="text-xs font-bold font-mono text-ink-faint shrink-0 bg-sunken px-2.5 py-0.5 rounded-xl border-line">
                                     {item.score}점
                                   </span>
                                 </div>
                                 {/* 캐릭터 선정 근거 — 왜 이 동물이 대표인지 */}
                                 {rep?.relation && (
                                   <p className="text-xs text-ink-faint mb-1 flex items-center gap-1">
-                                    <span className="inline-block w-1 h-1 rounded-full bg-earth" />
+                                    <span className="inline-block w-1 h-1 rounded-xl bg-earth" />
                                     {item.elem} 기운 중 나와 <span className="font-semibold text-ink-soft">{rep.relation}</span> 관계인 <span className="font-semibold text-ink-soft">{rep.animal}띠</span>를 대표로 선정
                                   </p>
                                 )}
@@ -1341,7 +1342,9 @@ export default function MySajuView() {
                - 1/6 무료 심층 스토리텔링과 5/6 실전 처방전을 '통합 총평' 탭 하나로 완벽 통합
                - 화면 결이 통일되며, 무료일 땐 블러 -> 해금 시 동일 세션에서 블러만 스르륵 제거
                ========================================================================= */}
-            <div id="analysis-tabs-anchor" className="bg-surface border border-line rounded-2xl p-4 sm:p-6 space-y-5 shadow-xs">
+            {/* design.md §4 — 페이지 프레임에 보더 금지. 리포트는 종이 위에 바로 놓고
+                내부 카드가 유일한 보더 한 겹이 되게 한다 (액자 속 액자 방지) */}
+            <div id="analysis-tabs-anchor" className="space-y-5">
               {/* 상단 헤더 타이틀 */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-line pb-3">
                 <div>
@@ -1351,7 +1354,7 @@ export default function MySajuView() {
                   </p>
                 </div>
                 {isCouponUnlocked && (
-                  <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 self-start sm:self-auto flex items-center gap-1">
+                  <span className="text-xs font-medium text-ink-soft bg-sunken px-2.5 py-1 rounded-xl self-start sm:self-auto flex items-center gap-1">
                     <Unlock className="w-3.5 h-3.5" />
                     심층 감정서 열람 중
                   </span>
@@ -1389,33 +1392,14 @@ export default function MySajuView() {
                   [단일 뷰 렌더링 영역: 선택된 탭에 따라 직결 렌더링]
                  ───────────────────────────────────────────────────────────── */}
               
-              {/* 1. 무료 공개: 오늘의 운세 */}
+              {/* 1. 운세 — 오늘은 무료(룰베이스), 주·월·년은 유료(AI). MeView와 동일 컴포넌트 */}
               {analysisTab === "fortune" && (
-                <div className="bg-sunken rounded-xl p-4 sm:p-5 space-y-3 animate-fade-in">
-                  <div className="flex items-center justify-between pb-2">
-                    <span className="font-medium text-sm text-ink">오늘의 일진</span>
-                    <span className="text-xl font-serif font-semibold text-seal">
-                      {todayFortune.score}점
-                    </span>
-                  </div>
-                  <h4 className="font-semibold text-sm text-ink">"{todayFortune.title}"</h4>
-                  <p className="text-sm text-ink-soft leading-relaxed">{todayFortune.advice}</p>
-
-                  <div className="grid grid-cols-3 gap-2 pt-1">
-                    <div className="bg-surface p-3 rounded-xl text-center">
-                      <span className="text-xs text-ink-faint block mb-0.5">행운 색상</span>
-                      <span className="text-sm font-semibold text-ink">{todayFortune.luckColor.split("·")[0]}</span>
-                    </div>
-                    <div className="bg-surface p-3 rounded-xl text-center">
-                      <span className="text-xs text-ink-faint block mb-0.5">행운 방위</span>
-                      <span className="text-sm font-semibold text-ink">{todayFortune.luckDirection}</span>
-                    </div>
-                    <div className="bg-surface p-3 rounded-xl text-center">
-                      <span className="text-xs text-ink-faint block mb-0.5">행운 소품</span>
-                      <span className="text-sm font-semibold text-ink truncate block">{todayFortune.luckItem}</span>
-                    </div>
-                  </div>
-                </div>
+                <HoroscopePanel
+                  member={profile}
+                  isUnlocked={isCouponUnlocked}
+                  cacheKey="self"
+                  onUnlockClick={() => setIsUpgradeModalOpen(true)}
+                />
               )}
 
               {/* 2. 무료 공개: 오행 밸런스 */}
@@ -1439,7 +1423,7 @@ export default function MySajuView() {
                         <div key={idx} className="bg-surface p-2.5 rounded-xl space-y-1.5">
                           <span className="text-xs font-medium text-ink block">{item.name} {item.hanja}</span>
                           <span className="text-base font-semibold text-ink block font-mono leading-none">{item.count}</span>
-                          <div className="w-full bg-sunken rounded-full h-1 overflow-hidden">
+                          <div className="w-full bg-sunken rounded-xl h-1 overflow-hidden">
                             <div className="h-full" style={{ width: `${Math.min(100, Math.max(10, pct))}%`, backgroundColor: item.color }} />
                           </div>
                           <span className="text-xs text-ink-faint block font-mono leading-none">{pct}%</span>
@@ -1459,7 +1443,7 @@ export default function MySajuView() {
               {analysisTab === "mix" && (
                 <div className="space-y-4 animate-fade-in">
                   {couponMsg && (
-                    <p className="bg-sunken text-ink p-3 rounded-xl text-xs font-medium text-center animate-fade-in border border-line">
+                    <p className="bg-sunken text-ink p-3 rounded-xl text-xs font-medium text-center animate-fade-in">
                       {couponMsg}
                     </p>
                   )}
@@ -1497,7 +1481,7 @@ export default function MySajuView() {
                   {!isCouponUnlocked ? (
                     /* 잠금 상태 (쿠폰/열람권 등록 카드) */
                     <div className="bg-sunken rounded-xl p-6 text-center space-y-4">
-                      <div className="w-12 h-12 rounded-full bg-surface text-ink-soft mx-auto flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-xl bg-surface text-ink-soft mx-auto flex items-center justify-center">
                         <Lock className="w-5 h-5" />
                       </div>
 

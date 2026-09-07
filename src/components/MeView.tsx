@@ -7,8 +7,8 @@ import { db, auth, signInWithGoogle, checkPremiumStatus, checkProductUnlock, act
 import { doc, getDoc, getDocs, setDoc, deleteDoc, collection } from "firebase/firestore";
 import { Member, PersonalAnalysis } from "../types";
 import { 
-  Sparkles, ArrowLeft, Compass, Coins, Heart, Activity, LogIn, Crown, Printer,
-  Sun, Calendar, Moon, MapPin, Clock, ShieldAlert, Gift, Briefcase, Award, ArrowUpRight,
+  Sparkles, ArrowLeft, Heart, Activity, LogIn, Crown, Printer,
+  MapPin, ShieldAlert, Gift, Briefcase, Award, ArrowUpRight,
   Lock, Unlock, Lightbulb, Users, Target, Flame, ShieldCheck, CheckCircle2, Zap, ArrowRight,
   FileText
 } from "lucide-react";
@@ -19,6 +19,7 @@ import { getSajuPillarsComprehensiveSynthesis } from "../utils/sajuSynthesis";
 import { calculateTodayFortune } from "../utils/saju";
 import ViralCardModal from "./ViralCardModal";
 import ZodiacAvatar, { getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS } from "./ZodiacAvatar";
+import HoroscopePanel from "./HoroscopePanel";
 
 const ELEMENT_SPECS: Record<string, {
   hanja: string;
@@ -686,72 +687,6 @@ export default function MeView({ code, memberId }: MeViewProps) {
     }
   };
 
-  // Premium Horoscope States
-  const [horoscope, setHoroscope] = useState<any | null>(null);
-  const [horoscopeLoading, setHoroscopeLoading] = useState(false);
-  const [horoscopeError, setHoroscopeError] = useState("");
-  const [activeHoroscopeTab, setActiveHoroscopeTab] = useState<"today" | "weekly" | "monthly" | "yearly">("today");
-
-  const fetchHoroscope = async (force = false) => {
-    if (!member) return;
-
-    // 1. Check missing required fields
-    const missingFields = getMissingRequiredFields(member);
-    if (missingFields.length > 0) {
-      setHoroscopeError(`필수 입력 정보가 누락되었습니다: ${missingFields.join(", ")}`);
-      return;
-    }
-
-    // Check localStorage cache first to avoid unnecessary API requests (token-saving optimization)
-    try {
-      const cached = localStorage.getItem(`saju_horoscope_${memberId}`);
-      if (cached && !force) {
-        const parsed = JSON.parse(cached);
-        const cacheDate = parsed.cachedDate;
-        const todayDate = new Date().toDateString();
-        if (cacheDate === todayDate) {
-          setHoroscope(parsed.data);
-          return;
-        }
-      }
-    } catch (e) {
-      console.log("Failed to load cached horoscope, fetching fresh:", e);
-    }
-
-    if (horoscope && !force) return;
-
-    setHoroscopeLoading(true);
-    setHoroscopeError("");
-    try {
-      const response = await fetch("/api/horoscope", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ member }),
-      });
-
-      if (!response.ok) {
-        throw new Error("서버에서 실시간 운세를 생성하는 데 실패했습니다.");
-      }
-
-      const data = await response.json();
-      setHoroscope(data);
-
-      // Save to localStorage cache with today's date
-      try {
-        localStorage.setItem(`saju_horoscope_${memberId}`, JSON.stringify({
-          cachedDate: new Date().toDateString(),
-          data
-        }));
-      } catch (e) {}
-    } catch (err: any) {
-      console.error("Failed to fetch horoscope:", err);
-      setHoroscopeError(err.message || "실시간 운세를 불러오지 못했습니다.");
-    } finally {
-      setHoroscopeLoading(false);
-    }
-  };
 
   const togglePairExpand = (otherMemberId: string) => {
     setExpandedPairs(prev => ({
@@ -796,14 +731,6 @@ export default function MeView({ code, memberId }: MeViewProps) {
     return () => unsubscribe();
   }, []);
 
-  // Trigger horoscope loading when horoscope tab is viewed
-  useEffect(() => {
-    if (mainSection === "report" && analysisTab === "fortune" && member && !horoscope && !horoscopeLoading && !horoscopeError) {
-      if (getMissingRequiredFields(member).length === 0) {
-        fetchHoroscope();
-      }
-    }
-  }, [mainSection, analysisTab, member, horoscope, horoscopeLoading, horoscopeError]);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editError, setEditError] = useState("");
@@ -1713,418 +1640,47 @@ export default function MeView({ code, memberId }: MeViewProps) {
                   )}
 
                   {/* 2. 오늘의 운세 & 시기별 정밀 예보 */}
+                  {/* 2. 운세 — 오늘은 무료(룰베이스), 주·월·년은 유료(AI). MySajuView와 동일 컴포넌트 */}
                   {analysisTab === "fortune" && (
-                    <div className="space-y-5 animate-fade-in">
-                      {getMissingRequiredFields(member).length > 0 ? (
-                        <div className="py-6 flex flex-col items-center justify-center text-center space-y-4 w-full">
-                          <div className="space-y-1.5 max-w-sm w-full">
-                            <h3 className="text-[15px] font-semibold text-ink">
-                              필수 정보가 아직 입력되지 않았어요
-                            </h3>
-                            <p className="text-xs text-ink-soft leading-relaxed px-2">
-                              맞춤 운세를 보려면 사주 일주론, 성좌, MBTI 성향 데이터를 모두 입력해 주세요.
-                            </p>
-                            <div className="bg-sunken rounded-xl p-3 text-left space-y-1.5 max-w-xs mx-auto mt-2 w-full">
-                              <p className="text-xs font-medium text-ink pb-1">누락된 항목</p>
-                              <div className="flex flex-col gap-1">
-                                {getMissingRequiredFields(member).map((f) => (
-                                  <span key={f} className="text-xs text-ink-soft">
-                                    {f}
-                                  </span>
-                                ))}
-                              </div>
+                    getMissingRequiredFields(member).length > 0 ? (
+                      <div className="py-6 flex flex-col items-center justify-center text-center space-y-4 w-full">
+                        <div className="space-y-1.5 max-w-sm w-full">
+                          <h3 className="text-[15px] font-semibold text-ink">
+                            필수 정보가 아직 입력되지 않았어요
+                          </h3>
+                          <p className="text-sm text-ink-soft leading-relaxed px-2">
+                            맞춤 운세를 보려면 아래 항목을 입력해 주세요.
+                          </p>
+                          <div className="bg-sunken rounded-xl p-3 text-left space-y-1.5 max-w-xs mx-auto mt-2 w-full">
+                            <p className="text-xs font-medium text-ink pb-1">누락된 항목</p>
+                            <div className="flex flex-col gap-1">
+                              {getMissingRequiredFields(member).map((f) => (
+                                <span key={f} className="text-xs text-ink-soft">{f}</span>
+                              ))}
                             </div>
                           </div>
-                          {isMyProfile && (
-                            <button
-                              type="button"
-                              onClick={() => setIsEditing(true)}
-                              className="px-5 py-3 bg-seal hover:bg-seal-deep text-white rounded-xl text-sm font-semibold transition-colors cursor-pointer"
-                            >
-                              필수 정보 입력하러 가기
-                            </button>
-                          )}
                         </div>
-                      ) : horoscopeLoading ? (
-                        <div className="py-12 flex flex-col items-center justify-center space-y-3.5 text-center w-full">
-                          <div className="w-8 h-8 border-2 border-line border-t-ink rounded-full animate-spin" />
-                          <div className="space-y-1">
-                            <p className="text-sm font-medium text-ink">오늘의 일진(日辰)과 만세력을 연결해 운세를 읽는 중이에요.</p>
-                            <p className="text-xs text-ink-faint">사주 일주론, 성좌, MBTI 성향 데이터를 함께 분석하고 있어요.</p>
-                          </div>
-                        </div>
-                      ) : horoscopeError ? (
-                        <div className="p-4 bg-sunken rounded-xl text-center space-y-2.5">
-                          <p className="text-xs font-medium text-seal">{horoscopeError}</p>
-                          <button
-                            onClick={() => fetchHoroscope(true)}
-                            className="px-4 py-2 bg-surface hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-                          >
-                            다시 불러오기
-                          </button>
-                        </div>
-                      ) : horoscope ? (
-                        <div className="space-y-6">
-                          {/* Period Tabs: Segmented Control */}
-                          <div className="grid grid-cols-4 gap-1 bg-sunken p-1 rounded-xl">
-                            {(["today", "weekly", "monthly", "yearly"] as const).map((tab) => {
-                              const label = tab === "today" ? "오늘 운세" : tab === "weekly" ? "주간 예보" : tab === "monthly" ? "월간 리포트" : "연간 운세";
-                              const isActive = activeHoroscopeTab === tab;
-                              const IconComponent = tab === "today" ? Sun : tab === "weekly" ? Calendar : tab === "monthly" ? Moon : Compass;
-                              return (
-                                <button
-                                  key={tab}
-                                  type="button"
-                                  onClick={() => setActiveHoroscopeTab(tab)}
-                                  className={`py-2 px-1 flex flex-col sm:flex-row items-center justify-center gap-1 text-xs rounded-lg cursor-pointer transition-colors ${
-                                    isActive
-                                      ? "bg-surface text-ink font-semibold shadow-xs"
-                                      : "text-ink-soft hover:text-ink font-medium"
-                                  }`}
-                                >
-                                  <IconComponent className={`w-3.5 h-3.5 ${isActive ? "text-ink" : "text-ink-faint"}`} />
-                                  <span className="hidden sm:inline">{label}</span>
-                                  <span className="sm:hidden">{label.split(" ")[0]}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          {/* Selected Tab Content */}
-                          {(() => {
-                            const currentData = horoscope[activeHoroscopeTab];
-                            if (!currentData) return null;
-
-                            const dmGan = member?.saju?.daymaster?.gan || "무토";
-                            const dmElem = member?.saju?.daymaster?.element || "토";
-                            const todayCalc = calculateTodayFortune(dmGan, dmElem);
-                            const displayScore = activeHoroscopeTab === "today" 
-                              ? todayCalc.score 
-                              : (currentData.score || 80);
-
-                            const renderRichText = (text: string) => {
-                              if (!text) return null;
-                              const paragraphs = text.split(/\n+/).map(p => p.trim()).filter(Boolean);
-                              return (
-                                <div className="space-y-3 pt-1">
-                                  {paragraphs.map((para, idx) => (
-                                    <p key={idx} className="text-sm text-ink-soft leading-relaxed text-left">
-                                      {para.startsWith("-") || para.startsWith("•") || para.startsWith("*") ? (
-                                        <span className="flex items-start">
-                                          <span className="text-ink-faint mr-2 shrink-0 mt-1">•</span>
-                                          <span>{para.replace(/^[-•*]\s*/, "")}</span>
-                                        </span>
-                                      ) : para}
-                                    </p>
-                                  ))}
-                                </div>
-                              );
-                            };
-
-                            const isTabLocked = activeHoroscopeTab !== "today" && !isPdfUnlocked;
-
-                            return (
-                              <div className="space-y-6 animate-fade-in relative">
-                                <div className={isTabLocked ? "filter blur-sm opacity-40 select-none pointer-events-none space-y-6" : "space-y-6"}>
-                                  {/* Score Card */}
-                                  <div className="bg-sunken p-5 rounded-xl text-left">
-                                    <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 border-b border-line pb-4">
-                                      <div className="space-y-1 text-center sm:text-left">
-                                        <h3 className="font-serif text-lg font-semibold text-ink">
-                                          {activeHoroscopeTab === "today" ? "오늘의 운세" : activeHoroscopeTab === "weekly" ? "주간 예보" : activeHoroscopeTab === "monthly" ? "월간 리포트" : "연간 운세"}
-                                        </h3>
-                                      </div>
-
-                                      {/* Fortune Meter Dial / Gauge */}
-                                      <div className="flex items-center gap-3 bg-surface px-3.5 py-2 rounded-xl shrink-0 self-center">
-                                        <div className="relative w-12 h-12 flex items-center justify-center">
-                                          <svg className="w-12 h-12 transform -rotate-90">
-                                            <circle
-                                              cx="24"
-                                              cy="24"
-                                              r="20"
-                                              stroke="#E7E7E2"
-                                              strokeWidth="3.5"
-                                              fill="transparent"
-                                            />
-                                            <circle
-                                              cx="24"
-                                              cy="24"
-                                              r="20"
-                                              stroke="#B3382C"
-                                              strokeWidth="3.5"
-                                              fill="transparent"
-                                              strokeDasharray={2 * Math.PI * 20}
-                                              strokeDashoffset={2 * Math.PI * 20 * (1 - (displayScore || 80) / 100)}
-                                              strokeLinecap="round"
-                                              className="transition-all duration-1000 ease-out"
-                                            />
-                                          </svg>
-                                          <span className="absolute text-xs font-mono font-semibold text-seal">
-                                            {displayScore}
-                                          </span>
-                                        </div>
-                                        <div className="flex flex-col text-left">
-                                          <span className="text-xs text-ink-faint leading-none mb-1">길운 지표</span>
-                                          <span className="text-sm font-semibold text-ink leading-none">
-                                            {displayScore >= 90 ? "대길 (大吉)" : displayScore >= 80 ? "소길 (小吉)" : displayScore >= 70 ? "평온 (平穩)" : "주의 (注意)"}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-3 leading-relaxed pt-2">
-                                      {renderRichText(currentData.summary)}
-                                    </div>
-                                  </div>
-
-                                  {/* Today Fortune Details */}
-                                  {activeHoroscopeTab === "today" && (
-                                    <div className="space-y-4">
-                                      <div className="space-y-3 text-left">
-                                        <h3 className="text-[15px] font-semibold text-ink border-b border-line pb-2">
-                                          오늘의 행운 처방
-                                        </h3>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                                          <div className="bg-sunken p-4 rounded-xl space-y-1.5">
-                                            <div className="flex items-center gap-2">
-                                              <Sun className="w-4 h-4 text-ink-faint" />
-                                              <span className="text-xs text-ink-faint">행운의 색 (吉色)</span>
-                                            </div>
-                                            <p className="text-sm text-ink font-medium leading-relaxed">
-                                              {currentData.lucky_items?.color}
-                                            </p>
-                                          </div>
-                                          <div className="bg-sunken p-4 rounded-xl space-y-1.5">
-                                            <div className="flex items-center gap-2">
-                                              <Coins className="w-4 h-4 text-ink-faint" />
-                                              <span className="text-xs text-ink-faint">행운의 숫자 (吉數)</span>
-                                            </div>
-                                            <p className="text-sm text-ink font-medium leading-relaxed">
-                                              {currentData.lucky_items?.number}
-                                            </p>
-                                          </div>
-                                          <div className="bg-sunken p-4 rounded-xl space-y-1.5">
-                                            <div className="flex items-center gap-2">
-                                              <Compass className="w-4 h-4 text-ink-faint" />
-                                              <span className="text-xs text-ink-faint">행운의 방위 (吉方)</span>
-                                            </div>
-                                            <p className="text-sm text-ink font-medium leading-relaxed">
-                                              {currentData.lucky_items?.direction}
-                                            </p>
-                                          </div>
-                                          <div className="bg-sunken p-4 rounded-xl space-y-1.5">
-                                            <div className="flex items-center gap-2">
-                                              <Clock className="w-4 h-4 text-ink-faint" />
-                                              <span className="text-xs text-ink-faint">좋은 시간대 (吉時)</span>
-                                            </div>
-                                            <p className="text-sm text-ink font-medium leading-relaxed">
-                                              {currentData.lucky_items?.time}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Weekly Fortune Details */}
-                                  {activeHoroscopeTab === "weekly" && (
-                                    <div className="space-y-5">
-                                      <div className="space-y-4">
-                                        <div className="bg-sunken p-4 rounded-xl text-left">
-                                          <div className="border-b border-line pb-2.5 mb-3">
-                                            <span className="text-sm font-semibold text-ink">대인관계 (人際關係)</span>
-                                          </div>
-                                          <div className="space-y-2.5">
-                                            {renderRichText(currentData.relationships)}
-                                          </div>
-                                        </div>
-
-                                        <div className="bg-sunken p-4 rounded-xl text-left">
-                                          <div className="border-b border-line pb-2.5 mb-3">
-                                            <span className="text-sm font-semibold text-ink">재물과 기회 (財運機遇)</span>
-                                          </div>
-                                          <div className="space-y-2.5">
-                                            {renderRichText(currentData.wealth_career)}
-                                          </div>
-                                        </div>
-
-                                        <div className="bg-sunken p-4 rounded-xl text-left">
-                                          <div className="border-b border-line pb-2.5 mb-3">
-                                            <span className="text-sm font-semibold text-ink">몸과 마음 (健康休養)</span>
-                                          </div>
-                                          <div className="space-y-2.5">
-                                            {renderRichText(currentData.health_wellness)}
-                                          </div>
-                                        </div>
-                                      </div>
-
-                                      {/* Daily Forecast in Weekly Tab */}
-                                      {currentData.daily_forecast && (
-                                        <div className="space-y-3 text-left">
-                                          <h4 className="text-sm font-semibold text-ink border-b border-line pb-2">
-                                            이번 주 요일별 흐름
-                                          </h4>
-                                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                            {Object.entries(currentData.daily_forecast).map(([dayKey, dayText]: [string, any]) => (
-                                              <div key={dayKey} className="bg-sunken p-3.5 rounded-xl space-y-1 border border-line/40">
-                                                <span className="text-xs font-bold text-seal block">
-                                                  {dayKey === "mon" ? "월요일 (月)" : dayKey === "tue" ? "화요일 (火)" : dayKey === "wed" ? "수요일 (水)" : dayKey === "thu" ? "목요일 (木)" : dayKey === "fri" ? "금요일 (金)" : dayKey === "sat" ? "토요일 (土)" : "일요일 (日)"}
-                                                </span>
-                                                <p className="text-xs text-ink-soft leading-relaxed">
-                                                  {dayText}
-                                                </p>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-
-                                  {/* Monthly Fortune Details */}
-                                  {activeHoroscopeTab === "monthly" && (
-                                    <div className="space-y-5">
-                                      <div className="bg-sunken p-4 rounded-xl text-left">
-                                        <div className="border-b border-line pb-2.5 mb-3">
-                                          <span className="text-sm font-semibold text-ink">이달의 결정적 기회 (轉機)</span>
-                                        </div>
-                                        <div className="space-y-2.5">
-                                          {renderRichText(currentData.key_opportunities)}
-                                        </div>
-                                      </div>
-
-                                      <div className="bg-sunken p-4 rounded-xl text-left">
-                                        <div className="border-b border-line pb-2.5 mb-3">
-                                          <span className="text-sm font-semibold text-ink">피해야 할 함정 (避坑)</span>
-                                        </div>
-                                        <div className="space-y-2.5">
-                                          {renderRichText(currentData.pitfalls_to_avoid)}
-                                        </div>
-                                      </div>
-
-                                      {currentData.weekly_breakdown && (
-                                        <div className="space-y-3 text-left">
-                                          <h4 className="text-sm font-semibold text-ink border-b border-line pb-2">
-                                            주차별 운세 궤적
-                                          </h4>
-                                          <div className="space-y-2">
-                                            {Object.entries(currentData.weekly_breakdown).map(([weekKey, weekText]: [string, any]) => (
-                                              <div key={weekKey} className="bg-sunken p-3.5 rounded-xl space-y-1 border border-line/40">
-                                                <span className="text-xs font-bold text-ink block">
-                                                  {weekKey === "week1" ? "1주차: 시작과 흐름" : weekKey === "week2" ? "2주차: 전개와 변화" : weekKey === "week3" ? "3주차: 절정과 매듭" : "4주차: 정리와 다음 달 준비"}
-                                                </span>
-                                                <p className="text-xs text-ink-soft leading-relaxed">
-                                                  {weekText}
-                                                </p>
-                                              </div>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-
-                                  {/* Yearly Fortune Details */}
-                                  {activeHoroscopeTab === "yearly" && (
-                                    <div className="space-y-4">
-                                      <div className="bg-sunken p-4 rounded-xl text-left">
-                                        <div className="border-b border-line pb-2 mb-3">
-                                          <span className="text-sm font-semibold text-ink">올해의 큰 흐름 (大變局)</span>
-                                        </div>
-                                        <div className="space-y-2.5">
-                                          {renderRichText(currentData.grand_trend)}
-                                        </div>
-                                      </div>
-
-                                      <div className="bg-sunken p-4 rounded-xl text-left">
-                                        <div className="border-b border-line pb-2 mb-3">
-                                          <span className="text-sm font-semibold text-ink">재물운의 흐름 (積財之路)</span>
-                                        </div>
-                                        <div className="space-y-2.5">
-                                          {renderRichText(currentData.wealth_flow)}
-                                        </div>
-                                      </div>
-
-                                      <div className="bg-sunken p-4 rounded-xl text-left">
-                                        <div className="border-b border-line pb-2 mb-3">
-                                          <span className="text-sm font-semibold text-ink">진로와 일 (官運事業)</span>
-                                        </div>
-                                        <div className="space-y-2.5">
-                                          {renderRichText(currentData.career_path)}
-                                        </div>
-                                      </div>
-
-                                      <div className="bg-sunken p-4 rounded-xl text-left">
-                                        <div className="border-b border-line pb-2 mb-3">
-                                          <span className="text-sm font-semibold text-ink">내면과 성장 (心靈成長)</span>
-                                        </div>
-                                        <div className="space-y-2.5">
-                                          {renderRichText(currentData.personal_growth)}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {/* Lock Overlay for Weekly, Monthly, Yearly when not unlocked */}
-                                {isTabLocked && (
-                                  <div className="absolute inset-0 bg-paper/85 backdrop-blur-[2px] flex items-center justify-center p-4 text-center rounded-xl">
-                                    <div className="w-full max-w-sm bg-surface border border-line rounded-2xl p-6 shadow-xl space-y-4 text-center animate-fade-in">
-                                      <div className="w-12 h-12 rounded-full bg-seal/10 flex items-center justify-center mx-auto text-seal">
-                                        <Lock className="w-5 h-5" />
-                                      </div>
-                                      <div className="space-y-1.5">
-                                        <span className="inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-seal/10 text-seal">
-                                          프리미엄 전용 리포트
-                                        </span>
-                                        <h3 className="text-base font-bold text-ink">
-                                          {activeHoroscopeTab === "weekly"
-                                            ? "주간 정밀 예보 & 요일별 운세"
-                                            : activeHoroscopeTab === "monthly"
-                                            ? "월간 리포트 & 주차별 운세 궤적"
-                                            : "연간 대운세 & 재물·성공 로드맵"}
-                                        </h3>
-                                        <p className="text-xs text-ink-soft leading-relaxed">
-                                          {activeHoroscopeTab === "weekly"
-                                            ? "이번 주 대인관계, 재물, 건강 흐름과 요일별 일일 예보를 모두 열람할 수 있어요."
-                                            : activeHoroscopeTab === "monthly"
-                                            ? "이번 달 꼭 잡아야 할 기회와 피해야 할 함정, 주차별 흐름을 안내합니다."
-                                            : "올해 일생일대의 대변국과 재물길(積財之路), 커리어 도약 시기를 한눈에 확인하세요."}
-                                        </p>
-                                      </div>
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          setShopInitialTab("pdf");
-                                          setIsShopOpen(true);
-                                        }}
-                                        className="w-full py-3 bg-seal hover:bg-seal-deep text-white rounded-xl text-sm font-semibold transition-colors cursor-pointer shadow-sm"
-                                      >
-                                        확인권 또는 쿠폰으로 해금하기
-                                      </button>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })()}
-                        </div>
-                      ) : (
-                        <div className="py-8 flex flex-col items-center justify-center text-center space-y-3">
-                          <p className="text-xs text-ink-soft leading-relaxed">
-                            오늘의 맞춤 운세를 볼 수 있어요.
-                          </p>
+                        {isMyProfile && (
                           <button
                             type="button"
-                            onClick={() => fetchHoroscope(true)}
-                            className="px-5 py-3 bg-seal hover:bg-seal-deep text-white font-semibold rounded-xl text-sm transition-colors cursor-pointer"
+                            onClick={() => setIsEditing(true)}
+                            className="px-5 py-3 bg-seal hover:bg-seal-deep text-white rounded-xl text-sm font-semibold transition-colors cursor-pointer"
                           >
-                            오늘의 맞춤 운세 보기
+                            필수 정보 입력하러 가기
                           </button>
-                        </div>
-                      )}
-                    </div>
+                        )}
+                      </div>
+                    ) : (
+                      <HoroscopePanel
+                        member={member}
+                        isUnlocked={isPdfUnlocked}
+                        cacheKey={memberId || "self"}
+                        onUnlockClick={() => {
+                          setShopInitialTab("pdf");
+                          setIsShopOpen(true);
+                        }}
+                      />
+                    )
                   )}
 
                   {/* 3. 오행 밸런스 */}

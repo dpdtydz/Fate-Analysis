@@ -1479,13 +1479,13 @@ export default function SajuVisual({
               {/* 겉 (세상이 보는 나) */}
               <div className="bg-surface p-4.5 rounded-xl space-y-2.5 border border-line text-left">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-ink dark:text-ink-soft">
+                  <div className="flex items-center gap-2 text-xs font-bold text-ink">
                     <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                       <Sun className="w-3.5 h-3.5 text-ink" />
                     </span>
                     <span>[겉] 세상이 보는 첫인상과 사회적 가면</span>
                   </div>
-                  <span className="text-xs font-mono px-2 py-0.5 rounded-xl bg-sunken text-ink dark:text-ink-soft">
+                  <span className="text-xs font-mono px-2 py-0.5 rounded-xl bg-sunken text-ink">
                     사회적 페르소나
                   </span>
                 </div>
@@ -1497,13 +1497,13 @@ export default function SajuVisual({
               {/* 속 (혼자 있을 때의 나) */}
               <div className="bg-surface p-4.5 rounded-xl space-y-2.5 border border-line text-left">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-ink dark:text-ink-soft">
+                  <div className="flex items-center gap-2 text-xs font-bold text-ink">
                     <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                       <Moon className="w-3.5 h-3.5 text-ink" />
                     </span>
                     <span>[속] 혼자 있을 때 마주하는 내면과 방어기제</span>
                   </div>
-                  <span className="text-xs font-mono px-2 py-0.5 rounded-xl bg-sunken text-ink dark:text-ink-soft">
+                  <span className="text-xs font-mono px-2 py-0.5 rounded-xl bg-sunken text-ink">
                     진짜 속마음
                   </span>
                 </div>
@@ -1516,7 +1516,7 @@ export default function SajuVisual({
             {/* 교차 통찰 (공감 극대화 - 족집게 간극) */}
             <div className="p-4 sm:p-5 rounded-xl bg-surface border border-line text-left space-y-2">
               <div className="flex items-center gap-2">
-                <p className="text-xs sm:text-sm font-bold text-ink dark:text-ink-soft">
+                <p className="text-xs sm:text-sm font-bold text-ink">
                   남들이 보는 너 vs 내가 아는 나의 결정적 간극
                 </p>
               </div>
@@ -1529,7 +1529,7 @@ export default function SajuVisual({
             <div className="space-y-2.5 pt-1">
               {narrative.identity.coreEssence && (
                 <div className="p-4 rounded-xl bg-sunken text-left space-y-1">
-                  <span className="text-xs font-bold text-ink dark:text-ink-soft flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-ink flex items-center gap-1.5">
                     타고난 성품 그릇과 본질적 지향점
                   </span>
                   <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
@@ -1540,7 +1540,7 @@ export default function SajuVisual({
 
               {narrative.identity.thinkingPattern && (
                 <div className="p-4 rounded-xl bg-sunken text-left space-y-1">
-                  <span className="text-xs font-bold text-ink dark:text-ink-soft flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-ink flex items-center gap-1.5">
                     내면의 사고방식 및 의사결정 패턴
                   </span>
                   <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
@@ -1551,7 +1551,7 @@ export default function SajuVisual({
 
               {narrative.identity.ohaengBalance && (
                 <div className="p-4 rounded-xl bg-sunken text-left space-y-1">
-                  <span className="text-xs font-bold text-ink dark:text-ink-soft flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-ink flex items-center gap-1.5">
                     오행 원국의 에너지 흐름 및 멘탈 완충 진단
                   </span>
                   <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
@@ -1566,7 +1566,7 @@ export default function SajuVisual({
           <div className="space-y-4 pt-5 border-t border-line text-left">
             <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
               <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-xl bg-sunken text-ink dark:text-ink-soft font-bold text-xs flex items-center justify-center">
+                <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-bold text-xs flex items-center justify-center">
                   2
                 </span>
                 <h3 className="font-serif text-base sm:text-lg font-bold text-ink">
@@ -1608,10 +1608,10 @@ export default function SajuVisual({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
               <div className="p-4.5 rounded-xl bg-sunken flex items-start gap-3">
                 <span className="w-7 h-7 rounded-lg bg-sunken text-ink flex items-center justify-center shrink-0 mt-0.5">
-                  <Lightbulb className="w-4 h-4 text-ink dark:text-ink-soft" />
+                  <Lightbulb className="w-4 h-4 text-ink" />
                 </span>
                 <div>
-                  <span className="text-xs font-bold text-ink dark:text-ink-soft block mb-1">
+                  <span className="text-xs font-bold text-ink block mb-1">
                     지금 계절을 건너는 실전 행동 지침 (DO)
                   </span>
                   <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium">
@@ -1623,10 +1623,10 @@ export default function SajuVisual({
               {narrative.season.seasonCaution && (
                 <div className="p-4.5 rounded-xl bg-sunken flex items-start gap-3">
                   <span className="w-7 h-7 rounded-lg bg-sunken text-ink flex items-center justify-center shrink-0 mt-0.5">
-                    <ShieldAlert className="w-4 h-4 text-ink dark:text-ink-soft" />
+                    <ShieldAlert className="w-4 h-4 text-ink" />
                   </span>
                   <div>
-                    <span className="text-xs font-bold text-ink dark:text-ink-soft block mb-1">
+                    <span className="text-xs font-bold text-ink block mb-1">
                       반드시 주의해야 할 마음의 함정 (DON'T)
                     </span>
                     <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium">
@@ -1652,7 +1652,7 @@ export default function SajuVisual({
                 <div className="space-y-4 pt-2">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink dark:text-ink-soft font-bold text-xs flex items-center justify-center">
+                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-bold text-xs flex items-center justify-center">
                         3
                       </span>
                       <h3 className="font-serif text-base sm:text-lg font-bold text-ink">
@@ -1664,7 +1664,7 @@ export default function SajuVisual({
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink dark:text-ink-soft">
+                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <Zap className="w-3.5 h-3.5 text-ink" />
                         </span>
@@ -1676,7 +1676,7 @@ export default function SajuVisual({
                     </div>
 
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink dark:text-ink-soft">
+                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <DollarSign className="w-3.5 h-3.5 text-ink" />
                         </span>
@@ -1688,7 +1688,7 @@ export default function SajuVisual({
                     </div>
 
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink dark:text-ink-soft">
+                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <Briefcase className="w-3.5 h-3.5 text-ink" />
                         </span>
@@ -1705,7 +1705,7 @@ export default function SajuVisual({
                 <div className="space-y-4 pt-5 border-t border-line">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink dark:text-ink-soft font-bold text-xs flex items-center justify-center">
+                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-bold text-xs flex items-center justify-center">
                         4
                       </span>
                       <h3 className="font-serif text-base sm:text-lg font-bold text-ink">
@@ -1719,18 +1719,18 @@ export default function SajuVisual({
                     {/* 2026 */}
                     <div className="bg-surface p-4.5 rounded-xl border border-line space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-ink dark:text-ink-soft flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-ink flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5" />
                           2026년 · {narrative.threeYearTiming.year2026.theme}
                         </span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink dark:text-ink-soft font-bold">
+                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink font-bold">
                           올해 운세
                         </span>
                       </div>
                       <p className="text-xs sm:text-sm text-ink leading-relaxed">
                         {narrative.threeYearTiming.year2026.detail}
                       </p>
-                      <div className="p-3 bg-surface/90 rounded-xl border border-line text-xs sm:text-sm font-semibold text-ink dark:text-ink-soft flex items-start gap-2">
+                      <div className="p-3 bg-sunken rounded-xl text-sm font-semibold text-ink flex items-start gap-2">
                         <span>실전 액션 : {narrative.threeYearTiming.year2026.action}</span>
                       </div>
                     </div>
@@ -1738,18 +1738,18 @@ export default function SajuVisual({
                     {/* 2027 */}
                     <div className="bg-surface p-4.5 rounded-xl border border-line space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-ink dark:text-ink-soft flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-ink flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5" />
                           2027년 · {narrative.threeYearTiming.year2027.theme}
                         </span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink dark:text-ink-soft font-bold">
+                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink font-bold">
                           내년 운세
                         </span>
                       </div>
                       <p className="text-xs sm:text-sm text-ink leading-relaxed">
                         {narrative.threeYearTiming.year2027.detail}
                       </p>
-                      <div className="p-3 bg-surface/90 rounded-xl border border-line text-xs sm:text-sm font-semibold text-ink dark:text-ink-soft flex items-start gap-2">
+                      <div className="p-3 bg-sunken rounded-xl text-sm font-semibold text-ink flex items-start gap-2">
                         <span>실전 액션 : {narrative.threeYearTiming.year2027.action}</span>
                       </div>
                     </div>
@@ -1757,18 +1757,18 @@ export default function SajuVisual({
                     {/* 2028 */}
                     <div className="bg-surface p-4.5 rounded-xl border border-line space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-ink dark:text-ink-soft flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-ink flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5" />
                           2028년 · {narrative.threeYearTiming.year2028.theme}
                         </span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink dark:text-ink-soft font-bold">
+                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink font-bold">
                           내후년 도약
                         </span>
                       </div>
                       <p className="text-xs sm:text-sm text-ink leading-relaxed">
                         {narrative.threeYearTiming.year2028.detail}
                       </p>
-                      <div className="p-3 bg-surface/90 rounded-xl border border-line text-xs sm:text-sm font-semibold text-ink dark:text-ink-soft flex items-start gap-2">
+                      <div className="p-3 bg-sunken rounded-xl text-sm font-semibold text-ink flex items-start gap-2">
                         <span>실전 액션 : {narrative.threeYearTiming.year2028.action}</span>
                       </div>
                     </div>
@@ -1779,7 +1779,7 @@ export default function SajuVisual({
                 <div className="space-y-4 pt-5 border-t border-line">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink dark:text-ink-soft font-bold text-xs flex items-center justify-center">
+                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-bold text-xs flex items-center justify-center">
                         5
                       </span>
                       <h3 className="font-serif text-base sm:text-lg font-bold text-ink">
@@ -1790,16 +1790,16 @@ export default function SajuVisual({
                   </div>
 
                   {/* 핵심 진단 */}
-                  <div className="p-4 sm:p-5 bg-surface border border-line rounded-xl text-xs sm:text-sm text-ink leading-relaxed font-semibold flex items-start gap-2.5">
+                  <div className="p-4 sm:p-5 bg-sunken rounded-xl text-sm text-ink leading-relaxed font-semibold flex items-start gap-2.5">
                     <div>
-                      <strong className="text-ink dark:text-ink-soft block mb-0.5">핵심 진단</strong>
+                      <strong className="text-ink block mb-0.5">핵심 진단</strong>
                       <span>{narrative.prescription.coreSummary}</span>
                     </div>
                   </div>
 
                   {/* 3대 행동 강령 (DO) */}
                   <div className="bg-surface border border-line p-5 rounded-xl space-y-3.5">
-                    <div className="flex items-center gap-2 text-xs font-bold text-ink dark:text-ink-soft">
+                    <div className="flex items-center gap-2 text-xs font-bold text-ink">
                       <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                         <CheckCircle2 className="w-3.5 h-3.5 text-ink" />
                       </span>
@@ -1809,7 +1809,7 @@ export default function SajuVisual({
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="bg-sunken p-4 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-ink dark:text-ink-soft">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
                             <Briefcase className="w-3.5 h-3.5 text-ink" />
                             <span>커리어 & 수익 창출</span>
                           </div>
@@ -1820,7 +1820,7 @@ export default function SajuVisual({
 
                       <div className="bg-sunken p-4 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-ink dark:text-ink-soft">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
                             <DollarSign className="w-3.5 h-3.5 text-ink" />
                             <span>재물 & 자산 방어</span>
                           </div>
@@ -1831,7 +1831,7 @@ export default function SajuVisual({
 
                       <div className="bg-sunken p-4 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-ink dark:text-ink-soft">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
                             <UserCheck className="w-3.5 h-3.5 text-ink" />
                             <span>인간관계 & 선 긋기</span>
                           </div>
@@ -1843,7 +1843,7 @@ export default function SajuVisual({
 
                     {/* 치명적 지뢰밭 (DON'T) */}
                     <div className="space-y-2.5 pt-3 border-t border-line">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink dark:text-ink-soft">
+                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <ShieldAlert className="w-3.5 h-3.5 text-ink" />
                         </span>
@@ -1853,7 +1853,7 @@ export default function SajuVisual({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {narrative.prescription.criticalDont.map((dont, dIdx) => (
                           <div key={dIdx} className="bg-sunken p-3.5 rounded-xl text-left space-y-1">
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-ink dark:text-ink-soft">
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
                               <Ban className="w-3.5 h-3.5 text-ink" />
                               <span>{dont.title}</span>
                             </div>
@@ -1864,8 +1864,8 @@ export default function SajuVisual({
                     </div>
 
                     {/* 한 줄 핵심 공식 */}
-                    <div className="p-3.5 sm:p-4 bg-surface border border-line rounded-xl text-xs sm:text-sm text-ink font-bold flex items-center gap-2.5">
-                      <Target className="w-4 h-4 text-ink dark:text-ink-soft shrink-0" />
+                    <div className="p-3.5 sm:p-4 bg-sunken rounded-xl text-sm text-ink font-bold flex items-center gap-2.5">
+                      <Target className="w-4 h-4 text-ink shrink-0" />
                       <span>{narrative.prescription.breakthroughFormula}</span>
                     </div>
                   </div>
@@ -1875,7 +1875,7 @@ export default function SajuVisual({
                 <div className="space-y-4 pt-5 border-t border-line">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink dark:text-ink-soft font-bold text-xs flex items-center justify-center">
+                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-bold text-xs flex items-center justify-center">
                         6
                       </span>
                       <h3 className="font-serif text-base sm:text-lg font-bold text-ink">
@@ -1888,7 +1888,7 @@ export default function SajuVisual({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {/* 귀인 */}
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink dark:text-ink-soft">
+                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <UserCheck className="w-3.5 h-3.5 text-ink" />
                         </span>
@@ -1901,7 +1901,7 @@ export default function SajuVisual({
 
                     {/* 악연 */}
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink dark:text-ink-soft">
+                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <UserX className="w-3.5 h-3.5 text-ink" />
                         </span>
@@ -1915,7 +1915,7 @@ export default function SajuVisual({
 
                   {/* 선 긋기 원칙 */}
                   <div className="p-4 sm:p-4.5 rounded-xl bg-surface border border-line text-left space-y-1.5">
-                    <p className="text-xs font-bold text-ink dark:text-ink-soft flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-ink flex items-center gap-1.5">
                       평생 후회 없는 인간관계 선 긋기 절대 공식
                     </p>
                     <p className="text-xs sm:text-sm text-ink font-semibold leading-relaxed pl-5">

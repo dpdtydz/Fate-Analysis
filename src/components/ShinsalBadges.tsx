@@ -182,7 +182,7 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
   const unseongData = unseong ? MODERN_12UNSEONG_REGISTRY[unseong] : null;
 
   return (
-    <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5">
+    <div className="space-y-3.5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
             key={item.id}
             type="button"
             onClick={() => setSelectedShinsal(item)}
-            className="group flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-line hover:border-ink-soft bg-sunken hover:bg-surface text-xs font-medium text-ink transition-all duration-200 cursor-pointer shadow-xs active:scale-95"
+            className="group flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sunken hover:bg-line text-xs font-medium text-ink transition-colors cursor-pointer"
             style={{ borderLeftColor: item.colorHex, borderLeftWidth: "3px" }}
           >
             <span className="font-semibold">{item.name}</span>
@@ -218,7 +218,7 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
           <button
             type="button"
             onClick={() => setSelectedUnseong({ key: unseong!, data: unseongData })}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-seal/30 bg-seal/5 hover:bg-seal/10 text-xs font-medium text-seal transition-all duration-200 cursor-pointer shadow-xs active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sunken hover:bg-line text-xs font-medium text-seal transition-colors cursor-pointer"
           >
             <Crown className="w-3.5 h-3.5 text-seal" />
             <span className="font-semibold">{unseongData.name}</span>
@@ -232,7 +232,7 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
       {/* Shinsal Detail Modal */}
       {selectedShinsal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface rounded-2xl max-w-sm w-full p-5 shadow-xl border border-line space-y-4 text-left relative">
+          <div className="bg-surface rounded-xl max-w-sm w-full p-5 shadow-lg space-y-4 text-left relative">
             <button
               onClick={() => setSelectedShinsal(null)}
               className="absolute top-4 right-4 p-1.5 text-ink-faint hover:text-ink rounded-lg bg-sunken transition-colors cursor-pointer"
@@ -290,7 +290,7 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
       {/* 12Unseong Detail Modal */}
       {selectedUnseong && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface rounded-2xl max-w-sm w-full p-5 shadow-xl border border-line space-y-4 text-left relative">
+          <div className="bg-surface rounded-xl max-w-sm w-full p-5 shadow-lg space-y-4 text-left relative">
             <button
               onClick={() => setSelectedUnseong(null)}
               className="absolute top-4 right-4 p-1.5 text-ink-faint hover:text-ink rounded-lg bg-sunken transition-colors cursor-pointer"
