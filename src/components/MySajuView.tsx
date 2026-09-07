@@ -649,6 +649,23 @@ export default function MySajuView() {
     };
   }, [analysisKey, isSamplePreview, profile?.saju]);
 
+  const handleRefreshAi = async () => {
+    if (!profile?.saju || aiLoading) return;
+    setAiLoading(true);
+    try {
+      const result = await fetchPersonalAnalysis(profile, { force: true });
+      if (result) {
+        setPersonalAnalysis(result);
+        const newKey = buildPersonalAnalysisKey(profile);
+        setProfile((prev) =>
+          prev ? { ...prev, personal_analysis: result, personal_analysis_key: newKey } : prev
+        );
+      }
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleSaveProfile = (formData: {
     nickname: string;
     gender: string;
@@ -1465,6 +1482,7 @@ export default function MySajuView() {
                     personalAnalysis={personalAnalysis || undefined}
                     isAiLoading={aiLoading}
                     isAiGenerated={!!personalAnalysis}
+                    onRefreshAi={handleRefreshAi}
                   />
                 </div>
               )}

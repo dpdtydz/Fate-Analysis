@@ -1374,6 +1374,7 @@ export default function SajuVisual({
             )}
           </div>
 
+
           {/* Section B: 1. 넌 진짜 어떤 사람인가 (타고난 성품 그릇과 기질) */}
           <div className="space-y-4 text-left">
             <div className="pt-2">
@@ -1565,9 +1566,6 @@ export default function SajuVisual({
           <div className="space-y-4 pt-5 border-t border-line text-left">
             <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
               <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-semibold text-xs flex items-center justify-center">
-                  2
-                </span>
                 <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                   지금 당신은 어떤 시기인가
                 </h3>
@@ -1646,20 +1644,88 @@ export default function SajuVisual({
             <div className="relative">
               {/* 블러 래퍼 (미해금 시 블러 + 클릭 비활성화) */}
               <div className={isPremium ? "space-y-6" : "space-y-6 filter blur-[7px] opacity-30 select-none pointer-events-none transition-all duration-700"}>
+            {/* 인생의 계단 — 대운 10년 주기 파노라마.
+                지나온 단계는 옅게, 지금 단계는 진하게. 수묵의 원근을 농도로 표현한다
+                (design.md §1 "원근은 농도로"). AI v2 스키마에만 존재하므로 optional. */}
+            {personalAnalysis?.life_stages && personalAnalysis.life_stages.length > 0 && (
+              <div className="text-left border-t border-line pt-8 space-y-6">
+                <div>
+                  <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
+                    인생의 계단
+                  </h3>
+                  <p className="text-sm text-ink-soft mt-1.5 leading-relaxed">
+                    10년마다 바뀌는 운의 결을 따라, 지나온 자리와 지금 서 있는 자리를 짚습니다.
+                  </p>
+                </div>
+
+                <ol className="space-y-0">
+                  {personalAnalysis.life_stages.map((stage, sIdx) => {
+                    const isPast = !stage.is_current && stage.age_to < (narrative.season.age ?? 0);
+                    return (
+                      <li key={sIdx} className="relative pl-7 pb-7 last:pb-0">
+                        {/* 계단을 잇는 세로선 — 마지막 단계에는 그리지 않는다 */}
+                        {sIdx < personalAnalysis.life_stages!.length - 1 && (
+                          <span
+                            aria-hidden="true"
+                            className="absolute left-[5px] top-3 bottom-0 w-px bg-line"
+                          />
+                        )}
+                        {/* 지금 단계만 인주, 나머지는 먹 농담 */}
+                        <span
+                          aria-hidden="true"
+                          className={`absolute left-0 top-1.5 w-[11px] h-[11px] rounded-full ${
+                            stage.is_current ? "bg-seal" : isPast ? "bg-line" : "bg-ink-faint"
+                          }`}
+                        />
+                        <div className={isPast ? "opacity-60" : ""}>
+                          <div className="flex items-baseline gap-2 flex-wrap">
+                            <span className="text-xs font-mono text-ink-faint">
+                              {stage.age_from}~{stage.age_to}세
+                            </span>
+                            {stage.is_current && (
+                              <span className="text-xs font-semibold text-seal">지금</span>
+                            )}
+                          </div>
+                          <h4
+                            className={`font-serif font-semibold text-ink mt-1 ${
+                              stage.is_current ? "text-lg" : "text-base"
+                            }`}
+                          >
+                            {stage.title}
+                          </h4>
+                          <p className="text-sm text-ink-soft leading-relaxed mt-2">
+                            {stage.narrative}
+                          </p>
+                          {stage.link_to_next && (
+                            <p className="text-sm text-ink-faint leading-relaxed mt-2">
+                              {stage.link_to_next}
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            )}
                 
                 {/* Chapter 3. 나를 부자로 만드는 핵심 무기와 돈 버는 구조 */}
                 <div className="space-y-4 pt-2">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-semibold text-xs flex items-center justify-center">
-                        3
-                      </span>
                       <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                         나를 부자로 만드는 핵심 무기와 돈 버는 구조
                       </h3>
                     </div>
                     <span className="text-xs font-medium text-ink-faint">재물 본능 & 머니 파이프라인</span>
                   </div>
+
+                  {/* bridge — 앞 이야기를 이어받아 이 주제로 넘어오는 문장 (AI v2) */}
+                  {personalAnalysis?.wealth?.bridge && (
+                    <p className="text-sm text-ink-soft leading-relaxed">
+                      {personalAnalysis.wealth.bridge}
+                    </p>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
@@ -1698,15 +1764,82 @@ export default function SajuVisual({
                       </p>
                     </div>
                   </div>
+
+                  {/* career.bridge — 일(직장)에서 다음 주제로 넘어가는 문장.
+                      직장은 독립 섹션이 없고 이 재물 블록 안에서 다뤄지므로 여기에 놓는다.
+                      이 문장이 없으면 AI가 생성한 연결 고리 하나가 버려진다. */}
+                  {personalAnalysis?.career?.bridge && (
+                    <p className="text-sm text-ink-soft leading-relaxed">
+                      {personalAnalysis.career.bridge}
+                    </p>
+                  )}
                 </div>
+
+                {(personalAnalysis?.love?.meeting_scene || personalAnalysis?.love?.friction_point) && (
+                  <div className="space-y-4 pt-5 border-t border-line">
+                    <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
+                      <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
+                        인연이 닿는 자리와 오래 가는 법
+                      </h3>
+                      <span className="text-xs font-medium text-ink-faint">연애 & 배우자운</span>
+                    </div>
+                    {personalAnalysis.love.bridge && (
+                      <p className="text-sm text-ink-soft leading-relaxed">
+                        {personalAnalysis.love.bridge}
+                      </p>
+                    )}
+                    <div className="divide-y divide-line">
+                      {personalAnalysis.love.meeting_scene && (
+                        <div className="py-4 space-y-2">
+                          <span className="text-[15px] font-semibold text-ink block">어디서 만나는가</span>
+                          <p className="text-sm text-ink-soft leading-relaxed">{personalAnalysis.love.meeting_scene}</p>
+                        </div>
+                      )}
+                      {personalAnalysis.love.friction_point && (
+                        <div className="py-4 space-y-2">
+                          <span className="text-[15px] font-semibold text-ink block">왜 부딪치고, 무엇을 합의해야 하는가</span>
+                          <p className="text-sm text-ink-soft leading-relaxed">{personalAnalysis.love.friction_point}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* 건강 — 일하는 방식이 몸에 닿는 지점 (AI v2) */}
+                {(personalAnalysis?.health?.signal || personalAnalysis?.health?.recovery) && (
+                  <div className="space-y-4 pt-5 border-t border-line">
+                    <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
+                      <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
+                        몸이 먼저 보내는 신호
+                      </h3>
+                      <span className="text-xs font-medium text-ink-faint">건강 & 회복</span>
+                    </div>
+                    {personalAnalysis.health.bridge && (
+                      <p className="text-sm text-ink-soft leading-relaxed">
+                        {personalAnalysis.health.bridge}
+                      </p>
+                    )}
+                    <div className="divide-y divide-line">
+                      {personalAnalysis.health.signal && (
+                        <div className="py-4 space-y-2">
+                          <span className="text-[15px] font-semibold text-ink block">지칠 때 가장 먼저 오는 신호</span>
+                          <p className="text-sm text-ink-soft leading-relaxed">{personalAnalysis.health.signal}</p>
+                        </div>
+                      )}
+                      {personalAnalysis.health.recovery && (
+                        <div className="py-4 space-y-2">
+                          <span className="text-[15px] font-semibold text-ink block">진짜 회복이 일어나는 방식</span>
+                          <p className="text-sm text-ink-soft leading-relaxed">{personalAnalysis.health.recovery}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Chapter 4. 앞으로 3년 내 맞이할 인생 타이밍 (대운 × 세운) */}
                 <div className="space-y-4 pt-5 border-t border-line">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-semibold text-xs flex items-center justify-center">
-                        4
-                      </span>
                       <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                         앞으로 3년 내 맞이할 결정적 기회의 문 (2026 ~ 2028)
                       </h3>
@@ -1778,9 +1911,6 @@ export default function SajuVisual({
                 <div className="space-y-4 pt-5 border-t border-line">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-semibold text-xs flex items-center justify-center">
-                        5
-                      </span>
                       <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                         실전 사이다 처방전 · 인생 사용 설명서
                       </h3>
@@ -1874,9 +2004,6 @@ export default function SajuVisual({
                 <div className="space-y-4 pt-5 border-t border-line">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-semibold text-xs flex items-center justify-center">
-                        6
-                      </span>
                       <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                         평생을 지배하는 귀인과 피해야 할 악연의 조건
                       </h3>
@@ -1922,6 +2049,20 @@ export default function SajuVisual({
                     </p>
                   </div>
                 </div>
+
+                {/* 연애 — 앞의 인간관계 이야기를 이어받는다 (AI v2) */}
+
+                {/* 닫는 말 — 네 갈래를 한 문단으로 봉합한다 (AI v2) */}
+                {personalAnalysis?.closing && (
+                  <div className="pt-6 border-t border-line">
+                    <blockquote className="border-l-2 border-seal pl-5">
+                      <p className="font-serif text-base sm:text-lg text-ink leading-relaxed">
+                        {personalAnalysis.closing}
+                      </p>
+                    </blockquote>
+                  </div>
+                )}
+
 
               </div>
 

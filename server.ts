@@ -6,6 +6,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, doc, deleteDoc } from "firebase/firestore";
+import rateLimit from "express-rate-limit";
 
 dotenv.config();
 
@@ -80,7 +81,7 @@ const FLUENT_KOREAN_SYSTEM_GUIDELINE = `
 
 4. **"그래서 뭐 어쩌라고?"에 대한 명쾌한 현실 처방전 필수 (Actionable & Punchy):**
    - "내실을 다져라", "조급해하지 마라"와 같은 두루뭉술한 덕담이나 뜬구름 잡는 철학적 문장은 100% 엄격히 금지합니다.
-   - 내담자가 읽고 "아, 내가 지금 당장 회사에서 이렇게 행동하고, 이런 인간을 손절하고, 돈을 이렇게 묶어야겠구나!"라고 무릎을 탁 칠 만큼 실전적이고 직설적인 3대 행동 강령(DO)과 치명적 지뢰밭(DON'T)을 명쾌하게 처방하십시오.
+   - 내담자가 읽고 지금 당장 무엇을 하고 무엇을 멈춰야 하는지 알 수 있도록, 구체적인 행동 지침(DO)과 피해야 할 것(DON'T)을 담담하게 짚어주십시오.
 `;
 
 function getWesternZodiac(birthDate: string): string {
@@ -388,6 +389,24 @@ async function startServer() {
   async function generatePersonalAnalysisForMember(member: any): Promise<any> {
     const ai = getGeminiClient();
     const zodiac = getWesternZodiac(member.birth_date);
+
+    // 대운 파노라마에서 "지금 어느 단계인지" 판별하기 위한 나이.
+    //
+    // 반드시 "연 나이"(올해 - 태어난 해)여야 한다. 대운의 age는
+    // @orrery/core가 `startDate.getFullYear() - birthYear`로 만들고,
+    // sajuSynthesis의 season.age도 같은 방식이다. 여기서 만 나이를 쓰면
+    // 생일이 안 지난 사용자(약 31%)의 현재 단계가 한 칸 어긋나고,
+    // 같은 화면의 "지금 당신은 어떤 시기인가" 섹션과 값이 모순된다.
+    //
+    // new Date()는 "1990-01-01"을 UTC 자정으로 파싱해 로컬 getter와 어긋나므로
+    // 문자열을 직접 쪼갠다 (타임존 의존 제거).
+    const currentAge = (() => {
+      const birthYear = parseInt(String(member.birth_date || "").split("-")[0], 10);
+      if (isNaN(birthYear)) return null;
+      const a = new Date().getFullYear() - birthYear;
+      // 미래 날짜(오타 등)를 0세로 위장하지 않고 판정 불가로 넘긴다
+      return a >= 0 && a < 130 ? a : null;
+    })();
     
     let mingGongStars = "알 수 없음";
     let mingGongGanzhi = "알 수 없음";
@@ -427,41 +446,104 @@ async function startServer() {
         sipseong_strength: sipseongStrengthText,
         ming_gong_stars: mingGongStars,
         ming_gong_ganzi: mingGongGanzhi
-      }
+      },
+      // 인생 10단계 파노라마의 실제 근거. 사주에 이미 계산된 10년 주기(대운)를
+      // 그대로 넘긴다 — 단계를 지어내지 않고 명리학 데이터를 따른다.
+      // 현재 단계 판정은 서버가 확정한다. AI에게 맡기면 두 칸에 true를 넣거나
+      // 0개가 되어 "지금" 배지와 인주 한 점 규칙이 깨진다.
+      daewoon_cycles: Array.isArray(member.saju?.daewoon)
+        ? (() => {
+            const cycles = member.saju.daewoon;
+            // 마지막 구간은 상한을 열어 100세 이상도 현재로 잡힌다
+            const currentIdx =
+              currentAge === null
+                ? -1
+                : cycles.findIndex((d: any, i: number) => {
+                    const next = cycles[i + 1];
+                    return currentAge >= d.age && (!next || currentAge < next.age);
+                  });
+            return cycles.map((d: any, i: number) => ({
+              시작나이: d.age,
+              종료나이: cycles[i + 1] ? cycles[i + 1].age - 1 : d.age + 9,
+              간지: d.ganzi,
+              천간십신: d.stemSipsin,
+              지지십신: d.branchSipsin,
+              운성: d.unseong,
+              현재여부: i === currentIdx
+            }));
+          })()
+        : [],
+      current_age: currentAge ?? "생년월일 확인 불가"
     };
 
     const prompt = `
 ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
 
-당신은 대한민국에서 가장 영험하고 통찰력 깊은 사주명리학 대가이자 동서양 점성학(자미두수·황도12궁), 그리고 현대 심리학적 분석(MBTI)의 대가입니다.
-상대방의 사주원국과 명반을 펼쳐놓고 마주 앉아, 상대방이 살아오며 남몰래 삼켰던 눈물과 갈망, 겉으로 보이는 모습과 속에서 실제로 움직이는 마음의 이중성, 그리고 돈과 일, 사랑에서 벌어지는 구체적인 현실 장면들을 **소름 돋게 정확하고 술술 읽히는 입체적 인생 드라마 서사**로 풀어내십시오.
+## 어투 — 이 규칙이 아래 모든 지시보다 우선합니다
+
+평생 수많은 사람을 마주해 온 도사가 찻잔을 앞에 두고 조용히 짚어주는 목소리로 씁니다.
+확신은 있으나 과장하지 않고, 듣고 싶은 말을 하되 겁주지 않습니다.
+
+- **문장은 '~합니다 / ~입니다'로 통일합니다.** 반말, 감탄사, 느낌표를 쓰지 않습니다.
+- "소름 돋게", "무릎을 탁", "팩트폭격", "사이다" 같은 자극적 표현을 쓰지 않습니다.
+- 겁주는 말로 끝내지 않습니다. 어려움을 짚으면 반드시 그 다음에 길을 함께 놓습니다.
+  (예: "지금까지 혼자 버틴 것이 헛수고가 아닙니다. 다만 이제는 방식을 바꿔야 합니다.")
+- 단정하되 단호하지 않습니다. 판결이 아니라 안내입니다.
+- 어려운 한자어나 점성술 용어는 쉬운 한글로 풀어 씁니다. MBTI는 대문자 영문으로 표기합니다.
+
+당신은 사주명리학과 자미두수, 그리고 현대 성격 이론(MBTI)을 함께 읽어내는 사람입니다.
+상대의 사주를 펼쳐놓고 마주 앉아, 그가 살아온 길과 지금 서 있는 자리, 그리고 앞으로
+걸어갈 길을 **하나의 이어진 이야기로** 짚어주십시오.
+
+## 가장 중요한 원칙 — 모든 문단이 이어져야 합니다
+
+이 리포트는 항목별 진단서가 아니라 **한 사람의 인생을 따라 걷는 한 편의 글**입니다.
+- 각 문단은 앞 문단을 이어받아 시작합니다. 독립된 항목처럼 따로 서 있으면 실패입니다.
+- 재물·연애·직장·건강은 서로 다른 주제가 아니라, **같은 기질이 네 곳에서 다르게
+  드러난 모습**입니다. 그 연결을 문장으로 드러내십시오.
+- 인생의 단계(대운)를 축으로 삼아, 각 주제가 "지금 이 단계에서는 이렇게 작동합니다"로
+  풀리게 하십시오.
 
 ## 대상자 핵심 정보:
 ${JSON.stringify(enrichedMemberInfo, null, 2)}
 
-## 핵심 작성 원칙 (절대적 기준):
-1. **타이틀 / 한 줄 직관적 비유 (Metaphor):**
-   - 교과서적 수식어(예: "성실하고 온화한 사람")는 100% 금지합니다.
-   - 첫 문장만 읽어도 무릎을 탁 치게 만드는 감각적인 비유를 제시하십시오. (예: "센 불에 빠르게 구워 낸, 첫 입부터 강한 음식입니다.", "바위틈을 뚫고 솟아난 소나무처럼 겉은 꼿꼿한 선비이나 속은 타협 없는 칼날입니다.")
-2. **겉과 속의 이중주 (사주 천간/일간/명궁 vs 지지/지장간/신궁의 입체 해설):**
-   - **겉(첫인상과 행동):** 걸음걸이, 눈매, 말투, 결정 속도, 가만히 있어도 뿜어져 나오는 인상 ("생각보다 몸이 먼저 나가고, 하고 싶은 일이 생기면 준비가 다 되기 전에 이미 시작해 놓습니다").
-   - **속(내면과 방어기제):** 혼자 있을 때 드는 생각, 무의식적 불안, 최악의 경우를 먼저 계산하는 버릇, 남몰래 지고 있는 짐 ("힘들다는 말을 잘 하지 않고 혼자 버티다가 한계에 닿아서야 티가 납니다").
-   - **교차 통찰:** "이 둘을 겹쳐 보면 사람이 보입니다. 남들은 적극적이고 거침없는 사람으로 보지만, 실제로는 혼자 감당하는 데 익숙해서 힘들다는 말을 마지막까지 꺼내지 않는 사람입니다."
-3. **재물과 돈의 실전 장면:**
-   - 돈이 실제로 벌리고 불어나는 구체적 장면(직장 실무, 전문 기술, 온라인/해외, 비대면 등)을 짚으십시오.
-   - 돈이 새어 나가는 구멍(피로를 참다가 병원비나 홧김 보상 비용으로 빠져나가는 자리 등)을 정확히 명시하십시오.
-4. **직업과 성취:**
-   - 어떤 험지나 문제 앞에서 존재감이 드러나는지, 일을 대충 하는 태도에 얼마나 예민한지 묘사하고, 잘 맞는 구체적 업종/직무를 제시하십시오.
-5. **연애와 인연의 현실 장면:**
-   - 어디서 만나는지 (직장 협업, 취미, 활동 등), 왜 부딪치는지 (결정 속도 차이, 감정 표현 방식), 오래 가려면 무엇을 합의해야 하는지 명시하십시오.
-6. **건강과 쉼터:**
-   - 지칠 때 신호가 가장 먼저 오는 부위(장/소화, 어깨/관절, 수면 등)와 진짜 충전이 일어나는 회복 방식을 짚으십시오.
-7. **지금 당장 할 일을 하나만 고른다면:**
-   - 뜬구름 잡는 다짐이 아닌, 오늘 당장 취해야 할 원 포인트 돌파구를 단도직입적으로 처방하십시오.
-8. **문체 규칙:**
-   - 모호한 추측형(~일 수도 있습니다) 대신, 확신에 찬 단호한 어조(~합니다, ~입니다, ~겁니다, ~않습니다)를 유지하십시오.
-   - 모든 MBTI 코드는 대문자 영문(ENFP, INTJ 등)으로만 표기하십시오.
-   - 어려운 한자어나 외래 점성술 용어는 쓰지 말고 쉬운 한글로 풀어 쓰십시오.
+## 작성 순서 — 이 순서대로 써야 글이 이어집니다
+
+**1) 먼저 인생의 계단(life_stages)을 놓습니다.**
+   위 daewoon_cycles는 이 사람의 실제 10년 주기입니다. 이것을 인생의 계단으로 삼습니다.
+   - 각 단계에 그 시기를 한마디로 부르는 이름을 붙입니다 (예: "혼자 익히던 시절",
+     "이름이 알려지기 시작하는 시기"). 사주 용어를 그대로 쓰지 않습니다.
+   - 지나온 단계는 **"그 시기에 이런 일이 있었을 것입니다"**로 짚고, 앞으로 올 단계는
+     **"이렇게 흘러갑니다"**로 씁니다. 현재 단계(현재여부: true)를 가장 길게 씁니다.
+   - **각 단계의 마지막 문장은 다음 단계로 넘어가는 문장입니다.** 계단을 하나씩
+     밟아 올라가듯, 끊기지 않고 이어지게 하십시오.
+   - 지나온 단계가 지금의 나를 어떻게 만들었는지 드러내십시오. 과거는 설명이 아니라
+     **지금을 이해하는 근거**입니다.
+
+**2) 그 다음 네 갈래를 풉니다 — 재물 · 연애 · 직장 · 건강.**
+   이 넷은 별개 주제가 아닙니다. **같은 기질이 네 곳에서 다르게 나타난 것**입니다.
+   - 각 갈래는 **현재 단계에서 출발합니다.** "지금 이 시기에는 ~합니다"로 시작하십시오.
+   - 각 갈래에는 bridge 문장이 있습니다. 앞 갈래에서 방금 한 이야기를 받아
+     이 갈래로 넘어오는 한 문장입니다. (예: "돈이 그렇게 움직이는 사람은
+     사람을 만나는 자리에서도 같은 습성이 나옵니다.")
+   - 순서는 재물 → 직장 → 연애 → 건강입니다. 화면에 이 순서로 놓이므로,
+     각 bridge는 반드시 바로 앞 주제를 받아야 합니다. 순서를 바꾸면 연결이 깨집니다.
+   - 구체적 장면으로 쓰십시오. 돈이 벌리는 자리와 새는 구멍, 어디서 만나고 왜
+     부딪치는지, 어떤 일에서 존재감이 드러나는지, 지칠 때 어디부터 신호가 오는지.
+
+**3) 마지막에 닫는 말(closing)로 봉합합니다.**
+   네 갈래를 한 문단으로 모아, 결국 하나의 이야기였음을 보여주십시오.
+   그리고 지금 당장 할 수 있는 한 가지를 남기십시오. 다짐이 아니라 행동입니다.
+
+## 그 외 원칙
+
+- **한 줄 정의(headline):** 교과서적 수식어("성실하고 온화한 사람")를 쓰지 않습니다.
+  감각적인 비유 한 문장으로 이 사람을 그려내십시오.
+  (예: "바위틈을 뚫고 자란 소나무처럼, 겉은 꼿꼿하고 속은 물러서지 않는 사람입니다.")
+- **겉과 속:** 남들이 보는 모습과 혼자 있을 때의 모습을 각각 짚고, 그 둘을 겹쳐
+  이 사람이 실제로 어떤 사람인지 드러내십시오.
+- 사주 용어를 풀이하지 않습니다("신금은 보석이라 예민하다" 같은 서술 금지).
+  기운을 **살아온 장면과 감정**으로 바꿔 쓰십시오.
 `;
 
     const responseSchema = {
@@ -484,37 +566,66 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
           },
           required: ["outer", "inner", "contrast"]
         },
+        // 인생의 계단 — 대운 10년 주기를 축으로 삼은 파노라마.
+        // 이 배열을 먼저 생성해야 이후 네 갈래가 참조할 축이 생긴다.
+        life_stages: {
+          type: Type.ARRAY,
+          description:
+            "The person's life as a staircase, one entry per daewoon cycle from daewoon_cycles, in chronological order. Past stages recount what likely happened; the current stage is the longest and most detailed; future stages foretell. Each entry's closing sentence must lead into the next stage so the whole array reads as one continuous walk, never as isolated blocks.",
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              age_from: { type: Type.NUMBER, description: "Starting age of this cycle, taken from daewoon_cycles 시작나이" },
+              age_to: { type: Type.NUMBER, description: "Ending age (age_from + 9)" },
+              title: { type: Type.STRING, description: "A plain-Korean name for this era, no saju jargon (e.g. 혼자 익히던 시절)" },
+              is_current: { type: Type.BOOLEAN, description: "True only for the cycle containing the person's current age" },
+              narrative: { type: Type.STRING, description: "What this era was/is/will be like, in concrete lived scenes. Past: what likely happened and how it shaped them. Current: longest and most detailed. Future: how it unfolds." },
+              link_to_next: { type: Type.STRING, description: "One sentence carrying the reader from this stage into the next. Omit only for the final stage." }
+            },
+            required: ["age_from", "age_to", "title", "is_current", "narrative"]
+          }
+        },
         wealth: {
           type: Type.OBJECT,
           properties: {
-            earning: { type: Type.STRING, description: "The realistic scenes where money is made (practical skills, salary, online, etc.)" },
-            leak: { type: Type.STRING, description: "Where money leaks out (fatigue, secret burdens, sudden spending, etc.)" }
+            bridge: { type: Type.STRING, description: "One sentence connecting from the current life stage into the money theme. Must reference what was just said in life_stages." },
+            earning: { type: Type.STRING, description: "Concrete scenes where money is actually made, framed as 'in this current stage, it works like this'" },
+            leak: { type: Type.STRING, description: "Where money leaks out, tied to this person's specific temperament rather than generic advice" }
           },
-          required: ["earning", "leak"]
-        },
-        career: {
-          type: Type.OBJECT,
-          properties: {
-            strength: { type: Type.STRING, description: "Work style, intolerance for laziness, proving talent in difficult competitions" },
-            recommended_fields: { type: Type.STRING, description: "Specific industries and job titles that suit this chart" }
-          },
-          required: ["strength", "recommended_fields"]
+          required: ["bridge", "earning", "leak"]
         },
         love: {
           type: Type.OBJECT,
           properties: {
-            meeting_scene: { type: Type.STRING, description: "Where they actually meet their partner (colleagues, working together, events, etc.)" },
-            friction_point: { type: Type.STRING, description: "Why they clash (decision speed, communication) and key to long-lasting relationship" }
+            bridge: { type: Type.STRING, description: "One sentence connecting from work into relationships — the same temperament showing up in how they let people close. Comes right after the work passage on screen." },
+            meeting_scene: { type: Type.STRING, description: "Where they actually meet a partner, in concrete settings" },
+            friction_point: { type: Type.STRING, description: "Why they clash and what must be agreed on to last" }
           },
-          required: ["meeting_scene", "friction_point"]
+          required: ["bridge", "meeting_scene", "friction_point"]
+        },
+        career: {
+          type: Type.OBJECT,
+          properties: {
+            bridge: { type: Type.STRING, description: "One sentence connecting from the money theme into work — the same drive showing up in how they handle tasks and colleagues. Comes right after the wealth section on screen." },
+            strength: { type: Type.STRING, description: "Where their presence shows, what kind of problem brings out their edge" },
+            recommended_fields: { type: Type.STRING, description: "Specific industries and roles that fit" }
+          },
+          required: ["bridge", "strength", "recommended_fields"]
         },
         health: {
           type: Type.OBJECT,
           properties: {
-            signal: { type: Type.STRING, description: "The first organ/body area that gives a warning signal when exhausted" },
-            recovery: { type: Type.STRING, description: "The exact lifestyle habit and environment needed for real recovery" }
+            bridge: { type: Type.STRING, description: "One sentence connecting from relationships into the body — how carrying people and expectations reaches their health. Comes right after the relationships section on screen." },
+            signal: { type: Type.STRING, description: "The first body area that warns them when depleted" },
+            recovery: { type: Type.STRING, description: "What actually restores them, specific to this person" }
           },
-          required: ["signal", "recovery"]
+          required: ["bridge", "signal", "recovery"]
+        },
+        // 닫는 말 — 네 갈래를 한 문단으로 봉합한다
+        closing: {
+          type: Type.STRING,
+          description:
+            "A final paragraph gathering the four themes back into one story, showing they were always the same thread. Ends with one concrete action to take now — an action, not a resolution. Never ends on a warning."
         },
         one_action: {
           type: Type.STRING,
@@ -535,21 +646,41 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
           items: { type: Type.STRING },
           description: "2-3 custom witty personality keywords"
         },
+        // 리포트 최상단에 가장 큰 글씨로 렌더되는 문장이다.
+        // 반드시 '~합니다/~입니다' 존댓말. 반말 예시를 넣으면 그 톤이 그대로 나온다.
         punchy_quote: {
           type: Type.STRING,
-          description: "A direct, punchy, unvarnished insight penetrating their facade and true loneliness (e.g. 야, 너 솔직히 겉으론 쿨한 척 다 하면서 혼자 있을 땐 온갖 생각 다 하느라 머리 터지지?)"
+          description:
+            "The single sentence shown largest at the very top of the report. Names what this person quietly carries, in the calm voice of an elder reading their chart — polite Korean ending in ~합니다/~입니다, never casual speech, never an exclamation mark. It sees through the facade without accusing. (e.g. 겉으로는 아무렇지 않은 얼굴을 하고 계시지만, 혼자 있는 시간에는 늘 최악의 경우를 먼저 계산해 두는 분입니다.)"
         },
         tags: {
           type: Type.ARRAY,
           items: { type: Type.STRING },
-          description: "3-4 witty hashtags capturing their duality (e.g. #완벽주의감옥, #새벽폭풍검열)"
+          description: "3-4 short hashtags naming this person's traits, calm rather than sensational (e.g. #혼자삭이는편, #기준이높은사람)"
         },
         season_quote: {
           type: Type.STRING,
-          description: "One-line punchy seasonal action advice for their current daewoon timing"
+          description:
+            "One sentence on what this current daewoon period asks of them. Polite Korean (~합니다/~입니다), no exclamation marks, no casual speech. Points a direction rather than issuing an order."
         }
       },
-      required: ["headline", "character_desc", "duality", "wealth", "career", "love", "health", "one_action", "four_areas", "keywords"]
+      required: [
+        "headline",
+        "character_desc",
+        "duality",
+        "life_stages",
+        "wealth",
+        "love",
+        "career",
+        "health",
+        "closing",
+        "one_action",
+        "four_areas",
+        "keywords",
+        "punchy_quote",
+        "tags",
+        "season_quote"
+      ]
     };
 
     if (geminiCircuitBreaker.isOpen()) {
@@ -564,6 +695,9 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
           responseMimeType: "application/json",
           responseSchema: responseSchema,
           temperature: 0.15,
+          // 출력 상한. v2 스키마(대운 10단계 + bridge 4 + closing)로 응답이 길어졌고
+          // 상한이 없으면 한 번의 호출이 예측 불가한 비용을 낸다.
+          maxOutputTokens: 16384,
         }
       });
 
@@ -577,7 +711,21 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
   }
 
   // Endpoint to generate personal AI analysis using Gemini 3.5 Flash (cached on client/DB after 1-time run)
-  app.post("/api/personal-analysis", async (req, res) => {
+  // Gemini 호출은 건당 과금이고 이 엔드포인트는 인증이 없다.
+  // 스키마 버전을 올리면 전 사용자가 재생성되므로 상한이 없으면 배포 직후
+  // 유입 곡선을 그대로 따라가는 과금 스파이크가 생긴다.
+  // 서킷 브레이커는 "실패"를 막는 장치이지 "성공하는 비용 폭주"를 막지 못한다.
+  const aiGenerationLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 5, // IP당 분당 5회 — 정상 사용자는 캐시로 0~1회면 충분하다
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: {
+      error: "요청이 잠시 몰렸습니다. 1분 후 다시 시도해 주세요.",
+    },
+  });
+
+  app.post("/api/personal-analysis", aiGenerationLimiter, async (req, res) => {
     try {
       const { member } = req.body;
       if (!member) {
@@ -1245,8 +1393,16 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
       const prompt = `
 ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
 
-당신은 대한민국 최고의 사주명리학 대가이자 동서양 점성학, 자미두수, 그리고 현대 심리학적 성향 분석(MBTI)의 대가입니다.
-사용자 '${member.nickname}'님을 위해 지극히 현실적이고 구체적이며, 일상에서 즉시 와닿고 행동에 옮길 수 있는 최고 수준의 오늘의운세, 주간운세, 월간운세, 연간운세 해설서를 일괄 작성해 주십시오.
+## 어투 — 이 규칙이 아래 모든 지시보다 우선합니다
+
+평생 수많은 사람을 마주해 온 도사가 찻잔을 앞에 두고 조용히 짚어주는 목소리로 씁니다.
+확신은 있으나 과장하지 않고, 듣고 싶은 말을 하되 겁주지 않습니다.
+
+- **문장은 '~합니다 / ~입니다'로 통일합니다.** 반말, 감탄사, 느낌표, 물음표를 쓰지 않습니다.
+- "소름 돋게", "무릎을 탁", "팩트폭격", "사이다", "대박" 같은 자극적 표현을 쓰지 않습니다.
+- 과장하거나 부풀리지 않습니다. 운이 좋을 때도 들뜨지 않게 중심을 잡아주고, 주의할 때도 불안감을 주지 않고 반드시 유연하게 비껴갈 길을 제시합니다.
+- 단정하되 단호하지 않습니다. 판결이 아니라 따뜻하고 명확한 안내입니다.
+- 단답형이나 요약형이 아닌, 깊이 있고 정갈하며 풍성한 호흡의 장문으로 씁니다.
 
 ## 대상자 핵심 정보:
 - 이름/별명: ${member.nickname}
@@ -1258,19 +1414,31 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
 - 오행 구성 비율: ${member.saju?.ohaeng_count ? JSON.stringify(member.saju.ohaeng_count) : "기본 구성"}
 - 오늘의 확정된 천간지지 일진 점수: ${deterministicTodayScore}점 (today.score 필드에 반드시 ${deterministicTodayScore}를 기재하십시오)
 
-## 작성 지침 (현실성, 실전 개운 처방, fluent-korean 및 퀄리티 극대화):
-1. **fluent-korean 원칙 100% 준수 (자연스러운 한국어, 조사/어미 완전 유지, 번역투 배제):**
-   - 모든 문장은 온전한 주어-서술어 호응을 갖추고, 명사형 종결이나 단답식 나열을 금하며 정중하고 자연스러운 한국어 문장으로 서술하십시오.
-2. **극도의 현실성과 즉시 와닿는 조언 (추상적인 이론이나 미사여구 중심의 가벼운 해설 전면 금지):**
-   - 사주 일주론, 별자리 기류, MBTI 성향을 깊이 있게 융합하여 서술하되, 절대 "금수 기운이 맑아 지혜가 솟구칩니다" 처럼 추상적이고 모호하게 얼버무리지 마십시오.
-   - "천생연분을 만날 수 있는 운명적인 흐름이 강하니 오늘 미팅이나 소개팅이 있다면 절대 미루지 말고 가십시오", "오후 2시경 약속 장소로 향하는 도중에 예상치 못한 호감을 지닌 인연과 대화를 나눌 기회가 생깁니다" 처럼 사용자가 즉시 체감하고 실행할 수 있는 현실적이고 구체적인 시나리오와 대처 행동을 가이드하십시오.
-3. **연애, 연인, 소셜 파트너십의 비중 대폭 강화:**
-   - 만남, 소개팅, 썸, 연애, 부부/연인 관계의 로맨틱한 기류를 다채롭게 서술하고, 대화 스타일이나 행운의 처방 등을 행동 중심으로 작성하십시오.
-4. **적정 분량 및 가독성 최적화 지침 (초필수):**
-   - 오늘의 전체적인 운세 해설('today.summary')은 사주 일주론, 황도 백자리, MBTI 성향을 한데 녹여내어, 오늘 마주할 운명학적 기류 분석, 상황적 시나리오, 그리고 직접적인 개운 행동 지침까지 유기적으로 연결된 **3개의 문단 (줄바꿈 \n\n 2번 사용, 공백 포함 350~500자 내외)**으로 풍성하게 작성해 주십시오.
-   - 주간, 월간, 연간의 세부 분석 필드들은 각각 **단 하나의 알차고 풍성한 문단 (공백 포함 150~250자 내외)**으로 명확하고 구체적으로 작성하십시오. 과도한 중복 생성이나 너무 길어져서 발생하는 응답 시간 초과와 JSON 짤림 문제를 예방하기 위한 절대 기준입니다.
-5. **구체적인 개운(開運) 처방전:**
-   - 행운의 아이템(코디 색상, 숫자, 방향, 최고의 시간대)을 명확하게 명시하십시오.
+## 작성 및 분량 지침 (깊이 있는 풍성한 해설):
+1. **오늘의 운세 (today):**
+   - 'today.summary'는 사주 일주와 오늘의 일진, 기질을 융합하여, 오늘 마주할 전반적 기류, 대인관계와 일터에서의 구체적 장면, 그리고 하루를 편안하고 이롭게 마무리하는 마음가짐까지 세 문단(줄바꿈 \\n\\n 2번 사용, 공백 포함 500~700자)으로 정성스럽게 작성하십시오.
+   - 행운 처방(색상, 숫자, 방향, 시간)도 명확하고 단정하게 기재하십시오.
+
+2. **주간 예보 (weekly):**
+   - 'weekly.summary': 이번 주 전체를 관통하는 흐름과 주간 완급 조절 지침 (공백 포함 350~500자 내외).
+   - 'weekly.love_and_social': 대인관계와 인연에서 주의할 점과 마음을 나누는 방법 (200~300자 내외).
+   - 'weekly.wealth_and_job': 업무 추진 및 지출 방어, 실질적 기회에 대한 조언 (200~300자 내외).
+   - 'weekly.health_and_energy': 주간 에너지 관리와 컨디션 회복을 위한 지침 (200~300자 내외).
+   - 'weekly.daily_flow': 월요일부터 일요일까지 7일간 각 요일의 기류와 실천 팁을 각각 2문장 이상의 온전한 문장으로 작성하십시오.
+
+3. **월간 리포트 (monthly):**
+   - 'monthly.summary': 이번 달의 전반적인 운명적 조류와 핵심 과제 (공백 포함 400~600자 내외).
+   - 'monthly.key_theme': 이달의 중심 기조를 한마디로 정의하는 문장.
+   - 'monthly.opportunities': 이번 달 가장 적극적으로 살려야 할 기회 (250~350자 내외).
+   - 'monthly.precautions': 서두르거나 방심할 때 생길 수 있는 문제와 유연한 대처법 (250~350자 내외).
+   - 'monthly.weeks_flow': 1주차부터 4주차까지 주차별 흐름을 각각 2~3문장으로 구체적으로 서술하십시오.
+
+4. **연간 대운세 (yearly):**
+   - 'yearly.summary': 한 해의 거대한 변곡점과 흐름을 조망하는 깊이 있는 총평 (공백 포함 500~700자 내외).
+   - 'yearly.grand_trend': 올 한 해를 이끄는 거시적 기운과 중심 잡기 (300~450자 내외).
+   - 'yearly.wealth_flow': 재물 축적과 자산 운용의 방향 (250~350자 내외).
+   - 'yearly.career_path': 일과 커리어의 도약 시기와 성취 방법 (250~350자 내외).
+   - 'yearly.personal_growth': 내면의 지혜와 마음 수양 과제 (250~350자 내외).
 `;
 
       const responseSchema = {
@@ -1357,6 +1525,7 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
               responseMimeType: "application/json",
               responseSchema: responseSchema,
               temperature: 0.15,
+              maxOutputTokens: 8192,
             }
           });
 

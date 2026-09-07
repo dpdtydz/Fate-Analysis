@@ -156,22 +156,39 @@ export interface PersonalAnalysis {
     inner: string;
     contrast: string;
   };
+  /** 인생의 계단 — 대운 10년 주기를 축으로 삼은 파노라마 (스키마 v2) */
+  life_stages?: Array<{
+    age_from: number;
+    age_to: number;
+    title: string;
+    is_current: boolean;
+    narrative: string;
+    /** 다음 단계로 넘어가는 한 문장. 마지막 단계에는 없다 */
+    link_to_next?: string;
+  }>;
+  /** bridge = 앞 테마에서 이 테마로 넘어오는 한 문장 (단락 연결용, v2) */
   wealth?: {
+    bridge?: string;
     earning: string;
     leak: string;
   };
-  career?: {
-    strength: string;
-    recommended_fields: string;
-  };
   love?: {
+    bridge?: string;
     meeting_scene: string;
     friction_point: string;
   };
+  career?: {
+    bridge?: string;
+    strength: string;
+    recommended_fields: string;
+  };
   health?: {
+    bridge?: string;
     signal: string;
     recovery: string;
   };
+  /** 네 갈래를 한 문단으로 봉합하는 닫는 말 (v2) */
+  closing?: string;
   one_action?: string;
   four_areas: {
     essence: string;  // 本質 (본질)

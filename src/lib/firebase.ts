@@ -637,13 +637,27 @@ export async function getUserPersonalProfile(): Promise<PersonalSajuProfile | nu
  * AI 분석 입력에 실제로 들어가는 값만 포함한다 — 이 중 하나라도 바뀌면 재생성해야 한다.
  * (닉네임은 분석 내용에 영향을 주지 않으므로 제외 — 개명만으로 재과금되지 않도록)
  */
+/**
+ * 분석 스키마 버전. 리포트 구조가 바뀌면 올린다.
+ * 키에 포함되므로, 구버전으로 생성된 캐시는 자동으로 무효화되어 재생성된다.
+ *
+ * v2 — 대운 파노라마(life_stages) + 테마 연결(bridge) + 닫는 말(closing) 추가
+ */
+const PERSONAL_ANALYSIS_SCHEMA_VERSION = "v3";
+
 export function buildPersonalAnalysisKey(p: {
   birth_date: string;
   birth_time?: string | null;
   gender?: string;
   mbti?: string | null;
 }): string {
-  return [p.birth_date, p.birth_time || "no_time", p.gender || "?", p.mbti || "no_mbti"].join("|");
+  return [
+    PERSONAL_ANALYSIS_SCHEMA_VERSION,
+    p.birth_date,
+    p.birth_time || "no_time",
+    p.gender || "?",
+    p.mbti || "no_mbti",
+  ].join("|");
 }
 
 /**
@@ -716,20 +730,23 @@ export async function resolveMyPersonalAnalysis(
   try {
     const profile = await getUserPersonalProfile();
 
-    // 프로필에 원본이 있으면 그것이 정답이다 — 방 사본은 무시한다
-    if (profile?.personal_analysis) return profile.personal_analysis;
-
-    // 프로필에 없고 방에만 있으면, 그 사본을 원본으로 승격시켜 저장한다.
-    // (그룹 분석을 먼저 돌린 사용자가 개인 화면에서 재생성 비용을 다시 치르지 않도록)
-    if (roomAnalysis && profile?.saju) {
-      saveUserPersonalProfile({
-        ...profile,
-        personal_analysis: roomAnalysis,
-        personal_analysis_key: buildPersonalAnalysisKey(profile),
-      });
-      return roomAnalysis;
+    // 프로필에 최신 스키마 원본이 있으면 그것이 정답이다 — 방 사본은 무시한다.
+    if (
+      profile?.personal_analysis &&
+      profile.personal_analysis_key === buildPersonalAnalysisKey(profile)
+    ) {
+      return profile.personal_analysis;
     }
 
+    // 구버전 스키마이거나 원본이 없으면 새로 받아 프로필에 저장한다.
+    // (fetchPersonalAnalysis가 캐시 검사·저장·실패 폴백을 모두 처리한다)
+    if (profile?.saju) {
+      const regenerated = await fetchPersonalAnalysis(profile);
+      if (regenerated) return regenerated;
+    }
+
+    // 여기까지 왔으면 프로필이 없거나(비로그인·미입력) 재생성이 실패한 경우다.
+    // 방 사본은 스키마 버전을 알 수 없으므로 프로필로 승격하지 않고, 화면 표시용으로만 넘긴다.
     return roomAnalysis || null;
   } catch (err) {
     console.debug("resolveMyPersonalAnalysis failed:", err);

@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Sun, Calendar, Moon, Compass, Lock, Coins, Clock, Hash } from "lucide-react";
+import { 
+  Sun, 
+  Calendar, 
+  Moon, 
+  Compass, 
+  Lock, 
+  Coins, 
+  Clock, 
+  Hash,
+  Heart,
+  Briefcase,
+  Activity,
+  ShieldAlert,
+  Sparkles,
+  TrendingUp,
+  Target
+} from "lucide-react";
 import { calculateTodayFortune } from "../utils/saju";
 
 /**
@@ -288,7 +304,168 @@ export default function HoroscopePanel({
               </div>
             )}
 
-            {/* AI 전용 상세 (유료) */}
+            {/* 주간 전용 상세 섹션 */}
+            {activeTab === "weekly" && (aiData?.love_and_social || aiData?.wealth_and_job || aiData?.health_and_energy || aiData?.daily_flow) && (
+              <div className="space-y-4 pt-2">
+                <h3 className="text-[15px] font-semibold text-ink border-b border-line pb-2">
+                  분야별 심층 흐름
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {aiData.love_and_social && (
+                    <div className="bg-sunken p-4.5 rounded-xl space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <Heart className="w-3.5 h-3.5 text-ink" />
+                        <span>대인관계 & 인연</span>
+                      </div>
+                      <p className="text-sm text-ink-soft leading-relaxed">{aiData.love_and_social}</p>
+                    </div>
+                  )}
+                  {aiData.wealth_and_job && (
+                    <div className="bg-sunken p-4.5 rounded-xl space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <Briefcase className="w-3.5 h-3.5 text-ink" />
+                        <span>재물 & 업무 기회</span>
+                      </div>
+                      <p className="text-sm text-ink-soft leading-relaxed">{aiData.wealth_and_job}</p>
+                    </div>
+                  )}
+                  {aiData.health_and_energy && (
+                    <div className="bg-sunken p-4.5 rounded-xl space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <Activity className="w-3.5 h-3.5 text-ink" />
+                        <span>건강 & 에너지 관리</span>
+                      </div>
+                      <p className="text-sm text-ink-soft leading-relaxed">{aiData.health_and_energy}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 요일별 7일 예보 */}
+                {Array.isArray(aiData.daily_flow) && aiData.daily_flow.length > 0 && (
+                  <div className="space-y-2 pt-2">
+                    <h4 className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>요일별 일일 흐름</span>
+                    </h4>
+                    <div className="divide-y divide-line rounded-xl bg-sunken overflow-hidden">
+                      {aiData.daily_flow.map((dayText: string, dIdx: number) => {
+                        const dayNames = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"];
+                        const dayName = dayNames[dIdx] || `${dIdx + 1}일차`;
+                        return (
+                          <div key={dIdx} className="p-3.5 flex flex-col sm:flex-row sm:items-start gap-1.5 sm:gap-4 text-left">
+                            <span className="shrink-0 text-xs font-semibold text-ink w-14">{dayName}</span>
+                            <p className="text-sm text-ink-soft leading-relaxed flex-1">{dayText}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 월간 전용 상세 섹션 */}
+            {activeTab === "monthly" && (aiData?.key_theme || aiData?.opportunities || aiData?.precautions || aiData?.weeks_flow) && (
+              <div className="space-y-4 pt-2">
+                {aiData.key_theme && (
+                  <div className="p-4 bg-sunken rounded-xl space-y-1 text-left">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                      <Target className="w-3.5 h-3.5 text-ink" />
+                      <span>이달을 관통하는 핵심 테마</span>
+                    </div>
+                    <p className="text-sm text-ink font-medium leading-relaxed pl-5">{aiData.key_theme}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {aiData.opportunities && (
+                    <div className="bg-sunken p-4.5 rounded-xl space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <Sparkles className="w-3.5 h-3.5 text-ink" />
+                        <span>가장 적극적으로 취해야 할 기회</span>
+                      </div>
+                      <p className="text-sm text-ink-soft leading-relaxed">{aiData.opportunities}</p>
+                    </div>
+                  )}
+                  {aiData.precautions && (
+                    <div className="bg-sunken p-4.5 rounded-xl space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <ShieldAlert className="w-3.5 h-3.5 text-ink" />
+                        <span>주의해야 할 함정과 대처법</span>
+                      </div>
+                      <p className="text-sm text-ink-soft leading-relaxed">{aiData.precautions}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* 주차별 흐름 */}
+                {Array.isArray(aiData.weeks_flow) && aiData.weeks_flow.length > 0 && (
+                  <div className="space-y-2 pt-2">
+                    <h4 className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>주차별 운세 궤적</span>
+                    </h4>
+                    <div className="divide-y divide-line rounded-xl bg-sunken overflow-hidden">
+                      {aiData.weeks_flow.map((weekText: string, wIdx: number) => (
+                        <div key={wIdx} className="p-3.5 flex flex-col sm:flex-row sm:items-start gap-1.5 sm:gap-4 text-left">
+                          <span className="shrink-0 text-xs font-semibold text-ink w-14">{wIdx + 1}주차</span>
+                          <p className="text-sm text-ink-soft leading-relaxed flex-1">{weekText}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 연간 전용 상세 섹션 */}
+            {activeTab === "yearly" && (aiData?.grand_trend || aiData?.wealth_flow || aiData?.career_path || aiData?.personal_growth) && (
+              <div className="space-y-4 pt-2">
+                <h3 className="text-[15px] font-semibold text-ink border-b border-line pb-2">
+                  올해의 4대 핵심 로드맵
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  {aiData.grand_trend && (
+                    <div className="bg-sunken p-4.5 rounded-xl space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <TrendingUp className="w-3.5 h-3.5 text-ink" />
+                        <span>올해의 대변국과 변곡점</span>
+                      </div>
+                      <p className="text-sm text-ink-soft leading-relaxed">{aiData.grand_trend}</p>
+                    </div>
+                  )}
+                  {aiData.wealth_flow && (
+                    <div className="bg-sunken p-4.5 rounded-xl space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <Coins className="w-3.5 h-3.5 text-ink" />
+                        <span>재물 축적과 자산 운용</span>
+                      </div>
+                      <p className="text-sm text-ink-soft leading-relaxed">{aiData.wealth_flow}</p>
+                    </div>
+                  )}
+                  {aiData.career_path && (
+                    <div className="bg-sunken p-4.5 rounded-xl space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <Briefcase className="w-3.5 h-3.5 text-ink" />
+                        <span>직업 성취와 커리어 도약</span>
+                      </div>
+                      <p className="text-sm text-ink-soft leading-relaxed">{aiData.career_path}</p>
+                    </div>
+                  )}
+                  {aiData.personal_growth && (
+                    <div className="bg-sunken p-4.5 rounded-xl space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+                        <Compass className="w-3.5 h-3.5 text-ink" />
+                        <span>내면 성장과 마음 수양</span>
+                      </div>
+                      <p className="text-sm text-ink-soft leading-relaxed">{aiData.personal_growth}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* AI 전용 상세 (유료 - 호환용) */}
             {aiData?.detail && (
               <div className="space-y-3">
                 <h3 className="text-[15px] font-semibold text-ink border-b border-line pb-2">
