@@ -948,14 +948,14 @@ export default function SajuVisual({
         story: personalAnalysis?.love?.meeting_scene
           ? `${personalAnalysis.love.meeting_scene} ${personalAnalysis.love.friction_point ? personalAnalysis.love.friction_point : ""}`.trim()
           : fallbackNarrative.lifeThemes.love.story,
-        tip: personalAnalysis?.love?.bridge || fallbackNarrative.lifeThemes.love.tip,
+        tip: fallbackNarrative.lifeThemes.love.tip,
       },
       wealth: {
         title: fallbackNarrative.lifeThemes.wealth.title,
         story: personalAnalysis?.wealth?.earning
           ? `${personalAnalysis.wealth.earning} ${personalAnalysis.wealth.leak ? personalAnalysis.wealth.leak : ""}`.trim()
           : fallbackNarrative.lifeThemes.wealth.story,
-        tip: personalAnalysis?.wealth?.bridge || fallbackNarrative.lifeThemes.wealth.tip,
+        tip: fallbackNarrative.lifeThemes.wealth.tip,
       },
       lifeRelation: {
         title: fallbackNarrative.lifeThemes.lifeRelation.title,
@@ -964,17 +964,15 @@ export default function SajuVisual({
       },
       health: {
         title: fallbackNarrative.lifeThemes.health.title,
-        story: personalAnalysis?.health?.signal
-          ? `${personalAnalysis.health.signal} ${personalAnalysis.health.recovery ? personalAnalysis.health.recovery : ""}`.trim()
-          : fallbackNarrative.lifeThemes.health.story,
-        tip: personalAnalysis?.health?.bridge || fallbackNarrative.lifeThemes.health.tip,
+        story: personalAnalysis?.health?.signal || fallbackNarrative.lifeThemes.health.story,
+        tip: personalAnalysis?.health?.recovery || fallbackNarrative.lifeThemes.health.tip,
       },
       career: {
-        title: fallbackNarrative.lifeThemes.career.title,
+        title: "잠재력이 폭발할 수 있는 가장 잘 어울리는 직업군",
         story: personalAnalysis?.career?.strength
           ? `${personalAnalysis.career.strength} ${personalAnalysis.career.recommended_fields ? personalAnalysis.career.recommended_fields : ""}`.trim()
           : fallbackNarrative.lifeThemes.career.story,
-        tip: personalAnalysis?.career?.bridge || fallbackNarrative.lifeThemes.career.tip,
+        tip: fallbackNarrative.lifeThemes.career.tip,
       },
     }
   };
@@ -1423,19 +1421,16 @@ export default function SajuVisual({
 
           {/* Section B: 1. 넌 진짜 어떤 사람인가 */}
           <div className="space-y-6 text-left">
-            {/* 🌊 [구간 1] 소설처럼 물 흐르는 서사 구간 (사람이 마주 앉아 조용히 풀어주는 이야기) */}
+            {/* 🌊 [구간 1] 소설처럼 물 흐르는 서사 구간 (마주 앉아 조용히 풀어주는 이야기) */}
             <div className="space-y-5">
               <div className="pt-2">
-                <span className="text-[11px] font-mono tracking-widest uppercase text-seal font-bold block">
-                  이야기 편 · THE NARRATIVE
-                </span>
-                <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink mt-0.5">
-                  어떤 사람인가
+                <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
+                  당신은 어떤 사람인가
                 </h3>
                 <p className="text-xs text-ink-faint mt-1">겉과 속의 인격 독해</p>
               </div>
 
-              {/* 겉과 속 2분할 카드 - 시각적 대비 극대화 */}
+              {/* 겉과 속 2분할 카드 - 시각적 대비 극대화 (글자 짤림 방지) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {/* 겉 (세상이 보는 나) */}
                 <div className="bg-surface p-4 sm:p-4.5 rounded-xl space-y-2.5 border border-line text-left">
@@ -1444,8 +1439,8 @@ export default function SajuVisual({
                       <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
                         <Sun className="w-3.5 h-3.5 text-ink" />
                       </span>
-                      <span className="truncate sm:whitespace-normal font-bold">
-                        [겉] 세상이 보는 첫인상과 사회적 가면
+                      <span className="font-bold text-ink break-keep-all">
+                        [겉] 세상이 보는 첫인상
                       </span>
                     </div>
                     <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0 whitespace-nowrap">
@@ -1464,8 +1459,8 @@ export default function SajuVisual({
                       <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
                         <Moon className="w-3.5 h-3.5 text-ink" />
                       </span>
-                      <span className="truncate sm:whitespace-normal font-bold">
-                        [속] 혼자 있을 때 마주하는 내면과 방어기제
+                      <span className="font-bold text-ink break-keep-all">
+                        [속] 혼자 있을 때의 내면
                       </span>
                     </div>
                     <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0 whitespace-nowrap">
@@ -1491,17 +1486,17 @@ export default function SajuVisual({
                 </p>
               </div>
 
-              {/* 📖 다섯 갈래 인생 서사 (연애 | 재물 | 인생(관계) | 건강 | 직장) */}
+              {/* 📖 삶의 다섯 가지 테마 (연애 | 재물 | 인생(관계) | 건강 | 직장) */}
               <div className="pt-3 space-y-4 text-left">
                 <div className="pb-1">
                   <span className="text-[11px] font-mono tracking-widest uppercase text-seal font-bold block">
-                    인생 서사 오중주 · 5 LIFE THEMES
+                    인생의 다섯 가지 결
                   </span>
                   <h4 className="font-serif text-lg sm:text-xl font-semibold text-ink mt-0.5">
                     삶을 채우는 다섯 가지 이야기
                   </h4>
                   <p className="text-xs text-ink-faint mt-1 leading-relaxed">
-                    연애와 인연, 재물과 곳간, 인생과 관계, 몸과 마음의 신호, 잠재력이 폭발하는 직업 무대까지 사람이 마주 앉아 들려주듯 조용히 풀어드립니다.
+                    연애, 재물, 관계, 건강, 직업까지 타고난 기운의 흐름을 조용히 짚어드립니다.
                   </p>
                 </div>
 
@@ -1527,8 +1522,8 @@ export default function SajuVisual({
                     </p>
                     {narrative.lifeThemes.love.tip && (
                       <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
-                          도사의 조언
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                          연애를 잘 풀어나가기 위한 조언
                         </span>
                         <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
                           {narrative.lifeThemes.love.tip}
@@ -1558,8 +1553,8 @@ export default function SajuVisual({
                     </p>
                     {narrative.lifeThemes.wealth.tip && (
                       <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
-                          도사의 조언
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                          재물이 새는 것을 막는 실천 팁
                         </span>
                         <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
                           {narrative.lifeThemes.wealth.tip}
@@ -1589,8 +1584,8 @@ export default function SajuVisual({
                     </p>
                     {narrative.lifeThemes.lifeRelation.tip && (
                       <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
-                          도사의 조언
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                          건강한 인간관계를 위한 기준
                         </span>
                         <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
                           {narrative.lifeThemes.lifeRelation.tip}
@@ -1620,8 +1615,8 @@ export default function SajuVisual({
                     </p>
                     {narrative.lifeThemes.health.tip && (
                       <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
-                          도사의 조언
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                          몸과 마음의 에너지를 회복하는 팁
                         </span>
                         <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
                           {narrative.lifeThemes.health.tip}
@@ -1637,7 +1632,7 @@ export default function SajuVisual({
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
                           <Briefcase className="w-3.5 h-3.5 text-seal" />
                         </span>
-                        <span className="font-bold text-ink">제5장 · 잠재력이 폭발하는 직업 무대</span>
+                        <span className="font-bold text-ink">제5장 · 잠재력이 폭발할 수 있는 가장 잘 어울리는 직업군</span>
                       </div>
                       <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0">
                         직장·사업운
@@ -1651,8 +1646,8 @@ export default function SajuVisual({
                     </p>
                     {narrative.lifeThemes.career.tip && (
                       <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
-                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
-                          도사의 조언
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                          직업적 잠재력을 극대화하는 조언
                         </span>
                         <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
                           {narrative.lifeThemes.career.tip}
@@ -1944,27 +1939,29 @@ export default function SajuVisual({
                             stage.is_current ? "bg-seal" : isPast ? "bg-line" : "bg-ink-faint"
                           }`}
                         />
-                        <div className={isPast ? "opacity-60" : ""}>
+                        <div className={isPast ? "opacity-90" : ""}>
                           <div className="flex items-baseline gap-2 flex-wrap">
-                            <span className="text-xs font-mono text-ink-faint">
+                            <span className="text-xs font-mono font-medium text-ink-soft">
                               {stage.age_from}~{stage.age_to}세
                             </span>
                             {stage.is_current && (
-                              <span className="text-xs font-semibold text-seal">지금</span>
+                              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-seal/10 text-seal">
+                                지금
+                              </span>
                             )}
                           </div>
                           <h4
                             className={`font-serif font-semibold text-ink mt-1 ${
-                              stage.is_current ? "text-lg" : "text-base"
+                              stage.is_current ? "text-lg sm:text-xl text-ink font-bold" : "text-base text-ink"
                             }`}
                           >
                             {stage.title}
                           </h4>
-                          <p className="text-sm text-ink-soft leading-relaxed mt-2">
+                          <p className="text-sm text-ink/90 leading-relaxed mt-2 font-normal break-keep-all">
                             {stage.narrative}
                           </p>
                           {stage.link_to_next && (
-                            <p className="text-sm text-ink-faint leading-relaxed mt-2">
+                            <p className="text-xs sm:text-sm text-ink-soft leading-relaxed mt-2.5 pl-3 border-l-2 border-line break-keep-all">
                               {stage.link_to_next}
                             </p>
                           )}
