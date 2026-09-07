@@ -1094,7 +1094,7 @@ export default function SajuVisual({
                 <h4 className="text-sm font-semibold text-ink">
                   {item.age}세 {item.ganzi} 대운 ({item.stemSipsin}/{item.branchSipsin}) 상세 풀이
                 </h4>
-                <p className="text-xs text-ink-soft leading-relaxed max-w-sm mx-auto">
+                <p className="text-sm text-ink-soft leading-relaxed max-w-sm mx-auto">
                   이 10년 구간의 십성 흐름과 12운성 풀이는 평생 감정서에서 열람할 수 있어요.
                 </p>
               </div>
@@ -1226,7 +1226,7 @@ export default function SajuVisual({
                           </div>
                         </div>
 
-                        <p className="text-xs text-ink-soft leading-relaxed">
+                        <p className="text-sm text-ink-soft leading-relaxed">
                           {friendlyExplanation}
                         </p>
 
@@ -1235,7 +1235,7 @@ export default function SajuVisual({
                           <span className="text-xs font-semibold text-ink block">
                             {resonance.title}
                           </span>
-                          <p className="text-xs text-ink-soft leading-relaxed">
+                          <p className="text-sm text-ink-soft leading-relaxed">
                             {resonance.desc}
                           </p>
                         </div>
@@ -1317,9 +1317,10 @@ export default function SajuVisual({
       )}
 
       {currentTab === "mix" ? (
-        <div className="space-y-6">
-          {/* Section A: 리포트 도입 — 한 문장의 정의 (design.md §1 인주 1점) */}
-          <div className="bg-surface border border-line rounded-xl p-5 sm:p-6 text-left space-y-4">
+        /* design.md §4 — 섹션 간 space-y-10 이상. 카드를 다닥다닥 붙이지 않는다 */
+        <div className="space-y-10">
+          {/* Section A: 리포트 도입 — 카드 없이 종이 위에 바로. 여기가 리포트의 얼굴이다 */}
+          <div className="text-left space-y-5">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-xs text-ink-faint">
@@ -1349,12 +1350,12 @@ export default function SajuVisual({
               )}
             </div>
 
-            {/* 인주 한 점 — 리포트 전체에서 빨강은 이 세로선 하나뿐 */}
-            <blockquote className="border-l-2 border-seal pl-4 space-y-2">
-              <p className="font-serif text-base sm:text-lg font-semibold text-ink leading-relaxed">
+            {/* 리포트의 얼굴 — 이 한 문장이 가장 크다. 인주는 세로선 한 점뿐 */}
+            <blockquote className="border-l-2 border-seal pl-5 space-y-3">
+              <p className="font-serif text-2xl sm:text-3xl font-semibold text-ink leading-[1.45] tracking-tight">
                 {narrative.identity.punchyQuote}
               </p>
-              <p className="text-sm text-ink-soft leading-relaxed">
+              <p className="text-base text-ink-soft leading-relaxed">
                 {narrative.identity.headline}
               </p>
             </blockquote>
@@ -1376,7 +1377,7 @@ export default function SajuVisual({
           {/* Section B: 1. 넌 진짜 어떤 사람인가 (타고난 성품 그릇과 기질) */}
           <div className="space-y-4 text-left">
             <div className="pt-2">
-              <h3 className="font-serif text-lg font-semibold text-ink">
+              <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                 어떤 사람인가
               </h3>
               <p className="text-xs text-ink-faint mt-1">타고난 성품과 기질</p>
@@ -1394,7 +1395,7 @@ export default function SajuVisual({
                       </span>
                       <div className="text-left">
                         <span className="text-xs font-medium text-ink-faint">사주 일간 (나)</span>
-                        <h4 className="font-bold text-sm text-ink mt-0.5">
+                        <h4 className="text-[15px] font-semibold text-ink mt-0.5">
                           {daymasterDetails[daymaster.gan]?.title || `${daymaster.gan} 기운`}
                         </h4>
                       </div>
@@ -1402,11 +1403,11 @@ export default function SajuVisual({
                     <p className="text-xs text-ink font-semibold text-left">
                       핵심 키워드 · {daymasterDetails[daymaster.gan]?.keyword || "남다른 주체성과 미적 안목"}
                     </p>
-                    <p className="text-xs text-ink-soft leading-relaxed text-left">
+                    <p className="text-sm text-ink-soft leading-relaxed text-left">
                       {daymasterDetails[daymaster.gan]?.desc || "나 자신을 상징하는 고귀한 기틀로, 섬세하고 창의적인 지혜와 예리한 비즈니스 통찰이 깃들어 있습니다."}
                     </p>
                   </div>
-                  <div className="mt-3 pt-2.5 border-t border-line text-xs text-ink-faint text-left">
+                  <div className="mt-3 pt-2.5 border-t border-line text-sm text-ink-faint text-left">
                     일간 {daymaster.gan}은 사주 여덟 글자 중 나 자신의 본질을 다스리는 가장 중요한 뼈대입니다.
                   </div>
                 </div>
@@ -1421,7 +1422,7 @@ export default function SajuVisual({
                     </span>
                     <div className="text-left">
                       <span className="text-xs font-medium text-ink-faint">자미두수 명궁命宮</span>
-                      <h4 className="font-bold text-sm text-ink mt-0.5">
+                      <h4 className="text-[15px] font-semibold text-ink mt-0.5">
                         {(() => {
                           if (!ziwei || !ziwei.palaces) return "명성 가득한 성좌";
                           const mingGong = Object.values(ziwei.palaces).find(p => p.name === "命宮");
@@ -1446,7 +1447,7 @@ export default function SajuVisual({
                           <p className="text-xs text-ink font-semibold">
                             핵심 키워드 · 온화한 환경 적응과 자급자족력
                           </p>
-                          <p className="text-xs text-ink-soft leading-relaxed">
+                          <p className="text-sm text-ink-soft leading-relaxed">
                             명궁에 주성이 없는 명반(무정지격)은 대자연의 에너지를 유연하게 받아안는 특별한 사교성과 흡수력을 가집니다. 상대방의 매력을 거울처럼 흡수해 내 것으로 다듬는 능력이 일품입니다.
                           </p>
                         </div>
@@ -1460,14 +1461,14 @@ export default function SajuVisual({
                         <p className="text-xs text-ink font-semibold">
                           핵심 키워드 · {info ? info.title : `${firstStar}의 카리스마와 리더십`}
                         </p>
-                        <p className="text-xs text-ink-soft leading-relaxed">
+                        <p className="text-sm text-ink-soft leading-relaxed">
                           {info ? info.desc : "나의 인생 전체를 관장하는 하늘의 별빛으로, 높은 시선과 기품을 유지하여 사람들의 이목을 사로잡고 큰 뜻을 도모하기에 훌륭한 자질을 제공합니다."}
                         </p>
                       </div>
                     );
                   })()}
 
-                  <div className="mt-3 pt-2.5 border-t border-line text-xs text-ink-faint text-left">
+                  <div className="mt-3 pt-2.5 border-t border-line text-sm text-ink-faint text-left">
                     명궁命宮은 나에게 부여된 천명과 평생의 외적 페르소나를 규정합니다.
                   </div>
                 </div>
@@ -1479,7 +1480,7 @@ export default function SajuVisual({
               {/* 겉 (세상이 보는 나) */}
               <div className="bg-surface p-4.5 rounded-xl space-y-2.5 border border-line text-left">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-ink">
                     <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                       <Sun className="w-3.5 h-3.5 text-ink" />
                     </span>
@@ -1489,7 +1490,7 @@ export default function SajuVisual({
                     사회적 페르소나
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-ink font-medium leading-relaxed">
+                <p className="text-sm text-ink font-medium leading-relaxed">
                   {narrative.identity.outer}
                 </p>
               </div>
@@ -1497,7 +1498,7 @@ export default function SajuVisual({
               {/* 속 (혼자 있을 때의 나) */}
               <div className="bg-surface p-4.5 rounded-xl space-y-2.5 border border-line text-left">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-ink">
                     <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                       <Moon className="w-3.5 h-3.5 text-ink" />
                     </span>
@@ -1507,54 +1508,52 @@ export default function SajuVisual({
                     진짜 속마음
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-ink font-medium leading-relaxed">
+                <p className="text-sm text-ink font-medium leading-relaxed">
                   {narrative.identity.inner}
                 </p>
               </div>
             </div>
 
             {/* 교차 통찰 (공감 극대화 - 족집게 간극) */}
-            <div className="p-4 sm:p-5 rounded-xl bg-surface border border-line text-left space-y-2">
-              <div className="flex items-center gap-2">
-                <p className="text-xs sm:text-sm font-bold text-ink">
-                  남들이 보는 너 vs 내가 아는 나의 결정적 간극
-                </p>
-              </div>
-              <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium whitespace-pre-wrap">
+            <div className="text-left space-y-3 border-t border-line pt-6">
+              <h4 className="font-serif text-lg font-semibold text-ink">
+                남들이 보는 나, 내가 아는 나
+              </h4>
+              <p className="text-sm text-ink leading-relaxed font-medium whitespace-pre-wrap">
                 {narrative.identity.contrast}
               </p>
             </div>
 
             {/* 심층 기질 및 오행 완충 분석 */}
-            <div className="space-y-2.5 pt-1">
+            <div className="divide-y divide-line">
               {narrative.identity.coreEssence && (
-                <div className="p-4 rounded-xl bg-sunken text-left space-y-1">
-                  <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                <div className="py-5 text-left space-y-2">
+                  <span className="text-[15px] font-semibold text-ink block">
                     타고난 성품 그릇과 본질적 지향점
                   </span>
-                  <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                  <p className="text-sm text-ink-soft leading-relaxed">
                     {narrative.identity.coreEssence}
                   </p>
                 </div>
               )}
 
               {narrative.identity.thinkingPattern && (
-                <div className="p-4 rounded-xl bg-sunken text-left space-y-1">
-                  <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                <div className="py-5 text-left space-y-2">
+                  <span className="text-[15px] font-semibold text-ink block">
                     내면의 사고방식 및 의사결정 패턴
                   </span>
-                  <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                  <p className="text-sm text-ink-soft leading-relaxed">
                     {narrative.identity.thinkingPattern}
                   </p>
                 </div>
               )}
 
               {narrative.identity.ohaengBalance && (
-                <div className="p-4 rounded-xl bg-sunken text-left space-y-1">
-                  <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                <div className="py-5 text-left space-y-2">
+                  <span className="text-[15px] font-semibold text-ink block">
                     오행 원국의 에너지 흐름 및 멘탈 완충 진단
                   </span>
-                  <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                  <p className="text-sm text-ink-soft leading-relaxed">
                     {narrative.identity.ohaengBalance}
                   </p>
                 </div>
@@ -1566,10 +1565,10 @@ export default function SajuVisual({
           <div className="space-y-4 pt-5 border-t border-line text-left">
             <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
               <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-bold text-xs flex items-center justify-center">
+                <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-semibold text-xs flex items-center justify-center">
                   2
                 </span>
-                <h3 className="font-serif text-base sm:text-lg font-bold text-ink">
+                <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                   지금 당신은 어떤 시기인가
                 </h3>
               </div>
@@ -1596,10 +1595,10 @@ export default function SajuVisual({
 
             {/* 시기적 상세 파도 해설 */}
             <div className="p-4 sm:p-4.5 rounded-xl bg-surface border border-line space-y-2">
-              <p className="text-xs font-bold text-ink flex items-center gap-1.5">
+              <p className="text-xs font-semibold text-ink flex items-center gap-1.5">
                 지금 당신의 마음 밑바닥에서 요동치는 변화의 이유
               </p>
-              <p className="text-xs sm:text-sm text-ink-soft leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm text-ink-soft leading-relaxed whitespace-pre-wrap">
                 {narrative.season.seasonDetail}
               </p>
             </div>
@@ -1611,10 +1610,10 @@ export default function SajuVisual({
                   <Lightbulb className="w-4 h-4 text-ink" />
                 </span>
                 <div>
-                  <span className="text-xs font-bold text-ink block mb-1">
+                  <span className="text-xs font-semibold text-ink block mb-1">
                     지금 계절을 건너는 실전 행동 지침 (DO)
                   </span>
-                  <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium">
+                  <p className="text-sm text-ink leading-relaxed font-medium">
                     {narrative.season.seasonAction}
                   </p>
                 </div>
@@ -1626,10 +1625,10 @@ export default function SajuVisual({
                     <ShieldAlert className="w-4 h-4 text-ink" />
                   </span>
                   <div>
-                    <span className="text-xs font-bold text-ink block mb-1">
+                    <span className="text-xs font-semibold text-ink block mb-1">
                       반드시 주의해야 할 마음의 함정 (DON'T)
                     </span>
-                    <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium">
+                    <p className="text-sm text-ink leading-relaxed font-medium">
                       {narrative.season.seasonCaution}
                     </p>
                   </div>
@@ -1652,10 +1651,10 @@ export default function SajuVisual({
                 <div className="space-y-4 pt-2">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-bold text-xs flex items-center justify-center">
+                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-semibold text-xs flex items-center justify-center">
                         3
                       </span>
-                      <h3 className="font-serif text-base sm:text-lg font-bold text-ink">
+                      <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                         나를 부자로 만드는 핵심 무기와 돈 버는 구조
                       </h3>
                     </div>
@@ -1664,37 +1663,37 @@ export default function SajuVisual({
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <Zap className="w-3.5 h-3.5 text-ink" />
                         </span>
                         <span>나만의 치트키 무기</span>
                       </div>
-                      <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium">
+                      <p className="text-sm text-ink leading-relaxed font-medium">
                         {narrative.wealthEngine.coreWeapon}
                       </p>
                     </div>
 
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <DollarSign className="w-3.5 h-3.5 text-ink" />
                         </span>
                         <span>실전 머니 파이프라인</span>
                       </div>
-                      <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium">
+                      <p className="text-sm text-ink leading-relaxed font-medium">
                         {narrative.wealthEngine.moneyPipeline}
                       </p>
                     </div>
 
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <Briefcase className="w-3.5 h-3.5 text-ink" />
                         </span>
                         <span>최적의 일하는 방식</span>
                       </div>
-                      <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium">
+                      <p className="text-sm text-ink leading-relaxed font-medium">
                         {narrative.wealthEngine.workStyle}
                       </p>
                     </div>
@@ -1705,10 +1704,10 @@ export default function SajuVisual({
                 <div className="space-y-4 pt-5 border-t border-line">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-bold text-xs flex items-center justify-center">
+                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-semibold text-xs flex items-center justify-center">
                         4
                       </span>
-                      <h3 className="font-serif text-base sm:text-lg font-bold text-ink">
+                      <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                         앞으로 3년 내 맞이할 결정적 기회의 문 (2026 ~ 2028)
                       </h3>
                     </div>
@@ -1719,15 +1718,15 @@ export default function SajuVisual({
                     {/* 2026 */}
                     <div className="bg-surface p-4.5 rounded-xl border border-line space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                        <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5" />
                           2026년 · {narrative.threeYearTiming.year2026.theme}
                         </span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink font-bold">
+                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink font-semibold">
                           올해 운세
                         </span>
                       </div>
-                      <p className="text-xs sm:text-sm text-ink leading-relaxed">
+                      <p className="text-sm text-ink leading-relaxed">
                         {narrative.threeYearTiming.year2026.detail}
                       </p>
                       <div className="p-3 bg-sunken rounded-xl text-sm font-semibold text-ink flex items-start gap-2">
@@ -1738,15 +1737,15 @@ export default function SajuVisual({
                     {/* 2027 */}
                     <div className="bg-surface p-4.5 rounded-xl border border-line space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                        <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5" />
                           2027년 · {narrative.threeYearTiming.year2027.theme}
                         </span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink font-bold">
+                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink font-semibold">
                           내년 운세
                         </span>
                       </div>
-                      <p className="text-xs sm:text-sm text-ink leading-relaxed">
+                      <p className="text-sm text-ink leading-relaxed">
                         {narrative.threeYearTiming.year2027.detail}
                       </p>
                       <div className="p-3 bg-sunken rounded-xl text-sm font-semibold text-ink flex items-start gap-2">
@@ -1757,15 +1756,15 @@ export default function SajuVisual({
                     {/* 2028 */}
                     <div className="bg-surface p-4.5 rounded-xl border border-line space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                        <span className="text-xs font-semibold text-ink flex items-center gap-1.5">
                           <Clock className="w-3.5 h-3.5" />
                           2028년 · {narrative.threeYearTiming.year2028.theme}
                         </span>
-                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink font-bold">
+                        <span className="text-xs px-2.5 py-0.5 rounded-xl bg-sunken text-ink font-semibold">
                           내후년 도약
                         </span>
                       </div>
-                      <p className="text-xs sm:text-sm text-ink leading-relaxed">
+                      <p className="text-sm text-ink leading-relaxed">
                         {narrative.threeYearTiming.year2028.detail}
                       </p>
                       <div className="p-3 bg-sunken rounded-xl text-sm font-semibold text-ink flex items-start gap-2">
@@ -1779,10 +1778,10 @@ export default function SajuVisual({
                 <div className="space-y-4 pt-5 border-t border-line">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-bold text-xs flex items-center justify-center">
+                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-semibold text-xs flex items-center justify-center">
                         5
                       </span>
-                      <h3 className="font-serif text-base sm:text-lg font-bold text-ink">
+                      <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                         실전 사이다 처방전 · 인생 사용 설명서
                       </h3>
                     </div>
@@ -1799,7 +1798,7 @@ export default function SajuVisual({
 
                   {/* 3대 행동 강령 (DO) */}
                   <div className="bg-surface border border-line p-5 rounded-xl space-y-3.5">
-                    <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-ink">
                       <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                         <CheckCircle2 className="w-3.5 h-3.5 text-ink" />
                       </span>
@@ -1809,41 +1808,41 @@ export default function SajuVisual({
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="bg-sunken p-4 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-ink">
                             <Briefcase className="w-3.5 h-3.5 text-ink" />
                             <span>커리어 & 수익 창출</span>
                           </div>
-                          <h5 className="text-xs font-bold text-ink mt-1">{narrative.prescription.careerDo.title}</h5>
-                          <p className="text-xs text-ink-soft leading-relaxed mt-1">{narrative.prescription.careerDo.desc}</p>
+                          <h5 className="text-xs font-semibold text-ink mt-1">{narrative.prescription.careerDo.title}</h5>
+                          <p className="text-sm text-ink-soft leading-relaxed mt-1">{narrative.prescription.careerDo.desc}</p>
                         </div>
                       </div>
 
                       <div className="bg-sunken p-4 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-ink">
                             <DollarSign className="w-3.5 h-3.5 text-ink" />
                             <span>재물 & 자산 방어</span>
                           </div>
-                          <h5 className="text-xs font-bold text-ink mt-1">{narrative.prescription.wealthDo.title}</h5>
-                          <p className="text-xs text-ink-soft leading-relaxed mt-1">{narrative.prescription.wealthDo.desc}</p>
+                          <h5 className="text-xs font-semibold text-ink mt-1">{narrative.prescription.wealthDo.title}</h5>
+                          <p className="text-sm text-ink-soft leading-relaxed mt-1">{narrative.prescription.wealthDo.desc}</p>
                         </div>
                       </div>
 
                       <div className="bg-sunken p-4 rounded-xl text-left space-y-1.5 flex flex-col justify-between">
                         <div>
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                          <div className="flex items-center gap-1.5 text-xs font-semibold text-ink">
                             <UserCheck className="w-3.5 h-3.5 text-ink" />
                             <span>인간관계 & 선 긋기</span>
                           </div>
-                          <h5 className="text-xs font-bold text-ink mt-1">{narrative.prescription.relationDo.title}</h5>
-                          <p className="text-xs text-ink-soft leading-relaxed mt-1">{narrative.prescription.relationDo.desc}</p>
+                          <h5 className="text-xs font-semibold text-ink mt-1">{narrative.prescription.relationDo.title}</h5>
+                          <p className="text-sm text-ink-soft leading-relaxed mt-1">{narrative.prescription.relationDo.desc}</p>
                         </div>
                       </div>
                     </div>
 
                     {/* 치명적 지뢰밭 (DON'T) */}
                     <div className="space-y-2.5 pt-3 border-t border-line">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <ShieldAlert className="w-3.5 h-3.5 text-ink" />
                         </span>
@@ -1853,18 +1852,18 @@ export default function SajuVisual({
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {narrative.prescription.criticalDont.map((dont, dIdx) => (
                           <div key={dIdx} className="bg-sunken p-3.5 rounded-xl text-left space-y-1">
-                            <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                            <div className="flex items-center gap-1.5 text-xs font-semibold text-ink">
                               <Ban className="w-3.5 h-3.5 text-ink" />
                               <span>{dont.title}</span>
                             </div>
-                            <p className="text-xs text-ink leading-relaxed font-medium">{dont.desc}</p>
+                            <p className="text-sm text-ink leading-relaxed font-medium">{dont.desc}</p>
                           </div>
                         ))}
                       </div>
                     </div>
 
                     {/* 한 줄 핵심 공식 */}
-                    <div className="p-3.5 sm:p-4 bg-sunken rounded-xl text-sm text-ink font-bold flex items-center gap-2.5">
+                    <div className="p-3.5 sm:p-4 bg-sunken rounded-xl text-sm text-ink font-semibold flex items-center gap-2.5">
                       <Target className="w-4 h-4 text-ink shrink-0" />
                       <span>{narrative.prescription.breakthroughFormula}</span>
                     </div>
@@ -1875,10 +1874,10 @@ export default function SajuVisual({
                 <div className="space-y-4 pt-5 border-t border-line">
                   <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-line">
                     <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-bold text-xs flex items-center justify-center">
+                      <span className="w-7 h-7 rounded-xl bg-sunken text-ink font-semibold text-xs flex items-center justify-center">
                         6
                       </span>
-                      <h3 className="font-serif text-base sm:text-lg font-bold text-ink">
+                      <h3 className="font-serif text-xl sm:text-2xl font-semibold text-ink">
                         평생을 지배하는 귀인과 피해야 할 악연의 조건
                       </h3>
                     </div>
@@ -1888,26 +1887,26 @@ export default function SajuVisual({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {/* 귀인 */}
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <UserCheck className="w-3.5 h-3.5 text-ink" />
                         </span>
                         <span>나를 살리는 진짜 귀인의 특징</span>
                       </div>
-                      <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium">
+                      <p className="text-sm text-ink leading-relaxed font-medium">
                         {narrative.relationshipFilter.nobleTraits}
                       </p>
                     </div>
 
                     {/* 악연 */}
                     <div className="bg-sunken p-4.5 rounded-xl space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-ink">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-ink">
                         <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
                           <UserX className="w-3.5 h-3.5 text-ink" />
                         </span>
                         <span>내 피를 말리는 피해야 할 악연의 패턴</span>
                       </div>
-                      <p className="text-xs sm:text-sm text-ink leading-relaxed font-medium">
+                      <p className="text-sm text-ink leading-relaxed font-medium">
                         {narrative.relationshipFilter.toxicTraits}
                       </p>
                     </div>
@@ -1915,10 +1914,10 @@ export default function SajuVisual({
 
                   {/* 선 긋기 원칙 */}
                   <div className="p-4 sm:p-4.5 rounded-xl bg-surface border border-line text-left space-y-1.5">
-                    <p className="text-xs font-bold text-ink flex items-center gap-1.5">
+                    <p className="text-xs font-semibold text-ink flex items-center gap-1.5">
                       평생 후회 없는 인간관계 선 긋기 절대 공식
                     </p>
-                    <p className="text-xs sm:text-sm text-ink font-semibold leading-relaxed pl-5">
+                    <p className="text-sm text-ink font-semibold leading-relaxed pl-5">
                       {narrative.relationshipFilter.boundaryRule}
                     </p>
                   </div>
@@ -1934,13 +1933,13 @@ export default function SajuVisual({
                       <Crown className="w-6 h-6" />
                     </div>
                     <div className="space-y-1.5">
-                      <span className="px-2.5 py-0.5 rounded-md bg-seal/10 text-seal text-xs font-bold font-mono tracking-wider border border-seal/20">
+                      <span className="px-2.5 py-0.5 rounded-md bg-seal/10 text-seal text-xs font-semibold font-mono tracking-wider border border-seal/20">
                         심층 평생 감정서 · 실전 처방전
                       </span>
-                      <h4 className="font-serif text-lg font-bold text-ink">
+                      <h4 className="font-serif text-lg font-semibold text-ink">
                         실전 사이다 솔루션 열람하기
                       </h4>
-                      <p className="text-xs text-ink-soft leading-relaxed">
+                      <p className="text-sm text-ink-soft leading-relaxed">
                         {narrative.bridgePrompt}
                       </p>
                     </div>
@@ -1963,7 +1962,7 @@ export default function SajuVisual({
                         </div>
                       ) : (
                         <div className="space-y-2.5 text-left bg-sunken p-4 rounded-xl">
-                          <p className="text-xs text-ink-soft leading-relaxed">
+                          <p className="text-sm text-ink-soft leading-relaxed">
                             쿠폰 번호를 등록하면 화면 이동 없이 이 자리에서 즉시 해금됩니다.
                           </p>
                           <div className="flex gap-2">
@@ -1973,13 +1972,13 @@ export default function SajuVisual({
                               onChange={(e) => setLocalCouponInput(e.target.value.toUpperCase())}
                               placeholder="쿠폰 번호 입력"
                               maxLength={20}
-                              className="flex-1 min-w-0 px-3 py-2 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-1 focus:ring-ink bg-surface text-ink font-mono uppercase text-center placeholder:text-ink-faint border border-line"
+                              className="flex-1 min-w-0 px-3 py-2 text-sm rounded-xl focus:outline-none focus:ring-1 focus:ring-ink bg-surface text-ink font-mono uppercase text-center placeholder:text-ink-faint border border-line"
                             />
                             <button
                               type="button"
                               onClick={() => onApplyCoupon?.(localCouponInput)}
                               disabled={couponLoading || !localCouponInput.trim()}
-                              className="px-4 py-2 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-xs sm:text-sm font-semibold rounded-xl transition-colors cursor-pointer shrink-0"
+                              className="px-4 py-2 bg-seal hover:bg-seal-deep disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer shrink-0"
                             >
                               {couponLoading ? "등록 중..." : "등록"}
                             </button>
@@ -2009,7 +2008,7 @@ export default function SajuVisual({
                   <BookOpen className="w-4 h-4" />
                 </span>
                 <div>
-                  <h4 className="font-serif text-xs sm:text-sm font-semibold text-ink">
+                  <h4 className="font-serif text-sm font-semibold text-ink">
                     이 분석은 어떻게 도출되었는가? (명리학·자미두수 산출 근거)
                   </h4>
                   <p className="text-xs sm:text-xs text-ink-faint">
@@ -2023,44 +2022,44 @@ export default function SajuVisual({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
               {/* 1. 사주 일주론 & 지장간 */}
               <div className="bg-sunken p-3.5 rounded-xl space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-ink">
                   <Award className="w-3.5 h-3.5 text-seal" />
                   <span>1. 정통 사주 일주론(日柱論) 및 지장간 암장 해독</span>
                 </div>
-                <p className="text-xs text-ink-soft leading-relaxed">
+                <p className="text-sm text-ink-soft leading-relaxed">
                   {narrative.astrologicalBasis.pillarBasis}
                 </p>
               </div>
 
               {/* 2. 10년 대운 절기 산출 */}
               <div className="bg-sunken p-3.5 rounded-xl space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-ink">
                   <Compass className="w-3.5 h-3.5 text-ink" />
                   <span>2. 24절기 천문 역법 기반 10년 대운(大運) 산출식</span>
                 </div>
-                <p className="text-xs text-ink-soft leading-relaxed">
+                <p className="text-sm text-ink-soft leading-relaxed">
                   {narrative.astrologicalBasis.daewoonBasis}
                 </p>
               </div>
 
               {/* 3. 자미두수 14정성 */}
               <div className="bg-sunken p-3.5 rounded-xl space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-ink">
                   <Sparkles className="w-3.5 h-3.5 text-ink" />
                   <span>3. 송대 정통 자미두수(紫微斗數) 14정성 배치학</span>
                 </div>
-                <p className="text-xs text-ink-soft leading-relaxed">
+                <p className="text-sm text-ink-soft leading-relaxed">
                   {narrative.astrologicalBasis.ziweiBasis}
                 </p>
               </div>
 
               {/* 4. 현대 심리 지표 교차 검증 */}
               <div className="bg-sunken p-3.5 rounded-xl space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-ink">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-ink">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#2D6A4F]" />
                   <span>4. 융(Jung) 분석심리학 페르소나 교차 검증</span>
                 </div>
-                <p className="text-xs text-ink-soft leading-relaxed">
+                <p className="text-sm text-ink-soft leading-relaxed">
                   {narrative.astrologicalBasis.psychologicalBasis}
                 </p>
               </div>
@@ -2085,7 +2084,7 @@ export default function SajuVisual({
                   진태양시 {solar_correction_minutes && solar_correction_minutes >= 0 ? `+${solar_correction_minutes}` : solar_correction_minutes}분 조정
                 </span>
               </div>
-              <p className="text-xs text-ink-soft leading-relaxed">
+              <p className="text-sm text-ink-soft leading-relaxed">
                 {birthplace.name} 출생 (경도 {birthplace.lon.toFixed(2)}°) · 입력 시각을 실제 태양시({solar_birth_time}) 기준으로 보정해 계산했습니다.
               </p>
             </div>
@@ -2190,7 +2189,7 @@ export default function SajuVisual({
                     </div>
 
                     {/* Highly descriptive interpretation of what this pillar means for the user */}
-                    <div className="bg-surface p-3.5 rounded-xl text-xs text-ink-soft leading-relaxed">
+                    <div className="bg-surface p-3.5 rounded-xl text-sm text-ink-soft leading-relaxed">
                       <p>
                         <span className="font-semibold text-ink mr-1">해설 ·</span>
                         {p.type === "일주" ? (
@@ -2304,7 +2303,7 @@ export default function SajuVisual({
                         <p className="text-xs text-ink font-medium">
                           {info ? info.desc : "나의 삶에 특별한 복록을 돕는 기운입니다."}
                         </p>
-                        <p className="text-xs text-ink-soft leading-relaxed">
+                        <p className="text-sm text-ink-soft leading-relaxed">
                           {info ? info.detail : "인생의 여정에서 훌륭한 길잡이 역할을 하며 예상치 못한 축복과 번영을 불러옵니다."}
                         </p>
                       </div>
@@ -2333,7 +2332,7 @@ export default function SajuVisual({
                   <h4 className="text-sm font-semibold text-ink">
                     평생 대운 흐름도
                   </h4>
-                  <p className="text-xs text-ink-soft leading-relaxed max-w-sm mx-auto">
+                  <p className="text-sm text-ink-soft leading-relaxed max-w-sm mx-auto">
                     일생을 이끄는 10년 주기 대운 표와 구간별 십성·12운성 풀이는 평생 감정서에서 확인할 수 있어요.
                   </p>
                 </div>
@@ -2568,10 +2567,10 @@ export default function SajuVisual({
                                 </div>
                               </div>
                               <div className="space-y-1 mt-1">
-                                <p className="text-xs text-ink-soft leading-relaxed">
+                                <p className="text-sm text-ink-soft leading-relaxed">
                                   <strong className="text-ink font-medium">성질 ·</strong> {starMeanings[s.nameKr] || "사방의 길흉화복을 보조해 나가는 성질을 지닙니다."}
                                 </p>
-                                <p className="text-xs text-ink-soft leading-relaxed">
+                                <p className="text-sm text-ink-soft leading-relaxed">
                                   <strong className="text-ink font-medium">{palaceDescriptions[selectedPalace]?.kr?.split(" ")[0] || selectedPalace}에서의 작용 ·</strong> {getStarMeaningInPalace(s.nameKr, selectedPalace)}
                                 </p>
                               </div>
@@ -2602,7 +2601,7 @@ export default function SajuVisual({
                         <p className="text-ink text-sm font-medium leading-relaxed">
                           올해는 <span className="font-serif font-semibold">{ziwei.liunian.gan}{ziwei.liunian.zhi}년</span>으로, 한 해의 기류가 <span className="font-semibold text-seal">{cleanPalName} ({friendlyName})</span> 영역에 머물러 있습니다.
                         </p>
-                        <p className="text-xs text-ink-soft leading-relaxed">
+                        <p className="text-sm text-ink-soft leading-relaxed">
                           {friendlyExplanation}
                         </p>
                       </div>
@@ -2639,7 +2638,7 @@ export default function SajuVisual({
                                     <p className="text-xs text-ink font-medium leading-normal">
                                       {sihuaInfo ? sihuaInfo.desc : "특별한 에너지 흐름이 활성화됩니다."}
                                     </p>
-                                    <p className="text-xs text-ink-soft leading-relaxed">
+                                    <p className="text-sm text-ink-soft leading-relaxed">
                                       {customDetail}
                                     </p>
                                   </div>
