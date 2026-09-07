@@ -696,6 +696,47 @@ export async function fetchPersonalAnalysis(
   }
 }
 
+/**
+ * 내 본질 분석의 단일 원본을 돌려준다.
+ *
+ * 같은 사람의 분석이 개인 프로필(users/{uid})과 방 분석 문서
+ * (rooms/{code}/analysis/result.personal[memberId]) 두 곳에서 각각 생성되어
+ * 내용이 갈리던 문제를 막는다. Gemini는 같은 입력에도 매번 다른 문장을 만들기
+ * 때문에, 어느 쪽을 원본으로 삼을지 정하지 않으면 "내 본질"이 두 개가 된다.
+ *
+ * 원본은 **개인 프로필**이다. 분석은 방이 아니라 사람에게 귀속되므로,
+ * 방을 여러 개 들어가도 내 분석은 하나여야 한다.
+ *
+ * @param roomAnalysis 방 분석 문서에 들어있던 사본 (없으면 null)
+ * @returns 프로필 원본이 있으면 그것, 없으면 방 사본(그리고 프로필로 승격 저장)
+ */
+export async function resolveMyPersonalAnalysis(
+  roomAnalysis?: PersonalAnalysis | null
+): Promise<PersonalAnalysis | null> {
+  try {
+    const profile = await getUserPersonalProfile();
+
+    // 프로필에 원본이 있으면 그것이 정답이다 — 방 사본은 무시한다
+    if (profile?.personal_analysis) return profile.personal_analysis;
+
+    // 프로필에 없고 방에만 있으면, 그 사본을 원본으로 승격시켜 저장한다.
+    // (그룹 분석을 먼저 돌린 사용자가 개인 화면에서 재생성 비용을 다시 치르지 않도록)
+    if (roomAnalysis && profile?.saju) {
+      saveUserPersonalProfile({
+        ...profile,
+        personal_analysis: roomAnalysis,
+        personal_analysis_key: buildPersonalAnalysisKey(profile),
+      });
+      return roomAnalysis;
+    }
+
+    return roomAnalysis || null;
+  } catch (err) {
+    console.debug("resolveMyPersonalAnalysis failed:", err);
+    return roomAnalysis || null;
+  }
+}
+
 // Save room code to physical localStorage history to let user preserve list of rooms they opened or joined
 export function saveRoomToHistory(code: string, role: "owner" | "member", title: string): void {
   try {

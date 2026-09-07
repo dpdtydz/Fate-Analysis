@@ -3,7 +3,7 @@ import Layout from "./Layout";
 import SajuVisual from "./SajuVisual";
 import SajuForm from "./SajuForm";
 import LoadingOverlay from "./LoadingOverlay";
-import { db, auth, signInWithGoogle, checkPremiumStatus, checkProductUnlock, activatePremiumSimulation, getFriendlyAuthErrorMessage, getUserTicketAccount, consumeSingleUseTicket, redeemCoupon } from "../lib/firebase";
+import { db, auth, signInWithGoogle, checkPremiumStatus, checkProductUnlock, activatePremiumSimulation, getFriendlyAuthErrorMessage, getUserTicketAccount, consumeSingleUseTicket, redeemCoupon, resolveMyPersonalAnalysis } from "../lib/firebase";
 import { doc, getDoc, getDocs, setDoc, deleteDoc, collection } from "firebase/firestore";
 import { Member, PersonalAnalysis } from "../types";
 import { 
@@ -737,6 +737,8 @@ export default function MeView({ code, memberId }: MeViewProps) {
   const [editLoading, setEditLoading] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<any>(auth.currentUser);
+  // 내 본질 분석의 단일 원본(개인 프로필). 방 사본과 갈리지 않도록 프로필을 우선한다.
+  const [myCanonicalAnalysis, setMyCanonicalAnalysis] = useState<PersonalAnalysis | null>(null);
   const [roomOwnerUid, setRoomOwnerUid] = useState<string>("");
   const [roomTitle, setRoomTitle] = useState<string>("");
   const [editOverlayMessage, setEditOverlayMessage] = useState("내 정보를 저장하고 만세력을 해독하는 중...");
@@ -1142,6 +1144,23 @@ export default function MeView({ code, memberId }: MeViewProps) {
   const isMyProfile = (member.id === localMemberId) || (member.user_uid && currentUser && member.user_uid === currentUser.uid) || isRoomOwner;
   const isMyOwnProfile = (member.id === localMemberId) || (member.user_uid && currentUser && member.user_uid === currentUser.uid);
   const isLoginRequiredToEdit = member.user_uid && (!currentUser || currentUser.uid !== member.user_uid) && !isRoomOwner;
+
+  // 내 프로필을 볼 때는 개인 프로필의 분석을 원본으로 쓴다.
+  // 방마다 따로 생성된 사본을 그대로 보여주면 개인 화면과 내용이 갈린다.
+  // (다른 멤버의 분석은 방 데이터가 맞으므로 건드리지 않는다)
+  useEffect(() => {
+    if (!isMyOwnProfile) {
+      setMyCanonicalAnalysis(null);
+      return;
+    }
+    let alive = true;
+    resolveMyPersonalAnalysis(aiAnalysis || member.personal_analysis).then((r) => {
+      if (alive) setMyCanonicalAnalysis(r);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [isMyOwnProfile, aiAnalysis, member.personal_analysis]);
 
   const otherMembersList = allMembers.filter((m) => m.id !== memberId);
   const missingPairsCount = otherMembersList.filter((otherMember) => {
@@ -1633,8 +1652,8 @@ export default function MeView({ code, memberId }: MeViewProps) {
                         onApplyCoupon={handleApplyCouponInMeView}
                         couponLoading={couponLoading}
                         couponError={couponError}
-                        personalAnalysis={aiAnalysis || member.personal_analysis}
-                        isAiGenerated={!!(aiAnalysis || member.personal_analysis)}
+                        personalAnalysis={myCanonicalAnalysis || aiAnalysis || member.personal_analysis}
+                        isAiGenerated={!!(myCanonicalAnalysis || aiAnalysis || member.personal_analysis)}
                       />
                     </div>
                   )}
