@@ -504,6 +504,9 @@ export default function MySajuView() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isViralModalOpen, setIsViralModalOpen] = useState(false);
   const [isCouponUnlocked, setIsCouponUnlocked] = useState(() => {
+    if (auth.currentUser?.email?.toLowerCase() === "lhs41977@gmail.com") {
+      return true;
+    }
     return cachedIsCouponUnlocked;
   });
   const [couponMsg, setCouponMsg] = useState("");
@@ -524,6 +527,10 @@ export default function MySajuView() {
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((u) => {
       setCurrentUser(u);
+      if (u?.email?.toLowerCase() === "lhs41977@gmail.com") {
+        setIsCouponUnlocked(true);
+        cachedIsCouponUnlocked = true;
+      }
     });
     return () => unsub();
   }, []);

@@ -1686,7 +1686,11 @@ export async function fetchAllUserTicketAccounts(): Promise<UserTicketAccount[]>
         consumedHistory: Array.isArray(data.consumedHistory) ? data.consumedHistory : []
       });
     });
-    return accounts.sort((a, b) => (b.updatedAt || "").localeCompare(a.updatedAt || ""));
+    return accounts.sort((a, b) => {
+      const timeA = typeof a.updatedAt === "number" ? a.updatedAt : new Date(a.updatedAt || 0).getTime();
+      const timeB = typeof b.updatedAt === "number" ? b.updatedAt : new Date(b.updatedAt || 0).getTime();
+      return timeB - timeA;
+    });
   } catch (err) {
     console.error("Failed fetching all user tickets:", err);
     return [];
@@ -2136,4 +2140,135 @@ export async function updateSystemPaymentSettings(settings: Partial<SystemPaymen
   }
 }
 
+// ==========================================
+// 🔍 ADMIN: MEMBER SAJU RECORDS VIEWER HELPER
+// ==========================================
 
+export interface AdminMemberSajuRecord {
+  id: string;
+  source: "user_account" | "room_guest";
+  nickname: string;
+  email?: string | null;
+  isSocialVerified: boolean;
+  gender: "남성" | "여성";
+  birthDate: string;
+  birthTime: string | null;
+  mbti?: string | null;
+  saju: any;
+  character_emoji?: string;
+  character_animal?: string;
+  character_color?: string;
+  personalProfile?: PersonalSajuProfile;
+  personalAnalysis?: PersonalAnalysis;
+  hasAnalysis: boolean;
+  roomCode?: string;
+  roomTitle?: string;
+  updatedAt?: string | number;
+}
+
+export async function fetchAllMembersWithSajuForAdmin(): Promise<AdminMemberSajuRecord[]> {
+  const records: AdminMemberSajuRecord[] = [];
+  const seenKeys = new Set<string>();
+
+  try {
+    // 1. Fetch from 'users' collection (Registered accounts & Google verified users)
+    const usersSnap = await getDocs(collection(db, "users"));
+    usersSnap.forEach((docSnap) => {
+      const uData = docSnap.data();
+      const profile = uData?.personalProfile as PersonalSajuProfile | undefined;
+      const saju = profile?.saju || uData?.saju;
+      const birthDate = profile?.birth_date || uData?.birth_date || uData?.birthDate;
+
+      if (saju && birthDate) {
+        const email = uData?.email || null;
+        const isSocial = uData?.provider === "google.com" || uData?.isSocialVerified === true;
+        const key = `user_${docSnap.id}`;
+        seenKeys.add(key);
+
+        records.push({
+          id: docSnap.id,
+          source: "user_account",
+          nickname: profile?.nickname || uData?.displayName || uData?.username || "회원",
+          email,
+          isSocialVerified: isSocial,
+          gender: (profile?.gender as any) || (uData?.gender as any) || "남성",
+          birthDate,
+          birthTime: profile?.birth_time || uData?.birth_time || null,
+          mbti: profile?.mbti || uData?.mbti || null,
+          saju,
+          character_emoji: profile?.character_emoji || uData?.character_emoji || "🐯",
+          character_animal: profile?.character_animal || uData?.character_animal || "호랑이",
+          character_color: profile?.character_color || uData?.character_color || "#35B37E",
+          personalProfile: profile,
+          personalAnalysis: profile?.personal_analysis || uData?.personal_analysis,
+          hasAnalysis: !!(profile?.personal_analysis || uData?.personal_analysis),
+          updatedAt: uData?.updatedAt || profile?.updatedAt || uData?.lastLoginAt || Date.now()
+        });
+      }
+    });
+  } catch (err) {
+    console.warn("Admin fetch users saju failed:", err);
+  }
+
+  try {
+    // 2. Fetch from 'rooms' and 'members' collection (Guest participants without Google accounts)
+    const roomsSnap = await getDocs(collection(db, "rooms"));
+    for (const roomDoc of roomsSnap.docs) {
+      const roomData = roomDoc.data();
+      const rCode = roomDoc.id;
+      const rTitle = roomData?.title || "모임방";
+
+      try {
+        const membersSnap = await getDocs(collection(db, "rooms", rCode, "members"));
+        membersSnap.forEach((mDoc) => {
+          const mData = mDoc.data();
+          if (mData?.saju && mData?.birth_date) {
+            // Deduplication check: If already added via user doc, skip duplicate
+            const userUid = mData?.user_uid;
+            if (userUid && seenKeys.has(`user_${userUid}`)) {
+              return;
+            }
+
+            const key = `room_${rCode}_${mDoc.id}`;
+            if (!seenKeys.has(key)) {
+              seenKeys.add(key);
+              records.push({
+                id: `${rCode}_${mDoc.id}`,
+                source: "room_guest",
+                nickname: mData.nickname || "게스트",
+                email: null,
+                isSocialVerified: false,
+                gender: (mData.gender as any) || "남성",
+                birthDate: mData.birth_date,
+                birthTime: mData.birth_time || null,
+                mbti: mData.mbti || null,
+                saju: mData.saju,
+                character_emoji: mData.character_emoji || "🐯",
+                character_animal: mData.character_animal || "호랑이",
+                character_color: mData.character_color || "#35B37E",
+                personalAnalysis: mData.personal_analysis,
+                hasAnalysis: !!mData.personal_analysis,
+                roomCode: rCode,
+                roomTitle: rTitle,
+                updatedAt: mData.joined_at?.toDate ? mData.joined_at.toDate().getTime() : Date.now()
+              });
+            }
+          }
+        });
+      } catch (mErr) {
+        console.debug(`Admin fetch room members skip for ${rCode}:`, mErr);
+      }
+    }
+  } catch (rErr) {
+    console.warn("Admin fetch rooms members failed:", rErr);
+  }
+
+  // Sort by updatedAt descending
+  records.sort((a, b) => {
+    const timeA = typeof a.updatedAt === "number" ? a.updatedAt : new Date(a.updatedAt || 0).getTime();
+    const timeB = typeof b.updatedAt === "number" ? b.updatedAt : new Date(b.updatedAt || 0).getTime();
+    return timeB - timeA;
+  });
+
+  return records;
+}

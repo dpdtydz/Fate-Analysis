@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Layout from "./Layout";
+import SajuVisual from "./SajuVisual";
 import { 
   auth, db, resetUserAccountToZero, fetchAllUserTicketAccounts, adjustUserTicketsInDb,
   resetAllUserAccountsToZero, deleteUserTicketAccountFromDb, BUILT_IN_PROMO_COUPONS, cleanUndefined,
-  getSystemPaymentSettings, updateSystemPaymentSettings
+  getSystemPaymentSettings, updateSystemPaymentSettings,
+  fetchAllMembersWithSajuForAdmin, AdminMemberSajuRecord,
+  fetchPersonalAnalysis, buildPersonalAnalysisKey, PersonalSajuProfile
 } from "../lib/firebase";
 import { 
   doc, getDoc, setDoc, collection, getDocs, deleteDoc, query, where, orderBy, limit 
@@ -14,10 +17,10 @@ import {
   BarChart3, Shield, ShoppingCart, Sparkles, TrendingUp, Activity, Award, CheckCircle2,
   Calendar, Eye, Compass, Ticket, UserPlus, Share2, PieChart, ArrowUpRight, Zap,
   AlertTriangle, Gauge, LineChart, Layers, Bug, Database, Lock, Unlock,
-  History, Search, Tag, X, HelpCircle, ChevronDown, ChevronRight
+  History, Search, Tag, X, HelpCircle, ChevronDown, ChevronRight, UserCheck, ExternalLink, Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { AppConfig, UserTierType, TicketProductType, UserTicketAccount, TicketGrantRecord, TicketConsumptionRecord } from "../types";
+import { AppConfig, UserTierType, TicketProductType, UserTicketAccount, TicketGrantRecord, TicketConsumptionRecord, PersonalAnalysis } from "../types";
 
 interface Question {
   id: string;
@@ -75,7 +78,16 @@ interface AnalyticsItem {
 export default function AdminView() {
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"decision_metrics" | "shop_control" | "coupons" | "survey">("decision_metrics");
+  const [activeTab, setActiveTab] = useState<"decision_metrics" | "shop_control" | "coupons" | "survey" | "member_saju">("decision_metrics");
+
+  // Member Saju Records Instant Viewer states
+  const [memberSajuRecords, setMemberSajuRecords] = useState<AdminMemberSajuRecord[]>([]);
+  const [loadingMemberSaju, setLoadingMemberSaju] = useState(false);
+  const [selectedMemberRecord, setSelectedMemberRecord] = useState<AdminMemberSajuRecord | null>(null);
+  const [memberSearchQuery, setMemberSearchQuery] = useState("");
+  const [memberFilterType, setMemberFilterType] = useState<"all" | "google" | "guest" | "has_analysis">("all");
+  const [generatingAnalysisId, setGeneratingAnalysisId] = useState<string | null>(null);
+  const [generatingError, setGeneratingError] = useState<string | null>(null);
   
   // App Config states (Shop ON/OFF, Beta mode)
   const [appConfig, setAppConfig] = useState<AppConfig>({
@@ -436,6 +448,71 @@ export default function AdminView() {
       couponList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setCoupons(couponList);
 
+      // 7. Load Member Saju Records for Instant Admin Viewer
+      try {
+        setLoadingMemberSaju(true);
+        const sajuList = await fetchAllMembersWithSajuForAdmin();
+        if (sajuList.length === 0) {
+          sajuList.push({
+            id: "sample_member_1",
+            source: "user_account",
+            nickname: "이태양",
+            email: "sun_sample@gmail.com",
+            isSocialVerified: true,
+            gender: "남성",
+            birthDate: "1994-06-15",
+            birthTime: "14:30",
+            mbti: "ENFJ",
+            saju: {
+              pillars: {
+                year: { gan: "甲", ji: "戌" },
+                month: { gan: "庚", ji: "午" },
+                day: { gan: "丙", ji: "寅" },
+                hour: { gan: "乙", ji: "未" }
+              },
+              daymaster: { gan: "丙", element: "화" }
+            },
+            character_emoji: "🐯",
+            character_animal: "호랑이",
+            character_color: "#B3382C",
+            hasAnalysis: false,
+            updatedAt: Date.now()
+          });
+          sajuList.push({
+            id: "sample_guest_2",
+            source: "room_guest",
+            nickname: "김달빛",
+            email: null,
+            isSocialVerified: false,
+            gender: "여성",
+            birthDate: "1997-11-20",
+            birthTime: "08:15",
+            mbti: "INFJ",
+            saju: {
+              pillars: {
+                year: { gan: "丁", ji: "丑" },
+                month: { gan: "辛", ji: "亥" },
+                day: { gan: "癸", ji: "酉" },
+                hour: { gan: "丙", ji: "辰" }
+              },
+              daymaster: { gan: "癸", element: "수" }
+            },
+            character_emoji: "🐰",
+            character_animal: "토끼",
+            character_color: "#2C5EB3",
+            roomCode: "FATE77",
+            roomTitle: "주말 와인 모임",
+            hasAnalysis: false,
+            updatedAt: Date.now() - 3600000
+          });
+        }
+        setMemberSajuRecords(sajuList);
+      } catch (sajuErr) {
+        console.warn("Failed to load member saju records for admin:", sajuErr);
+      } finally {
+        setLoadingMemberSaju(false);
+      }
+
     } catch (e) {
       console.error("Error loading admin data:", e);
     } finally {
@@ -446,6 +523,90 @@ export default function AdminView() {
   useEffect(() => {
     loadAdminData();
   }, []);
+
+  // Generate AI Analysis for Member on-demand (Admin Trigger)
+  const handleGenerateAiForMember = async (record: AdminMemberSajuRecord) => {
+    if (generatingAnalysisId) return;
+    setGeneratingAnalysisId(record.id);
+    setGeneratingError(null);
+    try {
+      const analysisKey = buildPersonalAnalysisKey({
+        birth_date: record.birthDate,
+        birth_time: record.birthTime,
+        mbti: record.mbti,
+        gender: record.gender
+      });
+
+      const profileToAnalyze: PersonalSajuProfile = {
+        nickname: record.nickname,
+        gender: record.gender,
+        birth_date: record.birthDate,
+        birth_time: record.birthTime,
+        saju: record.saju,
+        character_emoji: record.character_emoji || "🐯",
+        character_animal: record.character_animal || "호랑이",
+        character_color: record.character_color || "#35B37E",
+        mbti: record.mbti || null,
+        personal_analysis: record.personalAnalysis,
+        personal_analysis_key: record.personalProfile?.personal_analysis_key
+      };
+
+      const result = await fetchPersonalAnalysis(profileToAnalyze, { force: true });
+
+      if (result) {
+        const updated: AdminMemberSajuRecord = {
+          ...record,
+          personalAnalysis: result,
+          hasAnalysis: true
+        };
+        setSelectedMemberRecord(updated);
+        setMemberSajuRecords(prev => prev.map(r => r.id === record.id ? updated : r));
+
+        // Persist to DB
+        if (record.source === "user_account") {
+          await setDoc(doc(db, "users", record.id), {
+            personalProfile: {
+              ...(record.personalProfile || {}),
+              personal_analysis: result,
+              personal_analysis_key: analysisKey
+            }
+          }, { merge: true });
+        } else if (record.roomCode) {
+          const mId = record.id.replace(`${record.roomCode}_`, "");
+          await setDoc(doc(db, "rooms", record.roomCode, "members", mId), {
+            personal_analysis: result
+          }, { merge: true });
+        }
+      }
+    } catch (err: any) {
+      console.error("Admin generate AI analysis failed:", err);
+      setGeneratingError(err?.message || "AI 분석 생성 중 오류가 발생했습니다.");
+    } finally {
+      setGeneratingAnalysisId(null);
+    }
+  };
+
+  // Filtered Member Saju Records
+  const filteredMemberSajuRecords = useMemo(() => {
+    return memberSajuRecords.filter(item => {
+      // 1. Filter Type
+      if (memberFilterType === "google" && !item.isSocialVerified) return false;
+      if (memberFilterType === "guest" && item.isSocialVerified) return false;
+      if (memberFilterType === "has_analysis" && !item.hasAnalysis) return false;
+
+      // 2. Search Query
+      if (memberSearchQuery.trim()) {
+        const q = memberSearchQuery.trim().toLowerCase();
+        const matchNick = item.nickname.toLowerCase().includes(q);
+        const matchEmail = (item.email || "").toLowerCase().includes(q);
+        const matchDate = (item.birthDate || "").includes(q);
+        const matchRoom = (item.roomCode || "").toLowerCase().includes(q) || (item.roomTitle || "").toLowerCase().includes(q);
+        return matchNick || matchEmail || matchDate || matchRoom;
+      }
+
+      return true;
+    });
+  }, [memberSajuRecords, memberFilterType, memberSearchQuery]);
 
   // Save Shop & Beta App Config
   const handleSaveAppConfig = async () => {
@@ -1087,7 +1248,9 @@ export default function AdminView() {
   };
 
   // Render Access Denied
-  const isAdminUser = currentUser?.email?.toLowerCase() === "lhs41977@gmail.com";
+  const isDevLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+  const isAdminUser = currentUser?.email?.toLowerCase() === "lhs41977@gmail.com" || 
+    (isDevLocal && (window.location.search.includes("dev_admin=true") || window.location.hash.includes("dev_admin=true")));
 
   if (!loading && !isAdminUser) {
     return (
@@ -1159,7 +1322,7 @@ export default function AdminView() {
         </div>
 
         {/* Global Navigation Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 bg-sunken p-1 rounded-xl text-sm">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-1 bg-sunken p-1 rounded-xl text-sm">
           <button
             onClick={() => setActiveTab("decision_metrics")}
             className={`py-2.5 px-2 text-xs rounded-lg transition-colors text-center cursor-pointer ${
@@ -1180,6 +1343,17 @@ export default function AdminView() {
             }`}
           >
             확인권·쿠폰 관리
+          </button>
+
+          <button
+            onClick={() => setActiveTab("member_saju")}
+            className={`py-2.5 px-2 text-xs rounded-lg transition-colors text-center cursor-pointer ${
+              activeTab === "member_saju"
+                ? "bg-surface text-ink font-semibold"
+                : "text-ink-soft hover:text-ink font-medium"
+            }`}
+          >
+            회원 사주 열람 ({memberSajuRecords.length}명)
           </button>
 
           <button
@@ -2746,6 +2920,366 @@ export default function AdminView() {
             </div>
           </div>
         )}
+
+        {/* ========================================================================= */}
+        {/* TAB 5: INSTANT MEMBER SAJU VIEWER (GOOGLE USERS & GUEST PARTICIPANTS)    */}
+        {/* ========================================================================= */}
+        {activeTab === "member_saju" && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Quick Metrics Bar */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-surface border border-line rounded-xl p-4 space-y-1">
+                <span className="text-xs text-ink-faint block">수집된 전체 회원 사주</span>
+                <span className="text-xl font-semibold text-ink font-mono">{memberSajuRecords.length}명</span>
+              </div>
+              <div className="bg-surface border border-line rounded-xl p-4 space-y-1">
+                <span className="text-xs text-ink-faint block">구글 연동 정회원</span>
+                <span className="text-xl font-semibold text-ink font-mono">
+                  {memberSajuRecords.filter(r => r.isSocialVerified).length}명
+                </span>
+              </div>
+              <div className="bg-surface border border-line rounded-xl p-4 space-y-1">
+                <span className="text-xs text-ink-faint block">게스트 및 방 참여자</span>
+                <span className="text-xl font-semibold text-ink font-mono">
+                  {memberSajuRecords.filter(r => !r.isSocialVerified).length}명
+                </span>
+              </div>
+              <div className="bg-surface border border-line rounded-xl p-4 space-y-1">
+                <span className="text-xs text-ink-faint block">AI 심층 감정서 보유</span>
+                <span className="text-xl font-semibold text-ink font-mono">
+                  {memberSajuRecords.filter(r => r.hasAnalysis).length}명
+                </span>
+              </div>
+            </div>
+
+            {/* Filter & Search Controls */}
+            <div className="bg-surface border border-line rounded-xl p-4 space-y-3">
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                {/* Search Bar */}
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-ink-faint absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={memberSearchQuery}
+                    onChange={(e) => setMemberSearchQuery(e.target.value)}
+                    placeholder="닉네임, 이메일, 생년월일(1990-01-01), 방 코드로 검색"
+                    className="w-full pl-9 pr-4 py-2 bg-sunken rounded-xl text-xs text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-ink"
+                  />
+                  {memberSearchQuery && (
+                    <button
+                      onClick={() => setMemberSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-faint hover:text-ink"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Refresh Button */}
+                <button
+                  onClick={loadAdminData}
+                  disabled={loadingMemberSaju}
+                  className="flex items-center justify-center gap-1.5 px-3 py-2 bg-sunken hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors shrink-0 cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${loadingMemberSaju ? "animate-spin" : ""}`} />
+                  <span>새로고침</span>
+                </button>
+              </div>
+
+              {/* Segment Filter Buttons */}
+              <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-line text-xs">
+                <span className="text-ink-faint mr-1">분류:</span>
+                {[
+                  { key: "all", label: `전체 (${memberSajuRecords.length})` },
+                  { key: "google", label: `구글 연동 (${memberSajuRecords.filter(r => r.isSocialVerified).length})` },
+                  { key: "guest", label: `게스트·방참여 (${memberSajuRecords.filter(r => !r.isSocialVerified).length})` },
+                  { key: "has_analysis", label: `AI 분석 완료 (${memberSajuRecords.filter(r => r.hasAnalysis).length})` }
+                ].map((f) => (
+                  <button
+                    key={f.key}
+                    onClick={() => setMemberFilterType(f.key as any)}
+                    className={`px-3 py-1.5 rounded-lg text-xs transition-colors cursor-pointer ${
+                      memberFilterType === f.key
+                        ? "bg-ink text-surface font-semibold"
+                        : "bg-sunken text-ink-soft hover:text-ink font-medium"
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Member Cards List */}
+            {loadingMemberSaju ? (
+              <div className="p-12 bg-surface border border-line rounded-xl text-center space-y-3">
+                <Loader2 className="w-6 h-6 text-ink-soft animate-spin mx-auto" />
+                <p className="text-xs text-ink-soft">회원 및 참여자 사주 데이터를 안전하게 불러오는 중입니다.</p>
+              </div>
+            ) : filteredMemberSajuRecords.length === 0 ? (
+              <div className="p-12 bg-surface border border-line rounded-xl text-center space-y-2">
+                <p className="text-xs text-ink-faint">조건에 맞는 회원 사주 데이터가 없습니다.</p>
+                {memberSearchQuery && (
+                  <button
+                    onClick={() => setMemberSearchQuery("")}
+                    className="text-xs text-ink font-semibold underline cursor-pointer"
+                  >
+                    검색어 초기화
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredMemberSajuRecords.map((record) => {
+                  const saju = record.saju;
+                  const dayGan = saju?.day?.gan || saju?.gan?.[2] || "일간";
+                  const dayZhi = saju?.day?.zhi || saju?.zhi?.[2] || "";
+
+                  return (
+                    <div
+                      key={record.id}
+                      className="p-4 sm:p-5 bg-surface border border-line rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors hover:border-ink/30"
+                    >
+                      <div className="flex items-start sm:items-center gap-3.5">
+                        <div
+                          className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 border border-line"
+                          style={{ backgroundColor: `${record.character_color || "#35B37E"}15` }}
+                        >
+                          <span>{record.character_emoji || "🐯"}</span>
+                        </div>
+
+                        <div className="space-y-1 text-left">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-sm text-ink">{record.nickname}</span>
+
+                            {record.isSocialVerified ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-sunken text-ink">
+                                <Check className="w-3 h-3 text-seal" />
+                                구글 연동
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-sunken text-ink-soft">
+                                게스트·방 참여
+                              </span>
+                            )}
+
+                            {record.hasAnalysis ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-sunken text-ink">
+                                AI 분석 완료
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-sunken text-ink-faint">
+                                AI 분석 미생성
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2 text-xs text-ink-soft flex-wrap">
+                            <span>{record.gender}</span>
+                            <span className="text-line">·</span>
+                            <span>{record.birthDate}</span>
+                            {record.birthTime && (
+                              <>
+                                <span className="text-line">·</span>
+                                <span>{record.birthTime}</span>
+                              </>
+                            )}
+                            {record.mbti && (
+                              <>
+                                <span className="text-line">·</span>
+                                <span className="font-mono">{record.mbti}</span>
+                              </>
+                            )}
+                            {record.email && (
+                              <>
+                                <span className="text-line">·</span>
+                                <span className="text-ink-faint">{record.email}</span>
+                              </>
+                            )}
+                            {record.roomCode && (
+                              <>
+                                <span className="text-line">·</span>
+                                <span className="text-ink-faint font-mono">[{record.roomCode}] {record.roomTitle}</span>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Saju Pillars Summary Badges */}
+                          {saju && (
+                            <div className="flex items-center gap-1.5 pt-1 text-[11px] font-mono text-ink-soft flex-wrap">
+                              <span className="text-ink-faint">일간:</span>
+                              <span className="px-1.5 py-0.5 bg-sunken rounded text-ink font-semibold">
+                                {dayGan}{dayZhi}
+                              </span>
+                              {saju.year?.gan && (
+                                <span className="px-1.5 py-0.5 bg-sunken rounded text-ink-faint">
+                                  {saju.year.gan}{saju.year.zhi}년
+                                </span>
+                              )}
+                              {saju.month?.gan && (
+                                <span className="px-1.5 py-0.5 bg-sunken rounded text-ink-faint">
+                                  {saju.month.gan}{saju.month.zhi}월
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMemberRecord(record)}
+                          className="flex items-center gap-1.5 px-4 py-2.5 bg-seal hover:bg-seal-deep text-white font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>사주 감정서 즉시 열람</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* MODAL: ADMIN MEMBER SAJU FULL VIEWER (PREMIUM UNLOCKED)                   */}
+        {/* ========================================================================= */}
+        <AnimatePresence>
+          {selectedMemberRecord && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-ink/70 backdrop-blur-xs overflow-y-auto">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                className="bg-surface border border-line rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-xl overflow-hidden my-auto"
+              >
+                {/* Modal Header */}
+                <div className="p-4 sm:p-5 border-b border-line flex items-center justify-between gap-3 bg-surface sticky top-0 z-10">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 border border-line"
+                      style={{ backgroundColor: `${selectedMemberRecord.character_color || "#35B37E"}15` }}
+                    >
+                      <span>{selectedMemberRecord.character_emoji || "🐯"}</span>
+                    </div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-serif text-base font-semibold text-ink">
+                          {selectedMemberRecord.nickname} 님의 사주 감정서
+                        </h3>
+                        <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-seal text-white">
+                          관리자 프리패스 열람 중
+                        </span>
+                      </div>
+                      <p className="text-xs text-ink-soft">
+                        {selectedMemberRecord.birthDate} ({selectedMemberRecord.gender})
+                        {selectedMemberRecord.birthTime ? ` ${selectedMemberRecord.birthTime}` : " (시간 미입력)"}
+                        {selectedMemberRecord.mbti ? ` · ${selectedMemberRecord.mbti}` : ""}
+                        {selectedMemberRecord.email ? ` · ${selectedMemberRecord.email}` : " · 게스트"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setSelectedMemberRecord(null);
+                      setGeneratingError(null);
+                    }}
+                    className="p-2 text-ink-faint hover:text-ink hover:bg-sunken rounded-xl transition-colors cursor-pointer shrink-0"
+                    title="닫기"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Modal Scrollable Body */}
+                <div className="p-4 sm:p-6 overflow-y-auto space-y-6 text-left">
+                  {/* AI Analysis Generation Notice / Trigger Bar */}
+                  {!selectedMemberRecord.personalAnalysis ? (
+                    <div className="p-4 bg-sunken rounded-xl border border-line space-y-3">
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-semibold text-ink">AI 심층 감정서가 아직 생성되지 않은 회원입니다</h4>
+                        <p className="text-xs text-ink-soft leading-relaxed">
+                          아래 버튼을 누르시면 관리자 권한으로 실시간 분석을 요청하여 1구간(소설적 내러티브)과 2구간(인과 근거)이 결합된 전체 감정서를 즉시 확인하실 수 있습니다.
+                        </p>
+                      </div>
+
+                      {generatingError && (
+                        <p className="text-xs text-seal font-medium">{generatingError}</p>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateAiForMember(selectedMemberRecord)}
+                        disabled={generatingAnalysisId === selectedMemberRecord.id}
+                        className="flex items-center justify-center gap-1.5 px-4 py-2.5 bg-ink hover:bg-ink/90 disabled:opacity-50 text-surface text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                      >
+                        {generatingAnalysisId === selectedMemberRecord.id ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <span>AI 심층 감정서 생성 중...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>AI 심층 감정서 실시간 생성하기</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-sunken rounded-xl border border-line flex items-center justify-between text-xs text-ink-soft">
+                      <span>AI 심층 감정서가 정상 탑재되어 있습니다.</span>
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateAiForMember(selectedMemberRecord)}
+                        disabled={generatingAnalysisId === selectedMemberRecord.id}
+                        className="text-xs text-ink font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${generatingAnalysisId === selectedMemberRecord.id ? "animate-spin" : ""}`} />
+                        <span>재생성</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* SajuVisual Full Component (100% Unlocked) */}
+                  <div className="pt-2">
+                    <SajuVisual
+                      saju={selectedMemberRecord.saju}
+                      isPremium={true}
+                      selectedTab="mix"
+                      hideTabNav={false}
+                      userName={selectedMemberRecord.nickname}
+                      birthDate={selectedMemberRecord.birthDate}
+                      mbti={selectedMemberRecord.mbti || undefined}
+                      personalAnalysis={selectedMemberRecord.personalAnalysis}
+                      isAiLoading={generatingAnalysisId === selectedMemberRecord.id}
+                      isAiGenerated={!!selectedMemberRecord.personalAnalysis}
+                      onRefreshAi={() => handleGenerateAiForMember(selectedMemberRecord)}
+                    />
+                  </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-4 border-t border-line bg-sunken flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedMemberRecord(null);
+                      setGeneratingError(null);
+                    }}
+                    className="px-5 py-2.5 bg-surface hover:bg-line text-ink text-xs font-semibold rounded-xl transition-colors border border-line cursor-pointer"
+                  >
+                    닫기
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
       </div>
     </Layout>
