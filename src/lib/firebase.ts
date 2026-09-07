@@ -677,10 +677,14 @@ export async function fetchPersonalAnalysis(
     return profile.personal_analysis;
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 12000);
+
   try {
     const res = await fetch("/api/personal-analysis", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
       body: JSON.stringify({
         member: {
           id: profile.ownerUid || "self",
@@ -693,6 +697,8 @@ export async function fetchPersonalAnalysis(
         },
       }),
     });
+    clearTimeout(timeoutId);
+
     if (!res.ok) {
       console.debug("Personal analysis request failed:", res.status);
       return profile.personal_analysis || null;
@@ -704,8 +710,13 @@ export async function fetchPersonalAnalysis(
     // 프로필에 캐시 저장 (localStorage + 로그인 시 Firestore 동기화)
     saveUserPersonalProfile({ ...profile, personal_analysis: analysis, personal_analysis_key: key });
     return analysis;
-  } catch (err) {
-    console.debug("Personal analysis fetch error:", err);
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err?.name === "AbortError") {
+      console.warn("Personal analysis fetch timed out (12s limit). Using fast fallback.");
+    } else {
+      console.debug("Personal analysis fetch error:", err);
+    }
     return profile.personal_analysis || null;
   }
 }

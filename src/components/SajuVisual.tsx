@@ -1327,13 +1327,20 @@ export default function SajuVisual({
                   {userName}님의 본질과 인생 계절
                 </p>
                 {(isAiGenerated || isAiLoading || isPremium) && (
-                  <p className="text-xs text-ink-faint mt-1">
-                    {isAiLoading
-                      ? "분석을 생성하고 있습니다"
-                      : isAiGenerated
-                        ? "사주·자미두수·MBTI 교차 분석"
-                        : null}
-                    {isAiGenerated && isPremium ? " · 평생 보관" : isPremium ? "평생 보관" : null}
+                  <p className="text-xs text-ink-faint mt-1 flex items-center gap-1.5 flex-wrap">
+                    <span>
+                      {isAiLoading
+                        ? "AI 심층 분석을 생성하고 있습니다..."
+                        : isAiGenerated
+                          ? "사주·자미두수·MBTI 교차 분석"
+                          : "정밀 명리학 분석"}
+                    </span>
+                    {isPremium && (
+                      <>
+                        <span className="text-ink-faint/60">·</span>
+                        <span className="text-seal font-medium">평생 보관</span>
+                      </>
+                    )}
                   </p>
                 )}
               </div>
@@ -1479,37 +1486,41 @@ export default function SajuVisual({
             {/* 겉과 속 2분할 카드 - 시각적 대비 극대화 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
               {/* 겉 (세상이 보는 나) */}
-              <div className="bg-surface p-4.5 rounded-xl space-y-2.5 border border-line text-left">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-ink">
-                    <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
+              <div className="bg-surface p-4 sm:p-4.5 rounded-xl space-y-2.5 border border-line text-left">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-ink min-w-0">
+                    <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
                       <Sun className="w-3.5 h-3.5 text-ink" />
                     </span>
-                    <span>[겉] 세상이 보는 첫인상과 사회적 가면</span>
+                    <span className="truncate sm:whitespace-normal font-bold">
+                      [겉] 세상이 보는 첫인상과 사회적 가면
+                    </span>
                   </div>
-                  <span className="text-xs font-mono px-2 py-0.5 rounded-xl bg-sunken text-ink">
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0 whitespace-nowrap">
                     사회적 페르소나
                   </span>
                 </div>
-                <p className="text-sm text-ink font-medium leading-relaxed">
+                <p className="text-sm text-ink font-medium leading-relaxed break-keep-all">
                   {narrative.identity.outer}
                 </p>
               </div>
 
               {/* 속 (혼자 있을 때의 나) */}
-              <div className="bg-surface p-4.5 rounded-xl space-y-2.5 border border-line text-left">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-ink">
-                    <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center">
+              <div className="bg-surface p-4 sm:p-4.5 rounded-xl space-y-2.5 border border-line text-left">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-ink min-w-0">
+                    <span className="w-6 h-6 rounded-lg bg-sunken flex items-center justify-center shrink-0">
                       <Moon className="w-3.5 h-3.5 text-ink" />
                     </span>
-                    <span>[속] 혼자 있을 때 마주하는 내면과 방어기제</span>
+                    <span className="truncate sm:whitespace-normal font-bold">
+                      [속] 혼자 있을 때 마주하는 내면과 방어기제
+                    </span>
                   </div>
-                  <span className="text-xs font-mono px-2 py-0.5 rounded-xl bg-sunken text-ink">
+                  <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-sunken text-ink-soft shrink-0 whitespace-nowrap">
                     진짜 속마음
                   </span>
                 </div>
-                <p className="text-sm text-ink font-medium leading-relaxed">
+                <p className="text-sm text-ink font-medium leading-relaxed break-keep-all">
                   {narrative.identity.inner}
                 </p>
               </div>

@@ -688,7 +688,11 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
     }
 
     try {
-      const response = await ai.models.generateContent({
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Gemini generation timed out after 15s")), 15000)
+      );
+
+      const generatePromise = ai.models.generateContent({
         model: "gemini-3.5-flash",
         contents: prompt,
         config: {
@@ -700,6 +704,8 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
           maxOutputTokens: 16384,
         }
       });
+
+      const response = await Promise.race([generatePromise, timeoutPromise]) as any;
 
       const parsed = JSON.parse(response.text!.trim());
       geminiCircuitBreaker.recordSuccess();
@@ -717,7 +723,7 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
   // 서킷 브레이커는 "실패"를 막는 장치이지 "성공하는 비용 폭주"를 막지 못한다.
   const aiGenerationLimiter = rateLimit({
     windowMs: 60 * 1000,
-    limit: 5, // IP당 분당 5회 — 정상 사용자는 캐시로 0~1회면 충분하다
+    limit: 20, // IP당 분당 20회 — 테스트 및 새로고침 시 429 차단 방지
     standardHeaders: true,
     legacyHeaders: false,
     message: {

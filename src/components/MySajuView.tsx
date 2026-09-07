@@ -629,6 +629,10 @@ export default function MySajuView() {
 
     let isMounted = true;
     setAiLoading(true);
+    const safetyTimer = setTimeout(() => {
+      if (isMounted) setAiLoading(false);
+    }, 13000);
+
     fetchPersonalAnalysis(profile)
       .then((result) => {
         if (!isMounted) return;
@@ -640,18 +644,27 @@ export default function MySajuView() {
           );
         }
       })
+      .catch((err) => {
+        console.warn("Personal analysis fetch failed:", err);
+      })
       .finally(() => {
+        clearTimeout(safetyTimer);
         if (isMounted) setAiLoading(false);
       });
 
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimer);
     };
   }, [analysisKey, isSamplePreview, profile?.saju]);
 
   const handleRefreshAi = async () => {
     if (!profile?.saju || aiLoading) return;
     setAiLoading(true);
+    const safetyTimer = setTimeout(() => {
+      setAiLoading(false);
+    }, 13000);
+
     try {
       const result = await fetchPersonalAnalysis(profile, { force: true });
       if (result) {
@@ -661,7 +674,10 @@ export default function MySajuView() {
           prev ? { ...prev, personal_analysis: result, personal_analysis_key: newKey } : prev
         );
       }
+    } catch (e) {
+      console.warn("handleRefreshAi failed:", e);
     } finally {
+      clearTimeout(safetyTimer);
       setAiLoading(false);
     }
   };
