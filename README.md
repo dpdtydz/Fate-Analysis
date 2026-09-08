@@ -1,161 +1,156 @@
 # 🔮 인연사주 (Inyeon Saju) - 우리들의 사용 설명서
 
-> **태어난 날의 음양오행(陰陽五行) 기운으로 풀어보는 모임과 사람 사이의 인연 및 궁합 리포트**
+> **태어난 날의 음양오행(陰陽五行)과 정통 명리학으로 풀어보는 모임과 사람 사이의 인연 및 궁합 리포트**  
+> 🌐 **공식 서비스**: [https://inyeons.com](https://inyeons.com)  
+> 📷 **공식 인스타그램**: [@inyeonssaju](https://www.instagram.com/inyeonssaju)
 
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
-[![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6.4-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
 [![Firebase](https://img.shields.io/badge/Firebase-Firestore-FFCA28?style=flat-square&logo=firebase)](https://firebase.google.com/)
-[![AdSense](https://img.shields.io/badge/Google_AdSense-Compliant-4285F4?style=flat-square&logo=google-ads)](https://adsense.google.com/)
+[![Google Cloud](https://img.shields.io/badge/Google_Cloud-Cloud_Run-4285F4?style=flat-square&logo=google-cloud)](https://cloud.google.com/run)
+[![Gemini AI](https://img.shields.io/badge/Gemini_AI-2.5_Flash-8E75C2?style=flat-square&logo=google)](https://ai.google.dev/)
+[![Instagram](https://img.shields.io/badge/Instagram-@inyeonssaju-E4405F?style=flat-square&logo=instagram)](https://www.instagram.com/inyeonssaju)
 
 ---
 
 ## 📌 프로젝트 소개 (Overview)
 
-**인연사주(Inyeon Saju)**는 정통 동양 만세력(萬歲曆) 알고리즘과 음양오행(木·火·土·金·水) 생극제화(生克制化) 원리를 바탕으로, 카카오톡 단톡방, 동호회, 회사 팀 등 여러 사람이 모였을 때 발생하는 **그룹 케미스트리(Group Chemistry)**와 **1:1 속궁합**을 정밀 측정해 주는 웹 스페셜리티 서비스입니다.
+**인연사주(Inyeon Saju)**는 정통 동양 만세력(萬歲曆) 알고리즘과 음양오행(木·火·土·金·水) 상생상극(相生相剋) 원리를 현대적인 감성으로 재해석한 **그룹 및 1:1 사주 궁합 분석 플랫폼**입니다.
 
-태어난 연·월·일·시를 절기(節氣) 기준으로 정확히 측정하여 나만의 12간지 캐릭터와 일간(日干) 본성을 도출하며, 모임 코드 하나로 동료들과 손쉽게 사주 궁합을 공유하고 소통할 수 있습니다.
+카카오톡 단톡방, 동호회, 스터디, 스타트업/회사 팀 등 모임의 링크나 6자리 코드 하나로 모든 멤버가 참여하여, 서로의 기운이 빚어내는 **모임 케미 점수**, **인터랙티브 관계도 지도**, **1:1 비밀 인연 등급(S~F)**, **성향 충돌 완충 수칙**을 한눈에 확인할 수 있습니다.
 
----
-
-## 📱 실제 사용 화면 프리뷰 (UI & Code Mockup Preview)
-
-### 1. 모바일 앱 인터페이스 SVG 프리뷰
-
-<div align="center">
-  <img src="./public/preview.svg" alt="인연사주 모바일 앱 UI 프리뷰" width="100%" style="max-width: 800px; border-radius: 16px;" />
-</div>
-
----
-
-### 2. 코드 및 컴포넌트 아키텍처 프리뷰 (Code Architecture)
-
-```tsx
-// src/components/GroupView.tsx - 그룹 사주 분석 및 1:1 궁합 리포트 렌더링
-import React from 'react';
-import { calculateFiveElements, getChemistryMatrix } from '../lib/sajuCalculator';
-import GoogleAds from './GoogleAds';
-
-export function GroupView({ members, roomCode }: { members: Member[]; roomCode: string }) {
-  const elementsDistribution = calculateFiveElements(members);
-  const chemistryReport = getChemistryMatrix(members);
-
-  return (
-    <div className="max-w-md mx-auto space-y-6 p-4 bg-[#FCFAF6]">
-      {/* 1. 그룹 헤더 & 오행 분포 그래프 */}
-      <section className="bg-white p-5 rounded-2xl border border-[#D6CCBC] shadow-xs">
-        <h2 className="text-sm font-bold text-[#2C3E50] font-serif">👥 그룹 오행 조화도</h2>
-        <div className="mt-3 flex h-3 rounded-full overflow-hidden">
-          <div style={{ width: `${elementsDistribution.wood}%` }} className="bg-[#27AE60]" />
-          <div style={{ width: `${elementsDistribution.fire}%` }} className="bg-[#E74C3C]" />
-          <div style={{ width: `${elementsDistribution.earth}%` }} className="bg-[#D35400]" />
-          <div style={{ width: `${elementsDistribution.metal}%` }} className="bg-[#7F8C8D]" />
-          <div style={{ width: `${elementsDistribution.water}%` }} className="bg-[#2980B9]" />
-        </div>
-      </section>
-
-      {/* 2. 1:1 궁합 매칭 매트릭스 */}
-      <section className="space-y-3">
-        {chemistryReport.matches.map((match) => (
-          <div key={match.id} className="p-4 bg-white rounded-xl border border-[#E8E0D0] flex justify-between">
-            <div>
-              <span className="text-xs font-bold text-[#C0392B]">{match.pairNames}</span>
-              <p className="text-[11px] text-[#7A6B5D]">{match.description}</p>
-            </div>
-            <span className="px-2.5 py-1 bg-[#C0392B] text-white text-xs font-bold rounded-lg h-fit">
-              {match.score}점
-            </span>
-          </div>
-        ))}
-      </section>
-
-      {/* 3. Google AdSense 정책 준수 유닛 (콘텐츠 검증 완료 시에만 노출) */}
-      <GoogleAds layout="banner" hasContent={members.length >= 2} />
-    </div>
-  );
-}
-```
+또한 생성된 결과는 **인스타그램 스토리(9:16)** 및 단톡방에 즉시 공유하기 좋은 카드 형태로 캡처·저장할 수 있습니다.
 
 ---
 
 ## ✨ 핵심 기능 (Key Features)
 
-| 기능 | 상세 설명 |
-| :--- | :--- |
-| **🔮 정통 만세력 & 12간지 캐릭터** | 양력/음력/윤달 절기 시각 정밀 변환, 야자시·조자시 구분을 반영한 사주팔자 및 소동물 캐릭터 생성 |
-| **👥 그룹 궁합 & 케미스트리 매트릭스** | 6자리 모임 코드로 손쉬운 초대, 오행 분포 그래프 및 구성원 간 상생·상극 궁합 리포트 연동 |
-| **📊 나만의 사주 심층 리포트 (MeView)** | 일간(日干) 본성, 십성(十星) 구조, 자미두수(紫微斗數) 명반 연동 개인 운세 및 맞춤 AI 조언 |
-| **📜 명리학 학술 칼럼 Archive** | 십성 심리학, 자미두수 대운, 오행 균형 완화론 등 고품질 학술 칼럼 4편 및 FAQ 제공 |
-| **💳 프리미엄 샵 (Lemon Squeezy)** | 엽전/포인트 충전 오버레이 연동 및 서비스 이용 결제 지원 |
-| **📲 카카오톡 아웃링크 스마트 가이드** | 카카오톡 인앱 브라우저 진입 시 사파리/크롬 외부 브라우저 자동 연결 안내 |
-| **🛡️ AdSense 정책 엄격 준수** | 게시자 콘텐츠가 없는 유령 화면 광고 완전 차단 및 맞춤형 광고 거부 쿠키 고지 준수 |
+### 1. 🧭 전국 출생지 경도 보정 & 정밀 만세력 엔진
+- **진태양시 보정**: 대한민국 전국 시·도 및 시·군 단위 경도 데이터를 바탕으로 균시차(동경 135도 기준 시차)를 자동 보정하여 정밀한 시주(時柱) 산출
+- **직관적인 셀렉트(Select) 입력**: 1930~2026년 연/월/일 및 시/분을 모바일 환경에 최적화된 드롭다운 셀렉터로 편리하게 선택 (윤달/평달, 조자시/야자시 완벽 대응)
+- **수호 십이지 & 오행 캐릭터**: 나를 상징하는 일간(日干) 본성과 사신수(청룡·주작·백호·현무) 동물 캐릭터 자동 매칭
+
+### 2. 👥 그룹 모임 궁합 & 인터랙티브 관계도 (`GroupNetwork`)
+- **모임 케미 점수 (100점 만점)**: 구성원 전체의 오행 분포와 순환력을 연산하여 모임의 분위기 메타포 및 종합 궁합 점수 산출
+- **SVG 원형 네트워크 관계도**: 멤버 간 상생(초록선), 상극(빨간선) 기운 흐름을 동적으로 시각화
+- **최고 시너지 콤비 랭킹**: 모임 내에서 가장 케미가 폭발하는 Top 베스트 콤비와 시너지 팁 추천
+
+### 3. 📸 인스타그램 스토리(9:16) 최적화 카드 캡처
+- 단톡방 및 인스타 스토리에 올렸을 때 군더더기 없이 한눈에 들어오도록 핵심 요약 카드(케미 점수 + 관계도 맵 + 1위 콤비 + 공식 워터마크)를 9:16 컴팩트 비율로 캡처 다운로드
+- 모바일 환경에서 Web Share API(`navigator.share`) 및 롱프레스 저장 가이드 완벽 지원
+
+### 4. 🔒 비밀 인연 등급 & 1:1 맞춤 완충 수칙
+- 모임 멤버 전원의 1:1 궁합을 S부터 F까지 등급화하여 숨겨진 상성 궤적 확인
+- 생각이 부딪힐 수 있는 오행 상극 구간에 대한 실질적인 대화법과 완충 수칙 제공
+- 쿠폰 코드 등록 및 프리미엄 해금 연동
+
+### 5. 📊 개인 심층 운세 리포트 & AI 풀이 (`MeView`)
+- 사주 원국표(사주팔자 8글자) 및 십성(十星), 대운/세운 흐름 시각화
+- Google Gemini AI를 접목한 개인 맞춤형 성격 분석, 인생 조언, 귀인운 풀이
+
+### 6. 📄 다면 PDF 감명서 & 바이럴 카드 모달
+- 전문 감명서 수준의 고화질 PDF 다운로드 기능 지원 (`html2canvas-pro` & `jsPDF`)
+- 개인 명식을 감각적인 카드뉴스로 생성해 소장할 수 있는 바이럴 카드 모달 제공
 
 ---
 
-## 🏛️ 기술 스택 (Tech Stack)
+## 🏛️ 기술 아키텍처 (Tech Stack)
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                       Frontend Stack                        │
-│   React 18  │  TypeScript  │  Tailwind CSS  │  Motion      │
+│   React 18  │  TypeScript  │  Tailwind CSS  │  Lucide Icons │
+│   html2canvas-pro  │  jsPDF  │  Canvas-Confetti             │
+├─────────────────────────────────────────────────────────────┤
+│                 Saju & Astronomical Engines                 │
+│   @orrery/core (태양시 보정) │ lunar-javascript (음양력 절기) │
 ├─────────────────────────────────────────────────────────────┤
 │                      Backend & Database                     │
-│   Firebase Firestore  │  Firebase Auth  │  Express / Node   │
+│   Node.js / Express (server.ts)  │  Google Cloud Run        │
+│   Firebase Firestore (Realtime)  │  Firebase Auth (Security)│
 ├─────────────────────────────────────────────────────────────┤
-│                     External Integrations                   │
-│   Lemon Squeezy API   │  Google AdSense │  Google Gemini    │
+│                     AI & External Services                  │
+│   Google Gemini 2.5/Flash API    │  PortOne (포트원 결제)    │
+│   Instagram (@inyeonssaju)       │  Google AdSense          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-- **Core Framework**: React 18, Vite 5, TypeScript
-- **Styling & UI**: Tailwind CSS, Lucide Icons, Custom Oriental Color Palette (`#FCFAF6`, `#2C3E50`, `#C0392B`)
-- **Backend & Storage**: Firebase Firestore (Realtime Data Sync), Firebase Authentication
-- **Monetization & Ads**: Google AdSense (Auto-Ads / Banner Units with Content Validation) & Lemon Squeezy Payment Overlay
-
 ---
 
-## 📜 구글 애드센스(Google AdSense) 승인 가이드라인 준수
-
-본 서비스는 Google AdSense 품질 지침 및 정책을 엄격히 준수하도록 설계되었습니다.
-
-1. **게시자 콘텐츠 유무 검증 (`hasContent` Guard)**
-   - 개인 분석 리포트나 그룹 분석 결과가 출력되지 않은 빈 화면(로딩 중, 단순 회원가입 폼)에는 광고 스크립트 호출을 원천 차단하여 **"게시자 콘텐츠가 없는 화면에 Google 게재 광고"** 위반을 방지합니다.
-2. **고품질 학술 메인 콘텐츠 탑재**
-   - 랜딩 페이지 하단에 명리학 학술 칼럼 4편과 종합 FAQ, 정통 만세력 작동 원리를 수록하여 **"가치가 별로 없는 콘텐츠"** 반려 이슈를 해결했습니다.
-3. **필수 법적 모달 고지**
-   - `개인정보처리방침`, `이용약관`, `광고 및 쿠키 정책` 모달을 상시 제공하며 Google AdSense 맞춤형 광고 쿠키 거부 수단을 명시했습니다.
-
----
-
-## 📁 프로젝트 구조 (Directory Structure)
+## 📁 프로젝트 폴더 구조 (Directory Structure)
 
 ```text
-├── index.html                  # HTML 메인 엔트리 (AdSense meta/script 포함)
+Fate-Analysis/
+├── public/                     # 정적 자산, 파비콘, 인스타 스토리/피드 홍보 이미지
+│   ├── inyeon_story_promo.png  # 9:16 인스타 스토리 홍보 카드
+│   ├── feed_promo_1~5.png      # 1:1 인스타 피드용 테마 카드뉴스 (5종)
+│   └── instagram_profile_*.png # 인스타 원형 프로필 엠블럼 (한지/다크)
 ├── src/
-│   ├── App.tsx                 # 메인 애플리케이션 라우터 및 상태 관리
-│   ├── main.tsx                # React Root 렌더러
-│   ├── index.css               # 글로벌 Tailwind CSS 정의
-│   ├── components/             # 모듈화된 UI 컴포넌트
-│   │   ├── LandingView.tsx     # 메인 랜딩, 모임 생성/참여 및 학술 칼럼 모달
-│   │   ├── RoomView.tsx        # 그룹 대기실 및 멤버 리스트
-│   │   ├── GroupView.tsx       # 그룹 전체 궁합 매트릭스 & 오행 분석 리포트
-│   │   ├── MeView.tsx          # 개인 정밀 사주 & 십성 분석 리포트
-│   │   ├── GoogleAds.tsx       # 콘텐츠 검증 기반 안전한 AdSense 컴포넌트
-│   │   ├── SajuForm.tsx        # 생년월일시 입력 폼
-│   │   ├── SajuVisual.tsx      # 오행 차트 및 캐릭터 비주얼
-│   │   ├── PremiumPaywall.tsx  # Lemon Squeezy 결제 샵 모달
+│   ├── components/             # 핵심 React 컴포넌트
+│   │   ├── SajuForm.tsx        # 생년월일/시간 셀렉트 드롭다운 및 음양력 변환 폼
+│   │   ├── GroupView.tsx       # 모임 케미 분석, 인스타 스토리 캡처, 1:1 아코디언
+│   │   ├── GroupNetwork.tsx    # SVG 기반 원형 오행 네트워크 관계도 맵
+│   │   ├── MeView.tsx          # 개인 사주팔자, 대운, 십신, AI 종합 리포트
+│   │   ├── RoomView.tsx        # 모임 대기실 및 멤버 명단 관리
+│   │   ├── LandingView.tsx     # 메인 랜딩, 모임 생성/입장, 명리학 아카이브
+│   │   ├── ViralCardModal.tsx  # 인스타 공유용 바이럴 카드 생성 모달
+│   │   ├── Footer.tsx          # 이용약관/개인정보 및 @inyeonssaju 인스타 링크
 │   │   └── ...
-│   └── lib/                    # 파이어베이스 및 만세력 계산 유틸리티
-└── metadata.json               # 앱 정보 및 주요 권한 설정
+│   ├── utils/
+│   │   ├── saju.ts             # 음양오행, 천간지지, 십이지 캐릭터 계산 로직
+│   │   ├── pdfGenerator.ts     # 다면 인쇄용 PDF 리포트 생성 유틸
+│   │   └── ...
+│   ├── types.ts                # 전역 TypeScript 인터페이스 및 타입 정의
+│   ├── App.tsx                 # 최상위 라우팅 및 룸/회원 세션 상태 관리
+│   └── main.tsx                # React Root 진입점
+├── server.ts                   # Express 백엔드 API (Cloud Run 배포, Gemini AI 연동)
+├── Dockerfile                  # 프로덕션 배포용 다단계 Docker 빌드 파일
+├── cloudbuild.yaml             # Google Cloud Build 자동 배포 파이프라인
+└── package.json                # 프로젝트 의존성 및 빌드 스크립트
 ```
 
 ---
 
-## 🔒 개인정보 및 보안
+## 🚀 로컬 개발 및 실행 (Getting Started)
 
-- 모든 유저 사주 정보는 Firestore 데이터베이스에 암호화되어 관리됩니다.
-- 모임 방 탈퇴 및 프로필 삭제 시 유저 정보는 안전하게 영구 파기됩니다.
+### 1. 의존성 설치
+```bash
+npm install
+```
+
+### 2. 환경 변수 설정 (`.env`)
+```env
+# Firebase Client Configuration
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+
+# Server / AI Configuration
+PORT=8080
+GEMINI_API_KEY=your_gemini_api_key
+```
+
+### 3. 개발 서버 실행
+```bash
+# 클라이언트 개발 서버 (Vite)
+npm run dev
+
+# 프로덕션 번들 빌드 및 타입 검증
+npm run build
+```
+
+---
+
+## 📱 공식 채널 & 문의
+
+- **웹사이트**: [https://inyeons.com](https://inyeons.com)
+- **공식 인스타그램**: [@inyeonssaju](https://www.instagram.com/inyeonssaju)
+- **데이터 보관 정책**: 모임방과 명식 데이터는 생성 후 30일 경과 시 안전하게 자동 정리됩니다.
 
 ---
 
