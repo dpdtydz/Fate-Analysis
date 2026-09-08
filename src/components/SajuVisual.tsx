@@ -1916,8 +1916,8 @@ export default function SajuVisual({
              ========================================================================= */}
           <div className="space-y-6 pt-4 border-t border-line text-left">
             <div className="relative">
-              {/* 블러 래퍼 (미해금 시 블러 + 클릭 비활성화) */}
-              <div className={isPremium ? "space-y-6" : "space-y-6 filter blur-[7px] opacity-30 select-none pointer-events-none transition-all duration-700"}>
+              {/* 블러 래퍼 (미해금 시 높이 제한 + 블러 + 클릭 비활성화하여 거대 여백 방지) */}
+              <div className={isPremium ? "space-y-6" : "space-y-6 max-h-[460px] overflow-hidden filter blur-[4px] opacity-40 select-none pointer-events-none transition-all duration-700"}>
             {/* 인생의 계단 — 대운 10년 주기 파노라마.
                 지나온 단계는 옅게, 지금 단계는 진하게. 수묵의 원근을 농도로 표현한다
                 (design.md §1 "원근은 농도로"). AI v2 스키마에만 존재하므로 optional. */}
@@ -2344,7 +2344,7 @@ export default function SajuVisual({
 
               {/* 미해금 시 글래스모피즘 플로팅 해금 카드 */}
               {!isPremium && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center p-4 bg-surface backdrop-blur-[2px] rounded-xl">
+                <div className="absolute inset-0 z-10 flex items-center justify-center p-4 bg-gradient-to-b from-transparent via-surface/80 to-surface rounded-xl">
                   <div className="bg-surface/95 border border-line shadow-2xl rounded-xl p-6 sm:p-7 max-w-md w-full text-center space-y-4 animate-fade-in backdrop-blur-md">
                     <div className="w-12 h-12 rounded-xl bg-seal/10 text-seal mx-auto flex items-center justify-center shadow-inner">
                       <Crown className="w-6 h-6" />
