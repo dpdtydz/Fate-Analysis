@@ -211,7 +211,7 @@ export default function LandingView() {
   ];
 
   return (
-    <Layout maxWidth="2xl">
+    <Layout maxWidth="2xl" showHomeButton>
       <div className="space-y-10">
 
         {/* 탭: 내 사주 / 모임 궁합 */}
