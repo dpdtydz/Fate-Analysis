@@ -1077,7 +1077,7 @@ export default function SajuVisual({
             </span>
           </div>
 
-          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2">
+          <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 items-stretch">
             {daewoon && daewoon.map((item, idx) => {
               const isSelected = selectedDaewoonIdx === idx;
               const isCurrent = currentAge >= item.age && currentAge <= (daewoon[idx + 1] ? daewoon[idx + 1].age - 1 : item.age + 9);
@@ -1086,27 +1086,39 @@ export default function SajuVisual({
                   key={idx}
                   type="button"
                   onClick={() => setSelectedDaewoonIdx(isSelected ? null : idx)}
-                  className={`p-2 rounded-xl text-center transition-colors cursor-pointer space-y-1 ${
+                  className={`p-2 rounded-xl text-center flex flex-col justify-between transition-colors cursor-pointer relative ${
                     isSelected
-                      ? "bg-seal text-white"
+                      ? "bg-seal text-white shadow-xs"
+                      : isCurrent
+                      ? "bg-sunken text-ink ring-1.5 ring-seal/50 hover:bg-line/60"
                       : "bg-sunken text-ink hover:bg-line/60"
                   }`}
                 >
-                  <div className="text-xs font-medium">
-                    {isCurrent && (
-                      <span className={`block text-xs font-semibold mb-0.5 ${isSelected ? "text-white" : "text-seal"}`}>
+                  <div className="h-4 flex items-center justify-center mb-0.5">
+                    {isCurrent ? (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none whitespace-nowrap ${
+                        isSelected ? "bg-white text-seal" : "bg-seal text-white"
+                      }`}>
                         현재
                       </span>
+                    ) : (
+                      <span className="text-[10px] opacity-0 select-none pointer-events-none leading-none">
+                        대운
+                      </span>
                     )}
-                    <div className={`${isCurrent ? "" : "mt-1"} ${isSelected ? "text-white/80" : "text-ink-faint"}`}>
-                      {item.age}세
-                    </div>
                   </div>
-                  <div className="font-serif text-base font-semibold">{item.ganzi}</div>
+
+                  <div className={`text-xs font-medium ${isSelected ? "text-white/80" : "text-ink-faint"}`}>
+                    {item.age}세
+                  </div>
+
+                  <div className="font-serif text-base font-semibold my-0.5">{item.ganzi}</div>
+
                   <div className={`text-xs leading-none ${isSelected ? "text-white/80" : "text-ink-soft"}`}>
                     {item.stemSipsin}/{item.branchSipsin}
                   </div>
-                  <div className={`text-xs rounded-md py-0.5 font-medium ${
+
+                  <div className={`text-xs rounded-md py-0.5 font-medium mt-1 ${
                     isSelected ? "bg-white/20 text-white" : "bg-surface text-ink-soft"
                   }`}>
                     {item.unseong}
@@ -2743,7 +2755,7 @@ export default function SajuVisual({
                 </div>
               ) : (
                 <>
-                  <div className="flex gap-2 overflow-x-auto pb-2.5">
+                  <div className="flex gap-2 overflow-x-auto pb-2.5 items-stretch">
                     {daewoon.map((item, idx) => {
                       const isCurrent = currentAge >= item.age && currentAge <= (daewoon[idx+1] ? daewoon[idx+1].age - 1 : item.age + 9);
                       const isSelected = selectedDaewoonIdx === idx;
@@ -2752,29 +2764,44 @@ export default function SajuVisual({
                           key={idx}
                           type="button"
                           onClick={() => setSelectedDaewoonIdx(idx)}
-                          className={`min-w-[105px] flex-shrink-0 p-3 rounded-xl text-center space-y-1 transition-colors cursor-pointer ${
+                          className={`min-w-[105px] flex-shrink-0 p-3 rounded-xl text-center flex flex-col justify-between transition-all cursor-pointer relative ${
                             isSelected
-                              ? "bg-seal text-white"
+                              ? "bg-seal text-white shadow-xs"
+                              : isCurrent
+                              ? "bg-sunken text-ink ring-1.5 ring-seal/50 hover:bg-line/60"
                               : "bg-sunken text-ink hover:bg-line/60"
                           }`}
                         >
-                          <div>
-                            {isCurrent && (
-                              <span className={`text-xs font-semibold whitespace-nowrap inline-block ${
-                                isSelected ? "text-white" : "text-seal"
-                              }`}>
+                          {/* 상단 고정 높이 뱃지 슬롯: 모든 카드의 세로 기준선을 완벽히 일치 */}
+                          <div className="h-5 flex items-center justify-center mb-1">
+                            {isCurrent ? (
+                              <span
+                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap leading-none ${
+                                  isSelected
+                                    ? "bg-white text-seal font-black"
+                                    : "bg-seal text-white"
+                                }`}
+                              >
                                 현재 대운
                               </span>
+                            ) : (
+                              <span className="text-[10px] py-0.5 opacity-0 select-none pointer-events-none leading-none">
+                                대운
+                              </span>
                             )}
-                            <div className={`text-xs font-medium ${isSelected ? "text-white/80" : "text-ink-faint"} ${isCurrent ? "" : "mt-1"}`}>
-                              {item.age}세 대운
-                            </div>
                           </div>
-                          <div className="font-serif text-base font-semibold">{item.ganzi}</div>
+
+                          <div className={`text-xs font-medium ${isSelected ? "text-white/80" : "text-ink-faint"}`}>
+                            {item.age}세 대운
+                          </div>
+
+                          <div className="font-serif text-base font-semibold my-1">{item.ganzi}</div>
+
                           <div className={`text-xs leading-none ${isSelected ? "text-white/80" : "text-ink-soft"}`}>
                             {item.stemSipsin}/{item.branchSipsin}
                           </div>
-                          <div className={`text-xs rounded-md py-0.5 font-medium ${
+
+                          <div className={`text-xs rounded-md py-0.5 font-medium mt-1.5 ${
                             isSelected ? "bg-white/20 text-white" : "bg-surface text-ink-soft"
                           }`}>
                             {item.unseong}
