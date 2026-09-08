@@ -1271,14 +1271,15 @@ export default function GroupView({ code }: GroupViewProps) {
           )
         ) : (
           <>
-            {/* --- SHARING CAPTURE TARGET START --- */}
-            <div id="capture-target" ref={captureRef} className="space-y-6">
-              
-              {/* =========================================================================
-                  STAGE 1 (FREE): FRONT GROUP SOUL CARD (규격 380px, #FFFFFF, radius 28px)
-                 ========================================================================= */}
-              <div className="w-full bg-surface rounded-xl p-6 sm:p-7 border border-line text-left select-none">
-                <div className="flex items-center justify-between mb-4">
+            {/* --- INSTAGRAM STORY COMPACT CAPTURE TARGET START --- */}
+            <div
+              id="capture-target"
+              ref={captureRef}
+              className="w-full bg-[#FCFCFA] rounded-2xl p-4 sm:p-5 border border-line text-left select-none space-y-4 shadow-sm"
+            >
+              {/* STAGE 1: FRONT GROUP SOUL CARD */}
+              <div className="w-full bg-surface rounded-xl p-5 border border-line text-left">
+                <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-mono tracking-[0.14em] text-ink-faint">
                     GROUP · {members.length}인
                   </span>
@@ -1288,17 +1289,17 @@ export default function GroupView({ code }: GroupViewProps) {
                 </div>
 
                 {/* Circular Geometric Emblem or Space Image */}
-                <div className="w-[104px] h-[104px] mx-auto mb-4 rounded-full bg-sunken flex items-center justify-center overflow-hidden">
+                <div className="w-[84px] h-[84px] mx-auto mb-3 rounded-full bg-sunken flex items-center justify-center overflow-hidden">
                   {spaceSrc ? (
                     <img
                       src={spaceSrc}
                       alt={`${SPACE_NAMES[spaceKey]} 심볼`}
                       decoding="async"
                       onError={() => setSpaceImgFailed(true)}
-                      className="w-[92px] h-[92px] object-contain select-none"
+                      className="w-[74px] h-[74px] object-contain select-none"
                     />
                   ) : (
-                    <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[56px] h-[56px]">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[44px] h-[44px]">
                       <circle cx="24" cy="24" r="16" />
                       <circle cx="24" cy="14" r="6" />
                       <circle cx="15" cy="29" r="6" />
@@ -1310,54 +1311,82 @@ export default function GroupView({ code }: GroupViewProps) {
                   )}
                 </div>
 
-                <h3 className="text-center font-serif text-2xl font-semibold tracking-tight leading-snug text-ink mb-2">
+                <h3 className="text-center font-serif text-2xl font-semibold tracking-tight leading-snug text-ink mb-1.5">
                   모임 케미 <span className="text-seal">{analysis.group.overall_score}점</span>
                 </h3>
 
-                <p className="text-center text-sm leading-relaxed text-ink-soft max-w-[320px] mx-auto mb-5">
+                <p className="text-center text-xs leading-relaxed text-ink-soft max-w-[320px] mx-auto mb-3.5">
                   {analysis.group.title} · {analysis.group.atmosphere}
                 </p>
 
                 {/* 계산 지표 (다양성·순환) */}
-                <div className="space-y-2.5 pt-4 border-t border-line">
+                <div className="space-y-2 pt-3 border-t border-line">
                   <div className="flex items-center gap-2 w-full">
-                    <span className="text-xs font-medium text-ink w-[48px] shrink-0 text-left">다양성</span>
-                    <div className="h-[7px] bg-sunken rounded-full overflow-hidden flex-1">
+                    <span className="text-[11px] font-medium text-ink w-[44px] shrink-0 text-left">다양성</span>
+                    <div className="h-[6px] bg-sunken rounded-full overflow-hidden flex-1">
                       <div className="h-full rounded-full bg-ink/70" style={{ width: `${Math.min(98, (new Set(members.map(m => m.saju?.daymaster?.element))).size * 22)}%` }} />
                     </div>
-                    <span className="text-xs font-mono text-right text-ink-faint w-[30px] shrink-0">{Math.min(98, (new Set(members.map(m => m.saju?.daymaster?.element))).size * 22)}</span>
+                    <span className="text-[11px] font-mono text-right text-ink-faint w-[26px] shrink-0">{Math.min(98, (new Set(members.map(m => m.saju?.daymaster?.element))).size * 22)}</span>
                   </div>
                   <div className="flex items-center gap-2 w-full">
-                    <span className="text-xs font-medium text-ink w-[48px] shrink-0 text-left">순환력</span>
-                    <div className="h-[7px] bg-sunken rounded-full overflow-hidden flex-1">
+                    <span className="text-[11px] font-medium text-ink w-[44px] shrink-0 text-left">순환력</span>
+                    <div className="h-[6px] bg-sunken rounded-full overflow-hidden flex-1">
                       <div className="h-full rounded-full bg-ink/70" style={{ width: `${analysis.group.overall_score}%` }} />
                     </div>
-                    <span className="text-xs font-mono text-right text-ink-faint w-[30px] shrink-0">{analysis.group.overall_score}</span>
+                    <span className="text-[11px] font-mono text-right text-ink-faint w-[26px] shrink-0">{analysis.group.overall_score}</span>
                   </div>
-                </div>
-              </div>
-
-              {/* Free Section 1: 전체 기운 요강 & 화합 극대화 비책 */}
-              <div className="bg-surface border border-line p-5 sm:p-6 rounded-xl text-left space-y-4">
-                <div className="flex items-center justify-between pb-3">
-                  <span className="text-[15px] font-semibold text-ink">모임 전체 기운 요강</span>
-                  <span className="text-xs font-medium text-ink-faint bg-sunken px-2 py-0.5 rounded-md">
-                    무료 공개
-                  </span>
-                </div>
-
-                <p className="text-left text-sm text-ink-soft leading-relaxed">
-                  {analysis.group.description}
-                </p>
-
-                <div className="p-4 bg-sunken rounded-xl text-left text-xs text-ink-soft leading-relaxed">
-                  <span className="font-semibold text-ink block mb-1">화합을 높이는 팁</span>
-                  {analysis.group.synergy_tips}
                 </div>
               </div>
 
               {/* Free Section 2: SVG Circular Network Graph */}
               <GroupNetwork members={members} pairs={upgradedPairs} isPremium={isGroupUnlocked} />
+
+              {/* Instagram Story Watermark / Brand Footer */}
+              <div className="pt-2 pb-1 px-1 flex items-center justify-between text-[11px] text-ink-faint border-t border-line/60">
+                <span className="font-serif font-medium text-ink-soft">緣 인연사주 모임 궁합</span>
+                <span className="font-mono tracking-wider text-[10px]">inyeons.com</span>
+              </div>
+            </div>
+            {/* --- INSTAGRAM STORY COMPACT CAPTURE TARGET END --- */}
+
+            {/* Share Action bar in Hanji style */}
+            <div className="bg-surface border border-line p-5 rounded-xl flex flex-col items-center justify-center space-y-3 text-center">
+              <div className="space-y-1">
+                <span className="text-xs font-semibold text-ink flex items-center justify-center gap-1">
+                  인스타 스토리용 카드 다운로드
+                </span>
+                <p className="text-xs text-ink-soft leading-relaxed">
+                  위 요약 카드를 스토리(9:16) 및 단톡방에 올리기 좋은 크기로 저장합니다.
+                </p>
+              </div>
+              <button
+                id="share-dashboard-btn"
+                onClick={handleShareResult}
+                className="w-full flex items-center justify-center space-x-2 py-3.5 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer shadow-sm"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>{shareStatus || "스토리용 결과 이미지 저장"}</span>
+              </button>
+            </div>
+
+            {/* Free Section 1: 전체 기운 요강 & 화합 극대화 비책 */}
+            <div className="bg-surface border border-line p-5 sm:p-6 rounded-xl text-left space-y-4">
+              <div className="flex items-center justify-between pb-3">
+                <span className="text-[15px] font-semibold text-ink">모임 전체 기운 요강</span>
+                <span className="text-xs font-medium text-ink-faint bg-sunken px-2 py-0.5 rounded-md">
+                  무료 공개
+                </span>
+              </div>
+
+              <p className="text-left text-sm text-ink-soft leading-relaxed">
+                {analysis.group.description}
+              </p>
+
+              <div className="p-4 bg-sunken rounded-xl text-left text-xs text-ink-soft leading-relaxed">
+                <span className="font-semibold text-ink block mb-1">화합을 높이는 팁</span>
+                {analysis.group.synergy_tips}
+              </div>
+            </div>
 
               {/* =========================================================================
                   STAGE 2 (PREMIUM / COUPON): 심층 비밀 역학 및 전수 1:1 케미 해금
@@ -1556,24 +1585,6 @@ export default function GroupView({ code }: GroupViewProps) {
               </div>
             )}
           </div>
-
-        </div>
-        {/* --- SHARING CAPTURE TARGET END --- */}
-
-        {/* Share Action bar in Hanji style */}
-        <div className="bg-surface border border-line p-5 rounded-xl flex flex-col items-center justify-center space-y-3.5 text-center">
-          <p className="text-xs text-ink-soft leading-relaxed">
-            궁합 결과 이미지를 저장해 단톡방이나 지인에게 공유할 수 있어요.
-          </p>
-          <button
-            id="share-dashboard-btn"
-            onClick={handleShareResult}
-            className="w-full flex items-center justify-center space-x-2 py-3.5 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
-          >
-            <Share2 className="w-4 h-4" />
-            <span>{shareStatus || "결과 이미지 공유하기"}</span>
-          </button>
-        </div>
 
         {/* 1:1 Chemical lists details */}
         <div className="space-y-4 text-left">

@@ -16,6 +16,11 @@ const KOREAN_CITIES_MODIFIED = KOREAN_CITIES.map((city) => {
 
 const REGIONS = Array.from(new Set(KOREAN_CITIES_MODIFIED.map((c) => c.region)));
 
+const YEAR_OPTIONS = Array.from({ length: 97 }, (_, i) => 2026 - i); // 2026 down to 1930
+const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => i + 1); // 1 to 12
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i); // 0 to 23
+const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => i); // 0 to 59
+
 function findCityAndRegion(cityName?: string, regionName?: string): { region: string; city: string } {
   if (regionName && cityName) {
     const exact = KOREAN_CITIES_MODIFIED.find((c) => c.region === regionName && c.name === cityName);
@@ -93,6 +98,29 @@ export default function SajuForm({
 
   // Calendar Type: solar, lunar_normal (평달), lunar_leap (윤달)
   const [calendarType, setCalendarType] = useState<"solar" | "lunar_normal" | "lunar_leap">("solar");
+
+  // Input Mode: Select vs Direct Text Input (Default: Select box as requested)
+  const [isDirectDateInput, setIsDirectDateInput] = useState(false);
+  const [isDirectTimeInput, setIsDirectTimeInput] = useState(false);
+
+  // Available days calculated dynamically based on selected year & month
+  const availableDays = useMemo(() => {
+    const y = parseInt(birthYear, 10) || 1995;
+    const m = parseInt(birthMonth, 10) || 1;
+    const maxD = new Date(y, m, 0).getDate();
+    return Array.from({ length: maxD }, (_, i) => i + 1);
+  }, [birthYear, birthMonth]);
+
+  // Adjust selected day if it exceeds the new month's max days
+  useEffect(() => {
+    if (birthDay && availableDays.length > 0) {
+      const d = parseInt(birthDay, 10);
+      const maxD = availableDays[availableDays.length - 1];
+      if (d > maxD) {
+        setBirthDay(maxD.toString());
+      }
+    }
+  }, [availableDays, birthDay]);
 
   // Individual Field Errors
   const [yearError, setYearError] = useState("");
@@ -558,71 +586,130 @@ export default function SajuForm({
       {/* Birth Date */}
       <div className="space-y-1.5 text-left">
         <div className="flex justify-between items-center gap-2">
-          <label className="block text-xs font-medium text-ink-soft">
-            {calendarType === "solar" ? "생년월일 (양력)" : `생년월일 (음력 ${calendarType === "lunar_leap" ? "윤달" : "평달"})`}
-          </label>
+          <div className="flex items-center gap-2">
+            <label className="block text-xs font-medium text-ink-soft">
+              {calendarType === "solar" ? "생년월일 (양력)" : `생년월일 (음력 ${calendarType === "lunar_leap" ? "윤달" : "평달"})`}
+            </label>
+            <button
+              type="button"
+              onClick={() => setIsDirectDateInput(!isDirectDateInput)}
+              className="text-[11px] text-ink-faint hover:text-ink underline transition-colors cursor-pointer"
+            >
+              {isDirectDateInput ? "목록 선택" : "직접 입력"}
+            </button>
+          </div>
           {convertedSolarText && (
             <span className="text-xs font-medium text-ink">{convertedSolarText}</span>
           )}
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          {/* Year Input */}
-          <div className="relative">
-            <input
-              id="birth-year-input"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={4}
-              value={birthYear}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, "");
-                setBirthYear(val);
-              }}
-              placeholder="1995"
-              className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${yearError ? inputErr : inputOk}`}
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">년</span>
-          </div>
 
-          {/* Month Input */}
-          <div className="relative">
-            <input
-              id="birth-month-input"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={2}
-              value={birthMonth}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, "");
-                setBirthMonth(val);
-              }}
-              placeholder="1"
-              className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${monthError ? inputErr : inputOk}`}
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">월</span>
-          </div>
+        {!isDirectDateInput ? (
+          <div className="grid grid-cols-3 gap-2">
+            {/* Year Select */}
+            <div className="relative">
+              <select
+                id="birth-year-select"
+                value={birthYear}
+                onChange={(e) => setBirthYear(e.target.value)}
+                className={`w-full text-center px-1.5 py-3 ${inputBase} ${yearError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
+              >
+                <option value="" disabled>년도 선택</option>
+                {YEAR_OPTIONS.map((y) => (
+                  <option key={y} value={y.toString()}>{y}년</option>
+                ))}
+              </select>
+            </div>
 
-          {/* Day Input */}
-          <div className="relative">
-            <input
-              id="birth-day-input"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={2}
-              value={birthDay}
-              onChange={(e) => {
-                const val = e.target.value.replace(/[^0-9]/g, "");
-                setBirthDay(val);
-              }}
-              placeholder="1"
-              className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${dayError ? inputErr : inputOk}`}
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">일</span>
+            {/* Month Select */}
+            <div className="relative">
+              <select
+                id="birth-month-select"
+                value={birthMonth}
+                onChange={(e) => setBirthMonth(e.target.value)}
+                className={`w-full text-center px-1.5 py-3 ${inputBase} ${monthError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
+              >
+                <option value="" disabled>월 선택</option>
+                {MONTH_OPTIONS.map((m) => (
+                  <option key={m} value={m.toString()}>{m}월</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Day Select */}
+            <div className="relative">
+              <select
+                id="birth-day-select"
+                value={birthDay}
+                onChange={(e) => setBirthDay(e.target.value)}
+                className={`w-full text-center px-1.5 py-3 ${inputBase} ${dayError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
+              >
+                <option value="" disabled>일 선택</option>
+                {availableDays.map((d) => (
+                  <option key={d} value={d.toString()}>{d}일</option>
+                ))}
+              </select>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            {/* Year Input */}
+            <div className="relative">
+              <input
+                id="birth-year-input"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={4}
+                value={birthYear}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, "");
+                  setBirthYear(val);
+                }}
+                placeholder="1995"
+                className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${yearError ? inputErr : inputOk}`}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">년</span>
+            </div>
+
+            {/* Month Input */}
+            <div className="relative">
+              <input
+                id="birth-month-input"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
+                value={birthMonth}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, "");
+                  setBirthMonth(val);
+                }}
+                placeholder="1"
+                className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${monthError ? inputErr : inputOk}`}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">월</span>
+            </div>
+
+            {/* Day Input */}
+            <div className="relative">
+              <input
+                id="birth-day-input"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={2}
+                value={birthDay}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/[^0-9]/g, "");
+                  setBirthDay(val);
+                }}
+                placeholder="1"
+                className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${dayError ? inputErr : inputOk}`}
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">일</span>
+            </div>
+          </div>
+        )}
         {(yearError || monthError || dayError) && (
           <div className="space-y-1 mt-1.5 pl-1">
             {yearError && <p className="text-xs text-seal font-medium leading-normal">{yearError}</p>}
@@ -689,45 +776,89 @@ export default function SajuForm({
 
         {knowTime ? (
           <div>
-            <div className="grid grid-cols-2 gap-2">
-              {/* Hour Input */}
-              <div className="relative">
-                <input
-                  id="birth-hour-input"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={2}
-                  value={birthHour}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9]/g, "");
-                    setBirthHour(val);
-                  }}
-                  placeholder="14"
-                  className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${hourError ? inputErr : inputOk}`}
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">시</span>
-              </div>
-
-              {/* Minute Input */}
-              <div className="relative">
-                <input
-                  id="birth-minute-input"
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  maxLength={2}
-                  value={birthMin}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9]/g, "");
-                    setBirthMin(val);
-                  }}
-                  placeholder="30"
-                  className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${minError ? inputErr : inputOk}`}
-                />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">분</span>
-              </div>
+            <div className="flex items-center justify-end mb-1.5">
+              <button
+                type="button"
+                onClick={() => setIsDirectTimeInput(!isDirectTimeInput)}
+                className="text-[11px] text-ink-faint hover:text-ink underline transition-colors cursor-pointer"
+              >
+                {isDirectTimeInput ? "목록 선택" : "직접 입력"}
+              </button>
             </div>
+
+            {!isDirectTimeInput ? (
+              <div className="grid grid-cols-2 gap-2">
+                {/* Hour Select */}
+                <div className="relative">
+                  <select
+                    id="birth-hour-select"
+                    value={birthHour}
+                    onChange={(e) => setBirthHour(e.target.value)}
+                    className={`w-full text-center px-3 py-3 ${inputBase} ${hourError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
+                  >
+                    <option value="" disabled>시 선택</option>
+                    {HOUR_OPTIONS.map((h) => (
+                      <option key={h} value={h.toString()}>{h.toString().padStart(2, "0")}시</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Minute Select */}
+                <div className="relative">
+                  <select
+                    id="birth-minute-select"
+                    value={birthMin}
+                    onChange={(e) => setBirthMin(e.target.value)}
+                    className={`w-full text-center px-3 py-3 ${inputBase} ${minError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
+                  >
+                    <option value="" disabled>분 선택</option>
+                    {MINUTE_OPTIONS.map((m) => (
+                      <option key={m} value={m.toString()}>{m.toString().padStart(2, "0")}분</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {/* Hour Input */}
+                <div className="relative">
+                  <input
+                    id="birth-hour-input"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={2}
+                    value={birthHour}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, "");
+                      setBirthHour(val);
+                    }}
+                    placeholder="14"
+                    className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${hourError ? inputErr : inputOk}`}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">시</span>
+                </div>
+
+                {/* Minute Input */}
+                <div className="relative">
+                  <input
+                    id="birth-minute-input"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={2}
+                    value={birthMin}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, "");
+                      setBirthMin(val);
+                    }}
+                    placeholder="30"
+                    className={`w-full text-center pr-6 pl-2 py-3 ${inputBase} ${minError ? inputErr : inputOk}`}
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint pointer-events-none">분</span>
+                </div>
+              </div>
+            )}
             {(hourError || minError) && (
               <div className="space-y-1 mt-1.5 pl-1">
                 {hourError && <p className="text-xs text-seal font-medium leading-normal">{hourError}</p>}
