@@ -27,6 +27,7 @@ export default function Layout({
   headerRight,
 }: LayoutProps) {
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
+  const [isAuthChecking, setIsAuthChecking] = useState(() => !auth.currentUser);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -39,6 +40,7 @@ export default function Layout({
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
       setCurrentUser(user);
+      setIsAuthChecking(false);
     });
     return () => unsub();
   }, []);
@@ -212,7 +214,15 @@ export default function Layout({
 
             {headerRight}
 
-            {membership.isGuest ? (
+            {isAuthChecking ? (
+              <div
+                className="h-[32px] px-2.5 sm:px-3 bg-sunken rounded-xl flex items-center justify-center gap-1.5 text-xs text-ink-faint animate-pulse"
+                title="로그인 정보를 확인하는 중입니다"
+              >
+                <div className="w-3 h-3 border-2 border-line border-t-ink-soft rounded-full animate-spin" />
+                <span className="text-[11px] font-medium hidden sm:inline">확인 중...</span>
+              </div>
+            ) : membership.isGuest ? (
               <button
                 onClick={() => setIsAuthModalOpen(true)}
                 className="text-xs font-semibold text-ink bg-sunken hover:bg-line px-3 py-2 rounded-xl transition-colors cursor-pointer"

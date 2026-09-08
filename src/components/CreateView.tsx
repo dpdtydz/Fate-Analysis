@@ -25,12 +25,14 @@ export default function CreateView() {
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
+  const [isAuthChecking, setIsAuthChecking] = useState(() => !auth.currentUser);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [personalProfile, setPersonalProfile] = useState<PersonalSajuProfile | null>(null);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setCurrentUser(user);
+      setIsAuthChecking(false);
     });
     return () => unsubscribe();
   }, []);
@@ -185,6 +187,18 @@ export default function CreateView() {
       setLoading(false);
     }
   };
+
+  // State 0: Auth State Checking
+  if (isAuthChecking) {
+    return (
+      <Layout title="모임방 만들기" showHomeButton>
+        <div className="flex flex-col items-center justify-center py-24 select-none">
+          <div className="w-8 h-8 border-2 border-line border-t-ink rounded-full animate-spin" />
+          <p className="text-xs text-ink-faint mt-3 font-medium">로그인 정보를 확인하는 중입니다...</p>
+        </div>
+      </Layout>
+    );
+  }
 
   // State 1: Regular Email User (Must link Google to create room)
   if (membership.isEmailOnly) {

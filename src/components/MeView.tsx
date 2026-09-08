@@ -1183,6 +1183,37 @@ export default function MeView({ code, memberId }: MeViewProps) {
     fetchAllData();
   }, [code, memberId]);
 
+  const isRoomOwner = !!(roomOwnerUid && currentUser?.uid === roomOwnerUid);
+  const isMyProfile = Boolean(
+    (member && member.id === localMemberId) ||
+    (member?.user_uid && currentUser && member.user_uid === currentUser.uid) ||
+    isRoomOwner
+  );
+  const isMyOwnProfile = Boolean(
+    (member && member.id === localMemberId) ||
+    (member?.user_uid && currentUser && member.user_uid === currentUser.uid)
+  );
+  const isLoginRequiredToEdit = Boolean(
+    member?.user_uid && (!currentUser || currentUser.uid !== member.user_uid) && !isRoomOwner
+  );
+
+  // 내 프로필을 볼 때는 개인 프로필의 분석을 원본으로 쓴다.
+  // 방마다 따로 생성된 사본을 그대로 보여주면 개인 화면과 내용이 갈린다.
+  // (다른 멤버의 분석은 방 데이터가 맞으므로 건드리지 않는다)
+  useEffect(() => {
+    if (!isMyOwnProfile) {
+      setMyCanonicalAnalysis(null);
+      return;
+    }
+    let alive = true;
+    resolveMyPersonalAnalysis(aiAnalysis || member?.personal_analysis).then((r) => {
+      if (alive) setMyCanonicalAnalysis(r);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [isMyOwnProfile, aiAnalysis, member?.personal_analysis]);
+
   if (loading) {
     return (
       <Layout title="리포트 불러오는 중">
@@ -1209,28 +1240,6 @@ export default function MeView({ code, memberId }: MeViewProps) {
       </Layout>
     );
   }
-
-  const isRoomOwner = roomOwnerUid && currentUser?.uid === roomOwnerUid;
-  const isMyProfile = (member.id === localMemberId) || (member.user_uid && currentUser && member.user_uid === currentUser.uid) || isRoomOwner;
-  const isMyOwnProfile = (member.id === localMemberId) || (member.user_uid && currentUser && member.user_uid === currentUser.uid);
-  const isLoginRequiredToEdit = member.user_uid && (!currentUser || currentUser.uid !== member.user_uid) && !isRoomOwner;
-
-  // 내 프로필을 볼 때는 개인 프로필의 분석을 원본으로 쓴다.
-  // 방마다 따로 생성된 사본을 그대로 보여주면 개인 화면과 내용이 갈린다.
-  // (다른 멤버의 분석은 방 데이터가 맞으므로 건드리지 않는다)
-  useEffect(() => {
-    if (!isMyOwnProfile) {
-      setMyCanonicalAnalysis(null);
-      return;
-    }
-    let alive = true;
-    resolveMyPersonalAnalysis(aiAnalysis || member.personal_analysis).then((r) => {
-      if (alive) setMyCanonicalAnalysis(r);
-    });
-    return () => {
-      alive = false;
-    };
-  }, [isMyOwnProfile, aiAnalysis, member.personal_analysis]);
 
   const otherMembersList = allMembers.filter((m) => m.id !== memberId);
   const missingPairsCount = otherMembersList.filter((otherMember) => {
