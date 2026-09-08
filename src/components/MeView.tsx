@@ -767,15 +767,50 @@ export default function MeView({ code, memberId }: MeViewProps) {
         return m;
       });
 
+      const sanitizedMembers = enrichedMembers.map(m => {
+        let trimmedPalaces: Record<string, any> | undefined = undefined;
+        if (m.saju?.ziwei?.palaces) {
+          const mingGong = Object.values(m.saju.ziwei.palaces).find((p: any) => p.name === "命宮" || p.nameKr === "명궁");
+          if (mingGong) {
+            trimmedPalaces = { "命宮": mingGong };
+          }
+        }
+        return {
+          id: m.id,
+          nickname: m.nickname,
+          gender: m.gender,
+          birth_date: m.birth_date,
+          birth_time: m.birth_time,
+          mbti: m.mbti,
+          character_animal: m.character_animal,
+          character_emoji: m.character_emoji,
+          character_color: m.character_color,
+          personal_analysis: m.personal_analysis,
+          saju: m.saju ? {
+            daymaster: m.saju.daymaster,
+            ohaeng_count: m.saju.ohaeng_count,
+            sipseong_strength: m.saju.sipseong_strength,
+            special_sals_list: m.saju.special_sals_list,
+            daewoon: m.saju.daewoon,
+            pillars: m.saju.pillars,
+            pillars_detail: m.saju.pillars_detail,
+            ziwei: trimmedPalaces ? { palaces: trimmedPalaces } : undefined
+          } : undefined
+        };
+      });
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ room_title: roomTitle || "친목모임", members: enrichedMembers }),
+        body: JSON.stringify({ room_title: roomTitle || "친목모임", members: sanitizedMembers }),
       });
 
       if (!response.ok) {
+        if (response.status === 413) {
+          throw new Error("분석할 멤버 데이터 용량이 너무 큽니다. 잠시 후 다시 시도해 주세요.");
+        }
         throw new Error("AI 분석 갱신에 실패했습니다. 잠시 후 상단의 업데이트 버튼을 다시 눌러주세요.");
       }
 
@@ -827,15 +862,50 @@ export default function MeView({ code, memberId }: MeViewProps) {
         return m;
       });
 
+      const sanitizedMembers = enrichedMembers.map(m => {
+        let trimmedPalaces: Record<string, any> | undefined = undefined;
+        if (m.saju?.ziwei?.palaces) {
+          const mingGong = Object.values(m.saju.ziwei.palaces).find((p: any) => p.name === "命宮" || p.nameKr === "명궁");
+          if (mingGong) {
+            trimmedPalaces = { "命宮": mingGong };
+          }
+        }
+        return {
+          id: m.id,
+          nickname: m.nickname,
+          gender: m.gender,
+          birth_date: m.birth_date,
+          birth_time: m.birth_time,
+          mbti: m.mbti,
+          character_animal: m.character_animal,
+          character_emoji: m.character_emoji,
+          character_color: m.character_color,
+          personal_analysis: m.personal_analysis,
+          saju: m.saju ? {
+            daymaster: m.saju.daymaster,
+            ohaeng_count: m.saju.ohaeng_count,
+            sipseong_strength: m.saju.sipseong_strength,
+            special_sals_list: m.saju.special_sals_list,
+            daewoon: m.saju.daewoon,
+            pillars: m.saju.pillars,
+            pillars_detail: m.saju.pillars_detail,
+            ziwei: trimmedPalaces ? { palaces: trimmedPalaces } : undefined
+          } : undefined
+        };
+      });
+
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ room_title: roomTitle || "친목모임", members: enrichedMembers }),
+        body: JSON.stringify({ room_title: roomTitle || "친목모임", members: sanitizedMembers }),
       });
 
       if (!response.ok) {
+        if (response.status === 413) {
+          throw new Error("분석할 멤버 데이터 용량이 너무 큽니다. 잠시 후 다시 시도해 주세요.");
+        }
         throw new Error("서버에서 AI 분석을 생성하는 데 실패했습니다. 잠시 후 다시 시도해 주세요.");
       }
 

@@ -113,7 +113,8 @@ async function startServer() {
   // Cloud Run 등 PaaS는 PORT를 주입한다. 로컬 개발은 기존대로 3000.
   const PORT = Number(process.env.PORT) || 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: "50mb" }));
+  app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
   app.use((req, res, next) => {
     console.log(`[REQUEST LOGGER] ${req.method} ${req.url}`);

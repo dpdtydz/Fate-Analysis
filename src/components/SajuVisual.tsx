@@ -1521,11 +1521,11 @@ export default function SajuVisual({
                       {narrative.lifeThemes.love.story}
                     </p>
                     {narrative.lifeThemes.love.tip && (
-                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex flex-col items-start gap-1.5">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal">
                           연애를 잘 풀어나가기 위한 조언
                         </span>
-                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
+                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium w-full">
                           {narrative.lifeThemes.love.tip}
                         </p>
                       </div>
@@ -1552,11 +1552,11 @@ export default function SajuVisual({
                       {narrative.lifeThemes.wealth.story}
                     </p>
                     {narrative.lifeThemes.wealth.tip && (
-                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex flex-col items-start gap-1.5">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal">
                           재물이 새는 것을 막는 실천 팁
                         </span>
-                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
+                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium w-full">
                           {narrative.lifeThemes.wealth.tip}
                         </p>
                       </div>
@@ -1583,11 +1583,11 @@ export default function SajuVisual({
                       {narrative.lifeThemes.lifeRelation.story}
                     </p>
                     {narrative.lifeThemes.lifeRelation.tip && (
-                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex flex-col items-start gap-1.5">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal">
                           건강한 인간관계를 위한 기준
                         </span>
-                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
+                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium w-full">
                           {narrative.lifeThemes.lifeRelation.tip}
                         </p>
                       </div>
@@ -1614,11 +1614,11 @@ export default function SajuVisual({
                       {narrative.lifeThemes.health.story}
                     </p>
                     {narrative.lifeThemes.health.tip && (
-                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex flex-col items-start gap-1.5">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal">
                           몸과 마음의 에너지를 회복하는 팁
                         </span>
-                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
+                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium w-full">
                           {narrative.lifeThemes.health.tip}
                         </p>
                       </div>
@@ -1645,11 +1645,11 @@ export default function SajuVisual({
                       {narrative.lifeThemes.career.story}
                     </p>
                     {narrative.lifeThemes.career.tip && (
-                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex items-start gap-2.5">
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal shrink-0 mt-0.5">
+                      <div className="bg-sunken/60 rounded-xl p-3 sm:p-3.5 border border-line/60 flex flex-col items-start gap-1.5">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-seal/10 text-seal">
                           직업적 잠재력을 극대화하는 조언
                         </span>
-                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium">
+                        <p className="text-xs text-ink-soft leading-relaxed break-keep-all font-medium w-full">
                           {narrative.lifeThemes.career.tip}
                         </p>
                       </div>
