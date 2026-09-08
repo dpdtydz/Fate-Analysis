@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Instagram } from "lucide-react";
 import LegalModal from "./LegalModal";
 
 export default function Footer() {
@@ -8,6 +9,16 @@ export default function Footer() {
     <footer className="px-5 py-6 border-t border-line text-center text-ink-faint text-xs">
       <div className="max-w-xl mx-auto space-y-2.5">
         <div className="flex items-center justify-center gap-3 flex-wrap">
+          <a
+            href="https://www.instagram.com/inyeonssaju"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 font-medium text-ink-soft hover:text-ink transition-colors"
+          >
+            <Instagram className="w-3.5 h-3.5 text-[#E1306C]" />
+            <span>@inyeonssaju</span>
+          </a>
+          <span className="text-line">·</span>
           <button
             type="button"
             onClick={() => setModalTab("privacy")}
