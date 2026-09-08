@@ -5,7 +5,7 @@ import LoadingOverlay from "./LoadingOverlay";
 import { db, getAnonymousUser, auth, checkPremiumStatus, checkProductUnlock, redeemCoupon, getUserMembershipInfo } from "../lib/firebase";
 import { doc, getDoc, setDoc, collection, getDocs, onSnapshot, deleteDoc } from "firebase/firestore";
 import { Member, Room, CachedAnalysisResult } from "../types";
-import { Share2, Heart, ArrowLeft, RefreshCw, Smile, Check, Lock, Ticket } from "lucide-react";
+import { Share2, Heart, ArrowLeft, RefreshCw, Smile, Check, Lock, Ticket, ChevronDown, ChevronUp } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import PremiumPaywall from "./PremiumPaywall";
 import GoogleAds from "./GoogleAds";
@@ -458,6 +458,29 @@ export default function GroupView({ code }: GroupViewProps) {
   });
   const [capturedImgUrl, setCapturedImgUrl] = useState<string | null>(null);
   const [showLongPressGuide, setShowLongPressGuide] = useState(false);
+
+  // Accordion state for 1:1 pairs list (default: expand 1st pair)
+  const [expandedPairIndices, setExpandedPairIndices] = useState<Set<number>>(() => new Set([0]));
+
+  const togglePair = (index: number) => {
+    setExpandedPairIndices(prev => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  };
+
+  const toggleAllPairs = (totalCount: number) => {
+    if (expandedPairIndices.size === totalCount) {
+      setExpandedPairIndices(new Set());
+    } else {
+      setExpandedPairIndices(new Set(Array.from({ length: totalCount }, (_, i) => i)));
+    }
+  };
 
   // Inline Coupon State
   const [inlineCoupon, setInlineCoupon] = useState("");
@@ -1555,16 +1578,27 @@ export default function GroupView({ code }: GroupViewProps) {
         {/* 1:1 Chemical lists details */}
         <div className="space-y-4 text-left">
           <div className="flex flex-col space-y-1 border-b border-line pb-3 text-left">
-            <div className="flex items-center space-x-1.5">
-              <Heart className="w-4 h-4 text-ink-faint" />
-              <h4 className="font-serif text-lg font-semibold text-ink">
-                {isGroupUnlocked ? `멤버 간 1:1 궁합 (전체 ${sortedPairs.length}쌍)` : "멤버 간 1:1 궁합 (대표 3쌍)"}
-              </h4>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-1.5">
+                <Heart className="w-4 h-4 text-ink-faint" />
+                <h4 className="font-serif text-lg font-semibold text-ink">
+                  {isGroupUnlocked ? `멤버 간 1:1 궁합 (전체 ${sortedPairs.length}쌍)` : "멤버 간 1:1 궁합 (대표 3쌍)"}
+                </h4>
+              </div>
+              {displayedPairs.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => toggleAllPairs(displayedPairs.length)}
+                  className="text-xs text-ink-soft hover:text-ink font-medium px-2.5 py-1 bg-sunken hover:bg-line rounded-lg transition-colors cursor-pointer shrink-0"
+                >
+                  {expandedPairIndices.size === displayedPairs.length ? "모두 접기" : "모두 펼치기"}
+                </button>
+              )}
             </div>
             <p className="text-xs text-ink-soft leading-relaxed">
               {isGroupUnlocked
-                ? `모임 안 전체 ${sortedPairs.length}쌍의 사주·자미두수·MBTI 융합 궁합 해설이 열려 있어요.`
-                : `전체 ${sortedPairs.length}쌍 중 조화가 가장 좋은 2쌍과 서로 조심이 필요한 1쌍을 골랐어요. 개별 멤버 페이지에서는 본인의 모든 궁합을 볼 수 있어요.`
+                ? `모임 안 전체 ${sortedPairs.length}쌍의 사주·자미두수·MBTI 융합 궁합 해설이 열려 있어요. 카드를 눌러 상세 내용을 펼쳐보세요.`
+                : `전체 ${sortedPairs.length}쌍 중 조화가 가장 좋은 2쌍과 서로 조심이 필요한 1쌍을 골랐어요. 카드를 눌러 상세 내용을 펼쳐보세요.`
               }
             </p>
           </div>
@@ -1611,14 +1645,18 @@ export default function GroupView({ code }: GroupViewProps) {
               const originalIndex = sortedPairs.indexOf(pair);
               const isBest = originalIndex === 0 || originalIndex === 1;
               const isWorst = originalIndex === sortedPairs.length - 1 && sortedPairs.length > 2;
+              const isExpanded = expandedPairIndices.has(originalIndex);
 
               return (
                 <div
                   key={`pair-${originalIndex}`}
-                  className="bg-surface border border-line p-5 rounded-xl space-y-3.5 text-left"
+                  className="bg-surface border border-line p-4 sm:p-5 rounded-xl space-y-3 text-left transition-all duration-200"
                 >
-                  {/* Pair header participants */}
-                  <div className="flex items-center justify-between pb-2">
+                  {/* Pair header participants - Clickable accordion toggle */}
+                  <div 
+                    onClick={() => togglePair(originalIndex)}
+                    className="flex items-center justify-between cursor-pointer select-none group"
+                  >
                     <div className="flex items-center space-x-1.5 text-sm font-semibold text-ink min-w-0 flex-1 flex-wrap gap-y-1">
                       <span className="w-6 h-6 rounded-full bg-sunken flex items-center justify-center shrink-0 overflow-hidden">
                         <ZodiacAvatar member={m1} size={22} fallbackEmoji={m1.character_emoji} />
@@ -1637,7 +1675,7 @@ export default function GroupView({ code }: GroupViewProps) {
                       </span>
                     </div>
 
-                    {/* Score & Special Status Badge Group */}
+                    {/* Score & Special Status Badge Group + Accordion Arrow */}
                     <div className="flex items-center space-x-1.5 shrink-0 ml-2">
                       {isBest && (
                         <span className="text-xs font-semibold text-seal bg-sunken px-2 py-0.5 rounded-md shrink-0">
@@ -1652,99 +1690,55 @@ export default function GroupView({ code }: GroupViewProps) {
                       <span className="text-xs font-mono font-semibold text-ink bg-sunken px-2.5 py-0.5 rounded-md shrink-0">
                         {pair.score}점
                       </span>
+                      <div className="w-6 h-6 rounded-md bg-sunken group-hover:bg-line flex items-center justify-center text-ink-faint transition-colors ml-0.5">
+                        {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Full-width label callout */}
-                  <div className={`px-3 py-2 rounded-xl text-center text-xs font-semibold leading-normal ${getScoreColor(pair.score)}`}>
-                    {pair.label}
-                  </div>
+                  {/* Compact Preview when Collapsed */}
+                  {!isExpanded && (
+                    <div 
+                      onClick={() => togglePair(originalIndex)}
+                      className="pt-1 flex items-center justify-between text-xs text-ink-soft cursor-pointer select-none"
+                    >
+                      <span className={`inline-block px-2 py-0.5 rounded-md font-semibold text-[11px] ${getScoreColor(pair.score)}`}>
+                        {pair.label}
+                      </span>
+                      <span className="text-[11px] text-ink-faint hover:text-ink transition-colors flex items-center gap-1">
+                        상세 보기
+                        <ChevronDown className="w-3 h-3" />
+                      </span>
+                    </div>
+                  )}
 
-                  {/* Chemistry description of 2-3 sentences */}
-                  <p className="text-sm text-ink-soft leading-relaxed">
-                    {pair.description}
-                  </p>
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="space-y-3.5 pt-3 border-t border-line/60">
+                      {/* Full-width label callout */}
+                      <div className={`px-3 py-2 rounded-xl text-center text-xs font-semibold leading-normal ${getScoreColor(pair.score)}`}>
+                        {pair.label}
+                      </div>
 
-                  {/* Detailed 4-Area Compatibility Breakdown */}
-                  {pair.saju && pair.ziwei && pair.mbti && pair.zodiac && (
-                    <div className="mt-3.5 pt-3.5 space-y-3">
-                      <h4 className="text-xs font-semibold text-ink flex items-center gap-1.5">
-                        4대 영역별 상세 궁합 {!isSecretUnlocked && <span className="text-xs bg-sunken text-ink-faint px-1.5 py-0.5 rounded-md font-medium flex items-center gap-0.5"><Lock className="w-2.5 h-2.5" /> 잠김</span>}
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                        {/* Saju */}
-                        <div className="bg-sunken p-3 rounded-xl space-y-1.5 relative overflow-hidden">
-                          <div className="flex justify-between items-center pb-1">
-                            <span className="font-semibold text-xs text-ink">사주 궁합</span>
-                            {isSecretUnlocked ? (
-                              <span className="text-xs font-mono font-semibold text-ink bg-surface px-1.5 py-0.5 rounded-md">
-                                평균 {Math.round((pair.saju.score_1_to_2 + pair.saju.score_2_to_1) / 2)}점
-                              </span>
-                            ) : (
-                              <span className="text-xs font-medium text-ink-faint bg-surface px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-                                <Lock className="w-2.5 h-2.5" /> 잠김
-                              </span>
-                            )}
-                          </div>
-                          {isSecretUnlocked ? (
-                            <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap">
-                              {pair.saju.description}
-                            </p>
-                          ) : (
-                            <div className="relative pt-0.5">
-                              <p className="text-xs text-ink-faint/50 leading-relaxed whitespace-pre-wrap blur-[2.5px] select-none pointer-events-none">
-                                두 사람의 사주 오행 분포와 상호 지지 형충파해 작용을 대조한 궁합 해설이에요.
-                              </p>
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xs font-medium text-ink bg-surface px-2 py-0.5 rounded-md shadow-sm">
-                                  상세 해설 잠김
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                      {/* Chemistry description of 2-3 sentences */}
+                      <p className="text-sm text-ink-soft leading-relaxed">
+                        {pair.description}
+                      </p>
 
-                        {/* Ziwei */}
-                        <div className="bg-sunken p-3 rounded-xl space-y-1.5 relative overflow-hidden">
-                          <div className="flex justify-between items-center pb-1">
-                            <span className="font-semibold text-xs text-ink">자미두수 궁합</span>
-                            {isSecretUnlocked ? (
-                              <span className="text-xs font-mono font-semibold text-ink bg-surface px-1.5 py-0.5 rounded-md">
-                                평균 {Math.round((pair.ziwei.score_1_to_2 + pair.ziwei.score_2_to_1) / 2)}점
-                              </span>
-                            ) : (
-                              <span className="text-xs font-medium text-ink-faint bg-surface px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-                                <Lock className="w-2.5 h-2.5" /> 잠김
-                              </span>
-                            )}
-                          </div>
-                          {isSecretUnlocked ? (
-                            <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap">
-                              {pair.ziwei.description}
-                            </p>
-                          ) : (
-                            <div className="relative pt-0.5">
-                              <p className="text-xs text-ink-faint/50 leading-relaxed whitespace-pre-wrap blur-[2.5px] select-none pointer-events-none">
-                                자미두수 명반의 부부궁과 인연궁을 교차 대조해 두 사람의 마음이 소통하는 깊이를 해설한 리포트예요.
-                              </p>
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xs font-medium text-ink bg-surface px-2 py-0.5 rounded-md shadow-sm">
-                                  상세 해설 잠김
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* MBTI */}
-                        <div className="bg-sunken p-3 rounded-xl space-y-1.5 relative overflow-hidden">
-                          {isMbtiRegistered(m1) && isMbtiRegistered(m2) ? (
-                            <>
+                      {/* Detailed 4-Area Compatibility Breakdown */}
+                      {pair.saju && pair.ziwei && pair.mbti && pair.zodiac && (
+                        <div className="mt-3.5 pt-1 space-y-3">
+                          <h4 className="text-xs font-semibold text-ink flex items-center gap-1.5">
+                            4대 영역별 상세 궁합 {!isSecretUnlocked && <span className="text-xs bg-sunken text-ink-faint px-1.5 py-0.5 rounded-md font-medium flex items-center gap-0.5"><Lock className="w-2.5 h-2.5" /> 잠김</span>}
+                          </h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                            {/* Saju */}
+                            <div className="bg-sunken p-3 rounded-xl space-y-1.5 relative overflow-hidden">
                               <div className="flex justify-between items-center pb-1">
-                                <span className="font-semibold text-xs text-ink">MBTI 성향 궁합</span>
+                                <span className="font-semibold text-xs text-ink">사주 궁합</span>
                                 {isSecretUnlocked ? (
                                   <span className="text-xs font-mono font-semibold text-ink bg-surface px-1.5 py-0.5 rounded-md">
-                                    평균 {Math.round((pair.mbti.score_1_to_2 + pair.mbti.score_2_to_1) / 2)}점
+                                    평균 {Math.round((pair.saju.score_1_to_2 + pair.saju.score_2_to_1) / 2)}점
                                   </span>
                                 ) : (
                                   <span className="text-xs font-medium text-ink-faint bg-surface px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
@@ -1754,11 +1748,140 @@ export default function GroupView({ code }: GroupViewProps) {
                               </div>
                               {isSecretUnlocked ? (
                                 <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap">
-                                  {pair.mbti.description}
+                                  {pair.saju.description}
+                                </p>
+                              ) : (
+                                <div className="relative pt-0.5">
+                                  <p className="text-xs text-ink-faint/50 leading-relaxed whitespace-pre-wrap blur-[2.5px] select-none pointer-events-none">
+                                    두 사람의 사주 오행 분포와 상호 지지 형충파해 작용을 대조한 궁합 해설이에요.
+                                  </p>
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-xs font-medium text-ink bg-surface px-2 py-0.5 rounded-md shadow-sm">
+                                      상세 해설 잠김
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Ziwei */}
+                            <div className="bg-sunken p-3 rounded-xl space-y-1.5 relative overflow-hidden">
+                              <div className="flex justify-between items-center pb-1">
+                                <span className="font-semibold text-xs text-ink">자미두수 궁합</span>
+                                {isSecretUnlocked ? (
+                                  <span className="text-xs font-mono font-semibold text-ink bg-surface px-1.5 py-0.5 rounded-md">
+                                    평균 {Math.round((pair.ziwei.score_1_to_2 + pair.ziwei.score_2_to_1) / 2)}점
+                                  </span>
+                                ) : (
+                                  <span className="text-xs font-medium text-ink-faint bg-surface px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                                    <Lock className="w-2.5 h-2.5" /> 잠김
+                                  </span>
+                                )}
+                              </div>
+                              {isSecretUnlocked ? (
+                                <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap">
+                                  {pair.ziwei.description}
+                                </p>
+                              ) : (
+                                <div className="relative pt-0.5">
+                                  <p className="text-xs text-ink-faint/50 leading-relaxed whitespace-pre-wrap blur-[2.5px] select-none pointer-events-none">
+                                    자미두수 명반의 부부궁과 인연궁을 교차 대조해 두 사람의 마음이 소통하는 깊이를 해설한 리포트예요.
+                                  </p>
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-xs font-medium text-ink bg-surface px-2 py-0.5 rounded-md shadow-sm">
+                                      상세 해설 잠김
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* MBTI */}
+                            <div className="bg-sunken p-3 rounded-xl space-y-1.5 relative overflow-hidden">
+                              {isMbtiRegistered(m1) && isMbtiRegistered(m2) ? (
+                                <>
+                                  <div className="flex justify-between items-center pb-1">
+                                    <span className="font-semibold text-xs text-ink">MBTI 성향 궁합</span>
+                                    {isSecretUnlocked ? (
+                                      <span className="text-xs font-mono font-semibold text-ink bg-surface px-1.5 py-0.5 rounded-md">
+                                        평균 {Math.round((pair.mbti.score_1_to_2 + pair.mbti.score_2_to_1) / 2)}점
+                                      </span>
+                                    ) : (
+                                      <span className="text-xs font-medium text-ink-faint bg-surface px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                                        <Lock className="w-2.5 h-2.5" /> 잠김
+                                      </span>
+                                    )}
+                                  </div>
+                                  {isSecretUnlocked ? (
+                                    <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap">
+                                      {pair.mbti.description}
+                                    </p>
+                                  ) : (
+                                    <div
+                                      onClick={() => {
+                                        setShopInitialTab("secret");
+                                        setIsShopOpen(true);
+                                      }}
+                                      className="relative pt-0.5 cursor-pointer group"
+                                      title="쿠폰 번호로 해금하기"
+                                    >
+                                      <p className="text-xs text-ink-faint/50 leading-relaxed whitespace-pre-wrap blur-[2.5px] select-none pointer-events-none">
+                                        MBTI 가치관 결합과 소통 성향 호환도, 갈등의 원인과 해결 수칙을 담은 해설이에요.
+                                      </p>
+                                      <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-xs font-medium text-ink bg-surface group-hover:bg-line px-2 py-0.5 rounded-md shadow-sm transition-colors">
+                                          쿠폰으로 해금
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <div className="flex justify-between items-center pb-1">
+                                    <span className="font-semibold text-xs text-ink">MBTI 성향 궁합</span>
+                                    <span className="text-xs text-ink-faint bg-surface px-1.5 py-0.5 rounded-md">
+                                      미등록
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-ink-faint leading-relaxed">
+                                    {!isMbtiRegistered(m1) && !isMbtiRegistered(m2)
+                                      ? `두 멤버(${m1?.nickname}, ${m2?.nickname}) 모두 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없어요.`
+                                      : !isMbtiRegistered(m1)
+                                      ? `${m1?.nickname}님이 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없어요.`
+                                      : `${m2?.nickname}님이 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없어요.`}
+                                  </p>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Zodiac */}
+                            <div className="bg-sunken p-3 rounded-xl space-y-1.5 relative overflow-hidden">
+                              <div className="flex justify-between items-center pb-1">
+                                <span className="font-semibold text-xs text-ink">별자리 궁합</span>
+                                {isSecretUnlocked ? (
+                                  <span className="text-xs font-mono font-semibold text-ink bg-surface px-1.5 py-0.5 rounded-md">
+                                    평균 {Math.round((pair.zodiac.score_1_to_2 + pair.zodiac.score_2_to_1) / 2)}점
+                                  </span>
+                                ) : (
+                                  <span className="text-xs font-medium text-ink-faint bg-surface px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                                    <Lock className="w-2.5 h-2.5" /> 잠김
+                                  </span>
+                                )}
+                              </div>
+                              {isSecretUnlocked ? (
+                                <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap">
+                                  {pair.zodiac.description}
                                 </p>
                               ) : (
                                 <div
                                   onClick={() => {
+                                    logAnalyticsEvent({
+                                      eventName: "click_locked_feature",
+                                      category: "conversion",
+                                      metadata: { feature: "secret_zodiac", pair: `${m1.nickname}-${m2.nickname}` },
+                                      roomCode: code
+                                    });
                                     setShopInitialTab("secret");
                                     setIsShopOpen(true);
                                   }}
@@ -1766,106 +1889,45 @@ export default function GroupView({ code }: GroupViewProps) {
                                   title="쿠폰 번호로 해금하기"
                                 >
                                   <p className="text-xs text-ink-faint/50 leading-relaxed whitespace-pre-wrap blur-[2.5px] select-none pointer-events-none">
-                                    MBTI 가치관 결합과 소통 성향 호환도, 갈등의 원인과 해결 수칙을 담은 해설이에요.
+                                    황도 12궁의 결합도를 바탕으로 두 사람이 공유하는 일상·감성 가치관 호환도를 해설해요.
                                   </p>
                                   <div className="absolute inset-0 flex items-center justify-center">
                                     <span className="text-xs font-medium text-ink bg-surface group-hover:bg-line px-2 py-0.5 rounded-md shadow-sm transition-colors">
-                                      쿠폰으로 해금
+                                      확인권으로 해금
                                     </span>
                                   </div>
                                 </div>
                               )}
-                            </>
-                          ) : (
-                            <>
-                              <div className="flex justify-between items-center pb-1">
-                                <span className="font-semibold text-xs text-ink">MBTI 성향 궁합</span>
-                                <span className="text-xs text-ink-faint bg-surface px-1.5 py-0.5 rounded-md">
-                                  미등록
-                                </span>
-                              </div>
-                              <p className="text-xs text-ink-faint leading-relaxed">
-                                {!isMbtiRegistered(m1) && !isMbtiRegistered(m2)
-                                  ? `두 멤버(${m1?.nickname}, ${m2?.nickname}) 모두 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없어요.`
-                                  : !isMbtiRegistered(m1)
-                                  ? `${m1?.nickname}님이 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없어요.`
-                                  : `${m2?.nickname}님이 MBTI를 등록하지 않아 성향 궁합을 분석할 수 없어요.`}
-                              </p>
-                            </>
-                          )}
-                        </div>
-
-                        {/* Zodiac */}
-                        <div className="bg-sunken p-3 rounded-xl space-y-1.5 relative overflow-hidden">
-                          <div className="flex justify-between items-center pb-1">
-                            <span className="font-semibold text-xs text-ink">별자리 궁합</span>
-                            {isSecretUnlocked ? (
-                              <span className="text-xs font-mono font-semibold text-ink bg-surface px-1.5 py-0.5 rounded-md">
-                                평균 {Math.round((pair.zodiac.score_1_to_2 + pair.zodiac.score_2_to_1) / 2)}점
-                              </span>
-                            ) : (
-                              <span className="text-xs font-medium text-ink-faint bg-surface px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
-                                <Lock className="w-2.5 h-2.5" /> 잠김
-                              </span>
-                            )}
-                          </div>
-                          {isSecretUnlocked ? (
-                            <p className="text-xs text-ink-soft leading-relaxed whitespace-pre-wrap">
-                              {pair.zodiac.description}
-                            </p>
-                          ) : (
-                            <div
-                              onClick={() => {
-                                logAnalyticsEvent({
-                                  eventName: "click_locked_feature",
-                                  category: "conversion",
-                                  metadata: { feature: "secret_zodiac", pair: `${m1.nickname}-${m2.nickname}` },
-                                  roomCode: code
-                                });
-                                setShopInitialTab("secret");
-                                setIsShopOpen(true);
-                              }}
-                              className="relative pt-0.5 cursor-pointer group"
-                              title="쿠폰 번호로 해금하기"
-                            >
-                              <p className="text-xs text-ink-faint/50 leading-relaxed whitespace-pre-wrap blur-[2.5px] select-none pointer-events-none">
-                                황도 12궁의 결합도를 바탕으로 두 사람이 공유하는 일상·감성 가치관 호환도를 해설해요.
-                              </p>
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xs font-medium text-ink bg-surface group-hover:bg-line px-2 py-0.5 rounded-md shadow-sm transition-colors">
-                                  확인권으로 해금
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* [인연사주 피드백 수용] 관계 극복 상생 처방전 & 행동 수칙 */}
-                      {(() => {
-                        const prescription = generateCustomPrescription(m1, m2, pair.score);
-                        return (
-                          <div id={`remedy-${originalIndex}`} className="bg-sunken p-4 rounded-xl space-y-2 mt-2.5">
-                            <div className="flex items-center gap-1.5 text-ink font-semibold text-xs">
-                              <Smile className="w-4 h-4 text-ink-faint shrink-0" />
-                              <span>인연 처방전 — 두 사람의 상생 솔루션</span>
-                            </div>
-                            <div className="text-xs text-ink-soft leading-relaxed space-y-1.5">
-                              <div className="bg-surface p-3 rounded-xl">
-                                <span className="text-ink font-semibold block mb-0.5">
-                                  {prescription.clashTitle}
-                                </span>
-                                {prescription.clashDesc}
-                              </div>
-                              <div className="bg-surface p-3 rounded-xl space-y-1.5">
-                                <span className="text-ink font-semibold block mb-0.5">상생 화합 처방</span>
-                                <p>{prescription.remedy1}</p>
-                                <p>{prescription.remedy2}</p>
-                              </div>
                             </div>
                           </div>
-                        );
-                      })()}
+
+                          {/* [인연사주 피드백 수용] 관계 극복 상생 처방전 & 행동 수칙 */}
+                          {(() => {
+                            const prescription = generateCustomPrescription(m1, m2, pair.score);
+                            return (
+                              <div id={`remedy-${originalIndex}`} className="bg-sunken p-4 rounded-xl space-y-2 mt-2.5">
+                                <div className="flex items-center gap-1.5 text-ink font-semibold text-xs">
+                                  <Smile className="w-4 h-4 text-ink-faint shrink-0" />
+                                  <span>인연 처방전 — 두 사람의 상생 솔루션</span>
+                                </div>
+                                <div className="text-xs text-ink-soft leading-relaxed space-y-1.5">
+                                  <div className="bg-surface p-3 rounded-xl">
+                                    <span className="text-ink font-semibold block mb-0.5">
+                                      {prescription.clashTitle}
+                                    </span>
+                                    {prescription.clashDesc}
+                                  </div>
+                                  <div className="bg-surface p-3 rounded-xl space-y-1.5">
+                                    <span className="text-ink font-semibold block mb-0.5">상생 화합 처방</span>
+                                    <p>{prescription.remedy1}</p>
+                                    <p>{prescription.remedy2}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
