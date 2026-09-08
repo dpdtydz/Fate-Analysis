@@ -25,7 +25,7 @@ const JI_HANGUL: Record<string, string> = {
 };
 
 // 60갑자 고유 메타포 및 심층 기질 프로필
-const PILLAR_PROFILES: Record<string, {
+export const PILLAR_PROFILES: Record<string, {
   metaphor: string;
   keyword: string;
   essence: string;

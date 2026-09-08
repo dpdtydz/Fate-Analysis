@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import rateLimit from "express-rate-limit";
+import { PILLAR_PROFILES } from "./src/utils/sajuSynthesis";
 
 dotenv.config();
 
@@ -61,6 +62,114 @@ async function checkAdmin(req: any, res: any, next: any) {
 }
 
 // Fluent Korean Guideline with Deep Storytelling & Insight
+
+function getDayPillarInsight(pillarGanzi: string) {
+  if (!pillarGanzi) return { metaphor: "미지의 원석", keywords: ["잠재력", "신비"] };
+  const profile = (PILLAR_PROFILES as Record<string, any>)[pillarGanzi];
+  if (profile) {
+    return {
+      pillar: pillarGanzi,
+      metaphor: profile.metaphor || "고유한 자연의 물상",
+      keywords: profile.keywords || ["개성", "기운"],
+      nature: profile.nature || ""
+    };
+  }
+  return { pillar: pillarGanzi, metaphor: "고유한 개성의 결정체", keywords: ["자기다움"] };
+}
+
+function getSeasonInsight(birthDate: string, monthJi?: string) {
+  const parts = (birthDate || "").split("-");
+  const month = parts.length >= 2 ? parseInt(parts[1], 10) : null;
+  const ji = monthJi || "";
+
+  if (["인", "묘", "진"].includes(ji) || (month !== null && month >= 3 && month <= 5)) {
+    return { season: "봄 (생동과 기획)", climate: "새싹이 움트고 위로 뻗어나가는 성장 기운", advice: "시작하는 힘은 탁월하나 마무리의 호흡을 가다듬어야 함" };
+  }
+  if (["사", "오", "미"].includes(ji) || (month !== null && month >= 6 && month <= 8)) {
+    return { season: "여름 (열정과 확산)", climate: "뜨거운 태양과 화려한 개화의 기운", advice: "열정이 넘쳐 에너지가 조기 방전되지 않도록 쉼표가 필요함" };
+  }
+  if (["신", "유", "술"].includes(ji) || (month !== null && month >= 9 && month <= 11)) {
+    return { season: "가을 (결실과 숙살)", climate: "열매를 맺고 불필요한 것을 쳐내는 냉철함", advice: "기준이 명확하고 결단력이 뛰어나나 유연성을 잃지 말아야 함" };
+  }
+  if (["해", "자", "축"].includes(ji) || (month !== null && (month === 12 || month === 1 || month === 2))) {
+    return { season: "겨울 (응축과 지혜)", climate: "씨앗을 품고 깊이 사색하는 냉기", advice: "내면의 사색과 전략이 깊으나 행동으로 표출하는 온기가 필요함" };
+  }
+  return { season: "조화의 계절", climate: "온화한 중용", advice: "균형 감각 유지" };
+}
+
+function getOhaengBalanceDetail(ohaengCount?: Record<string, number>) {
+  if (!ohaengCount) return { dominant: [], lacking: [], summary: "오행 정보 미확인" };
+  const dominant: string[] = [];
+  const lacking: string[] = [];
+  for (const [elem, count] of Object.entries(ohaengCount)) {
+    if (count >= 3) dominant.push(elem);
+    if (count === 0) lacking.push(elem);
+  }
+  return {
+    dominant: dominant.length ? dominant : ["고른 분포"],
+    lacking: lacking.length ? lacking : ["결핍 없음"],
+    summary: `${dominant.length ? `지배적 오행: [${dominant.join(", ")}], ` : ""}${lacking.length ? `결핍 오행: [${lacking.join(", ")}]` : "오행 균형 완만"}`
+  };
+}
+
+function computeInterplayHints(m1: any, m2: any) {
+  const g1 = m1.saju?.daymaster?.gan || "";
+  const g2 = m2.saju?.daymaster?.gan || "";
+  const elem1 = m1.saju?.daymaster?.element || "";
+  const elem2 = m2.saju?.daymaster?.element || "";
+
+  // Heavenly Stems Combination (천간합)
+  const stems = [g1, g2].sort().join("");
+  const isStemHarmony = ["기갑", "갑기", "경을", "을경", "병신", "신병", "임정", "정임", "계무", "무계"].includes(stems);
+
+  // Five Elements Interaction
+  const generatingMap: Record<string, string> = { "목": "화", "화": "토", "토": "금", "금": "수", "수": "목" };
+  const controllingMap: Record<string, string> = { "목": "토", "토": "수", "수": "화", "화": "금", "금": "목" };
+
+  let elementRelation = "중립적 조화";
+  if (generatingMap[elem1] === elem2) {
+    elementRelation = `${m1.nickname}(${elem1})이 ${m2.nickname}(${elem2})을 생(生)해주는 일방적 지원 및 양육 구조`;
+  } else if (generatingMap[elem2] === elem1) {
+    elementRelation = `${m2.nickname}(${elem2})이 ${m1.nickname}(${elem1})을 포근하게 받쳐주는 든든한 상생 구조`;
+  } else if (controllingMap[elem1] === elem2) {
+    elementRelation = `${m1.nickname}이 ${m2.nickname}의 방향을 리드하거나 통제하려는 극(剋)의 텐션`;
+  } else if (controllingMap[elem2] === elem1) {
+    elementRelation = `${m2.nickname}이 ${m1.nickname}에게 긴장감과 자극을 주는 극(剋)의 텐션`;
+  } else if (elem1 === elem2 && elem1) {
+    elementRelation = `동일한 '${elem1}' 오행으로 거울을 보듯 즉각 공감하는 비견 구조`;
+  }
+
+  // Complementary Elements
+  const o1 = m1.saju?.ohaeng_count || {};
+  const o2 = m2.saju?.ohaeng_count || {};
+  const complementary: string[] = [];
+  for (const el of ["목", "화", "토", "금", "수"]) {
+    if ((o1[el] || 0) === 0 && (o2[el] || 0) >= 2) {
+      complementary.push(`${m1.nickname}에게 부족한 '${el}'을 ${m2.nickname}이 채워줌`);
+    }
+    if ((o2[el] || 0) === 0 && (o1[el] || 0) >= 2) {
+      complementary.push(`${m2.nickname}에게 부족한 '${el}'을 ${m1.nickname}이 채워줌`);
+    }
+  }
+
+  // MBTI dynamics
+  const mb1 = (m1.mbti || "").toUpperCase();
+  const mb2 = (m2.mbti || "").toUpperCase();
+  let mbtiDynamics = "상호 보완적";
+  if (mb1.length === 4 && mb2.length === 4) {
+    if (mb1 === mb2) mbtiDynamics = `동일한 ${mb1} 유형으로 직관적 공감대 완벽`;
+    else if (mb1[0] !== mb2[0] && mb1.slice(1) === mb2.slice(1)) mbtiDynamics = `에너지 방향(E/I)만 다른 환상의 페이스메이커`;
+    else if (mb1[3] !== mb2[3] && mb1.slice(0, 3) === mb2.slice(0, 3)) mbtiDynamics = `판단과 실행(J/P)의 완벽한 분업 시너지`;
+  }
+
+  return {
+    stemRelation: isStemHarmony ? `천간합(${g1}-${g2})으로 영혼이 강하게 끌리는 운명적 자석 궁합` : "자연스러운 기운의 만남",
+    elementRelation,
+    complementary: complementary.length ? complementary.join(", ") : "상호 안정적 오행 교류",
+    mbtiDynamics
+  };
+}
+
 const FLUENT_KOREAN_SYSTEM_GUIDELINE = `
 ## [신점·명리학 대가의 몰입감 넘치는 입체 스토리텔링 절대 원칙]
 (기계적 단어 나열 및 사전식 백과사전 해설 100% 엄금)
@@ -443,8 +552,12 @@ async function startServer() {
         daymaster_gan: member.saju?.daymaster?.gan || "알 수 없음",
         daymaster_element: member.saju?.daymaster?.element || "알 수 없음",
         day_pillar_ganzi: member.saju?.pillars?.day ? `${member.saju.pillars.day.gan}${member.saju.pillars.day.ji}` : "알 수 없음",
+        day_pillar_insight: getDayPillarInsight(member.saju?.pillars?.day ? `${member.saju.pillars.day.gan}${member.saju.pillars.day.ji}` : ""),
+        season_insight: getSeasonInsight(member.birth_date, member.saju?.pillars?.month?.ji),
         ohaeng_count: ohaengCountText,
+        ohaeng_balance_insight: getOhaengBalanceDetail(member.saju?.ohaeng_count),
         sipseong_strength: sipseongStrengthText,
+        special_sals: member.saju?.special_sals_list || [],
         ming_gong_stars: mingGongStars,
         ming_gong_ganzi: mingGongGanzhi
       },
@@ -505,8 +618,26 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
 - 인생의 단계(대운)를 축으로 삼아, 각 주제가 "지금 이 단계에서는 이렇게 작동합니다"로
   풀리게 하십시오.
 
-## 대상자 핵심 정보:
+## 대상자 심층 명리 및 성향 데이터:
 ${JSON.stringify(enrichedMemberInfo, null, 2)}
+
+## 💡 [핵심 통찰 엔진 가이드 - 명리학적 단서의 적극적 활용]
+제공된 'saju_info'의 다음 요소들을 반드시 문장의 뼈대와 비유의 원천으로 삼으십시오:
+1. **60갑자 일주 물상 (day_pillar_insight):** 
+   - 메타포(상징 비유)와 키워드를 살려 이 사람만의 독보적인 기질을 묘사하십시오. (예: 갑자일주라면 '차가운 겨울 물 위에 떠 있는 푸른 고목'의 외로움과 도도함)
+2. **계절 조후 (season_insight):**
+   - 태어난 계절의 온도와 습도가 이 사람의 감정선과 에너지 완급 조절에 미치는 영향을 문맥에 녹여내십시오.
+3. **오행의 불균형과 결핍 (ohaeng_balance_insight):**
+   - 넘치는 오행에서 나오는 과열된 충동, 그리고 0개인 결핍 오행을 무의식적으로 갈망하거나 회피하는 방어기제를 적시하십시오.
+4. **신살 및 특수 기운 (special_sals):**
+   - 도화살, 역마살, 화개살, 백호살, 괴강살 등이 있다면 이 사람의 끼, 이동성, 고독한 사색, 결단력의 극단성으로 세련되게 치환하십시오.
+
+## 🔍 [일상 마이크로 시나리오 & 그림자 자아(Shadow Self) 묘사 지침]
+- **관념적 서술을 지양하고 생생한 일상의 순간을 포착하십시오:**
+  - **일할 때:** 마감 직전 압박을 받을 때 어떻게 반응하는가? 세부사항에 집착하는가, 큰 그림만 그리고 넘기는가?
+  - **소통할 때:** 카톡이나 메신저에서 답장을 보내는 리듬, 읽씹하거나 단답형이 튀어나오는 무의식적 이유.
+  - **밤에 혼자 누웠을 때:** 불을 끄고 침대에 누웠을 때 머릿속을 맴도는 생각의 꼬리, 아무에게도 들키고 싶지 않은 자책이나 불안.
+  - **그림자 자아 (Shadow Self):** 겉으로는 완벽하거나 쿨해 보이지만, 코너에 몰렸을 때 튀어나오는 치졸함이나 회피 성향을 따뜻하고 날카롭게 짚어주십시오.
 
 ## 작성 순서 — 이 순서대로 써야 글이 이어집니다
 
@@ -719,7 +850,8 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
         config: {
           responseMimeType: "application/json",
           responseSchema: responseSchema,
-          temperature: 0.15,
+          temperature: 0.4,
+          topP: 0.92,
           // 출력 상한. v2 스키마(대운 10단계 + bridge 4 + closing)로 응답이 길어졌고
           // 상한이 없으면 한 번의 호출이 예측 불가한 비용을 낸다.
           maxOutputTokens: 16384,
@@ -1042,6 +1174,25 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
 - **'pairs' 배열에 가능한 모든 ${totalPairsCount}개의 모든 조합에 대한 궁합 데이터를 하나도 빠짐없이 포함시켜야 합니다.** 절대로 임의로 일부 최고/최저 궁합만 선별하여 출력하거나 일부를 누락하지 마십시오. 모든 멤버가 서로서로 1:1 궁합 분석을 가질 수 있도록 전수조사하여 배열에 담으십시오.
 - 각 1:1 쌍의 설명 및 하위 분야별 설명은 2~3개의 정밀하고 완성도 높은 문장으로 격조 있게 기술해 주십시오.`;
 
+      // Pre-compute interplay hints for pairs to ground Gemini in true astrological & psychological facts
+      const pairHints: any[] = [];
+      for (let i = 0; i < members.length; i++) {
+        for (let j = i + 1; j < members.length; j++) {
+          const m1 = members[i];
+          const m2 = members[j];
+          const hints = computeInterplayHints(m1, m2);
+          pairHints.push({
+            pair: `${m1.nickname}(${m1.id}) & ${m2.nickname}(${m2.id})`,
+            member_id_1: m1.id,
+            member_id_2: m2.id,
+            saju_stem_relation: hints.stemRelation,
+            element_chemistry: hints.elementRelation,
+            complementary_elements: hints.complementary,
+            mbti_dynamics: hints.mbtiDynamics
+          });
+        }
+      }
+
       // Enrich members to feed deep celestial & modern aspects into Gemini
       const enrichedMembersInfo = members.map((m: any) => {
         const zodiac = getWesternZodiac(m.birth_date);
@@ -1083,8 +1234,12 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
             daymaster_gan: m.saju?.daymaster?.gan || "알 수 없음",
             daymaster_element: m.saju?.daymaster?.element || "알 수 없음",
             day_pillar_ganzi: m.saju?.pillars?.day ? `${m.saju.pillars.day.gan}${m.saju.pillars.day.ji}` : "알 수 없음",
+            day_pillar_insight: getDayPillarInsight(m.saju?.pillars?.day ? `${m.saju.pillars.day.gan}${m.saju.pillars.day.ji}` : ""),
+            season_insight: getSeasonInsight(m.birth_date, m.saju?.pillars?.month?.ji),
             ohaeng_count: ohaengCountText,
+            ohaeng_balance_insight: getOhaengBalanceDetail(m.saju?.ohaeng_count),
             sipseong_strength: sipseongStrengthText,
+            special_sals: m.saju?.special_sals_list || [],
             ming_gong_stars: mingGongStars,
             ming_gong_ganzi: mingGongGanzhi
           }
@@ -1101,11 +1256,22 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
 각 멤버의 개인 평생 감정서('personal_analysis')는 이미 완벽히 해독되어 각 멤버 정보 내에 탑재되어 제공되었습니다.
 따라서 귀하는 개개인의 단순 성향 나열을 반복할 필요가 없으며, 오직 멤버 간 '1:1 개별 인연 궁합 분석(pairs)'과 '전체 그룹 분석(group)'의 역동적인 케미스트리에 집중하십시오.
 
+## 💡 [핵심 관계 팩트 데이터베이스 (Pair Interplay Facts)]:
+아래 데이터는 시스템 명리 엔진이 사전에 수학적으로 계산한 두 사람 사이의 천간합, 오행 상생상극, 결핍 보완 및 MBTI 상호작용입니다.
+이 팩트들을 1:1 궁합 설명(description) 작성 시 서사의 핵심 씨앗으로 반드시 활용하십시오!
+${JSON.stringify(pairHints, null, 2)}
+
 ## 핵심 가이드라인 (스토리텔링 극대화, 입체적 인간관계 통찰):
 1. **생생한 현실 시나리오 기반의 1:1 관계 스토리텔링:**
    - "서로 상극이라 안 맞습니다" 같은 무미건조한 판정은 엄격히 배제하십시오.
    - "처음에는 서로의 속도를 이해하기 어려워 A님이 B님의 신중함을 답답해하거나, B님이 A님의 추진력에 깜짝 놀라 뒤로 물러설 수 있습니다. 그러나 대화가 깊어지는 순간 서로가 자신에게 없는 가장 결정적인 퍼즐 조각임을 깨닫게 되는 반전의 앙상블입니다."와 같이 살아 숨 쉬는 서사로 묘사하십시오.
-   - 함께 식사를 하거나, 여행을 떠나거나, 공동의 프로젝트를 할 때 벌어질 수 있는 구체적인 케미스트리를 짚어주십시오.
+   - **구체적인 일상 장면을 포착하십시오:**
+     * **여행을 떠났을 때:** 엑셀로 분 단위 계획을 짜는 사람과 발길 닿는 대로 걷는 사람의 완급 조절 케미.
+     * **식사나 메뉴를 정할 때:** 서로 배려하다 결국 한 명이 결단 내리거나, 취향이 극과 극이라 새로운 맛집을 개척하는 풍경.
+     * **함께 협업하거나 프로젝트를 할 때:** 불씨를 지피는 추진파와 구멍을 메우는 디테일파의 분업 시너지.
+2. **갈등 트리거(지뢰 버튼)와 3초 화해 공식:**
+   - 두 사람이 부딪칠 수밖에 없는 결정적 이유(예: A님의 침묵을 B님이 무시로 오해하거나, B님의 직설적 비판에 A님이 상처받는 순간)를 짚어주십시오.
+   - 갈등이 생겼을 때 바로 풀어낼 수 있는 실전 화해 팁(맛있는 커피 한 잔, 30분 쿨타임 갖기 등)을 전수하십시오.
 2. **MBTI 코드 영문 대문자 표기 절대 원칙:** 
    - 모든 MBTI 코드(예: ENFP, INFJ, ESTP, INTJ 등)는 반드시 영문 대문자로만 표기해야 합니다.
 3. **소셜/동료 용어 사용 원칙:**
@@ -1225,7 +1391,8 @@ ${JSON.stringify(enrichedMembersInfo, null, 2)}
             config: {
               responseMimeType: "application/json",
               responseSchema: responseSchema,
-              temperature: 0.15,
+              temperature: 0.4,
+              topP: 0.92,
             }
           });
 
