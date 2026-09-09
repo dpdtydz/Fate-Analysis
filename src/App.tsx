@@ -1,19 +1,22 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import GatewayView from "./components/GatewayView";
-import LandingView from "./components/LandingView";
-import CreateView from "./components/CreateView";
-import RoomView from "./components/RoomView";
-import JoinView from "./components/JoinView";
-import MeView from "./components/MeView";
-import MySajuView from "./components/MySajuView";
-import GroupView from "./components/GroupView";
 import KakaoOutlinkGuide from "./components/KakaoOutlinkGuide";
-import AdminView from "./components/AdminView";
-import DevQaHarness from "./components/DevQaHarness";
 import SurveyPopup from "./components/SurveyPopup";
 import GlobalAnalysisAlert from "./components/GlobalAnalysisAlert";
+import LoadingOverlay from "./components/LoadingOverlay";
 import { processReferralReward } from "./lib/firebase";
 import { logAnalyticsEvent } from "./lib/analytics";
+
+// Route-level Code Splitting for heavy views
+const LandingView = lazy(() => import("./components/LandingView"));
+const CreateView = lazy(() => import("./components/CreateView"));
+const RoomView = lazy(() => import("./components/RoomView"));
+const JoinView = lazy(() => import("./components/JoinView"));
+const MeView = lazy(() => import("./components/MeView"));
+const MySajuView = lazy(() => import("./components/MySajuView"));
+const GroupView = lazy(() => import("./components/GroupView"));
+const AdminView = lazy(() => import("./components/AdminView"));
+const DevQaHarness = lazy(() => import("./components/DevQaHarness"));
 
 interface ParsedRoute {
   path: string;
@@ -161,7 +164,9 @@ export default function App() {
     <>
       <GlobalAnalysisAlert />
       <KakaoOutlinkGuide />
-      {renderContent()}
+      <Suspense fallback={<LoadingOverlay message="페이지를 준비하고 있어요..." />}>
+        {renderContent()}
+      </Suspense>
       <SurveyPopup />
     </>
   );

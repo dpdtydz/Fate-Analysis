@@ -13,6 +13,7 @@ import { logAnalyticsEvent } from "../lib/analytics";
 import ZodiacAvatar, { spaceImageSrc, SPACE_NAMES, calculateSpaceKey, calculateMemberRole } from "./ZodiacAvatar";
 import { generateDynamicPairCompatibility, isDummyPair } from "../utils/pairChemistry";
 import { backgroundAnalysisManager } from "../utils/backgroundAnalysisManager";
+import GroupStoryModal from "./GroupStoryModal";
 
 const isMbtiRegistered = (m?: any): boolean => {
   if (!m || !m.mbti) return false;
@@ -458,6 +459,7 @@ export default function GroupView({ code }: GroupViewProps) {
   });
   const [capturedImgUrl, setCapturedImgUrl] = useState<string | null>(null);
   const [showLongPressGuide, setShowLongPressGuide] = useState(false);
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
 
   // Accordion state for 1:1 pairs list (default: expand 1st pair)
   const [expandedPairIndices, setExpandedPairIndices] = useState<Set<number>>(() => new Set([0]));
@@ -1120,8 +1122,8 @@ export default function GroupView({ code }: GroupViewProps) {
     <Layout title={`${room.title} 궁합도`} showHomeButton>
       <div className="space-y-6 py-2">
         
-        {/* Back Link & Refresh Action */}
-        <div className="flex items-center justify-between">
+        {/* Back Link & Action Row */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <a
             href={`#/room/${code}`}
             className="inline-flex items-center text-xs font-medium text-ink-soft hover:text-ink transition-colors"
@@ -1129,24 +1131,33 @@ export default function GroupView({ code }: GroupViewProps) {
             <ArrowLeft className="w-3.5 h-3.5 mr-1" />
             모임방으로 돌아가기
           </a>
-          <button
-            onClick={() => {
-              if (isWithin24HoursLimit) {
-                alert(`종합 궁합 분석은 분석 품질 유지를 위해 24시간에 한 번만 가능해요. 새로운 멤버 구성으로 재분석하려면 ${timeLeftText} 후에 시도해 주세요.`);
-                return;
-              }
-              acquireLockAndAnalyze(members, room.title);
-            }}
-            disabled={analyzing}
-            className={`inline-flex items-center text-xs font-semibold transition-colors px-3 py-1.5 rounded-xl cursor-pointer ${
-              isWithin24HoursLimit
-                ? "bg-sunken text-ink-faint cursor-not-allowed"
-                : "bg-sunken hover:bg-line text-ink"
-            }`}
-          >
-            <RefreshCw className={`w-3 h-3 mr-1 ${analyzing ? 'animate-spin' : ''}`} />
-            <span>{isWithin24HoursLimit ? `재분석 잠금 (${timeLeftText})` : "다시 분석하기"}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsStoryModalOpen(true)}
+              className="inline-flex items-center text-xs font-bold transition-opacity px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#ff7043] text-white shadow-xs hover:opacity-90 cursor-pointer"
+            >
+              <span>📱 인스타 스토리 박제</span>
+            </button>
+            <button
+              onClick={() => {
+                if (isWithin24HoursLimit) {
+                  alert(`종합 궁합 분석은 분석 품질 유지를 위해 24시간에 한 번만 가능해요. 새로운 멤버 구성으로 재분석하려면 ${timeLeftText} 후에 시도해 주세요.`);
+                  return;
+                }
+                acquireLockAndAnalyze(members, room.title);
+              }}
+              disabled={analyzing}
+              className={`inline-flex items-center text-xs font-semibold transition-colors px-3 py-1.5 rounded-xl cursor-pointer ${
+                isWithin24HoursLimit
+                  ? "bg-sunken text-ink-faint cursor-not-allowed"
+                  : "bg-sunken hover:bg-line text-ink"
+              }`}
+            >
+              <RefreshCw className={`w-3 h-3 mr-1 ${analyzing ? 'animate-spin' : ''}`} />
+              <span>{isWithin24HoursLimit ? `재분석 잠금 (${timeLeftText})` : "다시 분석하기"}</span>
+            </button>
+          </div>
         </div>
 
         {/* Background AI Analysis Progress Indicator Banner */}
@@ -2123,6 +2134,15 @@ export default function GroupView({ code }: GroupViewProps) {
           </div>
         </div>
       )}
+
+      {/* Native Instagram Story Export Modal */}
+      <GroupStoryModal
+        isOpen={isStoryModalOpen}
+        onClose={() => setIsStoryModalOpen(false)}
+        roomTitle={room?.title || "우리들의 모임"}
+        allMembers={members}
+        groupScore={analysis?.group_score || 58}
+      />
     </Layout>
   );
 }
