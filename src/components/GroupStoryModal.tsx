@@ -1,7 +1,7 @@
 import React, { useRef, useState, useMemo } from "react";
 import { X, Download, Share2, Sparkles, AlertCircle, Copy, Check } from "lucide-react";
 import html2canvas from "html2canvas-pro";
-import { Member } from "../types";
+import { Member, GroupAnalysis, PairAnalysis } from "../types";
 import { getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS, ROLE_RING_COLOR } from "./ZodiacAvatar";
 import { getMemberNickname, getMemberElement } from "../utils/memberHelper";
 
@@ -11,14 +11,26 @@ interface GroupStoryModalProps {
   roomTitle?: string;
   allMembers?: Member[];
   groupScore?: number;
+  groupAnalysis?: GroupAnalysis;
+  pairs?: PairAnalysis[];
+}
+
+interface StoryDisplayMember {
+  nickname: string;
+  element: string;
+  roleName: string;
+  ringColor: string;
+  avatarSrc: string;
 }
 
 export default function GroupStoryModal({
   isOpen,
   onClose,
-  roomTitle = "우리들의 단톡방",
+  roomTitle = "우리들의 모임",
   allMembers = [],
-  groupScore = 58
+  groupScore = 80,
+  groupAnalysis,
+  pairs = [],
 }: GroupStoryModalProps) {
   const storyCardRef = useRef<HTMLDivElement>(null);
   const [selectedPreset, setSelectedPreset] = useState<1 | 2 | 3>(1);
@@ -26,67 +38,221 @@ export default function GroupStoryModal({
   const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
   const [copiedText, setCopiedText] = useState("");
 
-  // 대표 멤버 최대 3명 추출
-  const displayMembers = useMemo(() => {
-    if (!allMembers || allMembers.length === 0) {
-      return [
-        { nickname: "민서", element: "목", roleName: "👑 캡틴", ringColor: "#3e7c4f", avatarSrc: "/zodiac/zodiac_tiger_item_sunglasses.png" },
-        { nickname: "지후", element: "화", roleName: "✨ 스파크", ringColor: "#c24234", avatarSrc: "/zodiac/zodiac_rabbit_item_scarf.png" },
-        { nickname: "서준", element: "토", roleName: "🛡️ 키퍼", ringColor: "#b07c3f", avatarSrc: "/zodiac/zodiac_dragon_item_glasses.png" },
-      ];
-    }
-    return allMembers.slice(0, 3).map((m) => {
-      const role = calculateMemberRole(m);
-      const roleDetail = ROLE_DETAILS[role.key];
-      const ringColor = ROLE_RING_COLOR[role.key] || "#c24234";
-      const avatarSrc = getMemberZodiacSrc(m);
-      const roleEmoji = role.key === "spark" ? "✨" : role.key === "captain" ? "👑" : role.key === "keeper" ? "🛡️" : role.key === "healer" ? "🌿" : "🦉";
-      return {
-        nickname: getMemberNickname(m),
-        element: getMemberElement(m),
-        roleName: `${roleEmoji} ${roleDetail.role}`,
-        ringColor,
-        avatarSrc: avatarSrc || "/zodiac/zodiac_tiger_item_sunglasses.png",
-      };
+  // Helper to find member by ID or Nickname
+  const findMember = (idOrName?: string): Member | undefined => {
+    if (!idOrName) return undefined;
+    const norm = idOrName.trim().toLowerCase().replace(/님$/, "");
+    return allMembers.find((m) => {
+      const mId = m.id.trim().toLowerCase();
+      const mNick = m.nickname.trim().toLowerCase().replace(/님$/, "");
+      return mId === norm || mNick === norm || mId.includes(norm) || mNick.includes(norm) || norm.includes(mNick);
     });
-  }, [allMembers]);
+  };
 
-  // 프리셋 정의
+  // Helper to convert Member to StoryDisplayMember
+  const toDisplayMember = (m?: Member, customRole?: string, customRingColor?: string): StoryDisplayMember => {
+    if (!m) {
+      return {
+        nickname: "멤버",
+        element: "기운",
+        roleName: customRole || "✨ 멤버",
+        ringColor: customRingColor || "#c24234",
+        avatarSrc: "/zodiac/zodiac_tiger_item_sunglasses.png",
+      };
+    }
+    const role = calculateMemberRole(m);
+    const roleDetail = ROLE_DETAILS[role.key];
+    const ringColor = customRingColor || ROLE_RING_COLOR[role.key] || "#c24234";
+    const avatarSrc = getMemberZodiacSrc(m);
+    const roleEmoji = role.key === "spark" ? "✨" : role.key === "captain" ? "👑" : role.key === "keeper" ? "🛡️" : role.key === "healer" ? "🌿" : "🦉";
+    return {
+      nickname: getMemberNickname(m),
+      element: getMemberElement(m) || "기운",
+      roleName: customRole || `${roleEmoji} ${roleDetail?.role || "멤버"}`,
+      ringColor,
+      avatarSrc: avatarSrc || "/zodiac/zodiac_tiger_item_sunglasses.png",
+    };
+  };
+
+  // Real data dynamics calculation
+  const dynamics = useMemo(() => {
+    const validPairs = pairs && pairs.length > 0
+      ? [...pairs].sort((a, b) => (b.score || 0) - (a.score || 0))
+      : [];
+
+    // 1. Top Synergy Pair
+    const topPair = validPairs[0];
+    const topM1 = topPair ? (findMember(topPair.member_id_1) || allMembers[0]) : allMembers[0];
+    const topM2 = topPair ? (findMember(topPair.member_id_2) || allMembers[1]) : (allMembers[1] || allMembers[0]);
+    const topScore = topPair ? topPair.score : (groupScore ? Math.min(98, groupScore + 8) : 94);
+
+    // 2. Contrast / Tension Pair (bottom of sorted pairs)
+    const botPair = validPairs.length > 1 ? validPairs[validPairs.length - 1] : null;
+    const botM1 = botPair ? (findMember(botPair.member_id_1) || allMembers[0]) : allMembers[0];
+    const botM2 = botPair ? (findMember(botPair.member_id_2) || allMembers[allMembers.length - 1]) : (allMembers[allMembers.length - 1] || allMembers[1]);
+    const botScore = botPair ? botPair.score : (groupScore ? Math.max(50, groupScore - 18) : 62);
+
+    // 3. Power Hub Member (Member with highest average chemistry across group)
+    let powerMember = allMembers[0];
+    let powerMemberAvg = 85;
+
+    if (allMembers.length > 0 && validPairs.length > 0) {
+      const scoreMap: Record<string, { sum: number; count: number }> = {};
+      validPairs.forEach((p) => {
+        const s = p.score || 70;
+        if (!scoreMap[p.member_id_1]) scoreMap[p.member_id_1] = { sum: 0, count: 0 };
+        if (!scoreMap[p.member_id_2]) scoreMap[p.member_id_2] = { sum: 0, count: 0 };
+        scoreMap[p.member_id_1].sum += s;
+        scoreMap[p.member_id_1].count += 1;
+        scoreMap[p.member_id_2].sum += s;
+        scoreMap[p.member_id_2].count += 1;
+      });
+
+      let highestAvg = 0;
+      let highestId = allMembers[0]?.id;
+      Object.entries(scoreMap).forEach(([id, { sum, count }]) => {
+        if (count > 0) {
+          const avg = sum / count;
+          if (avg > highestAvg) {
+            highestAvg = avg;
+            highestId = id;
+          }
+        }
+      });
+
+      const found = findMember(highestId);
+      if (found) {
+        powerMember = found;
+        powerMemberAvg = Math.round(highestAvg);
+      }
+    }
+
+    // 4. Mediator / Bridge Member (someone distinct from botM1 & botM2)
+    const mediator = allMembers.find((m) => m.id !== botM1?.id && m.id !== botM2?.id) || powerMember || allMembers[0];
+
+    // 5. Group Element Distribution
+    const elements = allMembers.map((m) => getMemberElement(m)).filter(Boolean);
+    const uniqueElements = new Set(elements);
+    const diversityScore = Math.min(98, Math.max(68, uniqueElements.size * 22));
+    const actualGroupScore = groupAnalysis?.overall_score || groupScore || 85;
+
+    return {
+      topM1,
+      topM2,
+      topScore,
+      botM1,
+      botM2,
+      botScore,
+      powerMember,
+      powerMemberAvg,
+      mediator,
+      diversityScore,
+      actualGroupScore,
+      groupTitle: groupAnalysis?.title || roomTitle,
+      atmosphere: groupAnalysis?.atmosphere || "서로의 부족한 기운을 채워주는 든든한 상생 시너지",
+      synergyTips: groupAnalysis?.synergy_tips || "서로 다른 기운과 강점을 존중할 때 시너지가 배가됩니다.",
+    };
+  }, [allMembers, pairs, groupAnalysis, groupScore, roomTitle]);
+
+  // Real Dynamic Preset Content
   const presetData = useMemo(() => {
-    const name1 = displayMembers[0]?.nickname || "멤버1";
-    const name2 = displayMembers[1]?.nickname || "멤버2";
-    const name3 = displayMembers[2]?.nickname || "멤버3";
+    const {
+      topM1,
+      topM2,
+      topScore,
+      botM1,
+      botM2,
+      botScore,
+      powerMember,
+      powerMemberAvg,
+      mediator,
+      diversityScore,
+      actualGroupScore,
+      groupTitle,
+      atmosphere,
+      synergyTips,
+    } = dynamics;
+
+    const name1 = topM1?.nickname || "멤버1";
+    const name2 = topM2?.nickname || "멤버2";
+    const powerName = powerMember?.nickname || "실세";
+    const botName1 = botM1?.nickname || "멤버1";
+    const botName2 = botM2?.nickname || "멤버2";
+    const cleanRoomTitle = roomTitle.replace(/\s+/g, "").slice(0, 10);
 
     return {
       1: {
-        headline: <>우리 모임의 기운,<br /><span className="text-[#ff5a36]">누가 서로를 채워줄까?</span></>,
-        subHeadline: `사주 오행으로 풀어본 ${allMembers.length || 3}인 상생 시너지 리포트`,
-        score: groupScore || 58,
-        quote: `"서로의 부족한 기운을 든든하게 채워주는 환상의 밸런스"`,
-        stats: [82, 68, 74, 88],
-        desc: `서로 다른 오행 에너지가 만나 특별한 활력을 만들며, 결정적인 순간에 ${name2}의 추진력과 ${name3}의 안정감이 합쳐져 모임이 단단하게 유지됩니다.`,
-        bubble: `🏷️ #모임사주 #인연케미 @친구태그`
+        members: [
+          toDisplayMember(topM1, "🔥 최고시너지", "#c24234"),
+          toDisplayMember(powerMember, "👑 모임허브", "#3e7c4f"),
+          toDisplayMember(topM2, "🔥 최고시너지", "#c24234"),
+        ],
+        headline: (
+          <>
+            우리 모임의 기운,<br />
+            <span className="text-[#ff5a36]">{name1} & {name2} {topScore}점 시너지!</span>
+          </>
+        ),
+        subHeadline: `사주 오행으로 분석한 ${allMembers.length || 3}인 [${groupTitle}] 종합 리포트`,
+        score: actualGroupScore,
+        quote: `"${atmosphere}"`,
+        stats: [
+          diversityScore,
+          actualGroupScore,
+          topScore,
+          Math.round((topScore + actualGroupScore) / 2),
+        ],
+        statsLabels: ["다양성", "순환력", "최고결속", "화합력"],
+        desc: `${name1}님(${topM1?.saju?.daymaster?.element || "기운"})과 ${name2}님(${topM2?.saju?.daymaster?.element || "기운"})이 ${topScore}점 특급 엔진으로 모임을 이끌며, ${synergyTips}`,
+        bubble: `🏷️ #${cleanRoomTitle} #${name1}X${name2}_${topScore}점 @친구태그`,
       },
       2: {
-        headline: <>단톡방의 숨은 중심,<br /><span className="text-[#ff5a36]">알고 보면 진짜 실세는?</span></>,
-        subHeadline: "사주로 밝혀진 우리 모임의 분위기 메이커와 결정권자",
-        score: Math.min(96, Math.max(88, groupScore + 20)),
-        quote: `"도원결의급 단체 시너지! 한 사람이 끌고 모두가 받쳐주는 케미"`,
-        stats: [94, 92, 88, 96],
-        desc: `${name2}가 활기차게 분위기를 띄우고 ${name3}가 세심하게 조율하며, 모임의 중요한 순간에는 ${name1}의 든든한 존재감이 중심을 잡아줍니다.`,
-        bubble: `🏷️ #단톡방실세 #모임케미 @친구태그`
+        members: [
+          toDisplayMember(allMembers.find((m) => m.id !== powerMember?.id) || topM1, "✨ 분위기메이커", "#f59e0b"),
+          toDisplayMember(powerMember, "👑 단톡방 실세", "#ff5a36"),
+          toDisplayMember(allMembers.reverse().find((m) => m.id !== powerMember?.id) || topM2, "🛡️ 든든한가드", "#3b82f6"),
+        ],
+        headline: (
+          <>
+            단톡방의 숨은 중심,<br />
+            <span className="text-[#ff5a36]">사주상 진짜 실세는 {powerName}?</span>
+          </>
+        ),
+        subHeadline: `모임원 전체 평균 케미 ${powerMemberAvg}점을 기록한 기운의 허브`,
+        score: powerMemberAvg,
+        quote: `"${powerName}님이 중심을 잡고 모임의 에너지를 묵직하게 지탱합니다"`,
+        stats: [
+          Math.min(99, powerMemberAvg + 4),
+          Math.min(98, powerMemberAvg + 2),
+          Math.min(99, powerMemberAvg + 5),
+          powerMemberAvg,
+        ],
+        statsLabels: ["장악력", "포용력", "존재감", "화합력"],
+        desc: `${powerName}님은 ${powerMember?.saju?.daymaster?.element || "따뜻한"} 기운으로 멤버들과 고른 궁합을 보이며, 말없이 있어도 모임의 멘탈과 결속을 지탱하는 진정한 실세 역할을 합니다.`,
+        bubble: `🏷️ #단톡방실세_${powerName} #모임보스 @${powerName}`,
       },
       3: {
-        headline: <>서로 달라서 더 끌리는<br /><span className="text-[#00e5ff]">불과 얼음의 반전 궁합</span></>,
-        subHeadline: "다름이 매력이 되는 극과 극의 짜릿한 상생 조합",
-        score: Math.min(48, Math.max(38, groupScore - 15)),
-        quote: `"티격태격할수록 더 끈끈해지는 특별한 콤비 시너지"`,
-        stats: [68, 55, 62, 78],
-        desc: `${name2}의 열정적인 기운과 ${name3}의 차분한 이성이 조화를 이루며, ${name1}이 따뜻한 가교 역할을 해줄 때 가장 빛나는 조합입니다.`,
-        bubble: `🏷️ #반전케미 #인연사주 @친구태그`
-      }
+        members: [
+          toDisplayMember(botM1, "⚡ 개성파", "#00e5ff"),
+          toDisplayMember(mediator, "🌿 중재자", "#3e7c4f"),
+          toDisplayMember(botM2, "⚡ 반전파", "#00e5ff"),
+        ],
+        headline: (
+          <>
+            서로 달라서 더 끌리는<br />
+            <span className="text-[#00e5ff]">{botName1} & {botName2} 반전 케미</span>
+          </>
+        ),
+        subHeadline: `${botM1?.saju?.daymaster?.element || "불"}과 ${botM2?.saju?.daymaster?.element || "물"}의 아슬아슬 짜릿한 상생 조합`,
+        score: botScore,
+        quote: `"부딪힐수록 서로의 빈틈을 메우는 독특한 반전 시너지"`,
+        stats: [95, 92, Math.max(68, botScore + 12), 96],
+        statsLabels: ["텐션감", "솔직함", "상호보완", "반전매력"],
+        desc: `${botName1}님과 ${botName2}님은 성향 차이로 묘한 긴장감이 있지만, ${mediator ? `${mediator.nickname}님의 조율과 ` : ""}명확한 역할 분담이 이뤄지면 가장 매력적인 반전 콤비가 됩니다.`,
+        bubble: `🏷️ #반전케미_${botName1}_${botName2} #단짝궁합 @친구태그`,
+      },
     };
-  }, [displayMembers, allMembers, groupScore]);
+  }, [dynamics, allMembers, roomTitle]);
 
   const current = presetData[selectedPreset];
 
@@ -224,11 +390,11 @@ export default function GroupStoryModal({
           <div className="bg-white rounded-2xl p-3 text-[#1c1d21] shadow-xl my-auto">
             {/* 3 Avatars Row */}
             <div className="flex justify-around items-center py-1 mb-2 border-b border-[#f0f0ec]">
-              {displayMembers.map((m, idx) => (
-                <div key={idx} className="flex flex-col items-center text-center w-20">
+              {current.members.map((m, idx) => (
+                <div key={`${m.nickname}-${idx}`} className="flex flex-col items-center text-center w-20">
                   <div
                     className="w-12 h-12 rounded-full bg-white flex items-center justify-center overflow-hidden mb-1 shadow-sm relative"
-                    style={{ border: `2px solid ${m.ringColor}` }}
+                    style={{ border: `2.5px solid ${m.ringColor}` }}
                   >
                     <img
                       src={m.avatarSrc}
@@ -240,7 +406,7 @@ export default function GroupStoryModal({
                   <span className="text-[11px] font-bold text-[#1c1d21] leading-tight truncate max-w-full">
                     {m.nickname}
                   </span>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 bg-[#f4f4f1] text-[#55565e]">
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded mt-0.5 bg-[#f4f4f1] text-[#55565e] truncate max-w-full">
                     {m.roleName}
                   </span>
                 </div>
@@ -260,13 +426,13 @@ export default function GroupStoryModal({
 
             {/* 4 Stats bars */}
             <div className="bg-[#f4f4f1] rounded-xl p-2 space-y-1 mb-2">
-              {["다양성", "순환력", "안정감", "소통력"].map((label, sIdx) => {
+              {current.statsLabels.map((label, sIdx) => {
                 const val = current.stats[sIdx];
                 return (
                   <div key={label} className="flex items-center gap-2 text-[10px]">
-                    <span className="w-10 text-[#1c1d21] font-semibold">{label}</span>
-                    <div className="flex-1 h-1 bg-[#e7e7e2] rounded-full overflow-hidden">
-                      <div className="h-full bg-[#1c1d21] rounded-full opacity-75" style={{ width: `${val}%` }} />
+                    <span className="w-12 text-[#1c1d21] font-semibold text-left">{label}</span>
+                    <div className="flex-1 h-1.5 bg-[#e7e7e2] rounded-full overflow-hidden">
+                      <div className="h-full bg-[#1c1d21] rounded-full opacity-80" style={{ width: `${Math.min(100, val)}%` }} />
                     </div>
                     <span className="w-6 text-right font-mono text-[#8e8f98]">{val}</span>
                   </div>

@@ -2201,7 +2201,9 @@ export default function GroupView({ code }: GroupViewProps) {
         onClose={() => setIsStoryModalOpen(false)}
         roomTitle={room?.title || "우리들의 모임"}
         allMembers={members}
-        groupScore={analysis?.group_score || 58}
+        groupScore={analysis?.group?.overall_score || 85}
+        groupAnalysis={analysis?.group}
+        pairs={upgradedPairs}
       />
     </Layout>
   );
