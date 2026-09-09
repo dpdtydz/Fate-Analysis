@@ -59,31 +59,31 @@ export default function GroupStoryModal({
 
     return {
       1: {
-        headline: <>우리 무리에서 누가<br />누구 <span className="text-[#ff5a36]">기(氣)를 빨아먹을까?</span></>,
-        subHeadline: `AI가 분석한 ${allMembers.length || 3}인 모임 상생상극 생태계`,
+        headline: <>우리 모임의 기운,<br /><span className="text-[#ff5a36]">누가 서로를 채워줄까?</span></>,
+        subHeadline: `사주 오행으로 풀어본 ${allMembers.length || 3}인 상생 시너지 리포트`,
         score: groupScore || 58,
-        quote: `"환장의 티키타카! 서로 뜯어먹으며 성장하는 애증의 관계"`,
-        stats: [78, 58, 62, 86],
-        desc: `서로 다른 기운이 부딪혀 긴장감을 만들지만, 결정적인 순간에 ${name2}의 순발력과 ${name3}의 방어력이 합쳐져 모임이 유지됩니다.`,
-        bubble: `💬 @@단톡방소환 "${name1}야 너 왜 나 기 빨아먹냐 ㅋㅋㅋ"`
+        quote: `"서로의 부족한 기운을 든든하게 채워주는 환상의 밸런스"`,
+        stats: [82, 68, 74, 88],
+        desc: `서로 다른 오행 에너지가 만나 특별한 활력을 만들며, 결정적인 순간에 ${name2}의 추진력과 ${name3}의 안정감이 합쳐져 모임이 단단하게 유지됩니다.`,
+        bubble: `🏷️ #모임사주 #인연케미 @친구태그`
       },
       2: {
-        headline: <>단톡방 찐 실세는<br /><span className="text-[#ff5a36]">의외로 따로 있었다?</span></>,
-        subHeadline: "말 많은 놈 vs 돈 쓰는 놈 vs 침묵의 지배자",
+        headline: <>단톡방의 숨은 중심,<br /><span className="text-[#ff5a36]">알고 보면 진짜 실세는?</span></>,
+        subHeadline: "사주로 밝혀진 우리 모임의 분위기 메이커와 결정권자",
         score: Math.min(96, Math.max(88, groupScore + 20)),
-        quote: `"도원결의급 단체 시너지! 한 사람이 쓰러지면 둘이 받쳐줌"`,
+        quote: `"도원결의급 단체 시너지! 한 사람이 끌고 모두가 받쳐주는 케미"`,
         stats: [94, 92, 88, 96],
-        desc: `${name2}가 분위기를 띄우고 ${name3}가 수습하지만, 모임의 모든 중대 결정은 조용히 듣던 ${name1}의 한마디로 종결됩니다.`,
-        bubble: `💬 @@실세소환 "인정? 우리 모임 진짜 보스는 ${name1}잖아"`
+        desc: `${name2}가 활기차게 분위기를 띄우고 ${name3}가 세심하게 조율하며, 모임의 중요한 순간에는 ${name1}의 든든한 존재감이 중심을 잡아줍니다.`,
+        bubble: `🏷️ #단톡방실세 #모임케미 @친구태그`
       },
       3: {
-        headline: <>너네 단둘이 놔두면<br /><span className="text-[#00e5ff]">큰일나는 이유...</span></>,
-        subHeadline: "사주 오행으로 본 불과 기름의 위험한 조합",
+        headline: <>서로 달라서 더 끌리는<br /><span className="text-[#00e5ff]">불과 얼음의 반전 궁합</span></>,
+        subHeadline: "다름이 매력이 되는 극과 극의 짜릿한 상생 조합",
         score: Math.min(48, Math.max(38, groupScore - 15)),
-        quote: `"${name1}이가 자리 비우면 3분 만에 정적 흐르는 위험한 케미"`,
-        stats: [65, 42, 50, 72],
-        desc: `${name2}의 불같은 성향에 ${name3}가 서운해질 수 있으니, ${name1}이가 중간에서 반드시 쿠션 역할을 해주어야 안전합니다.`,
-        bubble: `💬 @@너네둘 "너네 둘만 여행 가면 100% 싸운다 ㅋㅋㅋ"`
+        quote: `"티격태격할수록 더 끈끈해지는 특별한 콤비 시너지"`,
+        stats: [68, 55, 62, 78],
+        desc: `${name2}의 열정적인 기운과 ${name3}의 차분한 이성이 조화를 이루며, ${name1}이 따뜻한 가교 역할을 해줄 때 가장 빛나는 조합입니다.`,
+        bubble: `🏷️ #반전케미 #인연사주 @친구태그`
       }
     };
   }, [displayMembers, allMembers, groupScore]);
@@ -98,25 +98,24 @@ export default function GroupStoryModal({
 
     try {
       const canvas = await html2canvas(storyCardRef.current, {
-        scale: 2.6666, // 1080 x 1920 HD
+        scale: 2.5,
         useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#0c1017",
-        logging: false
+        backgroundColor: "#0a0e17",
+        logging: false,
       });
 
       const dataUrl = canvas.toDataURL("image/png");
       setCapturedImageUrl(dataUrl);
 
-      // Trigger automatic file download
       const link = document.createElement("a");
-      link.download = `inyeon-saju-story-${Date.now()}.png`;
+      link.download = `saju_story_${selectedPreset}.png`;
       link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
-      setCopiedText("스토리 이미지가 다운로드되었습니다!");
+      navigator.clipboard.writeText(`${current.bubble}\nhttps://inyeons.com`);
+      setCopiedText("스토리 이미지 저장 및 태그 복사 완료!");
       setTimeout(() => setCopiedText(""), 3500);
     } catch (err: any) {
       console.error("Story capture failed:", err);
@@ -134,7 +133,7 @@ export default function GroupStoryModal({
         <div className="w-full flex items-center justify-between mb-3 px-1 text-white">
           <span className="text-sm font-bold flex items-center gap-1.5">
             <Sparkles className="w-4 h-4 text-[#ff5a36]" />
-            인스타 스토리 바이럴 카드
+            ✨ 인스타 스토리 공유 카드
           </span>
           <button
             type="button"
@@ -156,7 +155,7 @@ export default function GroupStoryModal({
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            🔥 기 빨아먹기
+            ✨ 기운 상생상극
           </button>
           <button
             type="button"
@@ -167,7 +166,7 @@ export default function GroupStoryModal({
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            👑 찐 실세
+            👑 단톡방 실세
           </button>
           <button
             type="button"
@@ -178,7 +177,7 @@ export default function GroupStoryModal({
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            💥 상극 주의
+            ⚡ 반전 케미
           </button>
         </div>
 
@@ -203,36 +202,27 @@ export default function GroupStoryModal({
             {/* Header Brand */}
             <div className="flex items-center justify-between mb-2 text-xs">
               <div className="flex items-center gap-1.5 font-bold">
-                <span className="w-4 h-4 rounded bg-[#ff5a36] text-white flex items-center justify-center text-[10px]">緣</span>
-                <span>인연사주 · {roomTitle}</span>
+                <span className="text-[#ff5a36]">●</span> {roomTitle}
               </div>
-              <span className="text-white/40 text-[11px]">스토리 공유용</span>
+              <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">
+                INYEON SAJU
+              </span>
             </div>
 
-            {/* Headline */}
-            <div className="text-center my-3">
-              <h2 className="text-[19px] font-extrabold leading-tight tracking-tight text-white mb-1 drop-shadow-md">
+            {/* Headline Card */}
+            <div className="mt-1 mb-2">
+              <h2 className="text-[20px] font-black leading-tight tracking-tight">
                 {current.headline}
               </h2>
-              <p className="text-[11px] text-slate-400 font-medium">
+              <p className="text-[11px] text-slate-400 mt-1">
                 {current.subHeadline}
               </p>
             </div>
           </div>
 
-          {/* Actual Inyeon-Saju Paper Card UI */}
-          <div className="bg-[#fcfcfa] text-[#1c1d21] rounded-2xl p-3.5 border border-[#e7e7e2] shadow-xl relative my-auto">
-            {/* Tag row */}
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-mono font-bold tracking-widest text-[#8e8f98]">
-                GROUP · {allMembers.length || 3}인 결속
-              </span>
-              <span className="text-[10.5px] font-bold px-2 py-0.5 rounded bg-[#fdf0ee] text-[#c24234]">
-                相生 SYNERGY
-              </span>
-            </div>
-
-            {/* 3 Members 12-Zodiac Avatars */}
+          {/* Center Card: Zodiac Avatars & Score */}
+          <div className="bg-white rounded-2xl p-3 text-[#1c1d21] shadow-xl my-auto">
+            {/* 3 Avatars Row */}
             <div className="flex justify-around items-center py-1 mb-2 border-b border-[#f0f0ec]">
               {displayMembers.map((m, idx) => (
                 <div key={idx} className="flex flex-col items-center text-center w-20">
@@ -258,9 +248,10 @@ export default function GroupStoryModal({
             </div>
 
             {/* Score Headline */}
-            <div className="text-center mb-2">
-              <div className="font-serif text-[17px] font-bold text-[#1c1d21]">
-                모임 케미는 <span className="text-[#c24234] font-sans font-extrabold">{current.score}점</span>
+            <div className="text-center mb-2 flex flex-col items-center justify-center">
+              <div className="flex items-center justify-center gap-1.5 font-serif text-[17px] font-bold text-[#1c1d21]">
+                <span>모임 케미는</span>
+                <span className="text-[#c24234] font-serif font-extrabold">{current.score}점</span>
               </div>
               <div className="text-[10.5px] text-[#55565e] mt-0.5">
                 {current.quote}

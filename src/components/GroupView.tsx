@@ -921,6 +921,61 @@ export default function GroupView({ code }: GroupViewProps) {
     });
 
     try {
+      // 1. Ensure all standard <img> elements are fully loaded
+      const allImgs = Array.from(captureRef.current.querySelectorAll("img")) as HTMLImageElement[];
+      await Promise.all(
+        allImgs.map((img) => {
+          if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+          return new Promise((res) => {
+            img.onload = () => res(null);
+            img.onerror = () => res(null);
+          });
+        })
+      );
+
+      // 2. Pre-convert any remaining SVG <image> elements to Data URLs if any
+      const svgImages = Array.from(captureRef.current.querySelectorAll("svg image")) as SVGElement[];
+      const originalAttrs = new Map<SVGElement, { href: string | null; xlink: string | null }>();
+
+      const convertToDataUrl = (url: string): Promise<string> => {
+        return new Promise((resolve) => {
+          const tempImg = new Image();
+          tempImg.crossOrigin = "anonymous";
+          tempImg.onload = () => {
+            try {
+              const c = document.createElement("canvas");
+              c.width = tempImg.naturalWidth || 320;
+              c.height = tempImg.naturalHeight || 320;
+              const ctx = c.getContext("2d");
+              if (!ctx) return resolve(url);
+              ctx.drawImage(tempImg, 0, 0);
+              resolve(c.toDataURL("image/png"));
+            } catch (e) {
+              resolve(url);
+            }
+          };
+          tempImg.onerror = () => resolve(url);
+          tempImg.src = url;
+        });
+      };
+
+      await Promise.all(
+        svgImages.map(async (imgEl: SVGElement) => {
+          const href = imgEl.getAttribute("href") || imgEl.getAttribute("xlink:href");
+          if (href && !href.startsWith("data:")) {
+            const dataUrl = await convertToDataUrl(href);
+            if (dataUrl && dataUrl.startsWith("data:")) {
+              originalAttrs.set(imgEl, {
+                href: imgEl.getAttribute("href"),
+                xlink: imgEl.getAttribute("xlink:href"),
+              });
+              imgEl.setAttribute("href", dataUrl);
+              imgEl.setAttribute("xlink:href", dataUrl);
+            }
+          }
+        })
+      );
+
       // Create high-contrast canvas capture
       const canvas = await html2canvas(captureRef.current, {
         scale: 2, // Double resolution for ultra crisp vector render
@@ -1137,7 +1192,7 @@ export default function GroupView({ code }: GroupViewProps) {
               onClick={() => setIsStoryModalOpen(true)}
               className="inline-flex items-center text-xs font-bold transition-opacity px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#ff7043] text-white shadow-xs hover:opacity-90 cursor-pointer"
             >
-              <span>📱 인스타 스토리 박제</span>
+              <span>✨ 스토리 공유 카드</span>
             </button>
             <button
               onClick={() => {
@@ -1322,9 +1377,14 @@ export default function GroupView({ code }: GroupViewProps) {
                   )}
                 </div>
 
-                <h3 className="text-center font-serif text-2xl font-semibold tracking-tight leading-snug text-ink mb-1.5">
-                  모임 케미 <span className="text-seal">{analysis.group.overall_score}점</span>
-                </h3>
+                <div className="w-full flex items-center justify-center gap-1.5 mb-1.5">
+                  <span className="font-serif text-2xl font-semibold tracking-tight text-ink">
+                    모임 케미
+                  </span>
+                  <span className="font-serif text-2xl font-bold tracking-tight text-seal">
+                    {analysis.group.overall_score}점
+                  </span>
+                </div>
 
                 <p className="text-center text-xs leading-relaxed text-ink-soft max-w-[320px] mx-auto mb-3.5">
                   {analysis.group.title} · {analysis.group.atmosphere}
@@ -1350,7 +1410,7 @@ export default function GroupView({ code }: GroupViewProps) {
               </div>
 
               {/* Free Section 2: SVG Circular Network Graph */}
-              <GroupNetwork members={members} pairs={upgradedPairs} isPremium={isGroupUnlocked} />
+              <GroupNetwork members={members} pairs={upgradedPairs} isPremium={isGroupUnlocked} groupScore={analysis.group.overall_score} />
 
               {/* Instagram Story Watermark / Brand Footer */}
               <div className="pt-2 pb-1 px-1 flex items-center justify-between text-[11px] text-ink-faint border-t border-line/60">
@@ -1364,10 +1424,10 @@ export default function GroupView({ code }: GroupViewProps) {
             <div className="bg-surface border border-line p-5 rounded-xl flex flex-col items-center justify-center space-y-3 text-center">
               <div className="space-y-1">
                 <span className="text-xs font-semibold text-ink flex items-center justify-center gap-1">
-                  인스타 스토리용 카드 다운로드
+                  ✨ 모임 궁합 카드 저장
                 </span>
                 <p className="text-xs text-ink-soft leading-relaxed">
-                  위 요약 카드를 스토리(9:16) 및 단톡방에 올리기 좋은 크기로 저장합니다.
+                  모임 케미 결과와 궁합 지도를 고화질 카드로 저장하고 단톡방이나 인스타 스토리에 공유해 보세요.
                 </p>
               </div>
               <button
@@ -1376,7 +1436,7 @@ export default function GroupView({ code }: GroupViewProps) {
                 className="w-full flex items-center justify-center space-x-2 py-3.5 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer shadow-sm"
               >
                 <Share2 className="w-4 h-4" />
-                <span>{shareStatus || "스토리용 결과 이미지 저장"}</span>
+                <span>{shareStatus || "고화질 모임 궁합 카드 저장하기"}</span>
               </button>
             </div>
 

@@ -8,6 +8,7 @@ interface GroupNetworkProps {
   members: Member[];
   pairs: PairAnalysis[];
   isPremium: boolean;
+  groupScore?: number;
 }
 
 const isMbtiRegistered = (m?: any): boolean => {
@@ -97,7 +98,7 @@ const getPairAsymmetricScores = (pair: PairAnalysis | undefined, m1: Member, m2:
   return getAsymmetricScores(m1, m2, pair.score);
 };
 
-export default function GroupNetwork({ members, pairs, isPremium }: GroupNetworkProps) {
+export default function GroupNetwork({ members, pairs, isPremium, groupScore }: GroupNetworkProps) {
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [relationFilter, setRelationFilter] = useState<"all" | "good" | "bad">("all");
   const [highlightedPair, setHighlightedPair] = useState<[string, string] | null>(null);
@@ -545,9 +546,9 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
         {/* Quick Stats Banner (Unselected State) */}
         {!selectedMember && topSynergyPairs.length > 0 && (
           <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sunken border border-line text-xs font-semibold text-ink">
-              <span className="text-seal font-bold">모임 평균 케미</span>
-              <span className="font-mono text-seal font-extrabold">{avgGroupScore}점</span>
+            <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-sunken border border-line text-xs font-semibold text-ink">
+              <span className="text-seal font-bold">모임 케미</span>
+              <span className="text-seal font-extrabold">{groupScore || avgGroupScore}점</span>
             </div>
             {topSynergyPairs[0] && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-seal/5 border border-seal/20 text-xs font-semibold text-seal">
@@ -773,20 +774,8 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
                   opacity={isConnected ? 1 : 0.3}
                 />
 
-                {/* Character Avatar Image (Clipped inside Circle, Full & Clear) */}
-                {node.imageSrc ? (
-                  <image
-                    href={node.imageSrc}
-                    clipPath={`url(#clip-${node.id})`}
-                    x={node.x - nodeRadius * 1.15}
-                    y={node.y - nodeRadius * 1.15}
-                    width={nodeRadius * 2.3}
-                    height={nodeRadius * 2.3}
-                    preserveAspectRatio="xMidYMid slice"
-                    className="transition-all duration-300 select-none pointer-events-none"
-                    opacity={isConnected ? 1 : 0.3}
-                  />
-                ) : (
+                {/* Fallback emoji inside SVG node if image not provided */}
+                {!node.imageSrc && (
                   <text
                     x={node.x}
                     y={node.y + 5}
@@ -852,6 +841,48 @@ export default function GroupNetwork({ members, pairs, isPremium }: GroupNetwork
             );
           })}
         </svg>
+        )}
+
+        {/* HTML Avatar Overlay Layer: 100% html2canvas export and cross-browser reliability */}
+        {renderEngine === "svg" && (
+          <div className="absolute inset-2 pointer-events-none overflow-visible">
+            {nodes.map((node) => {
+              const leftPercent = (node.x / svgSize) * 100;
+              const topPercent = (node.y / svgSize) * 100;
+              const avatarSizePercent = ((nodeRadius * 2 - 4) / svgSize) * 100;
+              const isConnected = selectedNodeId
+                ? (node.id === selectedNodeId || lines.some(l => l.id1 === node.id || l.id2 === node.id))
+                : true;
+
+              return (
+                <div
+                  key={`html-avatar-${node.id}`}
+                  style={{
+                    position: "absolute",
+                    left: `${leftPercent}%`,
+                    top: `${topPercent}%`,
+                    width: `${avatarSizePercent}%`,
+                    height: `${avatarSizePercent}%`,
+                    transform: "translate(-50%, -50%)",
+                    opacity: isConnected ? 1 : 0.3,
+                  }}
+                  className="rounded-full overflow-hidden flex items-center justify-center pointer-events-none select-none z-10"
+                >
+                  {node.imageSrc ? (
+                    <img
+                      src={node.imageSrc}
+                      alt={node.nickname}
+                      crossOrigin="anonymous"
+                      decoding="async"
+                      className="w-full h-full object-cover select-none pointer-events-none"
+                    />
+                  ) : (
+                    <span className="text-sm select-none">{node.emoji || "👤"}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
