@@ -227,7 +227,8 @@ export async function signInWithUsername(usernameOrEmail: string, pass: string):
 // Global Admin Authority Validator
 export function isAdminUser(user: User | null | undefined): boolean {
   if (!user || user.isAnonymous) return false;
-  return user.email?.toLowerCase() === "lhs41977@gmail.com";
+  const adminEmail = ((import.meta as any).env?.VITE_ADMIN_EMAIL || "lhs41977@gmail.com").toLowerCase();
+  return user.email?.toLowerCase() === adminEmail;
 }
 
 // Delete User Account (회원 탈퇴 및 개인정보 파기)
@@ -2017,53 +2018,9 @@ export async function processReferralReward(referrerId: string): Promise<boolean
 
 // ==========================================
 // 📊 TELEMETRY & ANALYTICS EVENT LOGGING
-// ==========================================
+// 📊 TELEMETRY & ANALYTICS EVENT LOGGING (Unified via analytics.ts)
+export { logAnalyticsEvent } from "./analytics";
 
-export async function logAnalyticsEvent(
-  eventName: string,
-  category: "navigation" | "monetization" | "saju_view" | "viral" | "survey" | "system" = "navigation",
-  metadata: Record<string, any> = {}
-): Promise<void> {
-  try {
-    const user = auth.currentUser;
-    const uid = user?.uid || localStorage.getItem("saju_fallback_guest_uid") || "guest_anon";
-    const tier = (localStorage.getItem("saju_user_tier") || "free") as UserTierType;
-    const email = user?.email || null;
-
-    const eventPayload = sanitizeFirestoreData({
-      eventName,
-      category,
-      userTier: tier,
-      userUid: uid,
-      userEmail: email,
-      metadata,
-      timestamp: new Date().toISOString(),
-    });
-
-    // 1. Save to local storage buffer (fast & offline safe)
-    try {
-      const existing = localStorage.getItem("saju_analytics_cache");
-      let list: any[] = existing ? JSON.parse(existing) : [];
-      list.unshift(eventPayload);
-      if (list.length > 50) list = list.slice(0, 50);
-      localStorage.setItem("saju_analytics_cache", JSON.stringify(list));
-    } catch (e) {}
-
-    // 2. Persist to Firestore analytics_events collection
-    try {
-      await addDoc(collection(db, "analytics_events"), eventPayload);
-    } catch (e) {
-      console.debug("Analytics firestore log skipped:", e);
-    }
-  } catch (err) {
-    console.debug("logAnalyticsEvent error:", err);
-  }
-}
-
-/**
- * Recursively strips undefined values in an object or array before sending to Firestore,
- * preventing 'Unsupported field value: undefined' errors.
- */
 export function sanitizeFirestoreData<T extends Record<string, any>>(obj: T): T {
   if (obj === null || typeof obj !== "object") {
     return obj;

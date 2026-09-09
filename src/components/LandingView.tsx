@@ -8,7 +8,8 @@ import {
   clearAllLocalCache,
   getUserMembershipInfo,
   getUserPersonalProfile,
-  PersonalSajuProfile
+  PersonalSajuProfile,
+  isAdminUser
 } from "../lib/firebase";
 import { collection, query, where, getDocs, doc, deleteDoc } from "firebase/firestore";
 import {
@@ -426,7 +427,7 @@ export default function LandingView() {
                                   setHistoryRooms((prev) => prev.filter((r) => r.code !== codeToDelete));
 
                                   try {
-                                    const isSystemAdmin = currentUser?.email?.toLowerCase() === "lhs41977@gmail.com";
+                                    const isSystemAdmin = isAdminUser(currentUser);
                                     const isOwnerOrAdmin = room.role === "owner" || room.role === "admin" || isSystemAdmin;
 
                                     // 1. If owner or admin, permanently delete the room document from Firestore

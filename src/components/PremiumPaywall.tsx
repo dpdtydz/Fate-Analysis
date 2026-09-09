@@ -23,6 +23,7 @@ import {
   consumeSingleUseTicket,
   addTicketsToUser,
   getUserMembershipInfo,
+  isAdminUser,
   getSystemPaymentSettings
 } from "../lib/firebase";
 import { UserTicketAccount, TicketProductType } from "../types";
@@ -96,7 +97,7 @@ export default function PremiumPaywall({
   const membership = getUserMembershipInfo(auth.currentUser);
 
   // Master account checker (strictly used only if needed)
-  const isMaster = auth.currentUser?.email?.toLowerCase() === "lhs41977@gmail.com";
+  const isMaster = isAdminUser(auth.currentUser);
 
   // System Payment ON/OFF State (Default: false, Preparation mode)
   const [isPaymentEnabled, setIsPaymentEnabled] = useState(false);

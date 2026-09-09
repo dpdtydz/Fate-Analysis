@@ -9,6 +9,7 @@ import { zodiacImageSrc, roleImageSrc, spaceImageSrc, SPACE_NAMES, SpaceKey, get
 import { getRepresentativeBranch } from "../utils/zodiacCompat";
 import { db } from "../lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { getMemberNickname, getMemberMbti, getMemberGan, getMemberJi, getMemberElement } from "../utils/memberHelper";
 
 interface ViralCardModalProps {
   isOpen: boolean;
@@ -551,15 +552,11 @@ export default function ViralCardModal({
     }
   }, [isOpen, defaultTab]);
 
-  const mAny = (member || {}) as any;
-  const nickname = mAny.nickname || "나";
-  const mbti = mAny.mbti && mAny.mbti !== "미입력" ? String(mAny.mbti).toUpperCase() : "";
-
-  const rawGan = mAny.saju?.daymaster?.gan || "갑";
-  const gan = rawGan.length > 1 ? rawGan[0] : rawGan;
-  const rawJi = mAny.saju?.pillars?.day?.ji || "자";
-  const ji = rawJi.length > 1 ? rawJi[0] : rawJi;
-  const elem = mAny.saju?.daymaster?.element || "금";
+  const nickname = getMemberNickname(member, "나");
+  const mbti = getMemberMbti(member);
+  const gan = getMemberGan(member);
+  const ji = getMemberJi(member);
+  const elem = getMemberElement(member);
 
   const spec = ELEMENT_SPECS[elem] || ELEMENT_SPECS["금"];
   const todayFortune = calculateTodayFortune(gan, elem);

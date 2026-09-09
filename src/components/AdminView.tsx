@@ -6,7 +6,8 @@ import {
   resetAllUserAccountsToZero, deleteUserTicketAccountFromDb, BUILT_IN_PROMO_COUPONS, cleanUndefined,
   getSystemPaymentSettings, updateSystemPaymentSettings,
   fetchAllMembersWithSajuForAdmin, AdminMemberSajuRecord,
-  fetchPersonalAnalysis, buildPersonalAnalysisKey, PersonalSajuProfile
+  fetchPersonalAnalysis, buildPersonalAnalysisKey, PersonalSajuProfile,
+  isAdminUser
 } from "../lib/firebase";
 import { 
   doc, getDoc, setDoc, collection, getDocs, deleteDoc, query, where, orderBy, limit 
@@ -1249,10 +1250,10 @@ export default function AdminView() {
 
   // Render Access Denied
   const isDevLocal = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-  const isAdminUser = currentUser?.email?.toLowerCase() === "lhs41977@gmail.com" || 
+  const isAuthorizedAdmin = isAdminUser(currentUser) || 
     (isDevLocal && (window.location.search.includes("dev_admin=true") || window.location.hash.includes("dev_admin=true")));
 
-  if (!loading && !isAdminUser) {
+  if (!loading && !isAuthorizedAdmin) {
     return (
       <Layout title="관리자 콘솔" showHomeButton>
         <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">

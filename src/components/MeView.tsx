@@ -3,7 +3,7 @@ import Layout from "./Layout";
 import SajuVisual from "./SajuVisual";
 import SajuForm from "./SajuForm";
 import LoadingOverlay from "./LoadingOverlay";
-import { db, auth, signInWithGoogle, checkPremiumStatus, checkProductUnlock, activatePremiumSimulation, getFriendlyAuthErrorMessage, getUserTicketAccount, consumeSingleUseTicket, redeemCoupon, resolveMyPersonalAnalysis } from "../lib/firebase";
+import { db, auth, signInWithGoogle, checkPremiumStatus, checkProductUnlock, activatePremiumSimulation, getFriendlyAuthErrorMessage, getUserTicketAccount, consumeSingleUseTicket, redeemCoupon, resolveMyPersonalAnalysis, isAdminUser } from "../lib/firebase";
 import { doc, getDoc, getDocs, setDoc, deleteDoc, collection } from "firebase/firestore";
 import { Member, PersonalAnalysis } from "../types";
 import { 
@@ -594,7 +594,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
   const [isViralModalOpen, setIsViralModalOpen] = useState(false);
   const [viralCardTab, setViralCardTab] = useState<"identity" | "fortune" | "group" | "role">("identity");
   const [cardViewMode, setCardViewMode] = useState<"role" | "soul">("role");
-  const isMaster = auth.currentUser?.email?.toLowerCase() === "lhs41977@gmail.com";
+  const isMaster = isAdminUser(auth.currentUser);
   const localMemberId = localStorage.getItem(`saju_member_id_${code}`) || "";
   const isViewingSelf = !localMemberId || localMemberId === memberId;
 

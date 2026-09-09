@@ -47,8 +47,8 @@ async function checkAdmin(req: any, res: any, next: any) {
     
     const verifyData: any = await verifyRes.json();
     const email = verifyData.users?.[0]?.email;
-    
-    if (email?.toLowerCase() === "lhs41977@gmail.com") {
+    const masterAdmin = (process.env.ADMIN_EMAIL || "lhs41977@gmail.com").toLowerCase();
+    if (email?.toLowerCase() === masterAdmin) {
       req.adminEmail = email;
       req.adminUid = verifyData.users?.[0]?.localId;
       next();
