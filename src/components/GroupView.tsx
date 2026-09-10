@@ -5,7 +5,7 @@ import LoadingOverlay from "./LoadingOverlay";
 import { db, getAnonymousUser, auth, checkPremiumStatus, checkProductUnlock, redeemCoupon, getUserMembershipInfo } from "../lib/firebase";
 import { doc, getDoc, setDoc, collection, getDocs, onSnapshot, deleteDoc } from "firebase/firestore";
 import { Member, Room, CachedAnalysisResult } from "../types";
-import { Share2, Heart, ArrowLeft, RefreshCw, Smile, Check, Lock, Ticket, ChevronDown, ChevronUp } from "lucide-react";
+import { Share2, Heart, ArrowLeft, RefreshCw, Smile, Check, Lock, Ticket, ChevronDown, ChevronUp, Award, Sparkles, Trophy } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import PremiumPaywall from "./PremiumPaywall";
 import GoogleAds from "./GoogleAds";
@@ -14,6 +14,9 @@ import ZodiacAvatar, { spaceImageSrc, SPACE_NAMES, calculateSpaceKey, calculateM
 import { generateDynamicPairCompatibility, isDummyPair } from "../utils/pairChemistry";
 import { backgroundAnalysisManager } from "../utils/backgroundAnalysisManager";
 import GroupStoryModal from "./GroupStoryModal";
+import ShinsalBadges from "./ShinsalBadges";
+import { calculateGroupAwards } from "../utils/shinsalCalculator";
+import { getExperimentVariant, trackExperimentConversion } from "../lib/abTest";
 
 const isMbtiRegistered = (m?: any): boolean => {
   if (!m || !m.mbti) return false;
@@ -1173,6 +1176,19 @@ export default function GroupView({ code }: GroupViewProps) {
     return [...topTwo, ...bottomOne];
   })();
 
+  // 5대 사주 어워즈 (인기쟁이·실세·캐리머신·역마러·브레인)
+  const awardsResult = React.useMemo(() => {
+    return calculateGroupAwards(members, upgradedPairs, analysis?.group?.overall_score || 82);
+  }, [members, upgradedPairs, analysis]);
+
+  // A/B Test for Story CTA
+  const storyCtaVariant = getExperimentVariant<string>("story_share_cta_variant");
+  const storyCtaText = storyCtaVariant === "B_awards"
+    ? "이 구역 1위 스토리 올리기 👑"
+    : storyCtaVariant === "C_popular"
+    ? "모임 인기쟁이 박제하기 🌸"
+    : "스토리 공유";
+
   return (
     <Layout title={`${room.title} 궁합도`} showHomeButton>
       <div className="space-y-6 py-2">
@@ -1456,6 +1472,61 @@ export default function GroupView({ code }: GroupViewProps) {
               <div className="p-4 bg-sunken rounded-xl text-left text-xs text-ink-soft leading-relaxed">
                 <span className="font-semibold text-ink block mb-1">화합을 높이는 팁</span>
                 {analysis.group.synergy_tips}
+              </div>
+            </div>
+
+            {/* STAGE 1.5: 🏆 우리 모임 5대 사주 어워즈 (인기쟁이 · 실세 · 캐리머신 · 역마러 · 브레인) */}
+            <div className="bg-surface border border-line p-5 sm:p-6 rounded-xl text-left space-y-4 shadow-xs">
+              <div className="flex items-center justify-between pb-2.5 border-b border-line">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-amber-400/10 text-amber-500 flex items-center justify-center">
+                    <Trophy className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-[15px] font-semibold text-ink">우리 모임 5대 사주 어워즈</h4>
+                    <p className="text-xs text-ink-faint">실제 명식으로 가려낸 모임의 1위 랭킹</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    trackExperimentConversion("story_share_cta_variant", "click_story_share_button");
+                    setIsStoryModalOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#ff5a36] to-[#ec4899] text-white text-xs font-bold shadow-xs hover:opacity-95 transition-opacity cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{storyCtaText}</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {awardsResult.awardsList.map((award) => (
+                  <div key={award.id} className="p-3.5 bg-sunken rounded-xl space-y-2 border border-line/60">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-ink flex items-center gap-1">
+                        <span>{award.badgeEmoji}</span>
+                        <span>{award.awardName}</span>
+                      </span>
+                      <span className="text-xs font-bold text-seal bg-surface px-2 py-0.5 rounded-md">
+                        {award.badgeTitle} · {award.score}점
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 pt-1">
+                      <ZodiacAvatar member={award.winner} size={36} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-ink truncate">{award.winner.nickname}</p>
+                        <p className="text-[11px] text-ink-soft italic truncate">{award.tagline}</p>
+                      </div>
+                    </div>
+
+                    {/* Winner Shinsal Badges */}
+                    <div className="pt-1.5 border-t border-line/50">
+                      <ShinsalBadges member={award.winner} compact />
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 

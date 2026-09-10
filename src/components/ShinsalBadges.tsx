@@ -140,22 +140,45 @@ export const MODERN_12UNSEONG_REGISTRY: Record<string, {
   "양": { name: "양(養)", stage: "보호와 순조로운 양육", power: 78, tagline: "상속운과 든든한 보살핌", desc: "윗사람의 후계자로서 사랑받으며 순조롭게 유산과 지위를 이어받는 온화한 기운입니다." }
 };
 
+import { Member } from "../types";
+import { calculateMemberSals } from "../utils/shinsalCalculator";
+
 interface ShinsalBadgesProps {
+  member?: Member | null;
   sals?: string[];
   unseong?: string;
   dayJi?: string;
+  compact?: boolean;
 }
 
-export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadgesProps) {
+export default function ShinsalBadges({
+  member,
+  sals = [],
+  unseong,
+  dayJi,
+  compact = false
+}: ShinsalBadgesProps) {
   const [selectedShinsal, setSelectedShinsal] = useState<ShinsalItem | null>(null);
   const [selectedUnseong, setSelectedUnseong] = useState<{ key: string; data: any } | null>(null);
 
-  // 기본 노출될 신살 목록 필터링 (없으면 대표적인 도화살/천을귀인/역마살 기본 구성 매핑)
+  // member가 주어지면 정밀 연산 실행
+  const calculated = React.useMemo(() => {
+    if (member) {
+      return calculateMemberSals(member);
+    }
+    return null;
+  }, [member]);
+
+  const effectiveSals = calculated ? calculated.sals : sals;
+  const effectiveUnseong = calculated ? calculated.unseong : unseong;
+  const effectiveDayJi = calculated ? calculated.dayJi : dayJi;
+
+  // 기본 노출될 신살 목록 필터링
   const displaySals: ShinsalItem[] = React.useMemo(() => {
     const list: ShinsalItem[] = [];
     const seen = new Set<string>();
 
-    sals.forEach(s => {
+    effectiveSals.forEach(s => {
       Object.entries(MODERN_SHINSAL_REGISTRY).forEach(([key, item]) => {
         if (s.includes(key) && !seen.has(key)) {
           seen.add(key);
@@ -166,9 +189,9 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
 
     // 만약 전달된 살이 없다면 일지 기준으로 재미있는 현대적 신살 기본 매핑
     if (list.length === 0) {
-      if (dayJi && ["자", "오", "묘", "유"].includes(dayJi)) {
+      if (effectiveDayJi && ["자", "오", "묘", "유", "子", "午", "卯", "酉"].includes(effectiveDayJi)) {
         list.push(MODERN_SHINSAL_REGISTRY["도화살"]);
-      } else if (dayJi && ["인", "신", "사", "해"].includes(dayJi)) {
+      } else if (effectiveDayJi && ["인", "신", "사", "해", "寅", "申", "巳", "亥"].includes(effectiveDayJi)) {
         list.push(MODERN_SHINSAL_REGISTRY["역마살"]);
       } else {
         list.push(MODERN_SHINSAL_REGISTRY["화개살"]);
@@ -177,39 +200,46 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
     }
 
     return list;
-  }, [sals, dayJi]);
+  }, [effectiveSals, effectiveDayJi]);
 
-  const unseongData = unseong ? MODERN_12UNSEONG_REGISTRY[unseong] : null;
+  const unseongData = effectiveUnseong ? MODERN_12UNSEONG_REGISTRY[effectiveUnseong] : null;
 
   return (
-    <div className="space-y-3.5">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-seal/10 text-seal flex items-center justify-center">
-            <Sparkles className="w-4 h-4" />
-          </div>
-          <div>
-            <h4 className="text-sm font-semibold text-ink">현대적 신살(神煞) & 12운성 뱃지</h4>
-            <p className="text-xs text-ink-faint">클릭하면 숨겨진 현대적 능력치와 해설을 확인할 수 있어요</p>
+    <div className={compact ? "space-y-1.5" : "space-y-3.5"}>
+      {/* Header (compact 모드가 아닐 때만 표시) */}
+      {!compact && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-seal/10 text-seal flex items-center justify-center">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-ink">현대적 신살(神煞) & 12운성 뱃지</h4>
+              <p className="text-xs text-ink-faint">클릭하면 숨겨진 현대적 능력치와 해설을 확인할 수 있어요</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Badges Grid */}
-      <div className="flex flex-wrap gap-2 pt-1">
+      <div className="flex flex-wrap gap-1.5 pt-0.5">
         {displaySals.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => setSelectedShinsal(item)}
-            className="group flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sunken hover:bg-line text-xs font-medium text-ink transition-colors cursor-pointer"
+            className={`group flex items-center gap-1.5 rounded-xl bg-sunken hover:bg-line text-ink transition-colors cursor-pointer ${
+              compact ? "px-2 py-1 text-[11px]" : "px-3 py-1.5 text-xs font-medium"
+            }`}
             style={{ borderLeftColor: item.colorHex, borderLeftWidth: "3px" }}
           >
+            <span>{item.emoji}</span>
             <span className="font-semibold">{item.name}</span>
-            <span className="text-xs text-ink-faint group-hover:text-ink-soft transition-colors">
-              {item.modernTitle.split("·")[0].trim()}
-            </span>
+            {!compact && (
+              <span className="text-xs text-ink-faint group-hover:text-ink-soft transition-colors">
+                {item.modernTitle.split("·")[0].trim()}
+              </span>
+            )}
           </button>
         ))}
 
@@ -217,13 +247,15 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
         {unseongData && (
           <button
             type="button"
-            onClick={() => setSelectedUnseong({ key: unseong!, data: unseongData })}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sunken hover:bg-line text-xs font-medium text-seal transition-colors cursor-pointer"
+            onClick={() => setSelectedUnseong({ key: effectiveUnseong!, data: unseongData })}
+            className={`flex items-center gap-1.5 rounded-xl bg-sunken hover:bg-line text-seal transition-colors cursor-pointer ${
+              compact ? "px-2 py-1 text-[11px]" : "px-3 py-1.5 text-xs font-medium"
+            }`}
           >
-            <Crown className="w-3.5 h-3.5 text-seal" />
+            <Crown className={compact ? "w-3 h-3 text-seal" : "w-3.5 h-3.5 text-seal"} />
             <span className="font-semibold">{unseongData.name}</span>
-            <span className="text-xs px-1.5 py-0.5 rounded-xl bg-seal text-white font-bold">
-              활력 {unseongData.power}%
+            <span className="text-[10px] px-1 py-0.2 rounded-lg bg-seal text-white font-bold">
+              {unseongData.power}%
             </span>
           </button>
         )}
@@ -246,6 +278,7 @@ export default function ShinsalBadges({ sals = [], unseong, dayJi }: ShinsalBadg
                 className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-xs"
                 style={{ backgroundColor: `${selectedShinsal.colorHex}15`, color: selectedShinsal.colorHex }}
               >
+                {selectedShinsal.emoji}
               </div>
               <div>
                 <div className="flex items-center gap-1.5">

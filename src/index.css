@@ -38,6 +38,7 @@ body {
   word-break: keep-all;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Mobile Safe Area Utilities */

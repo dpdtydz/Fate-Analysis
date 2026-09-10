@@ -4,6 +4,7 @@ import KakaoOutlinkGuide from "./components/KakaoOutlinkGuide";
 import SurveyPopup from "./components/SurveyPopup";
 import GlobalAnalysisAlert from "./components/GlobalAnalysisAlert";
 import LoadingOverlay from "./components/LoadingOverlay";
+import PwaInstallBanner from "./components/PwaInstallBanner";
 import { processReferralReward } from "./lib/firebase";
 import { logAnalyticsEvent } from "./lib/analytics";
 
@@ -168,6 +169,7 @@ export default function App() {
         {renderContent()}
       </Suspense>
       <SurveyPopup />
+      <PwaInstallBanner />
     </>
   );
 }

@@ -8,7 +8,8 @@ import { logAnalyticsEvent } from "./analytics";
 export type ExperimentKey = 
   | "invite_cta_variant"       // 모임 초대 버튼 카피 및 액션
   | "paywall_headline_variant"  // 프리미엄 결제/쿠폰 모달 헤드라인
-  | "soul_card_share_variant";  // 소울 카드 공유 시트 노출 방식
+  | "soul_card_share_variant"  // 소울 카드 공유 시트 노출 방식
+  | "story_share_cta_variant"; // 사주 어워즈 9:16 스토리 공유 CTA 카피
 
 export interface ExperimentConfig<T extends string = string> {
   key: ExperimentKey;
@@ -42,6 +43,15 @@ export const ACTIVE_EXPERIMENTS: Record<ExperimentKey, ExperimentConfig> = {
       { id: "B_card_preview", weight: 50 }  // 카드 비주얼 3D 뷰어 우선
     ],
     description: "소울 카드 이미지 저장 및 인스타/카톡 공유율 최적화"
+  },
+  story_share_cta_variant: {
+    key: "story_share_cta_variant",
+    variants: [
+      { id: "A_control", weight: 34 },
+      { id: "B_awards", weight: 33 },
+      { id: "C_popular", weight: 33 }
+    ],
+    description: "사주 어워즈 인스타 9:16 스토리 공유율 및 전환 퍼널 최적화"
   }
 };
 

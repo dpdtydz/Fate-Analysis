@@ -4,8 +4,11 @@ import PairChemistryModal from "./PairChemistryModal";
 import ViralCardModal from "./ViralCardModal";
 import PdfReportModal from "./PdfReportModal";
 import HybridArchetypeDemoModal from "./HybridArchetypeDemoModal";
+import GroupStoryModal from "./GroupStoryModal";
+import ShinsalBadges from "./ShinsalBadges";
+import { calculateGroupAwards } from "../utils/shinsalCalculator";
 import ZodiacAvatar from "./ZodiacAvatar";
-import { Sparkles, Layers } from "lucide-react";
+import { Sparkles, Layers, Trophy } from "lucide-react";
 import { Member } from "../types";
 import { calculateSaju, getDynamicCharacter } from "../utils/saju";
 
@@ -56,6 +59,11 @@ export default function DevQaHarness() {
   const [viralOpen, setViralOpen] = useState(false);
   const [pdfOpen, setPdfOpen] = useState(false);
   const [hybridDemoOpen, setHybridDemoOpen] = useState(false);
+  const [storyOpen, setStoryOpen] = useState(false);
+
+  const awardsResult = useMemo(() => {
+    return calculateGroupAwards(members, [], 88);
+  }, [members]);
 
   return (
     <Layout title="개발 QA" showHomeButton>
@@ -101,6 +109,50 @@ export default function DevQaHarness() {
           </p>
         </div>
 
+        {/* 🏆 5대 사주 어워즈 프리뷰 섹션 */}
+        <div className="bg-surface border border-line rounded-xl p-5 space-y-3 text-left">
+          <div className="flex items-center justify-between pb-2 border-b border-line">
+            <div className="flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-amber-500" />
+              <h2 className="font-serif text-lg font-semibold text-ink">우리 모임 5대 사주 어워즈</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStoryOpen(true)}
+              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#ff5a36] to-[#ec4899] text-white hover:opacity-95 transition-opacity cursor-pointer flex items-center gap-1 shadow-xs"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>9:16 스토리 공유</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {awardsResult.awardsList.map((award) => (
+              <div key={award.id} className="p-3 bg-sunken rounded-xl space-y-2 border border-line/60">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-ink flex items-center gap-1">
+                    <span>{award.badgeEmoji}</span>
+                    <span>{award.awardName}</span>
+                  </span>
+                  <span className="text-[11px] font-bold text-seal bg-surface px-2 py-0.5 rounded-md">
+                    {award.badgeTitle} · {award.score}점
+                  </span>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <ZodiacAvatar member={award.winner} size={32} />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-bold text-ink truncate">{award.winner.nickname}</p>
+                    <p className="text-[11px] text-ink-soft truncate">{award.tagline}</p>
+                  </div>
+                </div>
+                <div className="pt-1 border-t border-line/40">
+                  <ShinsalBadges member={award.winner} compact />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="bg-surface border border-line rounded-xl p-5 space-y-3">
           <h2 className="font-serif text-lg font-semibold text-ink">모달 확인</h2>
           <div className="grid grid-cols-2 gap-2">
@@ -109,7 +161,7 @@ export default function DevQaHarness() {
               onClick={() => setViralOpen(true)}
               className="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
             >
-              공유 카드 모달
+              소울 포토카드 모달
             </button>
             <button
               type="button"
@@ -117,6 +169,14 @@ export default function DevQaHarness() {
               className="py-3 px-4 bg-sunken hover:bg-line text-ink text-sm font-semibold rounded-xl transition-colors cursor-pointer"
             >
               감정서 리포트 모달
+            </button>
+            <button
+              type="button"
+              onClick={() => setStoryOpen(true)}
+              className="py-3 px-4 bg-gradient-to-r from-[#ff5a36] to-[#ec4899] text-white text-sm font-bold rounded-xl transition-all cursor-pointer col-span-2 flex items-center justify-center gap-1.5 shadow-md"
+            >
+              <Trophy className="w-4 h-4 text-amber-200" />
+              <span>9:16 인스타 사주 어워즈 스토리 모달 열기</span>
             </button>
           </div>
 
@@ -132,6 +192,14 @@ export default function DevQaHarness() {
           </div>
         </div>
       </div>
+
+      <GroupStoryModal
+        isOpen={storyOpen}
+        onClose={() => setStoryOpen(false)}
+        roomTitle="QA 테스트 모임"
+        allMembers={members}
+        groupScore={88}
+      />
 
       <PairChemistryModal
         isOpen={pairOpen}
