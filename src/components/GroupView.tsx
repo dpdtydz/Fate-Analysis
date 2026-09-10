@@ -620,6 +620,60 @@ export default function GroupView({ code }: GroupViewProps) {
   useEffect(() => setSpaceImgFailed(false), [spaceSrcCandidate]);
   const spaceSrc = spaceImgFailed ? null : spaceSrcCandidate;
 
+  // Find member object helper
+  const findMemberObj = (inputVal: string) => {
+    if (!inputVal) return undefined;
+    const normInput = inputVal.trim().toLowerCase().replace(/님$/, "");
+    return members.find((m) => {
+      const normId = m.id ? m.id.trim().toLowerCase() : "";
+      const normNick = m.nickname ? m.nickname.trim().toLowerCase().replace(/님$/, "") : "";
+      return (
+        normId === normInput ||
+        normNick === normInput ||
+        normId.includes(normInput) ||
+        normInput.includes(normId) ||
+        normNick.includes(normInput) ||
+        normInput.includes(normNick)
+      );
+    });
+  };
+
+  // Check and upgrade generic boilerplate pairs to dynamic premium chemistry pairs
+  const upgradedPairs = analysis && Array.isArray(analysis.pairs) ? analysis.pairs.map((p) => {
+    const m1 = findMemberObj(p.member_id_1);
+    const m2 = findMemberObj(p.member_id_2);
+    const isGeneric = p.label === "상생과 화합의 인연 메이트" ||
+                      p.label === "상생과 화합의 인연 조합" ||
+                      p.label === "대조합" ||
+                      isDummyPair(p) ||
+                      (p.description && p.description.includes("서로 다른 기운이 자연스럽게 합을 이루는 조화로운 인연입니다"));
+    if (m1 && m2 && isGeneric) {
+      return generateDynamicPairCompatibility(m1, m2);
+    }
+    return p;
+  }) : [];
+
+  // Sort pairs by score desc to highlight best matches
+  const sortedPairs = [...upgradedPairs].sort((a, b) => b.score - a.score);
+
+  // We show at most 3 pairs for free users, and all pairs for premium users.
+  const displayedPairs = (() => {
+    if (isGroupUnlocked) {
+      return sortedPairs;
+    }
+    if (sortedPairs.length <= 3) {
+      return sortedPairs;
+    }
+    const topTwo = sortedPairs.slice(0, 2);
+    const bottomOne = sortedPairs.slice(-1);
+    return [...topTwo, ...bottomOne];
+  })();
+
+  // 5대 사주 어워즈 (인기쟁이·실세·캐리머신·역마러·브레인)
+  const awardsResult = React.useMemo(() => {
+    return calculateGroupAwards(members, upgradedPairs, analysis?.group?.overall_score || 82);
+  }, [members, upgradedPairs, analysis]);
+
   // Score to color helper — 점수는 먹 농담으로, 최고 구간(90+)에만 인주 포인트
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-seal bg-sunken";
@@ -1134,59 +1188,7 @@ export default function GroupView({ code }: GroupViewProps) {
     );
   }
 
-  // Find member object helper
-  const findMemberObj = (inputVal: string) => {
-    if (!inputVal) return undefined;
-    const normInput = inputVal.trim().toLowerCase().replace(/님$/, "");
-    return members.find((m) => {
-      const normId = m.id ? m.id.trim().toLowerCase() : "";
-      const normNick = m.nickname ? m.nickname.trim().toLowerCase().replace(/님$/, "") : "";
-      return (
-        normId === normInput ||
-        normNick === normInput ||
-        normId.includes(normInput) ||
-        normInput.includes(normId) ||
-        normNick.includes(normInput) ||
-        normInput.includes(normNick)
-      );
-    });
-  };
 
-  // Check and upgrade generic boilerplate pairs to dynamic premium chemistry pairs
-  const upgradedPairs = analysis && Array.isArray(analysis.pairs) ? analysis.pairs.map((p) => {
-    const m1 = findMemberObj(p.member_id_1);
-    const m2 = findMemberObj(p.member_id_2);
-    const isGeneric = p.label === "상생과 화합의 인연 메이트" ||
-                      p.label === "상생과 화합의 인연 조합" ||
-                      p.label === "대조합" ||
-                      isDummyPair(p) ||
-                      (p.description && p.description.includes("서로 다른 기운이 자연스럽게 합을 이루는 조화로운 인연입니다"));
-    if (m1 && m2 && isGeneric) {
-      return generateDynamicPairCompatibility(m1, m2);
-    }
-    return p;
-  }) : [];
-
-  // Sort pairs by score desc to highlight best matches
-  const sortedPairs = [...upgradedPairs].sort((a, b) => b.score - a.score);
-
-  // We show at most 3 pairs for free users, and all pairs for premium users.
-  const displayedPairs = (() => {
-    if (isGroupUnlocked) {
-      return sortedPairs;
-    }
-    if (sortedPairs.length <= 3) {
-      return sortedPairs;
-    }
-    const topTwo = sortedPairs.slice(0, 2);
-    const bottomOne = sortedPairs.slice(-1);
-    return [...topTwo, ...bottomOne];
-  })();
-
-  // 5대 사주 어워즈 (인기쟁이·실세·캐리머신·역마러·브레인)
-  const awardsResult = React.useMemo(() => {
-    return calculateGroupAwards(members, upgradedPairs, analysis?.group?.overall_score || 82);
-  }, [members, upgradedPairs, analysis]);
 
   // A/B Test for Story CTA
   const storyCtaVariant = getExperimentVariant<string>("story_share_cta_variant");

@@ -1116,20 +1116,25 @@ export default function MySajuView() {
                   <button
                     type="button"
                     onClick={() => setIsIljuModalOpen(true)}
-                    className="mx-auto flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-sunken hover:bg-line border border-line text-xs transition-all cursor-pointer group mb-5 max-w-[320px] w-full shadow-2xs"
+                    className="mx-auto flex items-center justify-between gap-2.5 px-3.5 py-2.5 rounded-xl bg-sunken hover:bg-line border border-line text-xs transition-all cursor-pointer group mb-5 max-w-[360px] w-full shadow-2xs text-left"
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xl">{iljuMeta.animalEmoji}</span>
-                      <div className="text-left min-w-0">
-                        <span className="font-bold text-ink block truncate">
-                          60간지 수호동물: {iljuMeta.title} ({iljuMeta.hanja})
-                        </span>
-                        <span className="text-[11px] text-ink-soft truncate block">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <span className="text-2xl shrink-0">{iljuMeta.animalEmoji}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-surface border border-line text-seal shrink-0">
+                            60간지 수호동물
+                          </span>
+                          <span className="font-bold text-ink text-xs">
+                            {iljuMeta.title} ({iljuMeta.hanja})
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-ink-soft truncate mt-0.5">
                           {iljuMeta.tagline}
-                        </span>
+                        </p>
                       </div>
                     </div>
-                    <span className="text-[11px] font-semibold text-seal group-hover:underline shrink-0 flex items-center">
+                    <span className="text-[11px] font-bold text-seal group-hover:underline shrink-0 flex items-center gap-0.5 pl-1">
                       도감 보기 →
                     </span>
                   </button>
