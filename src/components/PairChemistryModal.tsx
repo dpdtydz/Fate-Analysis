@@ -4,6 +4,7 @@ import { X, ShieldCheck, Share2, Check, Sparkles, CheckCircle2, HeartHandshake, 
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent, checkProductUnlock } from "../lib/firebase";
 import ZodiacAvatar from "./ZodiacAvatar";
+import BottomSheet from "./BottomSheet";
 
 interface PairChemistryModalProps {
   isOpen: boolean;
@@ -236,27 +237,25 @@ export default function PairChemistryModal({
   // Case 1: Visitor has not joined the room yet
   if (!myMember) {
     return (
-      <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/50 animate-fade-in">
-        <div className="bg-surface rounded-xl shadow-lg max-w-sm w-full p-6 space-y-5 text-center relative">
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-ink-faint hover:text-ink rounded-xl hover:bg-sunken transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
-          <div className="w-14 h-14 mx-auto rounded-xl bg-sunken flex items-center justify-center overflow-hidden">
-            <ZodiacAvatar member={targetMember} size={48} fallbackEmoji={targetMember.character_emoji} />
+      <BottomSheet
+        isOpen={isOpen}
+        onClose={onClose}
+        maxWidth="max-w-sm"
+        showCloseButton={true}
+      >
+        <div className="space-y-5 text-center py-2">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-sunken flex items-center justify-center overflow-hidden shadow-inner">
+            <ZodiacAvatar member={targetMember} size={52} fallbackEmoji={targetMember.character_emoji} />
           </div>
 
           <div className="space-y-1.5">
-            <p className="text-xs text-ink-faint">1:1 궁합</p>
-            <h3 className="font-serif text-lg font-semibold text-ink">
+            <p className="text-xs text-ink-faint font-medium">1:1 인연 궁합</p>
+            <h3 className="font-serif text-xl font-bold text-ink">
               {targetMember.nickname}님과의 궁합
             </h3>
-            <p className="text-sm text-ink-soft leading-relaxed">
+            <p className="text-xs sm:text-sm text-ink-soft leading-relaxed px-2">
               {targetMember.nickname}님의 상세 사주명식은 비공개입니다.<br />
-              방에 참여하면 나와의 1:1 궁합을 확인할 수 있어요.
+              내 생년월일시를 입력하면 둘만의 정밀 궁합과 시너지를 바로 확인할 수 있어요.
             </p>
           </div>
 
@@ -266,7 +265,7 @@ export default function PairChemistryModal({
                 onClose();
                 if (onJoinPrompt) onJoinPrompt();
               }}
-              className="w-full py-3 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer"
+              className="w-full py-3 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
             >
               생년월일 입력하고 궁합 보기
             </button>
@@ -278,7 +277,7 @@ export default function PairChemistryModal({
             </button>
           </div>
         </div>
-      </div>
+      </BottomSheet>
     );
   }
 
@@ -304,9 +303,13 @@ export default function PairChemistryModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center p-3 sm:p-4 bg-black/50 overflow-y-auto animate-fade-in">
-      <div className="bg-surface rounded-xl shadow-lg max-w-lg w-full p-5 sm:p-6 space-y-4 text-left relative my-auto max-h-[92vh] overflow-y-auto flex flex-col">
-
+    <BottomSheet
+      isOpen={isOpen}
+      onClose={onClose}
+      maxWidth="max-w-lg"
+      showCloseButton={false}
+    >
+      <div className="space-y-4">
         {/* Header with Dual Avatars */}
         <div className="flex items-start justify-between border-b border-line pb-3.5">
           <div className="flex items-center gap-3">
@@ -612,8 +615,7 @@ export default function PairChemistryModal({
         >
           닫기
         </button>
-
       </div>
-    </div>
+    </BottomSheet>
   );
 }

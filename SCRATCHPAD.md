@@ -114,6 +114,19 @@
 
 ---
 
+### Task 14. 모바일 네이티브 제스처 바텀시트(Bottom Sheet) 인터페이스 [완료]
+- [x] **재사용 가능한 네이티브 감성 `BottomSheet` 컴포넌트 (`src/components/BottomSheet.tsx`)**:
+  - 모바일(화면 < 768px): 하단 밀착형 시트, 상단 부드러운 곡률(`rounded-t-3xl`), 드래그 핸들 바(`drag-handle-area`) 탑재
+  - 제스처 스와이프 닫기(Swipe-to-dismiss): 터치 드래그 거리(80px 이상) 및 관성 기반 실시간 트랜스폼 및 닫기
+  - 고무줄 탄성 저항(Rubber-banding): 위로 당길 시 자연스러운 텐션 저항감 처리
+  - 데스크톱(화면 >= 768px): 우아한 중앙 팝업 다이얼로그 모드로 자동 전환되는 완전 반응형 설계
+  - 모바일 Safe-Area 및 배경 스크롤 락, ESC 단축키 지원
+- [x] **신살 & 12운성 상세 모달 전면 적용 (`src/components/ShinsalBadges.tsx`)**: 바텀시트 연동
+- [x] **1:1 궁합 상세 모달 전면 적용 (`src/components/PairChemistryModal.tsx`)**: 바텀시트 연동
+- [x] **E2E 브라우저 반응형 시각 검증 완료**: 모바일 390px 뷰포트 및 데스크톱 1280px 뷰포트 교차 검증 통과
+
+---
+
 ## 🚀 향후 추천 과제 20선 (Web App Strategic Roadmap)
 
 ### 📱 1. 모바일 웹앱(PWA) & 네이티브 사용성 극대화

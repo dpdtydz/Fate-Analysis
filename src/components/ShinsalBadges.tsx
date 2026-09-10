@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Sparkles, Info, Flame, Compass, Heart, Award, ShieldAlert, BookOpen, Crown, ChevronRight, X } from "lucide-react";
+import BottomSheet from "./BottomSheet";
 
 export interface ShinsalItem {
   id: string;
@@ -261,21 +262,18 @@ export default function ShinsalBadges({
         )}
       </div>
 
-      {/* Shinsal Detail Modal */}
-      {selectedShinsal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface rounded-xl max-w-sm w-full p-5 shadow-lg space-y-4 text-left relative">
-            <button
-              onClick={() => setSelectedShinsal(null)}
-              className="absolute top-4 right-4 p-1.5 text-ink-faint hover:text-ink rounded-lg bg-sunken transition-colors cursor-pointer"
-              aria-label="닫기"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
+      {/* Shinsal Detail BottomSheet */}
+      <BottomSheet
+        isOpen={Boolean(selectedShinsal)}
+        onClose={() => setSelectedShinsal(null)}
+        maxWidth="max-w-md"
+        showCloseButton={true}
+      >
+        {selectedShinsal && (
+          <div className="space-y-4 text-left">
             <div className="flex items-center gap-3">
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-xs"
+                className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shadow-xs shrink-0"
                 style={{ backgroundColor: `${selectedShinsal.colorHex}15`, color: selectedShinsal.colorHex }}
               >
                 {selectedShinsal.emoji}
@@ -291,7 +289,7 @@ export default function ShinsalBadges({
               </div>
             </div>
 
-            <div className="p-3 bg-sunken rounded-xl space-y-1">
+            <div className="p-3 bg-sunken rounded-2xl space-y-1">
               <p className="text-xs font-bold text-ink">{selectedShinsal.modernTitle}</p>
               <p className="text-xs text-ink-soft italic">{selectedShinsal.tagline}</p>
             </div>
@@ -312,28 +310,25 @@ export default function ShinsalBadges({
 
             <button
               onClick={() => setSelectedShinsal(null)}
-              className="w-full py-2.5 bg-ink text-white rounded-xl text-xs font-semibold hover:bg-seal transition-colors cursor-pointer"
+              className="w-full py-3 bg-ink text-white rounded-xl text-xs font-semibold hover:bg-seal transition-colors cursor-pointer"
             >
               확인
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </BottomSheet>
 
-      {/* 12Unseong Detail Modal */}
-      {selectedUnseong && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-          <div className="bg-surface rounded-xl max-w-sm w-full p-5 shadow-lg space-y-4 text-left relative">
-            <button
-              onClick={() => setSelectedUnseong(null)}
-              className="absolute top-4 right-4 p-1.5 text-ink-faint hover:text-ink rounded-lg bg-sunken transition-colors cursor-pointer"
-              aria-label="닫기"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
+      {/* 12Unseong Detail BottomSheet */}
+      <BottomSheet
+        isOpen={Boolean(selectedUnseong)}
+        onClose={() => setSelectedUnseong(null)}
+        maxWidth="max-w-md"
+        showCloseButton={true}
+      >
+        {selectedUnseong && (
+          <div className="space-y-4 text-left">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-seal/10 text-seal flex items-center justify-center text-xl font-bold">
+              <div className="w-12 h-12 rounded-2xl bg-seal/10 text-seal flex items-center justify-center text-xl font-bold shrink-0">
                 <Crown className="w-6 h-6" />
               </div>
               <div>
@@ -356,20 +351,20 @@ export default function ShinsalBadges({
               </div>
             </div>
 
-            <div className="p-3 bg-sunken rounded-xl space-y-1 text-xs">
+            <div className="p-3 bg-sunken rounded-2xl space-y-1 text-xs">
               <p className="font-bold text-ink">{selectedUnseong.data.tagline}</p>
               <p className="text-ink-soft leading-relaxed">{selectedUnseong.data.desc}</p>
             </div>
 
             <button
               onClick={() => setSelectedUnseong(null)}
-              className="w-full py-2.5 bg-ink text-white rounded-xl text-xs font-semibold hover:bg-seal transition-colors cursor-pointer"
+              className="w-full py-3 bg-ink text-white rounded-xl text-xs font-semibold hover:bg-seal transition-colors cursor-pointer"
             >
               확인
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </BottomSheet>
     </div>
   );
 }
