@@ -41,6 +41,43 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ──────────────────────────────────────────
+   한국 전통 미학 테마 스킨 오버라이드
+   ────────────────────────────────────────── */
+
+/* 1. 달빛 흑요석 (Moonlight Obsidian - 럭셔리 심야 다크) */
+[data-theme="obsidian"],
+[data-theme="obsidian"] body {
+  --color-paper: #0b0e14;
+  --color-surface: #121824;
+  --color-sunken: #182030;
+  --color-line: #253248;
+  --color-ink: #f1f5f9;
+  --color-ink-soft: #94a3b8;
+  --color-ink-faint: #64748b;
+  --color-seal: #ff5a36;
+  --color-seal-deep: #e03e1a;
+}
+
+/* 2. 궁궐 단청 (Dancheong - 처마 아래 옥청과 단홍의 기품) */
+[data-theme="dancheong"],
+[data-theme="dancheong"] body {
+  --color-paper: #0a1513;
+  --color-surface: #10201d;
+  --color-sunken: #182e2a;
+  --color-line: #25443e;
+  --color-ink: #e8f5f2;
+  --color-ink-soft: #90bcb1;
+  --color-ink-faint: #5e8c81;
+  --color-seal: #e54d3c;
+  --color-seal-deep: #bc3627;
+}
+
+/* 테마 전환 시 부드러운 컬러 전환 트랜지션 */
+body, #layout-root, header, .bg-surface, .bg-sunken, .bg-paper, .border-line {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
 /* Mobile Safe Area Utilities */
 :root {
   --safe-top: env(safe-area-inset-top, 0px);

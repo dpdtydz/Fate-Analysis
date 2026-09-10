@@ -4,6 +4,7 @@ import { auth, getUserMembershipInfo, signOutUser, deleteUserAccount, isAdminUse
 import AuthModal from "./AuthModal";
 import UpgradeToSocialModal from "./UpgradeToSocialModal";
 import Footer from "./Footer";
+import ThemeSwitcher from "./ThemeSwitcher";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -211,6 +212,8 @@ export default function Layout({
                 모임 궁합
               </a>
             </nav>
+
+            <ThemeSwitcher />
 
             {headerRight}
 

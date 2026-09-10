@@ -35,6 +35,18 @@
     <!-- Google AdSense Site Verification & Ad Script -->
     <meta name="google-adsense-account" content="ca-pub-3424261434469173" />
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3424261434469173" crossorigin="anonymous"></script>
+
+    <!-- Theme Early Initialization (Prevent FOUC) -->
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem("inyeon_theme") || "baekja";
+          if (saved && saved !== "baekja") {
+            document.documentElement.setAttribute("data-theme", saved);
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
