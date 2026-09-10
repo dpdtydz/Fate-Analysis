@@ -10,6 +10,7 @@ import PairChemistryModal from "./PairChemistryModal";
 import ViralCardModal from "./ViralCardModal";
 import GoogleAds from "./GoogleAds";
 import ZodiacAvatar, { spaceImageSrc, SPACE_NAMES, calculateSpaceKey, calculateMemberRole } from "./ZodiacAvatar";
+import { cacheRoomSnapshot, getCachedRoomSnapshot, recordRecentRoom } from "../lib/offlineVault";
 
 interface RoomViewProps {
   code: string;
@@ -20,6 +21,7 @@ export default function RoomView({ code }: RoomViewProps) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isRestoredFromCache, setIsRestoredFromCache] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
@@ -48,17 +50,30 @@ export default function RoomView({ code }: RoomViewProps) {
   useEffect(() => {
     setLoading(true);
     setError("");
+    setIsRestoredFromCache(false);
+
+    let latestRoomData: any = null;
 
     // 1. Fetch Room Info
     const roomRef = doc(db, "rooms", code);
     getDoc(roomRef)
       .then((roomSnap) => {
         if (!roomSnap.exists()) {
+          // Check if we have offline cache
+          const cached = getCachedRoomSnapshot(code);
+          if (cached && cached.room) {
+            setRoom(cached.room);
+            setMembers(cached.room.members || []);
+            setIsRestoredFromCache(true);
+            setLoading(false);
+            return;
+          }
           setError("존재하지 않거나 만료된 모임방 코드입니다.");
           setLoading(false);
           return;
         }
         const roomData = roomSnap.data();
+        latestRoomData = roomData;
         if (roomData && roomData.expire_at) {
           const expireDate = new Date(roomData.expire_at);
           if (expireDate < new Date()) {
@@ -67,16 +82,26 @@ export default function RoomView({ code }: RoomViewProps) {
             return;
           }
         }
-        setRoom({ code, ...roomData } as Room);
+        const currentRoom = { code, ...roomData } as Room;
+        setRoom(currentRoom);
 
         // Keep local history fresh for ease of re-entry
         if (roomData) {
           const isOwner = auth.currentUser && auth.currentUser.uid === roomData.owner_uid;
           saveRoomToHistory(code, isOwner ? "owner" : "member", roomData.title || "인연 사주방");
+          recordRecentRoom(code, roomData.title || "인연 사주방", isOwner ? "owner" : "member");
         }
       })
       .catch((err) => {
-        console.error(err);
+        console.warn("Network error fetching room, attempting offline cache recovery:", err);
+        const cached = getCachedRoomSnapshot(code);
+        if (cached && cached.room) {
+          setRoom(cached.room);
+          setMembers(cached.room.members || []);
+          setIsRestoredFromCache(true);
+          setLoading(false);
+          return;
+        }
         setError("방 정보를 불러오는 도중 오류가 발생했습니다.");
         setLoading(false);
       });
@@ -92,9 +117,18 @@ export default function RoomView({ code }: RoomViewProps) {
       activeMembers.sort((a, b) => b.joined_at?.localeCompare(a.joined_at));
       setMembers(activeMembers);
       setLoading(false);
+
+      // Cache snapshot for offline resilience
+      if (latestRoomData) {
+        cacheRoomSnapshot({ code, ...latestRoomData, members: activeMembers } as Room);
+      }
     }, (err) => {
-      console.error(err);
-      setError("참여자 명단을 실시간 수신하는 도중 오류가 발생했습니다.");
+      console.warn("Real-time member listener error:", err);
+      const cached = getCachedRoomSnapshot(code);
+      if (cached && cached.room && cached.room.members) {
+        setMembers(cached.room.members);
+        setIsRestoredFromCache(true);
+      }
       setLoading(false);
     });
 
@@ -332,6 +366,15 @@ export default function RoomView({ code }: RoomViewProps) {
     <Layout title={room.title} showHomeButton>
       <div className="space-y-6 py-2">
         
+        {isRestoredFromCache && (
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs flex items-center justify-between gap-2 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+              <span>로컬 캐시에서 복원된 방입니다. 네트워크가 재연결되면 실시간 동기화됩니다.</span>
+            </div>
+          </div>
+        )}
+
         {!hasJoined && (
           <div className="bg-surface border border-line rounded-xl p-5 text-center space-y-3 animate-fade-in">
             <p className="font-semibold text-sm text-ink">아직 이 모임방에 등록되지 않았습니다</p>

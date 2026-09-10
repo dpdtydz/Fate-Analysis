@@ -146,6 +146,7 @@ export interface Room {
   created_at: any;
   expire_at: any;
   is_locked: boolean;
+  members?: Member[];
 }
 
 export interface PersonalAnalysis {

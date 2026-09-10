@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Home, ChevronLeft, LogOut, UserX, X, CheckCircle2, Settings, ShieldCheck } from "lucide-react";
+import { Home, ChevronLeft, LogOut, UserX, X, CheckCircle2, Settings, ShieldCheck, Clock, FolderArchive } from "lucide-react";
 import { auth, getUserMembershipInfo, signOutUser, deleteUserAccount, isAdminUser } from "../lib/firebase";
 import AuthModal from "./AuthModal";
 import UpgradeToSocialModal from "./UpgradeToSocialModal";
 import Footer from "./Footer";
 import ThemeSwitcher from "./ThemeSwitcher";
+import RecentVaultBottomSheet from "./RecentVaultBottomSheet";
+import { getRecentRooms, getRecentPersonalProfile } from "../lib/offlineVault";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -33,10 +35,19 @@ export default function Layout({
   const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isVaultOpen, setIsVaultOpen] = useState(false);
+  const [hasVaultItems, setHasVaultItems] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [deleteSuccess, setDeleteSuccess] = useState("");
+
+  useEffect(() => {
+    // Check if there are cached rooms or profiles
+    const rooms = getRecentRooms();
+    const profile = getRecentPersonalProfile();
+    setHasVaultItems(rooms.length > 0 || Boolean(profile));
+  }, [isVaultOpen]);
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((user) => {
@@ -215,6 +226,20 @@ export default function Layout({
 
             <ThemeSwitcher />
 
+            {/* Recent Vault Button */}
+            <button
+              type="button"
+              onClick={() => setIsVaultOpen(true)}
+              className="relative min-w-[36px] min-h-[36px] sm:min-w-[40px] sm:min-h-[40px] flex items-center justify-center text-ink-faint hover:text-ink rounded-xl hover:bg-sunken transition-colors cursor-pointer"
+              title="최근 본 모임 및 내 사주 보관함"
+              aria-label="최근 본 모임 및 내 사주 보관함"
+            >
+              <Clock className="w-4 h-4" />
+              {hasVaultItems && (
+                <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-seal" />
+              )}
+            </button>
+
             {headerRight}
 
             {isAuthChecking ? (
@@ -362,6 +387,12 @@ export default function Layout({
           </div>
         </div>
       )}
+
+      {/* Recent Vault BottomSheet */}
+      <RecentVaultBottomSheet
+        isOpen={isVaultOpen}
+        onClose={() => setIsVaultOpen(false)}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import SurveyPopup from "./components/SurveyPopup";
 import GlobalAnalysisAlert from "./components/GlobalAnalysisAlert";
 import LoadingOverlay from "./components/LoadingOverlay";
 import PwaInstallBanner from "./components/PwaInstallBanner";
+import NetworkStatusBar from "./components/NetworkStatusBar";
 import { processReferralReward } from "./lib/firebase";
 import { logAnalyticsEvent } from "./lib/analytics";
 
@@ -163,6 +164,7 @@ export default function App() {
 
   return (
     <>
+      <NetworkStatusBar />
       <GlobalAnalysisAlert />
       <KakaoOutlinkGuide />
       <Suspense fallback={<LoadingOverlay message="페이지를 준비하고 있어요..." />}>
