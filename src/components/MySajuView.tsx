@@ -57,6 +57,8 @@ import { generatePersonalCoreNarrative } from "../utils/sajuSynthesis";
 import ZodiacAvatar, { zodiacImageSrc } from "./ZodiacAvatar";
 import HoroscopePanel from "./HoroscopePanel";
 import { getRepresentativeBranch } from "../utils/zodiacCompat";
+import IljuEncyclopediaModal from "./IljuEncyclopediaModal";
+import { getIljuMeta } from "../utils/iljuData";
 
 // Sample Profile Generator for Zero-Login 1-Second Instant Preview
 export function createSampleProfile(): PersonalSajuProfile {
@@ -520,6 +522,7 @@ export default function MySajuView() {
   const [aiLoading, setAiLoading] = useState(false);
   const [activeTipCard, setActiveTipCard] = useState<string | null>(null);
   const [copiedCardMsg, setCopiedCardMsg] = useState("");
+  const [isIljuModalOpen, setIsIljuModalOpen] = useState(false);
 
   const [currentUser, setCurrentUser] = useState<User | null>(() => auth.currentUser);
   const membership = getUserMembershipInfo(currentUser);
@@ -1104,6 +1107,35 @@ export default function MySajuView() {
                 );
               })()}
 
+              {/* 3.6. 60간지 수호동물 도감 바로가기 뱃지 */}
+              {(() => {
+                const dayGan = profile.saju?.daymaster?.gan || "무토";
+                const dayJi = profile.saju?.pillars?.day?.ji || "진";
+                const iljuMeta = getIljuMeta(`${dayGan[0]}${dayJi}`);
+                return (
+                  <button
+                    type="button"
+                    onClick={() => setIsIljuModalOpen(true)}
+                    className="mx-auto flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-sunken hover:bg-line border border-line text-xs transition-all cursor-pointer group mb-5 max-w-[320px] w-full shadow-2xs"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xl">{iljuMeta.animalEmoji}</span>
+                      <div className="text-left min-w-0">
+                        <span className="font-bold text-ink block truncate">
+                          60간지 수호동물: {iljuMeta.title} ({iljuMeta.hanja})
+                        </span>
+                        <span className="text-[11px] text-ink-soft truncate block">
+                          {iljuMeta.tagline}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-semibold text-seal group-hover:underline shrink-0 flex items-center">
+                      도감 보기 →
+                    </span>
+                  </button>
+                );
+              })()}
+
               {/* 4. 한 줄 정의 */}
               <p className="text-center text-sm leading-relaxed text-ink-soft max-w-[300px] mx-auto mb-5">
                 {spec.quote}
@@ -1664,6 +1696,13 @@ export default function MySajuView() {
           initialTab="identity"
         />
       )}
+
+      {/* 60 Ilju Animal Encyclopedia Modal */}
+      <IljuEncyclopediaModal
+        isOpen={isIljuModalOpen}
+        onClose={() => setIsIljuModalOpen(false)}
+        myIlju={profile?.saju?.daymaster?.gan && profile?.saju?.pillars?.day?.ji ? `${profile.saju.daymaster.gan[0]}${profile.saju.pillars.day.ji}` : undefined}
+      />
     </Layout>
   );
 }

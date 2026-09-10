@@ -11,6 +11,9 @@ import ZodiacAvatar from "./ZodiacAvatar";
 import { Sparkles, Layers, Trophy } from "lucide-react";
 import { Member } from "../types";
 import { calculateSaju, getDynamicCharacter } from "../utils/saju";
+import ChemistryMatrix from "./ChemistryMatrix";
+import IljuEncyclopediaModal from "./IljuEncyclopediaModal";
+import { getIljuMeta } from "../utils/iljuData";
 
 /**
  * 개발 전용 QA 하네스 — 실데이터 없이 모달·리포트 화면을 확인하기 위한 임시 화면.
@@ -60,6 +63,7 @@ export default function DevQaHarness() {
   const [pdfOpen, setPdfOpen] = useState(false);
   const [hybridDemoOpen, setHybridDemoOpen] = useState(false);
   const [storyOpen, setStoryOpen] = useState(false);
+  const [iljuModalOpen, setIljuModalOpen] = useState(false);
 
   const awardsResult = useMemo(() => {
     return calculateGroupAwards(members, [], 88);
@@ -107,6 +111,63 @@ export default function DevQaHarness() {
           <p className="text-xs text-ink-faint">
             멤버를 누르면 1:1 궁합 모달이 열립니다.
           </p>
+        </div>
+
+        {/* 🐾 60간지 수호동물 생태계 프리뷰 */}
+        <div className="bg-surface border border-line rounded-xl p-5 space-y-3 text-left">
+          <div className="flex items-center justify-between pb-2 border-b border-line">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🐾</span>
+              <div>
+                <h3 className="font-serif text-base font-bold text-ink">우리 모임 60간지 수호동물 생태계</h3>
+                <p className="text-xs text-ink-soft">멤버들의 일주 동물 영수와 60간지 도감</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIljuModalOpen(true)}
+              className="text-xs font-bold px-3 py-1.5 rounded-lg bg-surface border border-line text-ink hover:bg-line transition-colors cursor-pointer"
+            >
+              60간지 도감 열기
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            {members.map((m) => {
+              const meta = getIljuMeta(m.saju?.daymaster?.gan && m.saju?.pillars?.day?.ji ? `${m.saju.daymaster.gan[0]}${m.saju.pillars.day.ji}` : "갑자");
+              return (
+                <div key={m.id} className="p-2.5 rounded-xl border border-line bg-sunken flex items-center gap-2">
+                  <span className="text-2xl">{meta.animalEmoji}</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-ink truncate">{m.nickname}</p>
+                    <p className="text-[10px] text-seal font-semibold truncate">{meta.title} ({meta.code})</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 👑 우리 모임 환상의 짝꿍 TOP 3 & 1:1 케미 매트릭스 */}
+        <div className="bg-surface border border-line rounded-xl p-5 space-y-4 text-left">
+          <div className="flex items-center justify-between pb-2 border-b border-line">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">📊</span>
+              <div>
+                <h3 className="font-serif text-base font-bold text-ink">1:1 케미 매트릭스 & 환상의 짝꿍 TOP 3</h3>
+                <p className="text-xs text-ink-soft">멤버 전원 N×N 궁합 히트맵</p>
+              </div>
+            </div>
+          </div>
+
+          <ChemistryMatrix
+            members={members}
+            onSelectPair={(m1, m2) => {
+              const idx = members.findIndex((x) => x.id === m2.id);
+              if (idx !== -1) setTargetIdx(idx);
+              setPairOpen(true);
+            }}
+          />
         </div>
 
         {/* 🏆 5대 사주 어워즈 프리뷰 섹션 */}
@@ -230,6 +291,12 @@ export default function DevQaHarness() {
       <HybridArchetypeDemoModal
         isOpen={hybridDemoOpen}
         onClose={() => setHybridDemoOpen(false)}
+      />
+
+      <IljuEncyclopediaModal
+        isOpen={iljuModalOpen}
+        onClose={() => setIljuModalOpen(false)}
+        groupMembers={members}
       />
     </Layout>
   );

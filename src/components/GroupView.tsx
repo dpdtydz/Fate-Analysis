@@ -5,7 +5,7 @@ import LoadingOverlay from "./LoadingOverlay";
 import { db, getAnonymousUser, auth, checkPremiumStatus, checkProductUnlock, redeemCoupon, getUserMembershipInfo } from "../lib/firebase";
 import { doc, getDoc, setDoc, collection, getDocs, onSnapshot, deleteDoc } from "firebase/firestore";
 import { Member, Room, CachedAnalysisResult } from "../types";
-import { Share2, Heart, ArrowLeft, RefreshCw, Smile, Check, Lock, Ticket, ChevronDown, ChevronUp, Award, Sparkles, Trophy } from "lucide-react";
+import { Share2, Heart, ArrowLeft, RefreshCw, Smile, Check, Lock, Ticket, ChevronDown, ChevronUp, Award, Sparkles, Trophy, ChevronRight } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import PremiumPaywall from "./PremiumPaywall";
 import GoogleAds from "./GoogleAds";
@@ -17,6 +17,10 @@ import GroupStoryModal from "./GroupStoryModal";
 import ShinsalBadges from "./ShinsalBadges";
 import { calculateGroupAwards } from "../utils/shinsalCalculator";
 import { getExperimentVariant, trackExperimentConversion } from "../lib/abTest";
+import ChemistryMatrix from "./ChemistryMatrix";
+import IljuEncyclopediaModal from "./IljuEncyclopediaModal";
+import PairChemistryModal from "./PairChemistryModal";
+import { getIljuMeta } from "../utils/iljuData";
 
 const isMbtiRegistered = (m?: any): boolean => {
   if (!m || !m.mbti) return false;
@@ -463,6 +467,9 @@ export default function GroupView({ code }: GroupViewProps) {
   const [capturedImgUrl, setCapturedImgUrl] = useState<string | null>(null);
   const [showLongPressGuide, setShowLongPressGuide] = useState(false);
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+  const [pairViewMode, setPairViewMode] = useState<"matrix" | "cards">("matrix");
+  const [isIljuModalOpen, setIsIljuModalOpen] = useState(false);
+  const [selectedPairForModal, setSelectedPairForModal] = useState<{ m1: Member; m2: Member } | null>(null);
 
   // Accordion state for 1:1 pairs list (default: expand 1st pair)
   const [expandedPairIndices, setExpandedPairIndices] = useState<Set<number>>(() => new Set([0]));
@@ -1728,35 +1735,191 @@ export default function GroupView({ code }: GroupViewProps) {
             )}
           </div>
 
-        {/* 1:1 Chemical lists details */}
+        {/* 60 Ilju Animal Ecosystem Section */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-sunken border border-line space-y-3 text-left">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-8 h-8 rounded-xl bg-seal/10 text-seal flex items-center justify-center text-base">
+                🐾
+              </span>
+              <div>
+                <h4 className="font-serif text-base sm:text-lg font-bold text-ink">
+                  우리 모임 60간지 수호동물 생태계
+                </h4>
+                <p className="text-xs text-ink-soft">
+                  멤버들이 태어난 날(일주)의 고유한 동물 영수와 5행 색상
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setIsIljuModalOpen(true)}
+              className="px-3 py-1.5 bg-surface hover:bg-line border border-line text-ink rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shrink-0 shadow-2xs"
+            >
+              <span>60간지 도감</span>
+              <ChevronRight className="w-3.5 h-3.5 text-ink-faint" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            {members.map((m) => {
+              const gan = m.saju?.daymaster?.gan || "무토";
+              const stemChar = gan[0] || "무";
+              const jiChar = m.saju?.pillars?.day?.ji || "진";
+              const iljuMeta = getIljuMeta(`${stemChar}${jiChar}`);
+
+              return (
+                <div
+                  key={`ilju-${m.id}`}
+                  onClick={() => setIsIljuModalOpen(true)}
+                  className="p-2.5 rounded-xl bg-surface border border-line hover:border-seal/40 transition-colors flex items-center gap-2.5 cursor-pointer group"
+                >
+                  <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 shadow-2xs"
+                    style={{ backgroundColor: `${iljuMeta.colorHex}15` }}
+                  >
+                    {iljuMeta.animalEmoji}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-ink truncate">{m.nickname}</p>
+                    <p className="text-[11px] font-semibold truncate" style={{ color: iljuMeta.colorHex }}>
+                      {iljuMeta.title}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 1:1 Chemical lists & Matrix */}
         <div className="space-y-4 text-left">
+          {/* Top 3 Chemistry Podium */}
+          {sortedPairs.length >= 2 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 text-xs text-ink-soft">
+                <Trophy className="w-4 h-4 text-amber-500" />
+                <span className="font-bold text-ink">우리 모임 환상의 짝꿍 TOP 3</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                {sortedPairs.slice(0, 3).map((pair, pIdx) => {
+                  const m1 = members.find(m => m.id === pair.member_id_1 || m.nickname === pair.member_id_1);
+                  const m2 = members.find(m => m.id === pair.member_id_2 || m.nickname === pair.member_id_2);
+                  if (!m1 || !m2) return null;
+
+                  const medals = ["🥇 1위", "🥈 2위", "🥉 3위"];
+                  const badgeBorder = [
+                    "border-amber-500/40 bg-gradient-to-b from-amber-500/10 to-transparent",
+                    "border-slate-400/40 bg-gradient-to-b from-slate-400/10 to-transparent",
+                    "border-amber-700/40 bg-gradient-to-b from-amber-700/10 to-transparent"
+                  ];
+
+                  return (
+                    <div
+                      key={`top-pair-${pIdx}`}
+                      onClick={() => setSelectedPairForModal({ m1, m2 })}
+                      className={`p-3.5 rounded-2xl border ${badgeBorder[pIdx] || "border-line"} bg-surface shadow-xs space-y-2 cursor-pointer hover:scale-[1.02] transition-all`}
+                    >
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-ink">{medals[pIdx]}</span>
+                        <span className="font-mono font-bold text-seal text-xs">{pair.score}점</span>
+                      </div>
+                      <div className="flex items-center justify-center gap-2 py-1">
+                        <div className="flex flex-col items-center">
+                          <div className="w-9 h-9 rounded-full bg-sunken flex items-center justify-center overflow-hidden border border-line">
+                            <ZodiacAvatar member={m1} size={32} fallbackEmoji={m1.character_emoji} />
+                          </div>
+                          <span className="text-[11px] font-semibold text-ink mt-0.5 truncate max-w-[60px]">{m1.nickname}</span>
+                        </div>
+                        <span className="text-xs font-bold text-ink-faint">×</span>
+                        <div className="flex flex-col items-center">
+                          <div className="w-9 h-9 rounded-full bg-sunken flex items-center justify-center overflow-hidden border border-line">
+                            <ZodiacAvatar member={m2} size={32} fallbackEmoji={m2.character_emoji} />
+                          </div>
+                          <span className="text-[11px] font-semibold text-ink mt-0.5 truncate max-w-[60px]">{m2.nickname}</span>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-center text-ink-soft font-medium truncate">
+                        {pair.label || "찰떡궁합 시너지"}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Section Header with View Toggle */}
           <div className="flex flex-col space-y-1 border-b border-line pb-3 text-left">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               <div className="flex items-center space-x-1.5">
                 <Heart className="w-4 h-4 text-ink-faint" />
                 <h4 className="font-serif text-lg font-semibold text-ink">
-                  {isGroupUnlocked ? `멤버 간 1:1 궁합 (전체 ${sortedPairs.length}쌍)` : "멤버 간 1:1 궁합 (대표 3쌍)"}
+                  {isGroupUnlocked ? `멤버 간 1:1 궁합 (전체 ${sortedPairs.length}쌍)` : "멤버 간 1:1 궁합"}
                 </h4>
               </div>
-              {displayedPairs.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => toggleAllPairs(displayedPairs.length)}
-                  className="text-xs text-ink-soft hover:text-ink font-medium px-2.5 py-1 bg-sunken hover:bg-line rounded-lg transition-colors cursor-pointer shrink-0"
-                >
-                  {expandedPairIndices.size === displayedPairs.length ? "모두 접기" : "모두 펼치기"}
-                </button>
-              )}
+
+              {/* View Mode Toggle */}
+              <div className="flex items-center gap-1.5">
+                <div className="flex rounded-xl bg-sunken p-0.5 border border-line text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setPairViewMode("matrix")}
+                    className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                      pairViewMode === "matrix"
+                        ? "bg-surface text-ink shadow-2xs"
+                        : "text-ink-soft hover:text-ink"
+                    }`}
+                  >
+                    📊 매트릭스 표
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPairViewMode("cards")}
+                    className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                      pairViewMode === "cards"
+                        ? "bg-surface text-ink shadow-2xs"
+                        : "text-ink-soft hover:text-ink"
+                    }`}
+                  >
+                    📑 카드 리스트
+                  </button>
+                </div>
+
+                {pairViewMode === "cards" && displayedPairs.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => toggleAllPairs(displayedPairs.length)}
+                    className="text-xs text-ink-soft hover:text-ink font-medium px-2.5 py-1 bg-sunken hover:bg-line rounded-lg transition-colors cursor-pointer shrink-0"
+                  >
+                    {expandedPairIndices.size === displayedPairs.length ? "접기" : "펼치기"}
+                  </button>
+                )}
+              </div>
             </div>
             <p className="text-xs text-ink-soft leading-relaxed">
-              {isGroupUnlocked
-                ? `모임 안 전체 ${sortedPairs.length}쌍의 사주·자미두수·MBTI 융합 궁합 해설이 열려 있어요. 카드를 눌러 상세 내용을 펼쳐보세요.`
-                : `전체 ${sortedPairs.length}쌍 중 조화가 가장 좋은 2쌍과 서로 조심이 필요한 1쌍을 골랐어요. 카드를 눌러 상세 내용을 펼쳐보세요.`
+              {pairViewMode === "matrix"
+                ? "모임 멤버 전원의 궁합 점수를 한눈에 비교해보세요. 칸을 누르면 상세 궁합이 열립니다."
+                : isGroupUnlocked
+                  ? `모임 안 전체 ${sortedPairs.length}쌍의 사주·자미두수·MBTI 융합 궁합 해설이 열려 있어요.`
+                  : `전체 ${sortedPairs.length}쌍 중 조화가 가장 좋은 2쌍과 서로 조심이 필요한 1쌍을 골랐어요.`
               }
             </p>
           </div>
 
-          <div id="pairs-list" className="space-y-4">
+          {/* Render ChemistryMatrix when matrix mode is active */}
+          {pairViewMode === "matrix" && (
+            <div className="animate-fade-in">
+              <ChemistryMatrix
+                members={members}
+                pairs={sortedPairs}
+                onSelectPair={(m1, m2) => setSelectedPairForModal({ m1, m2 })}
+              />
+            </div>
+          )}
+
+          {/* Render Cards List when cards mode is active */}
+          {pairViewMode === "cards" && (
+          <div id="pairs-list" className="space-y-4 animate-fade-in">
             {sortedPairs.length === 0 && (
               <div className="text-center py-8 text-sm text-ink-soft bg-surface border border-line rounded-xl">
                 분석된 궁합 데이터가 없어요.
@@ -2086,8 +2249,8 @@ export default function GroupView({ code }: GroupViewProps) {
                 </div>
               );
             })}
-
           </div>
+          )}
 
           {/* Unified Room Unlock Dashboard */}
           <div className="mt-8 bg-surface border border-line rounded-xl p-5 space-y-4 text-left">
@@ -2276,6 +2439,29 @@ export default function GroupView({ code }: GroupViewProps) {
         groupAnalysis={analysis?.group}
         pairs={upgradedPairs}
       />
+
+      {/* 60 Ilju Animal Encyclopedia Modal */}
+      <IljuEncyclopediaModal
+        isOpen={isIljuModalOpen}
+        onClose={() => setIsIljuModalOpen(false)}
+        groupMembers={members}
+      />
+
+      {/* 1:1 Chemistry Detail BottomSheet triggered from Matrix or Podium */}
+      {selectedPairForModal && (
+        <PairChemistryModal
+          isOpen={Boolean(selectedPairForModal)}
+          onClose={() => setSelectedPairForModal(null)}
+          myMember={selectedPairForModal.m1}
+          targetMember={selectedPairForModal.m2}
+          roomCode={code}
+          isSecretUnlocked={isSecretUnlocked}
+          onOpenShop={(tab) => {
+            setShopInitialTab(tab);
+            setIsShopOpen(true);
+          }}
+        />
+      )}
     </Layout>
   );
 }
