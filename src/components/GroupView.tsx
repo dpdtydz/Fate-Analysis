@@ -1109,12 +1109,26 @@ export default function GroupView({ code }: GroupViewProps) {
             }
           }
 
-          // 3. Hide interactive elements marked with data-capture-hide
+          // 3. VIRAL CROP CARD FORMATTING:
+          // A. Physically remove all interactive / non-viral noise from cloned DOM
           try {
             const hideElements = clonedElement.querySelectorAll("[data-capture-hide]");
             hideElements.forEach((el) => {
-              (el as HTMLElement).style.setProperty("display", "none", "important");
+              el.remove();
             });
+          } catch (e) {
+            console.warn("Failed to remove data-capture-hide elements:", e);
+          }
+
+          // B. Enforce fixed mobile viral card width (420px) and clean typography
+          try {
+            (clonedElement as HTMLElement).style.width = "420px";
+            (clonedElement as HTMLElement).style.maxWidth = "420px";
+            (clonedElement as HTMLElement).style.minWidth = "420px";
+            (clonedElement as HTMLElement).style.boxSizing = "border-box";
+            (clonedElement as HTMLElement).style.margin = "0 auto";
+            (clonedElement as HTMLElement).style.padding = "20px 16px";
+            (clonedElement as HTMLElement).style.borderRadius = "20px";
 
             const disableAnimStyle = clonedDoc.createElement("style");
             disableAnimStyle.innerHTML = `
@@ -1131,7 +1145,7 @@ export default function GroupView({ code }: GroupViewProps) {
             clonedDoc.head.appendChild(disableAnimStyle);
             clonedElement.appendChild(disableAnimStyle.cloneNode(true));
           } catch (e) {
-            console.warn("Failed to inject capture hide styles:", e);
+            console.warn("Failed to inject capture layout styles:", e);
           }
         }
       });

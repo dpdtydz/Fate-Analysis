@@ -551,7 +551,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
           <h4 className="text-base font-bold text-ink flex items-center justify-center gap-1.5">
             {selectedMember ? `${selectedMember.nickname}님의 인연 관계도` : "모임 궁합 지도"}
           </h4>
-          <p className="text-xs text-ink-soft max-w-md mx-auto leading-relaxed mt-0.5">
+          <p data-capture-hide="true" className="text-xs text-ink-soft max-w-md mx-auto leading-relaxed mt-0.5">
             {selectedMember
               ? `${selectedMember.nickname}님을 중심으로 각 멤버와 주고받는 상호 기운 점수(주는 기운 vs 받는 기운)입니다.`
               : "모임 멤버들의 상호 오행 에너지 흐름과 시너지 케미를 시각화한 지도예요. 캐릭터를 누르면 1:1 심층 분석이 펼쳐집니다."}
@@ -1198,7 +1198,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
             </div>
           </div>
 
-          {/* Interactive Guide Tip */}
+          {/* Interactive Guide Tip - Hidden in capture */}
           <div data-capture-hide="true" className="bg-sunken/80 rounded-xl p-3 flex items-start gap-2.5 text-left border border-line">
             <Info className="w-4 h-4 text-seal shrink-0 mt-0.5" />
             <div className="text-xs space-y-0.5">
@@ -1209,8 +1209,8 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
             </div>
           </div>
 
-          {/* HALL OF FAME: TOP Synergy Combos */}
-          <div className="space-y-2.5 text-left">
+          {/* HALL OF FAME: TOP Synergy Combos (Viral Compact Crop) */}
+          <div className="space-y-2 text-left">
             <div className="flex items-center justify-between">
               <h5 className="text-xs font-bold text-ink flex items-center gap-1.5">
                 <Trophy className="w-3.5 h-3.5 text-amber-500" />
@@ -1232,6 +1232,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                   <button
                     key={`top-pair-${idx}`}
                     type="button"
+                    {...(!isTop1 ? { "data-capture-hide": "true" } : {})}
                     onClick={() => {
                       setSelectedNodeId(nodeA.id);
                       setRelationFilter("all");
@@ -1242,7 +1243,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold">{rankMedals[idx] || "✨"} {idx + 1}위</span>
+                        <span className="text-xs font-bold text-ink">{rankMedals[idx] || "✨"} {idx + 1}위 환상 케미</span>
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
                           pair.score >= 90 ? "bg-seal text-white" : "bg-ink text-paper"
                         }`}>
@@ -1251,34 +1252,34 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                       </div>
 
                       {/* Avatars & Names */}
-                      <div className="flex items-center justify-center gap-2 my-1">
+                      <div className="flex items-center justify-center gap-2.5 my-1">
                         <div className="flex flex-col items-center">
-                          <div className="w-8 h-8 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
+                          <div className="w-9 h-9 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
                             {nodeA.imageSrc ? (
                               <img src={nodeA.imageSrc} alt="" crossOrigin="anonymous" className="w-full h-full object-cover" />
                             ) : (
                               <span>{nodeA.emoji || "👤"}</span>
                             )}
                           </div>
-                          <span className="text-[10.5px] font-semibold text-ink mt-0.5 max-w-[70px] truncate">{nodeA.nickname}</span>
+                          <span className="text-[11px] font-semibold text-ink mt-0.5 max-w-[70px] truncate">{nodeA.nickname}</span>
                         </div>
 
-                        <Heart className={`w-3.5 h-3.5 ${isTop1 ? "text-seal animate-pulse" : "text-ink-faint"}`} />
+                        <Heart className={`w-4 h-4 ${isTop1 ? "text-seal animate-pulse" : "text-ink-faint"}`} />
 
                         <div className="flex flex-col items-center">
-                          <div className="w-8 h-8 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
+                          <div className="w-9 h-9 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
                             {nodeB.imageSrc ? (
                               <img src={nodeB.imageSrc} alt="" crossOrigin="anonymous" className="w-full h-full object-cover" />
                             ) : (
                               <span>{nodeB.emoji || "👤"}</span>
                             )}
                           </div>
-                          <span className="text-[10.5px] font-semibold text-ink mt-0.5 max-w-[70px] truncate">{nodeB.nickname}</span>
+                          <span className="text-[11px] font-semibold text-ink mt-0.5 max-w-[70px] truncate">{nodeB.nickname}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-2 pt-2 border-t border-line/60 text-[10px] text-ink-soft text-center leading-tight">
+                    <div className="mt-2 pt-2 border-t border-line/60 text-[10.5px] text-ink-soft text-center leading-tight">
                       {pair.score >= 90
                         ? "오행과 성향이 완벽히 맞물리는 모임의 특급 시너지 엔진!"
                         : "서로에게 부족한 기운을 든든하게 채워주는 상생 케미"}
@@ -1289,14 +1290,14 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
             </div>
           </div>
 
-          {/* ATTENTION / ADVICE PAIR (If available) */}
+          {/* ATTENTION / ADVICE PAIR (Excluded from viral card capture via data-capture-hide) */}
           {attentionPair && (() => {
             const nodeA = findNode(attentionPair.member_id_1);
             const nodeB = findNode(attentionPair.member_id_2);
             if (!nodeA || !nodeB) return null;
 
             return (
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3.5 text-left space-y-2">
+              <div data-capture-hide="true" className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-3.5 text-left space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700">
                     <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
