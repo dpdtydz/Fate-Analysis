@@ -279,6 +279,13 @@ export default function GroupStoryModal({
             console.warn("Failed to clone style tags in GroupStoryModal:", e);
           }
 
+          // 0. Physically remove all data-capture-hide elements
+          try {
+            clonedElement.querySelectorAll("[data-capture-hide]").forEach((el) => el.remove());
+          } catch (e) {
+            console.warn("Failed to remove data-capture-hide in GroupStoryModal:", e);
+          }
+
           // Serialize css rules from document stylesheets
           let compiledCss = "";
           try {

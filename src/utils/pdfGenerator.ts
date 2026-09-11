@@ -130,9 +130,10 @@ export async function exportElementToImage(
   try {
     const reqScale = options.scale || 2;
     // iOS Safari 및 모바일 캔버스 최대 높이(4096px) 초과 시 백지화 원천 방지
+    // 긴 리포트(4000px 초과)에서도 4096px 한도를 넘지 않도록 0.4까지 안전하게 적응형 스케일 다운
     const maxSafeHeight = 4096;
     const effectiveScale = element.scrollHeight * reqScale > maxSafeHeight
-      ? Math.max(1, Math.min(reqScale, (maxSafeHeight - 100) / Math.max(1, element.scrollHeight)))
+      ? Math.max(0.4, Math.min(reqScale, (maxSafeHeight - 100) / Math.max(1, element.scrollHeight)))
       : reqScale;
 
     const backgroundColor = options.backgroundColor || "#FCFAF6";
@@ -163,6 +164,13 @@ export async function exportElementToImage(
       windowWidth: element.scrollWidth,
       windowHeight: element.scrollHeight,
       onclone: (clonedDoc, clonedElement) => {
+        // 0. Physically remove all data-capture-hide elements
+        try {
+          clonedElement.querySelectorAll("[data-capture-hide]").forEach((el) => el.remove());
+        } catch (e) {
+          console.warn("Failed to remove data-capture-hide elements in exportElementToImage:", e);
+        }
+
         // 1. Copy all dynamic style tags from original head to cloned head
         try {
           const originalStyles = document.querySelectorAll("style");

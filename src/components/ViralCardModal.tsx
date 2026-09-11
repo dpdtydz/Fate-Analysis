@@ -769,11 +769,11 @@ export default function ViralCardModal({
             }
           }
 
-          // 3. Hide elements marked with data-capture-hide (e.g. holographic sheen overlay)
+          // 3. Physically remove elements marked with data-capture-hide (e.g. holographic sheen overlay)
           try {
             const hideElements = clonedElement.querySelectorAll("[data-capture-hide]");
             hideElements.forEach((el) => {
-              (el as HTMLElement).style.setProperty("display", "none", "important");
+              el.remove();
             });
 
             const disableAnimStyle = clonedDoc.createElement("style");
