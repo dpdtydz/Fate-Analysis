@@ -669,10 +669,22 @@ export default function GroupView({ code }: GroupViewProps) {
     return [...topTwo, ...bottomOne];
   })();
 
+  // 상위 콤비 점수와 전체 모임 케미 점수 간의 통계적 정합성 보정 (3위 콤비보다 전체 평균이 더 높게 나오는 수학적 오류 방지)
+  const displayGroupScore = React.useMemo(() => {
+    const raw = analysis?.group?.overall_score || 80;
+    if (sortedPairs && sortedPairs.length >= 3) {
+      const top3Score = sortedPairs[2].score;
+      if (raw > top3Score) {
+        return Math.max(72, Math.min(top3Score - 2, 86));
+      }
+    }
+    return raw;
+  }, [analysis?.group?.overall_score, sortedPairs]);
+
   // 5대 사주 어워즈 (인기쟁이·실세·캐리머신·역마러·브레인)
   const awardsResult = React.useMemo(() => {
-    return calculateGroupAwards(members, upgradedPairs, analysis?.group?.overall_score || 82);
-  }, [members, upgradedPairs, analysis]);
+    return calculateGroupAwards(members, upgradedPairs, displayGroupScore);
+  }, [members, upgradedPairs, displayGroupScore]);
 
   // Score to color helper — 점수는 먹 농담으로, 최고 구간(90+)에만 인주 포인트
   const getScoreColor = (score: number) => {
@@ -1040,11 +1052,17 @@ export default function GroupView({ code }: GroupViewProps) {
         })
       );
 
-      // Create high-contrast canvas capture
+      // Ensure fonts are loaded before capture
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+
+      // Create high-contrast canvas capture with auto crop of interactive noise
       const canvas = await html2canvas(captureRef.current, {
         scale: 2, // Double resolution for ultra crisp vector render
         backgroundColor: "#FCFCFA",
         useCORS: true,
+        allowTaint: false,
         logging: false,
         onclone: (clonedDoc, clonedElement) => {
           // 1. Copy all dynamic style tags from original head to cloned head
@@ -1089,6 +1107,31 @@ export default function GroupView({ code }: GroupViewProps) {
             } catch (e) {
               console.warn("Failed to inject style blocks in GroupView:", e);
             }
+          }
+
+          // 3. Hide interactive elements marked with data-capture-hide
+          try {
+            const hideElements = clonedElement.querySelectorAll("[data-capture-hide]");
+            hideElements.forEach((el) => {
+              (el as HTMLElement).style.setProperty("display", "none", "important");
+            });
+
+            const disableAnimStyle = clonedDoc.createElement("style");
+            disableAnimStyle.innerHTML = `
+              *, *::before, *::after {
+                transition: none !important;
+                transition-duration: 0s !important;
+                animation: none !important;
+                animation-duration: 0s !important;
+              }
+              [data-capture-hide] {
+                display: none !important;
+              }
+            `;
+            clonedDoc.head.appendChild(disableAnimStyle);
+            clonedElement.appendChild(disableAnimStyle.cloneNode(true));
+          } catch (e) {
+            console.warn("Failed to inject capture hide styles:", e);
           }
         }
       });
@@ -1407,7 +1450,7 @@ export default function GroupView({ code }: GroupViewProps) {
                     모임 케미
                   </span>
                   <span className="font-serif text-2xl font-bold tracking-tight text-seal">
-                    {analysis.group.overall_score}점
+                    {displayGroupScore}점
                   </span>
                 </div>
 
@@ -1427,15 +1470,15 @@ export default function GroupView({ code }: GroupViewProps) {
                   <div className="flex items-center gap-2 w-full">
                     <span className="text-[11px] font-medium text-ink w-[44px] shrink-0 text-left">순환력</span>
                     <div className="h-[6px] bg-sunken rounded-full overflow-hidden flex-1">
-                      <div className="h-full rounded-full bg-ink/70" style={{ width: `${analysis.group.overall_score}%` }} />
+                      <div className="h-full rounded-full bg-ink/70" style={{ width: `${displayGroupScore}%` }} />
                     </div>
-                    <span className="text-[11px] font-mono text-right text-ink-faint w-[26px] shrink-0">{analysis.group.overall_score}</span>
+                    <span className="text-[11px] font-mono text-right text-ink-faint w-[26px] shrink-0">{displayGroupScore}</span>
                   </div>
                 </div>
               </div>
 
               {/* Free Section 2: SVG Circular Network Graph */}
-              <GroupNetwork members={members} pairs={upgradedPairs} isPremium={isGroupUnlocked} groupScore={analysis.group.overall_score} />
+              <GroupNetwork members={members} pairs={upgradedPairs} isPremium={isGroupUnlocked} groupScore={displayGroupScore} />
 
               {/* Instagram Story Watermark / Brand Footer */}
               <div className="pt-2 pb-1 px-1 flex items-center justify-between text-[11px] text-ink-faint border-t border-line/60">

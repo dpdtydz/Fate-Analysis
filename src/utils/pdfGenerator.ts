@@ -128,13 +128,36 @@ export async function exportElementToImage(
   options: PdfExportOptions = {}
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    const scale = options.scale || 2;
+    const reqScale = options.scale || 2;
+    // iOS Safari 및 모바일 캔버스 최대 높이(4096px) 초과 시 백지화 원천 방지
+    const maxSafeHeight = 4096;
+    const effectiveScale = element.scrollHeight * reqScale > maxSafeHeight
+      ? Math.max(1, Math.min(reqScale, (maxSafeHeight - 100) / Math.max(1, element.scrollHeight)))
+      : reqScale;
+
     const backgroundColor = options.backgroundColor || "#FCFAF6";
     const filename = options.filename || `사주명식_정밀감정서_${new Date().toISOString().slice(0, 10)}.png`;
 
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+
+    // Ensure all images are fully loaded
+    const allImgs = Array.from(element.querySelectorAll("img")) as HTMLImageElement[];
+    await Promise.all(
+      allImgs.map((img) => {
+        if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+        return new Promise((res) => {
+          img.onload = () => res(null);
+          img.onerror = () => res(null);
+        });
+      })
+    );
+
     const canvas = await html2canvas(element, {
-      scale,
+      scale: effectiveScale,
       useCORS: true,
+      allowTaint: false,
       backgroundColor,
       logging: false,
       windowWidth: element.scrollWidth,
@@ -182,6 +205,22 @@ export async function exportElementToImage(
           } catch (e) {
             console.warn("Failed to inject style blocks in Image generator:", e);
           }
+        }
+
+        // 3. Disable animations on cloned elements
+        try {
+          const disableAnimStyle = clonedDoc.createElement("style");
+          disableAnimStyle.innerHTML = `
+            *, *::before, *::after {
+              transition: none !important;
+              transition-duration: 0s !important;
+              animation: none !important;
+              animation-duration: 0s !important;
+            }
+          `;
+          clonedDoc.head.appendChild(disableAnimStyle);
+        } catch (e) {
+          console.warn("Failed to inject animation reset in Image generator:", e);
         }
       }
     });

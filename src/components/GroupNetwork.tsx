@@ -149,6 +149,21 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
     return Math.round(total / pairs.length);
   }, [pairs]);
 
+  // 상위 콤비 점수와 전체 모임 케미 점수 간의 논리적/통계적 모순 방지
+  const safeGroupScore = useMemo(() => {
+    if (pairs && pairs.length > 0) {
+      if (topSynergyPairs.length >= 3) {
+        const top3Score = topSynergyPairs[2].score;
+        // 3위 점수보다 모임 전체 평균이 더 높게 나오는 모순 방지
+        const capScore = Math.max(avgGroupScore, Math.min(top3Score - 2, 86));
+        const raw = groupScore || avgGroupScore;
+        return raw > top3Score ? capScore : raw;
+      }
+      return groupScore || avgGroupScore;
+    }
+    return groupScore || 78;
+  }, [pairs, groupScore, avgGroupScore, topSynergyPairs]);
+
   // Coordinates for members in a circle
   const nodes = useMemo(() => {
     const n = members.length;
@@ -518,7 +533,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
     <div className="flex flex-col bg-surface p-5 border border-line rounded-xl relative overflow-hidden space-y-4">
       {/* Network Header */}
       <div className="text-center space-y-2">
-        <div className="flex items-center justify-between text-xs px-1">
+        <div data-capture-hide="true" className="flex items-center justify-between text-xs px-1">
           <span className="text-ink-faint text-[11px]">
             {renderEngine === "canvas" ? "⚡ Canvas 60fps 가속" : "📐 SVG 고화질 벡터"}
           </span>
@@ -548,7 +563,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
           <div className="flex items-center justify-center gap-2 pt-1 flex-wrap">
             <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full bg-sunken border border-line text-xs font-semibold text-ink">
               <span className="text-seal font-bold">모임 케미</span>
-              <span className="text-seal font-extrabold">{groupScore || avgGroupScore}점</span>
+              <span className="text-seal font-extrabold">{safeGroupScore}점</span>
             </div>
             {topSynergyPairs[0] && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-seal/5 border border-seal/20 text-xs font-semibold text-seal">
@@ -1184,7 +1199,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
           </div>
 
           {/* Interactive Guide Tip */}
-          <div className="bg-sunken/80 rounded-xl p-3 flex items-start gap-2.5 text-left border border-line">
+          <div data-capture-hide="true" className="bg-sunken/80 rounded-xl p-3 flex items-start gap-2.5 text-left border border-line">
             <Info className="w-4 h-4 text-seal shrink-0 mt-0.5" />
             <div className="text-xs space-y-0.5">
               <div className="font-bold text-ink">원 안의 캐릭터를 터치해 보세요!</div>
@@ -1201,7 +1216,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                 <Trophy className="w-3.5 h-3.5 text-amber-500" />
                 <span>모임 내 환상 시너지 TOP 콤비</span>
               </h5>
-              <span className="text-[11px] text-ink-faint">터치 시 1:1 분석</span>
+              <span data-capture-hide="true" className="text-[11px] text-ink-faint">터치 시 1:1 분석</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
@@ -1240,12 +1255,12 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                         <div className="flex flex-col items-center">
                           <div className="w-8 h-8 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
                             {nodeA.imageSrc ? (
-                              <img src={nodeA.imageSrc} alt="" className="w-full h-full object-cover" />
+                              <img src={nodeA.imageSrc} alt="" crossOrigin="anonymous" className="w-full h-full object-cover" />
                             ) : (
                               <span>{nodeA.emoji || "👤"}</span>
                             )}
                           </div>
-                          <span className="text-[10px] font-semibold text-ink mt-0.5 max-w-[52px] truncate">{nodeA.nickname}</span>
+                          <span className="text-[10.5px] font-semibold text-ink mt-0.5 max-w-[70px] truncate">{nodeA.nickname}</span>
                         </div>
 
                         <Heart className={`w-3.5 h-3.5 ${isTop1 ? "text-seal animate-pulse" : "text-ink-faint"}`} />
@@ -1253,12 +1268,12 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                         <div className="flex flex-col items-center">
                           <div className="w-8 h-8 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
                             {nodeB.imageSrc ? (
-                              <img src={nodeB.imageSrc} alt="" className="w-full h-full object-cover" />
+                              <img src={nodeB.imageSrc} alt="" crossOrigin="anonymous" className="w-full h-full object-cover" />
                             ) : (
                               <span>{nodeB.emoji || "👤"}</span>
                             )}
                           </div>
-                          <span className="text-[10px] font-semibold text-ink mt-0.5 max-w-[52px] truncate">{nodeB.nickname}</span>
+                          <span className="text-[10.5px] font-semibold text-ink mt-0.5 max-w-[70px] truncate">{nodeB.nickname}</span>
                         </div>
                       </div>
                     </div>

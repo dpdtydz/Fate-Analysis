@@ -704,6 +704,19 @@ export default function ViralCardModal({
       if (document.fonts && document.fonts.ready) {
         await document.fonts.ready;
       }
+
+      // Ensure all <img> inside cardRef are fully loaded
+      const cardImgs = Array.from(cardRef.current.querySelectorAll("img")) as HTMLImageElement[];
+      await Promise.all(
+        cardImgs.map((img) => {
+          if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+          return new Promise((res) => {
+            img.onload = () => res(null);
+            img.onerror = () => res(null);
+          });
+        })
+      );
+
       const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
@@ -756,8 +769,13 @@ export default function ViralCardModal({
             }
           }
 
-          // 3. Disable all animations and transitions on cloned elements so they render at 100% final state immediately
+          // 3. Hide elements marked with data-capture-hide (e.g. holographic sheen overlay)
           try {
+            const hideElements = clonedElement.querySelectorAll("[data-capture-hide]");
+            hideElements.forEach((el) => {
+              (el as HTMLElement).style.setProperty("display", "none", "important");
+            });
+
             const disableAnimStyle = clonedDoc.createElement("style");
             disableAnimStyle.innerHTML = `
               *, *::before, *::after {
@@ -765,6 +783,9 @@ export default function ViralCardModal({
                 transition-duration: 0s !important;
                 animation: none !important;
                 animation-duration: 0s !important;
+              }
+              [data-capture-hide] {
+                display: none !important;
               }
             `;
             clonedDoc.head.appendChild(disableAnimStyle);
@@ -855,28 +876,23 @@ export default function ViralCardModal({
       } else {
         // Fallback: 데스크톱은 이미지 클립보드 복사 → 실패 시 다운로드, 모바일은 길게 눌러 저장 안내
         if (!/mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+          // 1. 데스크톱 파일 다운로드 항상 실행
+          const a = document.createElement("a");
+          a.href = dataUrl;
+          a.download = filename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+
+          // 2. 클립보드 복사 병행 시도
           const imgCopied = await tryCopyImageToClipboard();
 
           if (imgCopied) {
-            setCopiedMsg("카드 이미지가 복사되었습니다. 대화방에 붙여넣기(Ctrl+V) 하세요.");
-            setTimeout(() => setCopiedMsg(""), 4500);
+            setCopiedMsg("카드 이미지가 다운로드되고 클립보드에도 복사되었습니다. (Ctrl+V)");
           } else {
-            // Desktop: download file
-            const a = document.createElement("a");
-            a.href = dataUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-
-            await shareToKakaoOrClipboard({
-              title: `[소울 카드] ${nickname}님의 ${tabName}`,
-              description: "사주 오행 본질로 분석한 소울 카드",
-              url: window.location.href
-            });
-            setCopiedMsg("카드 이미지가 저장되었고 링크가 복사되었습니다.");
-            setTimeout(() => setCopiedMsg(""), 3500);
+            setCopiedMsg("카드 이미지가 다운로드 폴더에 저장되었습니다.");
           }
+          setTimeout(() => setCopiedMsg(""), 4500);
         } else {
           // Mobile: show the interactive long press guide!
           setShowLongPressGuide(true);
@@ -999,6 +1015,7 @@ export default function ViralCardModal({
           >
             {/* Dynamic Holographic Sheen Overlay */}
             <div
+              data-capture-hide="true"
               className="absolute inset-0 pointer-events-none rounded-2xl z-20 mix-blend-color-dodge transition-opacity duration-200"
               style={{
                 opacity: isCapturing ? 0 : tilt.opacity,
@@ -1027,6 +1044,7 @@ export default function ViralCardModal({
                   <img
                     src={zodiacSrc}
                     alt={`${nickname}님의 소울 캐릭터`}
+                    crossOrigin="anonymous"
                     decoding="async"
                     onError={() => setZodiacImgFailed(true)}
                     className="w-[116px] h-[116px] object-contain select-none filter drop-shadow-sm relative z-10"

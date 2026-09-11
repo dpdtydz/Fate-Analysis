@@ -250,47 +250,47 @@ export function calculateGroupAwards(
     const ohaeng = m.saju?.ohaeng_count || { 목: 1, 화: 1, 토: 1, 금: 1, 수: 1 };
     const sipseong = m.saju?.sipseong_strength || { 비겁: 20, 식상: 20, 재성: 20, 관성: 20, 인성: 20 };
 
-    // 도화 점수: 도화살 여부 + 子午卯酉 개수 + 火기운 + 목욕지
-    let dohwaScore = 55 + (dohwaCount * 12);
-    if (sals.includes("도화살")) dohwaScore += 15;
-    if (elem === "화" || ohaeng.화 >= 2) dohwaScore += 8;
-    if (unseong === "목욕" || unseong === "제왕") dohwaScore += 7;
-    dohwaScore = Math.min(99, Math.max(65, dohwaScore));
+    // 도화 점수: 도화살 여부 + 子午卯酉 개수 + 火기운 + 목욕지 (자연스러운 82~96점 분포)
+    let dohwaScore = 64 + (dohwaCount * 8);
+    if (sals.includes("도화살")) dohwaScore += 10;
+    if (elem === "화" || ohaeng.화 >= 2) dohwaScore += 6;
+    if (unseong === "목욕" || unseong === "제왕") dohwaScore += 5;
+    dohwaScore = Math.min(96, Math.max(72, dohwaScore));
 
-    // 재물 점수: 재성(정재/편재) 비중 + 金/土 기운 + 묘지(보물창고)
-    let wealthScore = 58 + Math.round((sipseong.재성 || 20) * 0.7);
-    if (elem === "금" || ohaeng.금 >= 2) wealthScore += 10;
-    if (elem === "토" || ohaeng.토 >= 2) wealthScore += 8;
-    if (unseong === "건록" || unseong === "묘") wealthScore += 9;
-    wealthScore = Math.min(99, Math.max(68, wealthScore));
+    // 재물 점수: 재성(정재/편재) 비중 + 金/土 기운 + 묘지 (82~96점 분포)
+    let wealthScore = 65 + Math.round((sipseong.재성 || 20) * 0.5);
+    if (elem === "금" || ohaeng.금 >= 2) wealthScore += 8;
+    if (elem === "토" || ohaeng.토 >= 2) wealthScore += 6;
+    if (unseong === "건록" || unseong === "묘") wealthScore += 7;
+    wealthScore = Math.min(96, Math.max(72, wealthScore));
 
-    // 역마 점수: 역마살 여부 + 寅申巳亥 개수 + 木기운 + 장생
-    let yeokmaScore = 54 + (yeokmaCount * 14);
-    if (sals.includes("역마살")) yeokmaScore += 16;
-    if (elem === "목" || ohaeng.목 >= 2) yeokmaScore += 7;
-    if (unseong === "장생" || unseong === "절") yeokmaScore += 6;
-    yeokmaScore = Math.min(99, Math.max(62, yeokmaScore));
+    // 역마 점수: 역마살 여부 + 寅申巳亥 개수 + 木기운 + 장생 (82~96점 분포)
+    let yeokmaScore = 63 + (yeokmaCount * 9);
+    if (sals.includes("역마살")) yeokmaScore += 11;
+    if (elem === "목" || ohaeng.목 >= 2) yeokmaScore += 6;
+    if (unseong === "장생" || unseong === "절") yeokmaScore += 5;
+    yeokmaScore = Math.min(96, Math.max(72, yeokmaScore));
 
-    // 실세 점수: 괴강/백호/양인 + 관성(통솔) + 모임원 평균 궁합
-    let bossScore = 56 + Math.round((sipseong.관성 || 20) * 0.6);
-    if (sals.includes("괴강살") || sals.includes("백호대살")) bossScore += 16;
-    if (unseong === "제왕" || unseong === "건록") bossScore += 10;
+    // 실세 점수: 괴강/백호/양인 + 관성(통솔) + 모임원 평균 궁합 (82~96점 분포)
+    let bossScore = 64 + Math.round((sipseong.관성 || 20) * 0.45);
+    if (sals.includes("괴강살") || sals.includes("백호대살")) bossScore += 11;
+    if (unseong === "제왕" || unseong === "건록") bossScore += 7;
 
     // 모임원 간 평균 케미 점수 계산
     const memberPairs = pairs.filter((p) => p.member_id_1 === m.id || p.member_id_2 === m.id);
     const pairAvg = memberPairs.length > 0
       ? memberPairs.reduce((acc, cur) => acc + (cur.score || 75), 0) / memberPairs.length
       : groupScore;
-    bossScore += Math.round((pairAvg - 70) * 0.4);
-    bossScore = Math.min(99, Math.max(70, bossScore));
+    bossScore += Math.round((pairAvg - 70) * 0.3);
+    bossScore = Math.min(96, Math.max(74, bossScore));
 
-    // 브레인 점수: 문창귀인 + 천을귀인 + 水기운 + 인성
-    let brainScore = 60 + Math.round((sipseong.인성 || 20) * 0.6);
-    if (sals.includes("문창귀인")) brainScore += 18;
-    if (sals.includes("천을귀인")) brainScore += 10;
-    if (elem === "수" || ohaeng.수 >= 2) brainScore += 9;
-    if (sals.includes("화개살")) brainScore += 7;
-    brainScore = Math.min(99, Math.max(66, brainScore));
+    // 브레인 점수: 문창귀인 + 천을귀인 + 水기운 + 인성 (82~96점 분포)
+    let brainScore = 65 + Math.round((sipseong.인성 || 20) * 0.45);
+    if (sals.includes("문창귀인")) brainScore += 12;
+    if (sals.includes("천을귀인")) brainScore += 8;
+    if (elem === "수" || ohaeng.수 >= 2) brainScore += 6;
+    if (sals.includes("화개살")) brainScore += 5;
+    brainScore = Math.min(96, Math.max(72, brainScore));
 
     return {
       member: m,

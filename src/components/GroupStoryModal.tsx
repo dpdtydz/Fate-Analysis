@@ -38,6 +38,7 @@ export default function GroupStoryModal({
   const [selectedPreset, setSelectedPreset] = useState<1 | 2 | 3 | 4>(1);
   const [isCapturing, setIsCapturing] = useState(false);
   const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
+  const [showLongPressGuide, setShowLongPressGuide] = useState(false);
   const [copiedText, setCopiedText] = useState("");
 
   // Helper to convert Member to StoryDisplayMember
@@ -75,16 +76,44 @@ export default function GroupStoryModal({
     const { dohwaKing, bossKing, wealthKing, yeokmaKing } = awardsResult;
     const cleanRoomTitle = roomTitle.replace(/\s+/g, "").slice(0, 10);
 
-    const formatStats = (award: AwardItem, labels: string[]) => {
+    const formatStats = (award: AwardItem, category: "dohwa" | "boss" | "wealth" | "yeokma", labels: string[]) => {
       const base = award.score;
+      const m = award.winner;
+      const elem = getMemberElement(m);
+      const sipseong = m?.saju?.sipseong_strength || { 비겁: 20, 식상: 20, 재성: 20, 관성: 20, 인성: 20 };
+      const sals = calculateMemberSals(m);
+
+      let v1 = base, v2 = base, v3 = base, v4 = base;
+
+      if (category === "dohwa") {
+        // labels: ["시선집중", "호감지수", "셀럽아우라", "화합매력"]
+        v1 = Math.min(96, Math.max(82, 80 + (sals.dohwaCount * 4) + (elem === "화" ? 5 : 0)));
+        v2 = Math.min(95, Math.max(80, 78 + Math.round((sipseong.식상 || 20) * 0.35)));
+        v3 = Math.min(96, Math.max(83, 82 + (sals.sals.includes("도화살") ? 8 : 2)));
+        v4 = Math.min(94, Math.max(78, 77 + Math.round((sipseong.인성 || 20) * 0.3)));
+      } else if (category === "boss") {
+        // labels: ["통솔력", "멘탈장악", "결정타", "화합력"]
+        v1 = Math.min(96, Math.max(82, 80 + Math.round((sipseong.관성 || 20) * 0.4)));
+        v2 = Math.min(95, Math.max(81, 79 + Math.round((sipseong.비겁 || 20) * 0.35) + (sals.sals.includes("괴강살") ? 5 : 0)));
+        v3 = Math.min(96, Math.max(80, 78 + (elem === "금" ? 7 : 2)));
+        v4 = Math.min(93, Math.max(79, 76 + Math.round((sipseong.인성 || 20) * 0.35)));
+      } else if (category === "wealth") {
+        // labels: ["재물생산", "자산비축", "스폰서력", "하드캐리"]
+        v1 = Math.min(96, Math.max(82, 80 + Math.round((sipseong.재성 || 20) * 0.4)));
+        v2 = Math.min(95, Math.max(80, 78 + (elem === "토" || elem === "금" ? 6 : 2)));
+        v3 = Math.min(94, Math.max(79, 77 + Math.round((sipseong.식상 || 20) * 0.35)));
+        v4 = Math.min(95, Math.max(81, 80 + (sals.unseong === "건록" || sals.unseong === "제왕" ? 6 : 1)));
+      } else if (category === "yeokma") {
+        // labels: ["기동력", "행동반경", "번개추진", "자유본능"]
+        v1 = Math.min(96, Math.max(83, 81 + (sals.yeokmaCount * 4)));
+        v2 = Math.min(95, Math.max(80, 79 + (sals.sals.includes("역마살") ? 7 : 2)));
+        v3 = Math.min(94, Math.max(81, 78 + (elem === "목" || elem === "화" ? 6 : 2)));
+        v4 = Math.min(93, Math.max(78, 77 + Math.round((sipseong.식상 || 20) * 0.35)));
+      }
+
       return {
         labels,
-        values: [
-          Math.min(99, base + 2),
-          Math.min(99, base - 3),
-          Math.min(99, base + 4),
-          base,
-        ]
+        values: [v1, v2, v3, v4]
       };
     };
 
@@ -127,7 +156,7 @@ export default function GroupStoryModal({
         score: dohwaKing.score,
         metricTitle: "도화 흡인 지수",
         quote: `"${dohwaKing.tagline.replace(/"/g, "")}"`,
-        stats: formatStats(dohwaKing, ["시선집중", "호감지수", "셀럽아우라", "화합매력"]),
+        stats: formatStats(dohwaKing, "dohwa", ["시선집중", "호감지수", "셀럽아우라", "화합매력"]),
         desc: `${getMemberNickname(dohwaWinner)}님은 가만히 있어도 사람들의 시선을 이끄는 은근한 도화 에너지를 타고났습니다. 모임 단톡방과 술자리에서 독보적인 존재감을 발산합니다.`,
         bubble: `🏷️ #${cleanRoomTitle} #${dohwaKing.instagramHashtags[0].replace("#", "")} @${getMemberNickname(dohwaWinner)}`,
       },
@@ -151,7 +180,7 @@ export default function GroupStoryModal({
         score: bossKing.score,
         metricTitle: "조직 장악 지수",
         quote: `"${bossKing.tagline.replace(/"/g, "")}"`,
-        stats: formatStats(bossKing, ["통솔력", "멘탈장악", "결정타", "화합력"]),
+        stats: formatStats(bossKing, "boss", ["통솔력", "멘탈장악", "결정타", "화합력"]),
         desc: `${getMemberNickname(bossWinner)}님은 겉으로는 무던해 보여도 결정적 순간에 판을 뒤흔드는 실질적 권력자입니다. 멤버들의 신뢰를 한 몸에 받으며 단톡방의 중심축 역할을 합니다.`,
         bubble: `🏷️ #${cleanRoomTitle} #${bossKing.instagramHashtags[0].replace("#", "")} @${getMemberNickname(bossWinner)}`,
       },
@@ -175,7 +204,7 @@ export default function GroupStoryModal({
         score: wealthKing.score,
         metricTitle: "재물 결속 지수",
         quote: `"${wealthKing.tagline.replace(/"/g, "")}"`,
-        stats: formatStats(wealthKing, ["재물생산", "자산비축", "스폰서력", "하드캐리"]),
+        stats: formatStats(wealthKing, "wealth", ["재물생산", "자산비축", "스폰서력", "하드캐리"]),
         desc: `${getMemberNickname(wealthWinner)}님은 모임의 곳간을 채우고 사업과 재테크에서 탁월한 수완을 발휘할 기운입니다. 이번 모임 회식은 ${getMemberNickname(wealthWinner)}님에게 기대해 보세요!`,
         bubble: `🏷️ #${cleanRoomTitle} #${wealthKing.instagramHashtags[0].replace("#", "")} @${getMemberNickname(wealthWinner)}`,
       },
@@ -199,7 +228,7 @@ export default function GroupStoryModal({
         score: yeokmaKing.score,
         metricTitle: "활동 기동 지수",
         quote: `"${yeokmaKing.tagline.replace(/"/g, "")}"`,
-        stats: formatStats(yeokmaKing, ["기동력", "행동반경", "번개추진", "자유본능"]),
+        stats: formatStats(yeokmaKing, "yeokma", ["기동력", "행동반경", "번개추진", "자유본능"]),
         desc: `${getMemberNickname(yeokmaWinner)}님은 약속이 잡히면 번개처럼 달려오고 전국 방방곡곡 여행을 주도하는 에너자이저입니다. 모임의 야외 활동과 여행은 이 사람 손에 달렸습니다.`,
         bubble: `🏷️ #${cleanRoomTitle} #${yeokmaKing.instagramHashtags[0].replace("#", "")} @${getMemberNickname(yeokmaWinner)}`,
       },
@@ -215,31 +244,128 @@ export default function GroupStoryModal({
     setIsCapturing(true);
 
     try {
+      // 1. Ensure fonts are loaded
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+
+      // 2. Ensure all images inside card are fully loaded
+      const cardImages = Array.from(storyCardRef.current.querySelectorAll("img")) as HTMLImageElement[];
+      await Promise.all(
+        cardImages.map((img) => {
+          if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+          return new Promise((res) => {
+            img.onload = () => res(null);
+            img.onerror = () => res(null);
+          });
+        })
+      );
+
+      // 3. High quality 9:16 capture with complete style and font serialization
       const canvas = await html2canvas(storyCardRef.current, {
-        scale: 2.8,
+        scale: 2.5,
         useCORS: true,
-        backgroundColor: "#0a0e17",
+        allowTaint: false,
+        backgroundColor: "#06080e",
         logging: false,
+        onclone: (clonedDoc, clonedElement) => {
+          // Copy dynamic style tags
+          try {
+            const originalStyles = document.querySelectorAll("style");
+            originalStyles.forEach((styleTag) => {
+              clonedDoc.head.appendChild(styleTag.cloneNode(true));
+            });
+          } catch (e) {
+            console.warn("Failed to clone style tags in GroupStoryModal:", e);
+          }
+
+          // Serialize css rules from document stylesheets
+          let compiledCss = "";
+          try {
+            for (let i = 0; i < document.styleSheets.length; i++) {
+              try {
+                const sheet = document.styleSheets[i];
+                const rules = sheet.cssRules || sheet.rules;
+                if (rules) {
+                  for (let j = 0; j < rules.length; j++) {
+                    compiledCss += rules[j].cssText + "\n";
+                  }
+                }
+              } catch (sheetErr) {
+                // Cross-origin stylesheet security fallback
+              }
+            }
+          } catch (e) {
+            console.warn("Failed to extract stylesheet rules:", e);
+          }
+
+          if (compiledCss) {
+            try {
+              const styleTag = clonedDoc.createElement("style");
+              styleTag.innerHTML = compiledCss;
+              clonedDoc.head.appendChild(styleTag);
+
+              const innerStyle = clonedDoc.createElement("style");
+              innerStyle.innerHTML = compiledCss;
+              clonedElement.appendChild(innerStyle);
+            } catch (e) {
+              console.warn("Failed to inject serialized style rules:", e);
+            }
+          }
+
+          // Disable all animations on cloned elements
+          try {
+            const disableAnimStyle = clonedDoc.createElement("style");
+            disableAnimStyle.innerHTML = `
+              *, *::before, *::after {
+                transition: none !important;
+                transition-duration: 0s !important;
+                animation: none !important;
+                animation-duration: 0s !important;
+              }
+            `;
+            clonedDoc.head.appendChild(disableAnimStyle);
+          } catch (e) {
+            console.warn("Failed to inject animation reset:", e);
+          }
+        },
       });
 
       const dataUrl = canvas.toDataURL("image/png");
       setCapturedImageUrl(dataUrl);
 
-      const link = document.createElement("a");
-      link.download = `inyeon_story_${current.id}_${getMemberNickname(current.winner)}.png`;
-      link.href = dataUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const filename = `inyeon_story_${current.id}_${getMemberNickname(current.winner)}.png`;
+
+      const isMobile = /mobile|android|iphone|ipad/i.test(navigator.userAgent);
+      const isInAppBrowser = /instagram|kakaotalk|naver/i.test(navigator.userAgent);
+
+      if (isMobile && isInAppBrowser) {
+        setShowLongPressGuide(true);
+      } else {
+        const link = document.createElement("a");
+        link.download = filename;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
 
       if (navigator.clipboard) {
-        navigator.clipboard.writeText(`${current.bubble}\nhttps://inyeons.com`);
+        try {
+          await navigator.clipboard.writeText(`${current.bubble}\nhttps://inyeons.com`);
+        } catch (clipErr) {
+          console.debug("Clipboard text write failed:", clipErr);
+        }
       }
-      setCopiedText("스토리 이미지 저장 및 태그 복사 완료! 인스타에 올려보세요 🎉");
-      setTimeout(() => setCopiedText(""), 4000);
+      setCopiedText(
+        isMobile && isInAppBrowser
+          ? "카드를 길게 눌러 사진첩에 저장하세요! 태그도 복사되었습니다 ✨"
+          : "스토리 이미지 저장 및 태그 복사 완료! 인스타에 올려보세요 🎉"
+      );
+      setTimeout(() => setCopiedText(""), 4500);
     } catch (err: any) {
       console.error("Story capture failed:", err);
-      alert("이미지 다운로드 중 오류가 발생했습니다: " + err?.message);
+      alert("이미지 다운로드 중 오류가 발생했습니다: " + (err?.message || err));
     } finally {
       setIsCapturing(false);
     }
@@ -475,6 +601,41 @@ export default function GroupStoryModal({
         </div>
 
       </div>
+
+      {/* 모바일 인앱 브라우저용 길게 눌러 저장 가이드 모달 */}
+      {showLongPressGuide && capturedImageUrl && (
+        <div className="fixed inset-0 z-[1100] bg-black/90 flex flex-col items-center justify-center p-4">
+          <div className="bg-slate-900 border border-white/20 rounded-2xl max-w-sm w-full p-4 text-white text-center space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold text-amber-400">📱 사진첩에 저장하는 법</span>
+              <button
+                type="button"
+                onClick={() => setShowLongPressGuide(false)}
+                className="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              아래 이미지를 <strong>손가락으로 1초간 길게 누르면</strong> 나타나는 메뉴에서 <strong className="text-amber-300">'사진에 저장'</strong> 또는 <strong className="text-amber-300">'이미지 다운로드'</strong>를 선택하세요.
+            </p>
+            <div className="max-h-[50vh] overflow-y-auto rounded-xl border border-white/10 shadow-inner p-1 bg-black/50">
+              <img
+                src={capturedImageUrl}
+                alt="스토리 카드"
+                className="w-full h-auto rounded-lg shadow-md"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowLongPressGuide(false)}
+              className="w-full py-2.5 bg-gradient-to-r from-[#ff5a36] to-[#ec4899] text-white font-bold rounded-xl text-xs"
+            >
+              확인 완료
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
