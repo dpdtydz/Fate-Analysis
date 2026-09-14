@@ -499,24 +499,82 @@ export default function GroupView({ code }: GroupViewProps) {
   const [isMemberManageModalOpen, setIsMemberManageModalOpen] = useState(false);
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
+  const [kickToast, setKickToast] = useState<string | null>(null);
 
   const handleDeleteMember = async (memberToDelete: Member) => {
     if (!confirm(`'${memberToDelete.nickname}' 님을 모임에서 내보내시겠습니까?\n내보낸 후에는 그룹 분석 및 네트워크에서 즉시 제외됩니다.`)) {
       return;
     }
-    setDeletingMemberId(memberToDelete.id);
-    try {
-      await deleteDoc(doc(db, "rooms", code, "members", memberToDelete.id));
-      try {
-        await deleteDoc(doc(db, "rooms", code, "analysis", "result"));
-      } catch (e) {
-        // optional cache cleanup
+    const targetId = memberToDelete.id;
+    setDeletingMemberId(targetId);
+
+    // 1. Optimistic instant update of members list (0.01s)
+    const nextMembers = members.filter((m) => m.id !== targetId);
+    setMembers(nextMembers);
+
+    if (groupViewCache[code]) {
+      groupViewCache[code].members = nextMembers;
+    }
+
+    // 2. Optimistic instant pruning of analysis pairs & personal map
+    setAnalysis((prev) => {
+      if (!prev) return null;
+      const filteredPairs = (prev.pairs || []).filter(
+        (p) => p.member_id_1 !== targetId && p.member_id_2 !== targetId
+      );
+      const filteredPersonal = { ...(prev.personal || {}) };
+      delete filteredPersonal[targetId];
+      return {
+        ...prev,
+        pairs: filteredPairs,
+        personal: filteredPersonal,
+      };
+    });
+
+    setRawAnalysisDoc((prev) => {
+      if (!prev) return null;
+      const filteredPairs = (prev.pairs || []).filter(
+        (p) => p.member_id_1 !== targetId && p.member_id_2 !== targetId
+      );
+      const filteredPersonal = { ...(prev.personal || {}) };
+      delete filteredPersonal[targetId];
+      const updated = {
+        ...prev,
+        pairs: filteredPairs,
+        personal: filteredPersonal,
+      };
+      if (groupViewCache[code]) {
+        groupViewCache[code].rawAnalysisDoc = updated;
       }
-      setMembers(prev => prev.filter(m => m.id !== memberToDelete.id));
-      alert(`'${memberToDelete.nickname}' 님이 모임에서 내보내졌습니다.`);
+      return updated;
+    });
+
+    // 3. Non-blocking feedback toast
+    setKickToast(`'${memberToDelete.nickname}' 님이 모임에서 내보내졌습니다.`);
+    setTimeout(() => setKickToast(null), 3000);
+
+    // 4. Background Firestore delete & sync operations
+    try {
+      await deleteDoc(doc(db, "rooms", code, "members", targetId));
+      if (nextMembers.length < 2) {
+        await deleteDoc(doc(db, "rooms", code, "analysis", "result")).catch(() => {});
+      } else if (rawAnalysisDoc) {
+        const filteredPairs = (rawAnalysisDoc.pairs || []).filter(
+          (p) => p.member_id_1 !== targetId && p.member_id_2 !== targetId
+        );
+        const filteredPersonal = { ...(rawAnalysisDoc.personal || {}) };
+        delete filteredPersonal[targetId];
+        await setDoc(doc(db, "rooms", code, "analysis", "result"), {
+          ...rawAnalysisDoc,
+          pairs: filteredPairs,
+          personal: filteredPersonal,
+        }).catch(() => {});
+      }
     } catch (err: any) {
       console.error("Failed to delete member:", err);
-      alert("멤버 삭제 실패: " + (err.message || "다시 시도해 주세요."));
+      // Rollback on network failure
+      setMembers((prev) => [...prev, memberToDelete]);
+      alert("멤버 내보내기 실패: " + (err.message || "다시 시도해 주세요."));
     } finally {
       setDeletingMemberId(null);
     }
@@ -707,19 +765,25 @@ export default function GroupView({ code }: GroupViewProps) {
   };
 
   // Check and upgrade generic boilerplate pairs to dynamic premium chemistry pairs
-  const upgradedPairs = analysis && Array.isArray(analysis.pairs) ? analysis.pairs.map((p) => {
-    const m1 = findMemberObj(p.member_id_1);
-    const m2 = findMemberObj(p.member_id_2);
-    const isGeneric = p.label === "상생과 화합의 인연 메이트" ||
-                      p.label === "상생과 화합의 인연 조합" ||
-                      p.label === "대조합" ||
-                      isDummyPair(p) ||
-                      (p.description && p.description.includes("서로 다른 기운이 자연스럽게 합을 이루는 조화로운 인연입니다"));
-    if (m1 && m2 && isGeneric) {
-      return generateDynamicPairCompatibility(m1, m2);
-    }
-    return p;
-  }) : [];
+  const upgradedPairs = analysis && Array.isArray(analysis.pairs) ? analysis.pairs
+    .filter((p) => {
+      const m1 = findMemberObj(p.member_id_1);
+      const m2 = findMemberObj(p.member_id_2);
+      return Boolean(m1 && m2);
+    })
+    .map((p) => {
+      const m1 = findMemberObj(p.member_id_1)!;
+      const m2 = findMemberObj(p.member_id_2)!;
+      const isGeneric = p.label === "상생과 화합의 인연 메이트" ||
+                        p.label === "상생과 화합의 인연 조합" ||
+                        p.label === "대조합" ||
+                        isDummyPair(p) ||
+                        (p.description && p.description.includes("서로 다른 기운이 자연스럽게 합을 이루는 조화로운 인연입니다"));
+      if (isGeneric) {
+        return generateDynamicPairCompatibility(m1, m2);
+      }
+      return p;
+    }) : [];
 
   // Sort pairs by score desc to highlight best matches
   const sortedPairs = [...upgradedPairs].sort((a, b) => b.score - a.score);
@@ -907,6 +971,7 @@ export default function GroupView({ code }: GroupViewProps) {
 
   useEffect(() => {
     let unsubscribeAnalysis: (() => void) | null = null;
+    let unsubscribeMembers: (() => void) | null = null;
 
     const startDataFetch = async () => {
       const isFirstLoad = !groupViewCache[code]?.hasLoadedOnce;
@@ -934,34 +999,38 @@ export default function GroupView({ code }: GroupViewProps) {
         const rData = { code, ...roomData } as Room;
         setRoom(rData);
 
-        // 2. Fetch Members list in subcollection
-        const membersSnap = await getDocs(collection(db, "rooms", code, "members"));
-        const mList: Member[] = [];
-        membersSnap.forEach((docSnap) => {
-          mList.push({ id: docSnap.id, ...docSnap.data() } as Member);
+        // 2. Real-time Members listener
+        const membersCol = collection(db, "rooms", code, "members");
+        unsubscribeMembers = onSnapshot(membersCol, (membersSnap) => {
+          const mList: Member[] = [];
+          membersSnap.forEach((docSnap) => {
+            mList.push({ id: docSnap.id, ...docSnap.data() } as Member);
+          });
+
+          if (mList.length < 2) {
+            setError("인연 궁합을 엮으려면 최소 2명 이상 사주를 등록해야 합니다.");
+            setPageLoading(false);
+          } else {
+            setError("");
+          }
+
+          setMembers(mList);
+
+          // Update in cache
+          if (!groupViewCache[code]) {
+            groupViewCache[code] = {
+              room: rData,
+              members: mList,
+              rawAnalysisDoc: groupViewCache[code]?.rawAnalysisDoc || null,
+              hasLoadedOnce: false,
+            };
+          } else {
+            groupViewCache[code].room = rData;
+            groupViewCache[code].members = mList;
+          }
+        }, (memErr) => {
+          console.error("Real-time members listener error:", memErr);
         });
-
-        if (mList.length < 2) {
-          setError("인연 궁합을 엮으려면 최소 2명 이상 사주를 등록해야 합니다.");
-          setPageLoading(false);
-          return;
-        }
-
-        setMembers(mList);
-        console.log("Members loaded:", mList);
-
-        // Update in cache
-        if (!groupViewCache[code]) {
-          groupViewCache[code] = {
-            room: rData,
-            members: mList,
-            rawAnalysisDoc: groupViewCache[code]?.rawAnalysisDoc || null,
-            hasLoadedOnce: false,
-          };
-        } else {
-          groupViewCache[code].room = rData;
-          groupViewCache[code].members = mList;
-        }
 
         // 3. Listen to real-time analysis doc
         const analysisRef = doc(db, "rooms", code, "analysis", "result");
@@ -974,7 +1043,7 @@ export default function GroupView({ code }: GroupViewProps) {
               if (!groupViewCache[code]) {
                 groupViewCache[code] = {
                   room: rData,
-                  members: mList,
+                  members: groupViewCache[code]?.members || [],
                   rawAnalysisDoc: docData,
                   hasLoadedOnce: true,
                 };
@@ -1033,6 +1102,9 @@ export default function GroupView({ code }: GroupViewProps) {
     return () => {
       if (unsubscribeAnalysis) {
         unsubscribeAnalysis();
+      }
+      if (unsubscribeMembers) {
+        unsubscribeMembers();
       }
     };
   }, [code, refreshTrigger]);
@@ -1173,6 +1245,11 @@ export default function GroupView({ code }: GroupViewProps) {
   return (
     <Layout title={`${room.title} 궁합도`} showHomeButton>
       <div className="space-y-6 py-2">
+        {kickToast && (
+          <div className="p-3 rounded-xl bg-seal/10 border border-seal/30 text-seal text-xs font-semibold flex items-center justify-between gap-2 animate-fade-in">
+            <span>{kickToast}</span>
+          </div>
+        )}
         
         {/* Back Link & Action Row */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -2556,6 +2633,12 @@ export default function GroupView({ code }: GroupViewProps) {
                 <span>+ 지인 추가</span>
               </button>
             </div>
+
+            {kickToast && (
+              <div className="p-2.5 rounded-xl bg-seal/10 border border-seal/30 text-seal text-xs font-semibold animate-fade-in flex items-center justify-between">
+                <span>{kickToast}</span>
+              </div>
+            )}
 
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {members.map((m) => {

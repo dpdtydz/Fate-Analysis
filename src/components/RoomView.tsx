@@ -391,6 +391,7 @@ export default function RoomView({ code }: RoomViewProps) {
 
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
+  const [deleteToast, setDeleteToast] = useState<string | null>(null);
 
   const handleDeleteMember = async (memberToDelete: Member, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -398,18 +399,35 @@ export default function RoomView({ code }: RoomViewProps) {
     if (!confirm(`'${memberToDelete.nickname}' 님을 모임에서 내보내시겠습니까?\n내보낸 후에는 멤버 목록 및 궁합 분석에서 제외됩니다.`)) {
       return;
     }
-    setDeletingMemberId(memberToDelete.id);
+    const targetId = memberToDelete.id;
+    setDeletingMemberId(targetId);
+
+    // 1. Optimistic UI update: Remove member immediately without waiting for network (0.01s)
+    setMembers((prev) => prev.filter((m) => m.id !== targetId));
+
+    // 2. Update local snapshot cache immediately
+    const cached = getCachedRoomSnapshot(code);
+    if (cached && cached.room) {
+      const updatedMembers = (cached.room.members || []).filter((m) => m.id !== targetId);
+      cacheRoomSnapshot({ ...cached.room, members: updatedMembers });
+    }
+
+    // 3. Non-blocking feedback toast
+    setDeleteToast(`'${memberToDelete.nickname}' 님이 모임에서 내보내졌습니다.`);
+    setTimeout(() => setDeleteToast(null), 3000);
+
+    // 4. Background Firestore delete operations
     try {
-      await deleteDoc(doc(db, "rooms", code, "members", memberToDelete.id));
+      await deleteDoc(doc(db, "rooms", code, "members", targetId));
       try {
         await deleteDoc(doc(db, "rooms", code, "analysis", "result"));
       } catch (e) {
         // optional cache cleanup
       }
-      setMembers((prev) => prev.filter((m) => m.id !== memberToDelete.id));
-      alert(`'${memberToDelete.nickname}' 님이 모임에서 내보내졌습니다.`);
     } catch (err: any) {
       console.error("Failed to delete member:", err);
+      // Rollback on network failure
+      setMembers((prev) => [...prev, memberToDelete]);
       alert("멤버 삭제 실패: " + (err.message || "다시 시도해 주세요."));
     } finally {
       setDeletingMemberId(null);
@@ -446,6 +464,11 @@ export default function RoomView({ code }: RoomViewProps) {
   return (
     <Layout title={room.title} showHomeButton>
       <div className="space-y-6 py-2">
+        {deleteToast && (
+          <div className="p-3 rounded-xl bg-seal/10 border border-seal/30 text-seal text-xs font-semibold flex items-center justify-between gap-2 animate-fade-in">
+            <span>{deleteToast}</span>
+          </div>
+        )}
         
         {isRestoredFromCache && (
           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 text-xs flex items-center justify-between gap-2 animate-fade-in">
@@ -704,7 +727,7 @@ export default function RoomView({ code }: RoomViewProps) {
                   </button>
 
                   {/* 방장 권한: 멤버 내보내기 버튼 */}
-                  {isOwner && (
+                  {isOwner && member.id !== localMemberId && (
                     <button
                       type="button"
                       onClick={(e) => handleDeleteMember(member, e)}
