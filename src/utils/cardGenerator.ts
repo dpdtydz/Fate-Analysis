@@ -1,7 +1,7 @@
 import { Member, PairAnalysis } from "../types";
 import { getMemberNickname, getMemberElement } from "./memberHelper";
 import { getMemberZodiacSrc } from "../components/ZodiacAvatar";
-import { calculateMemberSals } from "./shinsalCalculator";
+import { calculateMemberSals, calculateGroupAwards } from "./shinsalCalculator";
 
 interface GenerateChemistryCardParams {
   roomTitle: string;
@@ -392,6 +392,399 @@ export async function generateDedicatedChemistryCard({
   ctx.fillText("inyeons.com", 1020, 1855);
 
   // Convert to DataUrl and Blob
+  const dataUrl = canvas.toDataURL("image/png");
+  const blob = await new Promise<Blob>((resolve) => {
+    canvas.toBlob((b) => resolve(b || new Blob()), "image/png");
+  });
+
+  return { dataUrl, blob };
+}
+
+export interface GenerateGroupCardParams {
+  roomTitle: string;
+  groupScore: number;
+  members: Member[];
+  atmosphere?: string;
+}
+
+/**
+ * Generates a dedicated 1080x1920 Instagram Story / Group Card PNG using Pure Canvas 2D.
+ * Group-Centric layout: All members constellation orbit, overall group harmony score, 3 MVP awards.
+ */
+export async function generateDedicatedGroupCard({
+  roomTitle,
+  groupScore,
+  members,
+  atmosphere,
+}: GenerateGroupCardParams): Promise<{ dataUrl: string; blob: Blob }> {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1920;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Failed to get 2D canvas context");
+
+  // Preload member avatar images
+  const memberAvatarMap = new Map<string, HTMLImageElement | null>();
+  await Promise.all(
+    members.map(async (m) => {
+      const src = getMemberZodiacSrc(m);
+      if (src) {
+        const img = await loadImage(src);
+        memberAvatarMap.set(m.id, img);
+      }
+    })
+  );
+
+  // 1. Cosmic Background & Nebulae
+  ctx.fillStyle = "#06080E";
+  ctx.fillRect(0, 0, 1080, 1920);
+
+  // Deep Nebulae Glows
+  const g1 = ctx.createRadialGradient(540, 240, 0, 540, 240, 650);
+  g1.addColorStop(0, "rgba(244, 63, 94, 0.22)");
+  g1.addColorStop(0.6, "rgba(244, 63, 94, 0.05)");
+  g1.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = g1;
+  ctx.fillRect(0, 0, 1080, 700);
+
+  const g2 = ctx.createRadialGradient(540, 750, 0, 540, 750, 550);
+  g2.addColorStop(0, "rgba(99, 102, 241, 0.18)");
+  g2.addColorStop(0.7, "rgba(59, 130, 246, 0.04)");
+  g2.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = g2;
+  ctx.fillRect(0, 400, 1080, 700);
+
+  const g3 = ctx.createRadialGradient(540, 1400, 0, 540, 1400, 700);
+  g3.addColorStop(0, "rgba(245, 158, 11, 0.12)");
+  g3.addColorStop(1, "rgba(0, 0, 0, 0)");
+  ctx.fillStyle = g3;
+  ctx.fillRect(0, 1100, 1080, 820);
+
+  // Stars
+  ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+  for (let i = 0; i < 65; i++) {
+    const sx = (i * 137.5) % 1080;
+    const sy = (i * 293.7) % 1920;
+    const sr = (i % 3) + 1;
+    ctx.beginPath();
+    ctx.arc(sx, sy, sr * 0.7, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // 2. Top Header Pill
+  const pillY = 95;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+  ctx.lineWidth = 1.5;
+  drawRoundRect(ctx, 330, pillY, 420, 44, 22);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#FDA4AF";
+  ctx.font = "bold 20px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText("✨ INYEON SAJU · 모임 종합 궁합", 540, pillY + 29);
+
+  // Room Title
+  const cleanTitle = (roomTitle || "우리 모임").trim();
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 44px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText(`"${cleanTitle}"`, 540, 195);
+
+  // Big Group Score
+  ctx.fillStyle = "#FF5A36";
+  ctx.font = "900 96px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText(`${groupScore}`, 505, 305);
+
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 40px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText("점", 575, 305);
+
+  // Score Subtitle & Atmosphere
+  const scoreLabel =
+    groupScore >= 92
+      ? "🌟 천생연분 시너지 (모임 화합도 최상급)"
+      : groupScore >= 82
+      ? "✨ 상생화합 시너지 (황금 밸런스)"
+      : "💫 서로를 채워주는 보완형 시너지";
+  ctx.fillStyle = "#FDE047";
+  ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText(scoreLabel, 540, 355);
+
+  const cleanAtmosphere = atmosphere || "서로의 기운을 보완하며 함께할수록 시너지가 폭발하는 인연";
+  ctx.fillStyle = "#94A3B8";
+  ctx.font = "500 21px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText(cleanAtmosphere, 540, 395);
+
+  // 3. Center: Member Constellation Orbit Card
+  const orbitCardY = 435;
+  const orbitCardH = 610;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.lineWidth = 1.5;
+  drawRoundRect(ctx, 60, orbitCardY, 960, orbitCardH, 28);
+  ctx.fill();
+  ctx.stroke();
+
+  // Orbit Card Header
+  ctx.fillStyle = "#E2E8F0";
+  ctx.font = "bold 24px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(`🌌 모임 인연 오행 성좌도 (${members.length}명의 기운 궤도)`, 95, orbitCardY + 45);
+
+  // Orbit Center & Circles
+  const orbitCenterX = 540;
+  const orbitCenterY = orbitCardY + 335;
+  const orbitR = 195;
+
+  // Background Orbit Rings
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6, 6]);
+  ctx.beginPath();
+  ctx.arc(orbitCenterX, orbitCenterY, orbitR, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(orbitCenterX, orbitCenterY, 110, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]); // Reset dash
+
+  // Calculate member positions on the orbit
+  const mCount = members.length;
+  const memberPositions: { x: number; y: number; member: Member }[] = [];
+  for (let i = 0; i < mCount; i++) {
+    const angle = (i * 2 * Math.PI) / mCount - Math.PI / 2;
+    const px = orbitCenterX + Math.cos(angle) * orbitR;
+    const py = orbitCenterY + Math.sin(angle) * orbitR;
+    memberPositions.push({ x: px, y: py, member: members[i] });
+  }
+
+  // Draw connecting constellation lines between all members
+  ctx.strokeStyle = "rgba(244, 63, 94, 0.25)";
+  ctx.lineWidth = 1.5;
+  for (let i = 0; i < memberPositions.length; i++) {
+    for (let j = i + 1; j < memberPositions.length; j++) {
+      ctx.beginPath();
+      ctx.moveTo(memberPositions[i].x, memberPositions[i].y);
+      ctx.lineTo(memberPositions[j].x, memberPositions[j].y);
+      ctx.stroke();
+    }
+  }
+
+  // Center Glowing Emblem
+  const centerGrad = ctx.createRadialGradient(orbitCenterX, orbitCenterY, 0, orbitCenterX, orbitCenterY, 55);
+  centerGrad.addColorStop(0, "#FF5A36");
+  centerGrad.addColorStop(1, "#BE185D");
+  ctx.fillStyle = centerGrad;
+  ctx.beginPath();
+  ctx.arc(orbitCenterX, orbitCenterY, 48, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#FFFFFF";
+  ctx.stroke();
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 17px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText("모임 화합", orbitCenterX, orbitCenterY - 4);
+  ctx.font = "900 22px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText(`${groupScore}%`, orbitCenterX, orbitCenterY + 20);
+
+  // Draw Member Nodes on Orbit
+  const elemColors: Record<string, string> = {
+    목: "#10B981",
+    화: "#F43F5E",
+    토: "#F59E0B",
+    금: "#E2E8F0",
+    수: "#3B82F6",
+  };
+
+  memberPositions.forEach(({ x, y, member }) => {
+    const elem = getMemberElement(member) || "목";
+    const elemColor = elemColors[elem] || "#F43F5E";
+    const avatarImg = memberAvatarMap.get(member.id);
+    const nodeR = 38;
+
+    // Outer glow ring
+    ctx.fillStyle = "rgba(6, 8, 14, 0.95)";
+    ctx.beginPath();
+    ctx.arc(x, y, nodeR + 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, nodeR, 0, Math.PI * 2);
+    ctx.clip();
+
+    if (avatarImg) {
+      ctx.drawImage(avatarImg, x - nodeR, y - nodeR, nodeR * 2, nodeR * 2);
+    } else {
+      ctx.fillStyle = elemColor;
+      ctx.fillRect(x - nodeR, y - nodeR, nodeR * 2, nodeR * 2);
+      ctx.fillStyle = "#FFFFFF";
+      ctx.font = "bold 24px -apple-system, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(getMemberNickname(member).slice(0, 1), x, y + 8);
+    }
+    ctx.restore();
+
+    // Element border ring
+    ctx.strokeStyle = elemColor;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    ctx.arc(x, y, nodeR, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Member Nickname Badge below
+    const nick = getMemberNickname(member);
+    ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.lineWidth = 1;
+    drawRoundRect(ctx, x - 54, y + nodeR + 4, 108, 28, 14);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 15px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+    const displayNick = nick.length > 5 ? nick.slice(0, 4) + ".." : nick;
+    ctx.fillText(displayNick, x, y + nodeR + 23);
+  });
+
+  // 4. Bottom Section: 모임 3대 MVP 어워즈
+  const awardsY = 1075;
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#FFFFFF";
+  ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText("🏆 모임 공식 3대 MVP 어워즈", 65, awardsY);
+
+  const awardsResult = calculateGroupAwards(members);
+  const topAwards = [
+    {
+      emoji: "👑",
+      title: "도화 1위 · 공식 인기쟁이",
+      winner: awardsResult.dohwaKing.winner,
+      score: awardsResult.dohwaKing.score,
+      tagline: "가만히 있어도 시선과 호감을 독점하는 공식 셀럽",
+      color: "#F43F5E",
+    },
+    {
+      emoji: "🐎",
+      title: "역마 1위 · 탈출 넘버원",
+      winner: awardsResult.yeokmaKing.winner,
+      score: awardsResult.yeokmaKing.score,
+      tagline: "약속 잡히면 1등 번개 출석! 모임의 기동력 엔진",
+      color: "#3B82F6",
+    },
+    {
+      emoji: "💰",
+      title: "재물 1위 · 자본주의 캐리머신",
+      winner: awardsResult.wealthKing.winner,
+      score: awardsResult.wealthKing.score,
+      tagline: "모임 곳간을 든든하게 불리고 하드캐리할 관상",
+      color: "#F59E0B",
+    },
+  ];
+
+  const cardW = 960;
+  const itemH = 175;
+  topAwards.forEach((item, idx) => {
+    const itemY = awardsY + 25 + idx * (itemH + 16);
+    const cardX = 60;
+
+    // Card Glass Background
+    ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+    ctx.lineWidth = 1.5;
+    drawRoundRect(ctx, cardX, itemY, cardW, itemH, 20);
+    ctx.fill();
+    ctx.stroke();
+
+    // Emoji Circle
+    const iconR = 36;
+    const iconX = cardX + 55;
+    const iconY = itemY + itemH / 2;
+    ctx.fillStyle = `${item.color}22`;
+    ctx.strokeStyle = `${item.color}55`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(iconX, iconY, iconR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign = "center";
+    ctx.font = "34px sans-serif";
+    ctx.fillText(item.emoji, iconX, iconY + 12);
+
+    // Award Title
+    ctx.textAlign = "left";
+    ctx.fillStyle = item.color;
+    ctx.font = "bold 20px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+    ctx.fillText(item.title, cardX + 115, itemY + 45);
+
+    // Winner Name
+    const wNick = getMemberNickname(item.winner);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "900 30px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+    ctx.fillText(`${wNick} 님`, cardX + 115, itemY + 86);
+
+    // Tagline
+    ctx.fillStyle = "#94A3B8";
+    ctx.font = "500 20px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+    ctx.fillText(`"${item.tagline}"`, cardX + 115, itemY + 124);
+
+    // Right Winner Avatar & Score
+    const wImg = memberAvatarMap.get(item.winner.id);
+    const wR = 36;
+    const wX = cardX + cardW - 75;
+    const wY = itemY + itemH / 2;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(wX, wY, wR, 0, Math.PI * 2);
+    ctx.clip();
+    if (wImg) {
+      ctx.drawImage(wImg, wX - wR, wY - wR, wR * 2, wR * 2);
+    } else {
+      ctx.fillStyle = item.color;
+      ctx.fillRect(wX - wR, wY - wR, wR * 2, wR * 2);
+    }
+    ctx.restore();
+
+    ctx.strokeStyle = item.color;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(wX, wY, wR, 0, Math.PI * 2);
+    ctx.stroke();
+  });
+
+  // 5. Bottom Story Tag Banner
+  const botY = 1715;
+  ctx.fillStyle = "rgba(244, 63, 94, 0.22)";
+  ctx.strokeStyle = "rgba(244, 63, 94, 0.4)";
+  ctx.lineWidth = 2;
+  drawRoundRect(ctx, 60, botY, 960, 75, 37);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#FECDD3";
+  ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText(`🏷️  단톡방 박제 완료! 우리 모임 케미 ${groupScore}점 실화냐 ㅋㅋㅋ`, 540, botY + 47);
+
+  // Footer Watermark
+  ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+  ctx.font = "500 20px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText("緣 인연사주 모임 종합 분석", 60, 1845);
+
+  ctx.textAlign = "right";
+  ctx.font = "500 20px monospace";
+  ctx.fillText("inyeons.com", 1020, 1845);
+
   const dataUrl = canvas.toDataURL("image/png");
   const blob = await new Promise<Blob>((resolve) => {
     canvas.toBlob((b) => resolve(b || new Blob()), "image/png");

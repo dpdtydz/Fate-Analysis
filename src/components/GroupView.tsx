@@ -21,7 +21,7 @@ import ChemistryMatrix from "./ChemistryMatrix";
 import IljuEncyclopediaModal from "./IljuEncyclopediaModal";
 import PairChemistryModal from "./PairChemistryModal";
 import { getIljuMeta } from "../utils/iljuData";
-import { generateDedicatedChemistryCard } from "../utils/cardGenerator";
+import { generateDedicatedChemistryCard, generateDedicatedGroupCard } from "../utils/cardGenerator";
 
 const isMbtiRegistered = (m?: any): boolean => {
   if (!m || !m.mbti) return false;
@@ -1013,10 +1013,10 @@ export default function GroupView({ code }: GroupViewProps) {
     autoTrigger();
   }, [members, room, rawAnalysisDoc, pageLoading, analyzing]);
 
-  // Dedicated Chemistry Card generation using Pure Canvas 2D (100% reliable, immune to html2canvas DOM parsing errors)
+  // Dedicated Group Chemistry Card generation using Pure Canvas 2D (Group-Centric)
   const handleShareResult = async () => {
     if (members.length < 2) return;
-    setShareStatus("고화질 카드 생성 중...");
+    setShareStatus("모임 종합 카드 생성 중...");
 
     logAnalyticsEvent({
       eventName: "result_capture_click",
@@ -1026,25 +1026,21 @@ export default function GroupView({ code }: GroupViewProps) {
     });
 
     try {
-      // Pick top synergy pair or first two members
-      const topPair = sortedPairs.length > 0 ? sortedPairs[0] : null;
-      const m1 = (topPair ? findMemberObj(topPair.member_id_1) : null) || members[0];
-      const m2 = (topPair ? findMemberObj(topPair.member_id_2) : null) || members[1] || members[0];
+      const { cleanTitle, cleanAtmosphere } = formatAestheticGroupText(
+        room?.title,
+        analysis?.group?.atmosphere
+      );
 
-      const { dataUrl, blob } = await generateDedicatedChemistryCard({
-        roomTitle: room?.title || "우리 모임",
+      const { dataUrl, blob } = await generateDedicatedGroupCard({
+        roomTitle: cleanTitle || room?.title || "우리 모임",
         groupScore: displayHarmoniousScore,
         members,
-        m1,
-        m2,
-        pairScore: topPair ? topPair.score : 96,
-        pairLabel: topPair?.label,
-        pairDesc: topPair?.description,
+        atmosphere: cleanAtmosphere,
       });
 
       setCapturedImgUrl(dataUrl);
 
-      const file = new File([blob], `saju_chemistry_${code || "result"}.png`, { type: "image/png" });
+      const file = new File([blob], `saju_group_${code || "result"}.png`, { type: "image/png" });
       const isInstagramOrKakao = /instagram|kakaotalk/i.test(navigator.userAgent);
 
       if (
@@ -1057,7 +1053,7 @@ export default function GroupView({ code }: GroupViewProps) {
         try {
           await navigator.share({
             files: [file],
-            title: `${room?.title || "모임"} 사주 종합 케미 카드`,
+            title: `${room?.title || "모임"} 사주 종합 궁합 카드`,
             text: "우리 모임 사주 궁합 카드를 확인해 보세요!",
           });
           setShareStatus("인연 공유완료!");
@@ -1071,11 +1067,11 @@ export default function GroupView({ code }: GroupViewProps) {
           // Desktop: Download file directly
           const link = document.createElement("a");
           link.href = dataUrl;
-          link.download = `saju_chemistry_${code || "result"}.png`;
+          link.download = `saju_group_${code || "result"}.png`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          setShareStatus("결과 이미지 저장됨!");
+          setShareStatus("모임 카드 저장됨!");
         } else {
           // Mobile in-app browser: Show long press guide
           setShowLongPressGuide(true);
@@ -1083,7 +1079,7 @@ export default function GroupView({ code }: GroupViewProps) {
         }
       }
     } catch (err) {
-      console.error("Failed to generate dedicated chemistry card:", err);
+      console.error("Failed to generate dedicated group card:", err);
       setShareStatus("생성 오류 발생");
     } finally {
       setTimeout(() => setShareStatus(""), 2000);
@@ -2425,7 +2421,7 @@ export default function GroupView({ code }: GroupViewProps) {
         groupAnalysis={analysis?.group}
         pairs={upgradedPairs}
         initialPair={storyModalPair}
-        defaultTab={storyModalPair ? "pair" : "pair"}
+        defaultTab={storyModalPair ? "pair" : "group"}
       />
 
       {/* 60 Ilju Animal Encyclopedia Modal */}
