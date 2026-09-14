@@ -4,10 +4,11 @@ import { db, auth, saveRoomToHistory, getRoomHistory, saveUserPersonalProfile, c
 import { doc, getDoc, setDoc, collection, onSnapshot, deleteDoc } from "firebase/firestore";
 import { Member, Room } from "../types";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
-import { Copy, Share2, Users, Calendar, Crown, Heart, Sparkles, ChevronDown, ChevronUp, Lock, Lightbulb, Ticket, UserX, Trash2 } from "lucide-react";
+import { Copy, Share2, Users, Calendar, Crown, Heart, Sparkles, ChevronDown, ChevronUp, Lock, Lightbulb, Ticket, UserX, Trash2, UserPlus } from "lucide-react";
 import PremiumPaywall from "./PremiumPaywall";
 import PairChemistryModal from "./PairChemistryModal";
 import ViralCardModal from "./ViralCardModal";
+import AddGuestMemberModal from "./AddGuestMemberModal";
 import GoogleAds from "./GoogleAds";
 import ZodiacAvatar, { spaceImageSrc, SPACE_NAMES, calculateSpaceKey, calculateMemberRole } from "./ZodiacAvatar";
 import { cacheRoomSnapshot, getCachedRoomSnapshot, recordRecentRoom } from "../lib/offlineVault";
@@ -388,6 +389,7 @@ export default function RoomView({ code }: RoomViewProps) {
     return isOwnerUid || isOwnerHistory || isOwnerLocalFlag || isFirstMemberCreator;
   }, [room, code, members, localMemberId]);
 
+  const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
 
   const handleDeleteMember = async (memberToDelete: Member, e: React.MouseEvent) => {
@@ -598,10 +600,21 @@ export default function RoomView({ code }: RoomViewProps) {
               </div>
               <p className="text-xs text-ink-soft mt-0.5">
                 {isOwner
-                  ? "멤버를 누르면 1:1 궁합을 보고, 우측 상단 버튼으로 멤버를 내보낼 수 있습니다."
+                  ? "멤버를 누르면 1:1 궁합을 보고, 비회원을 직접 추가하거나 내보낼 수 있습니다."
                   : "멤버를 누르면 나와의 1:1 궁합이 열립니다."}
               </p>
             </div>
+
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => setIsAddGuestModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-seal/10 hover:bg-seal/20 text-seal border border-seal/30 text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>비회원 직접 추가</span>
+              </button>
+            )}
           </div>
 
           <div id="members-grid" className="grid grid-cols-2 gap-3">
@@ -854,6 +867,16 @@ export default function RoomView({ code }: RoomViewProps) {
         roomTitle={room?.title || "우리들의 인연 모임"}
         roomCode={code}
         initialTab={viralCardTab}
+      />
+
+      {/* Host-only Add Guest Member Modal */}
+      <AddGuestMemberModal
+        isOpen={isAddGuestModalOpen}
+        onClose={() => setIsAddGuestModalOpen(false)}
+        roomCode={code}
+        onMemberAdded={(newMember) => {
+          setMembers((prev) => [...prev, newMember]);
+        }}
       />
     </Layout>
   );

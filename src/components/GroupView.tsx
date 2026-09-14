@@ -5,7 +5,7 @@ import LoadingOverlay from "./LoadingOverlay";
 import { db, getAnonymousUser, auth, checkPremiumStatus, checkProductUnlock, redeemCoupon, getUserMembershipInfo, getRoomHistory } from "../lib/firebase";
 import { doc, getDoc, setDoc, collection, getDocs, onSnapshot, deleteDoc } from "firebase/firestore";
 import { Member, Room, CachedAnalysisResult } from "../types";
-import { Share2, Heart, ArrowLeft, RefreshCw, Smile, Check, Lock, Ticket, ChevronDown, ChevronUp, Award, Sparkles, Trophy, ChevronRight, Crown, UserX, Users, X } from "lucide-react";
+import { Share2, Heart, ArrowLeft, RefreshCw, Smile, Check, Lock, Ticket, ChevronDown, ChevronUp, Award, Sparkles, Trophy, ChevronRight, Crown, UserX, Users, X, UserPlus } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import PremiumPaywall from "./PremiumPaywall";
 import GoogleAds from "./GoogleAds";
@@ -20,6 +20,7 @@ import { getExperimentVariant, trackExperimentConversion } from "../lib/abTest";
 import ChemistryMatrix from "./ChemistryMatrix";
 import IljuEncyclopediaModal from "./IljuEncyclopediaModal";
 import PairChemistryModal from "./PairChemistryModal";
+import AddGuestMemberModal from "./AddGuestMemberModal";
 import { getIljuMeta } from "../utils/iljuData";
 import { generateDedicatedChemistryCard, generateDedicatedGroupCard } from "../utils/cardGenerator";
 
@@ -496,6 +497,7 @@ export default function GroupView({ code }: GroupViewProps) {
   }, [room, code, members, localMemberId]);
 
   const [isMemberManageModalOpen, setIsMemberManageModalOpen] = useState(false);
+  const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
   const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
 
   const handleDeleteMember = async (memberToDelete: Member) => {
@@ -1183,15 +1185,26 @@ export default function GroupView({ code }: GroupViewProps) {
           </a>
           <div className="flex items-center gap-2 flex-wrap">
             {isOwner && (
-              <button
-                type="button"
-                onClick={() => setIsMemberManageModalOpen(true)}
-                className="inline-flex items-center text-xs font-semibold transition-colors px-3 py-1.5 rounded-xl bg-sunken hover:bg-line text-ink cursor-pointer border border-amber-500/20 shadow-xs"
-                title="방장 권한: 멤버 목록 확인 및 내보내기"
-              >
-                <Crown className="w-3.5 h-3.5 mr-1 text-amber-500" />
-                <span>멤버 관리 ({members.length}명)</span>
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => setIsAddGuestModalOpen(true)}
+                  className="inline-flex items-center text-xs font-bold transition-colors px-3 py-1.5 rounded-xl bg-seal/10 hover:bg-seal/20 text-seal border border-seal/30 cursor-pointer shadow-xs"
+                  title="방장 권한: 상대방 가입 없이 비회원 지인 직접 등록"
+                >
+                  <UserPlus className="w-3.5 h-3.5 mr-1" />
+                  <span>비회원 추가</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsMemberManageModalOpen(true)}
+                  className="inline-flex items-center text-xs font-semibold transition-colors px-3 py-1.5 rounded-xl bg-sunken hover:bg-line text-ink cursor-pointer border border-amber-500/20 shadow-xs"
+                  title="방장 권한: 멤버 목록 확인 및 내보내기"
+                >
+                  <Crown className="w-3.5 h-3.5 mr-1 text-amber-500" />
+                  <span>멤버 관리 ({members.length}명)</span>
+                </button>
+              </>
             )}
             <button
               type="button"
@@ -2522,13 +2535,33 @@ export default function GroupView({ code }: GroupViewProps) {
             </div>
 
             <p className="text-xs text-ink-soft leading-relaxed">
-              방장은 불필요한 인원이나 잘못 등록된 인원을 모임에서 즉시 내보낼 수 있습니다.
+              방장은 불필요한 인원을 내보내거나, 상대방 가입 없이 비회원 지인을 직접 등록할 수 있습니다.
             </p>
+
+            {/* 비회원 직접 추가 바로가기 박스 */}
+            <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-seal/5 border border-seal/20">
+              <div className="text-left min-w-0">
+                <p className="text-xs font-bold text-ink">상대방 가입 없이 바로 궁합 보기</p>
+                <p className="text-[11px] text-ink-soft">생년월일만 넣으면 비회원 지인을 즉시 추가합니다.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMemberManageModalOpen(false);
+                  setIsAddGuestModalOpen(true);
+                }}
+                className="px-3 py-1.5 rounded-lg bg-seal hover:bg-seal-deep text-white text-xs font-bold shrink-0 flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+              >
+                <UserPlus className="w-3.5 h-3.5" />
+                <span>+ 지인 추가</span>
+              </button>
+            </div>
 
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
               {members.map((m) => {
                 const isMe = m.id === localMemberId;
                 const role = calculateMemberRole(m);
+                const isGuestMember = (m as any).isGuest;
                 return (
                   <div
                     key={m.id}
@@ -2542,6 +2575,11 @@ export default function GroupView({ code }: GroupViewProps) {
                           {isMe && (
                             <span className="text-[10px] font-semibold text-seal bg-seal/10 px-1.5 py-0.5 rounded">
                               나 (방장)
+                            </span>
+                          )}
+                          {isGuestMember && (
+                            <span className="text-[10px] font-semibold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                              비회원 지인
                             </span>
                           )}
                         </div>
@@ -2581,6 +2619,16 @@ export default function GroupView({ code }: GroupViewProps) {
           </div>
         </div>
       )}
+
+      {/* Host-only Add Guest Member Modal */}
+      <AddGuestMemberModal
+        isOpen={isAddGuestModalOpen}
+        onClose={() => setIsAddGuestModalOpen(false)}
+        roomCode={code}
+        onMemberAdded={(newMember) => {
+          setMembers((prev) => [...prev, newMember]);
+        }}
+      />
     </Layout>
   );
 }
