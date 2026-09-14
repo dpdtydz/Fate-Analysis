@@ -127,8 +127,8 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
   const isLargeGroup = memberCount > 6 && memberCount < 10;
   const svgSize = isMegaGroup ? 540 : isLargeGroup ? 500 : 460;
   const center = svgSize / 2;
-  const radius = isMegaGroup ? 180 : isLargeGroup ? 160 : 140;
-  const nodeRadius = isMegaGroup ? 23 : isLargeGroup ? 28 : 34; // Generous size so 3D animal faces are crisp and clear!
+  const radius = isMegaGroup ? 162 : isLargeGroup ? 150 : 135;
+  const nodeRadius = isMegaGroup ? 22 : isLargeGroup ? 26 : 32; // Generous size so 3D animal faces are crisp and clear!
 
   // Pre-calculated ranking of pairs for the insight cards
   const rankedPairs = useMemo(() => {
@@ -827,8 +827,20 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                   opacity={isConnected ? 1 : 0.3}
                 />
 
-                {/* Fallback emoji inside SVG node if image not provided */}
-                {!node.imageSrc && (
+                {/* Crisp Avatar Image with Perfect Circular Clip */}
+                {node.imageSrc ? (
+                  <image
+                    href={node.imageSrc}
+                    x={node.x - nodeRadius + 2}
+                    y={node.y - nodeRadius + 2}
+                    width={(nodeRadius - 2) * 2}
+                    height={(nodeRadius - 2) * 2}
+                    clipPath={`url(#clip-${node.id})`}
+                    preserveAspectRatio="xMidYMid slice"
+                    className="select-none pointer-events-none"
+                    opacity={isConnected ? 1 : 0.3}
+                  />
+                ) : (
                   <text
                     x={node.x}
                     y={node.y + 5}
@@ -863,79 +875,76 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                   </text>
                 </g>
 
-                {/* NICKNAME & SCORE PILL (Completely Outside Circle, ZERO Overlap) */}
-                <foreignObject
-                  x={labelX - (isMegaGroup ? 32 : 38)}
-                  y={labelY - (asymmetricInfo ? 18 : 10)}
-                  width={isMegaGroup ? "64" : "76"}
-                  height={asymmetricInfo ? "36" : "22"}
-                  className="overflow-visible pointer-events-none select-none transition-all duration-300"
-                  opacity={isConnected ? 1 : 0.25}
-                >
-                  <div className="flex flex-col items-center justify-center space-y-0.5">
-                    {/* Nickname pill */}
-                    <div className={`px-1.5 py-0.5 rounded-full ${isMegaGroup ? "text-[8.5px]" : "text-[10px]"} font-bold tracking-tight shadow-xs truncate text-center w-auto max-w-[62px] border ${
-                      isSelected ? "bg-seal text-white border-seal ring-2 ring-seal/20" : "bg-white text-ink border-line"
-                    }`}>
-                      {node.nickname}
-                    </div>
+                {/* Pure SVG Nickname Badge (100% html2canvas reliable, ZERO drift or overlap) */}
+                {(() => {
+                  const displayNick = node.nickname.length > 5 ? `${node.nickname.slice(0, 4)}…` : node.nickname;
+                  const charCount = displayNick.length;
+                  const pillWidth = Math.max(34, charCount * (isMegaGroup ? 8.5 : 9.5) + 12);
+                  const pillHeight = isMegaGroup ? 16 : 18;
 
-                    {/* Bi-directional score badge below nickname */}
-                    {asymmetricInfo && isConnected && (
-                      <div className="flex items-center justify-center space-x-1 bg-ink text-paper px-1.5 py-0.5 rounded-full text-[8px] font-mono shadow-sm">
-                        <span>{asymmetricInfo.score1to2}점</span>
-                        <span className="opacity-60">⇄</span>
-                        <span>{asymmetricInfo.score2to1}점</span>
-                      </div>
-                    )}
-                  </div>
-                </foreignObject>
+                  return (
+                    <g
+                      transform={`translate(${labelX}, ${labelY})`}
+                      opacity={isConnected ? 1 : 0.3}
+                      className="pointer-events-none select-none transition-all duration-300"
+                    >
+                      <rect
+                        x={-pillWidth / 2}
+                        y={-pillHeight / 2}
+                        width={pillWidth}
+                        height={pillHeight}
+                        rx={pillHeight / 2}
+                        ry={pillHeight / 2}
+                        fill={isSelected ? "#B3382C" : "#FFFFFF"}
+                        stroke={isSelected ? "#B3382C" : "#E2E8F0"}
+                        strokeWidth="1"
+                        filter="url(#nodeShadow)"
+                      />
+                      <text
+                        x={0}
+                        y={isMegaGroup ? 3 : 3.5}
+                        textAnchor="middle"
+                        fill={isSelected ? "#FFFFFF" : "#1C1D21"}
+                        fontSize={isMegaGroup ? "8.5px" : "9.5px"}
+                        fontWeight="700"
+                        fontFamily="-apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif"
+                      >
+                        {displayNick}
+                      </text>
+
+                      {/* Optional Asymmetric exchange scores below badge */}
+                      {asymmetricInfo && isConnected && (
+                        <g transform={`translate(0, ${pillHeight / 2 + 7})`}>
+                          <rect
+                            x="-26"
+                            y="-6"
+                            width="52"
+                            height="12"
+                            rx="6"
+                            ry="6"
+                            fill="#1C1D21"
+                            opacity="0.9"
+                          />
+                          <text
+                            x="0"
+                            y="2.5"
+                            textAnchor="middle"
+                            fill="#FFFFFF"
+                            fontSize="7px"
+                            fontWeight="600"
+                            fontFamily="monospace"
+                          >
+                            {asymmetricInfo.score1to2} ⇄ {asymmetricInfo.score2to1}
+                          </text>
+                        </g>
+                      )}
+                    </g>
+                  );
+                })()}
               </g>
             );
           })}
         </svg>
-        )}
-
-        {/* HTML Avatar Overlay Layer: 100% html2canvas export and cross-browser reliability */}
-        {renderEngine === "svg" && (
-          <div className="absolute inset-2 pointer-events-none overflow-visible">
-            {nodes.map((node) => {
-              const leftPercent = (node.x / svgSize) * 100;
-              const topPercent = (node.y / svgSize) * 100;
-              const avatarSizePercent = ((nodeRadius * 2 - 4) / svgSize) * 100;
-              const isConnected = selectedNodeId
-                ? (node.id === selectedNodeId || lines.some(l => l.id1 === node.id || l.id2 === node.id))
-                : true;
-
-              return (
-                <div
-                  key={`html-avatar-${node.id}`}
-                  style={{
-                    position: "absolute",
-                    left: `${leftPercent}%`,
-                    top: `${topPercent}%`,
-                    width: `${avatarSizePercent}%`,
-                    height: `${avatarSizePercent}%`,
-                    transform: "translate(-50%, -50%)",
-                    opacity: isConnected ? 1 : 0.3,
-                  }}
-                  className="rounded-full overflow-hidden flex items-center justify-center pointer-events-none select-none z-10"
-                >
-                  {node.imageSrc ? (
-                    <img
-                      src={node.imageSrc}
-                      alt={node.nickname}
-                      crossOrigin="anonymous"
-                      decoding="async"
-                      className="w-full h-full object-cover select-none pointer-events-none"
-                    />
-                  ) : (
-                    <span className="text-sm select-none">{node.emoji || "👤"}</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
         )}
       </div>
 
@@ -1257,7 +1266,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
               <span data-capture-hide="true" className="text-[11px] text-ink-faint">터치 시 1:1 분석</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div className="top-synergy-grid grid grid-cols-1 sm:grid-cols-3 gap-2.5 w-full">
               {topSynergyPairs.map((pair, idx) => {
                 const nodeA = findNode(pair.member_id_1);
                 const nodeB = findNode(pair.member_id_2);
@@ -1275,7 +1284,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                       setSelectedNodeId(nodeA.id);
                       setRelationFilter("all");
                     }}
-                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between hover:shadow-md ${
+                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between hover:shadow-md w-full ${
                       isTop1 ? "bg-seal/5 border-seal/30 ring-1 ring-seal/20 shadow-xs" : "bg-sunken border-line hover:border-ink/20"
                     }`}
                   >

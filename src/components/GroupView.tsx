@@ -1161,6 +1161,20 @@ export default function GroupView({ code }: GroupViewProps) {
             `;
             clonedDoc.head.appendChild(disableAnimStyle);
             clonedElement.appendChild(disableAnimStyle.cloneNode(true));
+
+            // C. Guarantee TOP 1 Synergy Card expands to full 100% width
+            const topGrid = clonedElement.querySelector(".top-synergy-grid");
+            if (topGrid) {
+              (topGrid as HTMLElement).style.display = "block";
+              (topGrid as HTMLElement).style.width = "100%";
+              const firstButton = topGrid.querySelector("button");
+              if (firstButton) {
+                (firstButton as HTMLElement).style.display = "block";
+                (firstButton as HTMLElement).style.width = "100%";
+                (firstButton as HTMLElement).style.maxWidth = "100%";
+                (firstButton as HTMLElement).style.boxSizing = "border-box";
+              }
+            }
           } catch (e) {
             console.warn("Failed to inject capture layout styles:", e);
           }
@@ -1537,7 +1551,7 @@ export default function GroupView({ code }: GroupViewProps) {
               </div>
 
               {/* Free Section 2: SVG Circular Network Graph */}
-              <div className="rounded-2xl bg-white/95 dark:bg-surface border border-line/80 p-3 sm:p-4 shadow-xs">
+              <div className="w-full">
                 <GroupNetwork members={members} pairs={upgradedPairs} isPremium={isGroupUnlocked} groupScore={displayGroupScore} />
               </div>
 
