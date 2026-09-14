@@ -325,19 +325,19 @@ export function calculateGroupAwards(
     id: "award_dohwa",
     category: "dohwa",
     badgeEmoji: "🌸",
-    badgeTitle: "도화 1위",
-    awardName: "이 모임의 공식 인기쟁이",
-    tagline: '"가만히 있어도 시선과 호감을 독점하는 독보적 셀럽력"',
+    badgeTitle: "호감 매력 1위",
+    awardName: "모임의 공식 분위기 메이커",
+    tagline: '"특유의 밝고 유쾌한 에너지로 모임에 온기를 불어넣는 사람"',
     winner: topDohwa.top.member,
     runnerUp: topDohwa.runnerUp?.member,
     score: topDohwa.top.dohwaScore,
-    metricLabel: "도화 흡인력",
+    metricLabel: "친화력 & 호감도",
     metricValue: `${topDohwa.top.dohwaScore}%`,
-    reason: `${getMemberNickname(topDohwa.top.member)}님은 매력의 왕지(子·午·卯·酉)와 ${topDohwa.top.unseong}의 기운으로 모임의 시선을 한몸에 사로잡는 분위기 메이커입니다.`,
+    reason: `${getMemberNickname(topDohwa.top.member)}님은 매력의 왕지(子·午·卯·酉)와 ${topDohwa.top.unseong}의 기운으로 모임 분위기를 유쾌하고 화기애애하게 밝혀주는 핵심 멤버입니다.`,
     instagramHashtags: [
-      `#공식인기쟁이_${getMemberNickname(topDohwa.top.member)}`,
-      "#도화력만렙",
-      "#시선강탈셀럽"
+      `#분위기메이커_${getMemberNickname(topDohwa.top.member)}`,
+      "#모임의활력소",
+      "#호감도1위"
     ]
   };
 
@@ -345,19 +345,19 @@ export function calculateGroupAwards(
     id: "award_wealth",
     category: "wealth",
     badgeEmoji: "💰",
-    badgeTitle: "재물운 1위",
-    awardName: "자본주의 캐리머신",
-    tagline: '"모임의 곳간을 불리고 회식 때 든든하게 하드캐리할 관상"',
+    badgeTitle: "현실 조율 1위",
+    awardName: "현실적 조율자 & 모임의 복덩이",
+    tagline: '"균형 잡힌 현실 감각과 세심한 배려로 모임을 지탱하는 기운"',
     winner: topWealth.top.member,
     runnerUp: topWealth.runnerUp?.member,
     score: topWealth.top.wealthScore,
-    metricLabel: "재물 결속력",
+    metricLabel: "현실 감각 & 실속",
     metricValue: `${topWealth.top.wealthScore}%`,
-    reason: `${getMemberNickname(topWealth.top.member)}님은 왕성한 재성 기운과 안전한 자산 비축 능력으로 모임원들에게 가장 든든한 금전운 시너지를 불어넣습니다.`,
+    reason: `${getMemberNickname(topWealth.top.member)}님은 탄탄한 재성 기운과 뛰어난 현실 감각으로 모임이 항상 안정되고 풍요롭게 유지되도록 돕는 든든한 존재입니다.`,
     instagramHashtags: [
-      `#자본주의캐리_${getMemberNickname(topWealth.top.member)}`,
-      "#금전운하드캐리",
-      "#우리들의스폰서"
+      `#모임의복덩이_${getMemberNickname(topWealth.top.member)}`,
+      "#현실감각최고",
+      "#든든한파트너"
     ]
   };
 
@@ -365,19 +365,19 @@ export function calculateGroupAwards(
     id: "award_yeokma",
     category: "yeokma",
     badgeEmoji: "🐎",
-    badgeTitle: "역마 1위",
-    awardName: "탈출 넘버원 역마러",
-    tagline: '"약속 잡히면 1등으로 달려오고 주말엔 절대 집에 안 붙어있음"',
+    badgeTitle: "추진력 1위",
+    awardName: "약속과 실행을 이끄는 행동대장",
+    tagline: '"모임의 새로운 약속과 활동에 가장 먼저 불을 지피는 추진력"',
     winner: topYeokma.top.member,
     runnerUp: topYeokma.runnerUp?.member,
     score: topYeokma.top.yeokmaScore,
-    metricLabel: "활동 기동력",
+    metricLabel: "추진력 & 실행력",
     metricValue: `${topYeokma.top.yeokmaScore}%`,
-    reason: `${getMemberNickname(topYeokma.top.member)}님은 사생지(寅·申·巳·亥)의 초고속 기동력으로 모임의 번개와 여행을 언제나 주도하는 행동대장입니다.`,
+    reason: `${getMemberNickname(topYeokma.top.member)}님은 사생지(寅·申·巳·亥)의 역동적인 실행력으로 모임에 활력과 생기를 불어넣는 추진력의 중심입니다.`,
     instagramHashtags: [
-      `#탈출넘버원_${getMemberNickname(topYeokma.top.member)}`,
-      "#역마살폭발",
-      "#프로여행러"
+      `#추진력1위_${getMemberNickname(topYeokma.top.member)}`,
+      "#모임행동대장",
+      "#약속의아이콘"
     ]
   };
 
@@ -385,19 +385,19 @@ export function calculateGroupAwards(
     id: "award_boss",
     category: "boss",
     badgeEmoji: "👑",
-    badgeTitle: "실세 1위",
-    awardName: "단톡방 숨은 실세 & 멘탈 보스",
-    tagline: '"말없이 톡방 지켜보다가 결정적 순간에 판을 정리하는 실질적 리더"',
+    badgeTitle: "신뢰 리더 1위",
+    awardName: "모임의 든든한 중심축 & 숨은 리더",
+    tagline: '"배려와 포용력으로 멤버들의 깊은 신뢰를 받는 든든한 기둥"',
     winner: topBoss.top.member,
     runnerUp: topBoss.runnerUp?.member,
     score: topBoss.top.bossScore,
-    metricLabel: "조직 장악력",
+    metricLabel: "신뢰 리더십",
     metricValue: `${topBoss.top.bossScore}%`,
-    reason: `${getMemberNickname(topBoss.top.member)}님은 카리스마 넘치는 리더십과 멤버 전체 평균 ${topBoss.top.pairAvg}점의 조화력으로 단톡방의 멘탈을 꽉 쥐고 있습니다.`,
+    reason: `${getMemberNickname(topBoss.top.member)}님은 온화한 카리스마와 멤버 전체 평균 ${topBoss.top.pairAvg}점의 조화력으로 모임의 중심을 안정감 있게 잡아주는 기둥입니다.`,
     instagramHashtags: [
-      `#단톡방실세_${getMemberNickname(topBoss.top.member)}`,
-      "#멘탈보스",
-      "#모임의중심"
+      `#든든한리더_${getMemberNickname(topBoss.top.member)}`,
+      "#모임의기둥",
+      "#신뢰의아이콘"
     ]
   };
 
@@ -405,19 +405,19 @@ export function calculateGroupAwards(
     id: "award_brain",
     category: "brain",
     badgeEmoji: "🧠",
-    badgeTitle: "브레인 1위",
-    awardName: "모임의 브레인 지략가",
-    tagline: '"복잡한 고민도 단칼에 정리해 주는 지혜로운 현자"',
+    badgeTitle: "지혜 멘토 1위",
+    awardName: "지혜로운 조언자 & 모임의 브레인",
+    tagline: '"경청과 현명한 조언으로 생각을 명쾌하게 밝혀주는 지혜로운 현자"',
     winner: topBrain.top.member,
     runnerUp: topBrain.runnerUp?.member,
     score: topBrain.top.brainScore,
-    metricLabel: "지략 통찰력",
+    metricLabel: "지혜 & 통찰력",
     metricValue: `${topBrain.top.brainScore}%`,
-    reason: `${getMemberNickname(topBrain.top.member)}님은 문창귀인과 영민한 지혜의 기운으로 모임원들의 인생 상담과 팩트 폭격을 담당하는 두뇌 역할을 합니다.`,
+    reason: `${getMemberNickname(topBrain.top.member)}님은 문창귀인과 깊은 사유의 기운으로 멤버들의 고민을 진심으로 나누고 현명한 시야를 넓혀주는 든든한 조언자입니다.`,
     instagramHashtags: [
-      `#모임브레인_${getMemberNickname(topBrain.top.member)}`,
-      "#팩폭장인",
-      "#숨은멘토"
+      `#지혜로운조언자_${getMemberNickname(topBrain.top.member)}`,
+      "#모임의브레인",
+      "#믿음직한멘토"
     ]
   };
 
@@ -458,11 +458,11 @@ function generateSingleAwardsResult(member: Member): GroupAwardsResult {
     instagramHashtags: [`#${nick}_${title}`, `#사주어워즈`, `#${title}`]
   });
 
-  const dohwaKing = makeItem("award_dohwa", "dohwa", "🌸", "도화 1위", "이 모임의 공식 인기쟁이", '"가만히 있어도 시선과 호감을 독점하는 셀럽력"', "도화 흡인력", 95, "");
-  const wealthKing = makeItem("award_wealth", "wealth", "💰", "재물운 1위", "자본주의 캐리머신", '"모임의 곳간을 불리고 든든하게 하드캐리할 관상"', "재물 결속력", 92, "");
-  const yeokmaKing = makeItem("award_yeokma", "yeokma", "🐎", "역마 1위", "탈출 넘버원 역마러", '"약속 잡히면 1등으로 달려오는 초고속 기동력"', "활동 기동력", 88, "");
-  const bossKing = makeItem("award_boss", "boss", "👑", "실세 1위", "단톡방 숨은 실세 & 멘탈 보스", '"결정적 순간에 판을 정리하는 실질적 리더"', "조직 장악력", 96, "");
-  const brainKing = makeItem("award_brain", "brain", "🧠", "브레인 1위", "모임의 브레인 지략가", '"복잡한 고민도 단칼에 정리해 주는 지혜로운 현자"', "지략 통찰력", 94, "");
+  const dohwaKing = makeItem("award_dohwa", "dohwa", "🌸", "호감 매력 1위", "모임의 공식 분위기 메이커", '"특유의 밝고 유쾌한 에너지로 모임에 온기를 불어넣는 사람"', "친화력 & 호감도", 95, "");
+  const wealthKing = makeItem("award_wealth", "wealth", "💰", "현실 조율 1위", "현실적 조율자 & 모임의 복덩이", '"균형 잡힌 현실 감각과 세심한 배려로 모임을 지탱하는 기운"', "현실 감각 & 실속", 92, "");
+  const yeokmaKing = makeItem("award_yeokma", "yeokma", "🐎", "추진력 1위", "약속과 실행을 이끄는 행동대장", '"모임의 새로운 약속과 활동에 가장 먼저 불을 지피는 추진력"', "추진력 & 실행력", 88, "");
+  const bossKing = makeItem("award_boss", "boss", "👑", "신뢰 리더 1위", "모임의 든든한 중심축 & 숨은 리더", '"배려와 포용력으로 멤버들의 깊은 신뢰를 받는 든든한 기둥"', "신뢰 리더십", 96, "");
+  const brainKing = makeItem("award_brain", "brain", "🧠", "지혜 멘토 1위", "지혜로운 조언자 & 모임의 브레인", '"경청과 현명한 조언으로 생각을 명쾌하게 밝혀주는 지혜로운 현자"', "지혜 & 통찰력", 94, "");
 
   return {
     dohwaKing,

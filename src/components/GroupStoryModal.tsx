@@ -127,67 +127,67 @@ export default function GroupStoryModal({
 
     const hash = (memberA.id + memberB.id).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
 
-    // 1. 티키타카 & 개그 핑퐁
+    // 1. 대화 티키타카
     const tikitakaBase = Math.min(99, Math.max(78, pairScore + (elemA === "화" || elemB === "화" ? 3 : -2) + (hash % 5)));
     const tikitakaComment = tikitakaBase >= 92
-      ? "숨만 쉬어도 빵 터짐! 침묵 1초도 못 견디는 핑퐁력"
+      ? "생각의 속도가 비슷해 말 한마디로도 통하는 사이"
       : tikitakaBase >= 84
-      ? "쿵짝이 척척! 개그 코드 90% 일치하는 대화 메이트"
-      : "조용하다가 결정적일 때 터지는 반전 티키타카";
+      ? "말이 끊이지 않고 자연스럽게 이어지는 대화 흐름"
+      : "필요한 순간에 명쾌하게 소통하는 담백한 사이";
 
-    // 2. 술자리 & 텐션 폭발
+    // 2. 모임 텐션 & 분위기
     const alcoholBase = Math.min(99, Math.max(72, pairScore + (salsA.yeokmaCount + salsB.yeokmaCount > 0 ? 4 : 0) + ((hash * 3) % 7)));
     const alcoholComment = alcoholBase >= 92
-      ? "1차에서 집에 갈 생각은 금지! 밤새 텐션 폭주각"
+      ? "함께 있는 것만으로도 모임 분위기를 끌어올리는 시너지"
       : alcoholBase >= 82
-      ? "안주 취향과 음주 페이스가 완벽히 맞아떨어짐"
-      : "분위기 좋게 담소 나누며 가볍게 즐기는 힐링 술자리";
+      ? "서로의 페이스를 편안하게 존중하며 즐기는 호흡"
+      : "과하지 않게 은은한 즐거움을 나누는 안정적인 무드";
 
     // 3. 여행 & 라이프스타일
     const travelBase = Math.min(98, Math.max(70, pairScore + (salsA.sals.includes("역마살") || salsB.sals.includes("역마살") ? 5 : -1) + ((hash * 7) % 6)));
     const travelComment = travelBase >= 90
-      ? "일정표 없이 떠나도 손발 척척 맞는 여행 꿀조합"
+      ? "돌발 변수가 생겨도 함께 웃으며 유쾌하게 넘기는 메이트"
       : travelBase >= 80
-      ? "즉흥과 계획이 적절히 조화를 이루는 안정적 동행"
-      : "여행 스타일 조율만 살짝 거치면 무난한 메이트";
+      ? "취향과 동선을 자연스럽게 배려하며 맞춰가는 편안함"
+      : "사전에 계획과 역할을 조율하면 깔끔하게 어울릴 조합";
 
-    // 4. 멘탈 힐링 & 고민 상담
+    // 4. 감정 공감 & 멘탈 케어
     const healingBase = Math.min(99, Math.max(75, pairScore + (elemA === "토" || elemB === "토" ? 4 : 0) + ((hash * 11) % 5)));
     const healingComment = healingBase >= 92
-      ? "새벽 2시에 전화해도 무조건 내 편 들어주는 안식처"
+      ? "속 깊은 이야기까지 안심하고 털어놓을 수 있는 안식처"
       : healingBase >= 84
-      ? "속마음 털어놓으면 응어리가 풀리는 든든한 조언자"
-      : "서로 배려하며 적당한 거리를 지켜주는 성숙한 관계";
+      ? "진심 어린 경청과 공감으로 서로에게 힘이 되어주는 관계"
+      : "서로의 감정선을 존중하며 묵묵히 곁을 지켜주는 사이";
 
-    // 5. 자본주의 & 사업/동업
+    // 5. 현실 시너지 & 협업
     const businessBase = Math.min(99, Math.max(70, pairScore + (elemA === "금" || elemB === "금" ? 4 : 0) + ((hash * 13) % 6)));
     const businessComment = businessBase >= 90
-      ? "같이 복권 사거나 동업하면 곳간 채울 머니 콤비"
+      ? "기획과 실행의 균형이 뛰어나 확실한 결실을 맺는 파트너"
       : businessBase >= 80
-      ? "돈 계산 철저하고 실속 확실히 챙겨주는 비즈니스 합"
-      : "금전 거래는 깔끔하게, 정서적 유대는 두텁게 유지할 사이";
+      ? "역할 분담이 명확할 때 최고의 성과를 내는 콤비"
+      : "서로의 전문 영역을 인정하고 존중할 때 시너지가 나는 사이";
 
-    // 6. 지뢰 팁 & 긁힘 방지
+    // 6. 관계 팁 & 배려 포인트
     const safetyScore = Math.min(98, Math.max(68, pairScore - ((hash * 17) % 9) + 4));
     const mineComment = (elemA === "화" && elemB === "수") || (elemA === "수" && elemB === "화")
-      ? "주의: 둘 다 배고플 땐 말 걸지 말고 밥부터 먹일 것!"
+      ? "피곤할 땐 즉답을 피하고 한 템포 쉬어가는 대화가 좋아요"
       : (elemA === "금" && elemB === "목") || (elemA === "목" && elemB === "금")
-      ? "주의: 돌직구 팩폭 금지! 칭찬과 리액션이 최고의 처방"
-      : "주의: 상대방의 개인 시간과 취향을 쿨하게 존중할 것!";
+      ? "직설적인 피드백보다는 따뜻한 인정 한마디가 최고의 처방"
+      : "상대방만의 고유한 템포와 개인 시간을 편안하게 존중해 주기";
 
-    let tagLine = "찰떡같은 호흡을 자랑하는 소울메이트";
-    if (pairScore >= 95) tagLine = "눈빛만 봐도 통하는 영혼의 단짝 콤비";
-    else if (pairScore >= 90) tagLine = "오행과 성향이 완벽히 맞물리는 특급 엔진";
-    else if (pairScore >= 80) tagLine = "서로에게 든든한 기운을 채워주는 상생 메이트";
-    else tagLine = "티격태격하면서 정드는 애증의 톰과 제리";
+    let tagLine = "기분 좋은 파장을 나누는 조화로운 인연";
+    if (pairScore >= 95) tagLine = "눈빛만 봐도 뜻이 통하는 최상의 케미스트리";
+    else if (pairScore >= 90) tagLine = "서로의 장점을 극대화해 주는 든든한 파트너";
+    else if (pairScore >= 80) tagLine = "서로의 부족한 기운을 차분히 채워주는 상생 메이트";
+    else tagLine = "서로 다른 개성이 만나 색다른 재미를 만드는 조합";
 
     const categories: PairStoryCategory[] = [
-      { id: "talk", icon: "🗣️", title: "티키타카 & 개그 핑퐁", score: tikitakaBase, comment: tikitakaComment, color: "#f43f5e" },
-      { id: "drink", icon: "🍻", title: "술자리 & 텐션 폭발", score: alcoholBase, comment: alcoholComment, color: "#f97316" },
-      { id: "travel", icon: "✈️", title: "여행 & 라이프스타일", score: travelBase, comment: travelComment, color: "#06b6d4" },
-      { id: "healing", icon: "🧘", title: "멘탈 힐링 & 고민 상담", score: healingBase, comment: healingComment, color: "#10b981" },
-      { id: "money", icon: "💼", title: "자본주의 & 동업 케미", score: businessBase, comment: businessComment, color: "#eab308" },
-      { id: "warning", icon: "⚠️", title: "지뢰 팁 & 긁힘 방지", score: safetyScore, comment: mineComment, color: "#8b5cf6" },
+      { id: "talk", icon: "💬", title: "대화 티키타카", score: tikitakaBase, comment: tikitakaComment, color: "#f43f5e" },
+      { id: "drink", icon: "⚡", title: "모임 텐션 & 분위기", score: alcoholBase, comment: alcoholComment, color: "#f97316" },
+      { id: "travel", icon: "✈️", title: "여행 & 일상 호흡", score: travelBase, comment: travelComment, color: "#06b6d4" },
+      { id: "healing", icon: "🌿", title: "감정 공감 & 멘탈 케어", score: healingBase, comment: healingComment, color: "#10b981" },
+      { id: "money", icon: "💼", title: "현실 시너지 & 협업", score: businessBase, comment: businessComment, color: "#eab308" },
+      { id: "warning", icon: "💡", title: "관계 팁 & 배려 포인트", score: safetyScore, comment: mineComment, color: "#8b5cf6" },
     ];
 
     return {
@@ -287,7 +287,7 @@ export default function GroupStoryModal({
     return {
       1: {
         id: "dohwa",
-        tag: "🌸 모임 공식 인기쟁이",
+        tag: "🌸 분위기 메이커",
         themeColor: "#ec4899",
         winner: dohwaWinner,
         runner: dohwaRunner,
@@ -297,89 +297,89 @@ export default function GroupStoryModal({
         ],
         headline: (
           <>
-            우리 모임 최고 인기쟁이,<br />
-            <span className="text-[#f43f5e]">도화력 1위는 {getMemberNickname(dohwaWinner)}!</span>
+            모임의 기분 좋은 에너지,<br />
+            <span className="text-[#f43f5e]">분위기 메이커 1위는 {getMemberNickname(dohwaWinner)}!</span>
           </>
         ),
         subHeadline: `사주 명식의 4대 왕지(子·午·卯·酉)와 ${dohwaSals.unseong} 기운`,
         score: dohwaKing.score,
-        metricTitle: "도화 흡인 지수",
+        metricTitle: "호감 친화 지수",
         quote: `"${dohwaKing.tagline.replace(/"/g, "")}"`,
-        stats: formatStats(dohwaKing, "dohwa", ["시선집중", "호감지수", "셀럽아우라", "화합매력"]),
-        desc: `${getMemberNickname(dohwaWinner)}님은 가만히 있어도 사람들의 시선을 이끄는 은근한 도화 에너지를 타고났습니다. 모임 단톡방과 술자리에서 독보적인 존재감을 발산합니다.`,
-        bubble: `🏷️ #${cleanRoomTitle} #${dohwaKing.instagramHashtags[0]?.replace("#", "") || "인싸"} @${getMemberNickname(dohwaWinner)}`,
+        stats: formatStats(dohwaKing, "dohwa", ["친화력", "호감 지수", "분위기 환기", "공감 매력"]),
+        desc: `${getMemberNickname(dohwaWinner)}님은 특유의 밝고 편안한 에너지로 모임에 온기를 불어넣는 사람입니다. 함께 있는 것만으로도 주변 사람들의 기분을 유쾌하게 만들어 줍니다.`,
+        bubble: `🏷️ #${cleanRoomTitle} #분위기메이커 @${getMemberNickname(dohwaWinner)}`,
       },
       2: {
         id: "boss",
-        tag: "👑 단톡방 숨은 실세",
+        tag: "👑 든든한 숨은 리더",
         themeColor: "#ff5a36",
         winner: bossWinner,
         runner: bossRunner,
         displayMembers: [
-          toDisplayMember(bossRunner, "🛡️ 부방장", "#3b82f6"),
-          toDisplayMember(bossWinner, "👑 단톡방 실세", "#ff5a36"),
+          toDisplayMember(bossRunner, "🛡️ 든든한 조력자", "#3b82f6"),
+          toDisplayMember(bossWinner, "👑 신뢰 리더 1위", "#ff5a36"),
         ],
         headline: (
           <>
-            단톡방의 진짜 보스,<br />
-            <span className="text-[#ff5a36]">사주상 숨은 실세는 {getMemberNickname(bossWinner)}!</span>
+            모임의 든든한 중심축,<br />
+            <span className="text-[#ff5a36]">신뢰의 리더 1위는 {getMemberNickname(bossWinner)}!</span>
           </>
         ),
         subHeadline: `멤버 전체 평균 케미와 ${bossSals.sals.slice(0, 2).join("·")}의 리더십`,
         score: bossKing.score,
-        metricTitle: "조직 장악 지수",
+        metricTitle: "신뢰 리더십 지수",
         quote: `"${bossKing.tagline.replace(/"/g, "")}"`,
-        stats: formatStats(bossKing, "boss", ["통솔력", "멘탈장악", "결정타", "화합력"]),
-        desc: `${getMemberNickname(bossWinner)}님은 겉으로는 무던해 보여도 결정적 순간에 판을 뒤흔드는 실질적 권력자입니다. 멤버들의 신뢰를 한 몸에 받으며 단톡방의 중심축 역할을 합니다.`,
-        bubble: `🏷️ #${cleanRoomTitle} #${bossKing.instagramHashtags[0]?.replace("#", "") || "실세"} @${getMemberNickname(bossWinner)}`,
+        stats: formatStats(bossKing, "boss", ["통솔력", "위기 대처", "방향 결정", "화합력"]),
+        desc: `${getMemberNickname(bossWinner)}님은 평소에는 편안하게 어울리다가도 결정적인 순간에 방향을 잡아주는 든든한 중심축입니다. 멤버들의 깊은 신뢰를 받는 모임의 기둥입니다.`,
+        bubble: `🏷️ #${cleanRoomTitle} #모임의기둥 @${getMemberNickname(bossWinner)}`,
       },
       3: {
         id: "wealth",
-        tag: "💰 자본주의 캐리머신",
+        tag: "💰 현실적 조율자",
         themeColor: "#eab308",
         winner: wealthWinner,
         runner: wealthRunner,
         displayMembers: [
-          toDisplayMember(wealthRunner, "🪙 알짜재력", "#10b981"),
-          toDisplayMember(wealthWinner, "💰 재물운 1위", "#eab308"),
+          toDisplayMember(wealthRunner, "🪙 실속 파트너", "#10b981"),
+          toDisplayMember(wealthWinner, "💰 현실 조율 1위", "#eab308"),
         ],
         headline: (
           <>
-            회식 때 제일 든든한,<br />
-            <span className="text-[#eab308]">모임의 물주 {getMemberNickname(wealthWinner)}!</span>
+            모임을 든든하게 지탱하는,<br />
+            <span className="text-[#eab308]">현실 감각 1위는 {getMemberNickname(wealthWinner)}!</span>
           </>
         ),
         subHeadline: `사주 명식의 왕성한 재성(財星)과 자산 비축 에너지`,
         score: wealthKing.score,
-        metricTitle: "재물 결속 지수",
+        metricTitle: "현실 조율 지수",
         quote: `"${wealthKing.tagline.replace(/"/g, "")}"`,
-        stats: formatStats(wealthKing, "wealth", ["재물생산", "자산비축", "스폰서력", "하드캐리"]),
-        desc: `${getMemberNickname(wealthWinner)}님은 모임의 곳간을 채우고 사업과 재테크에서 탁월한 수완을 발휘할 기운입니다. 이번 모임 회식은 ${getMemberNickname(wealthWinner)}님에게 기대해 보세요!`,
-        bubble: `🏷️ #${cleanRoomTitle} #${wealthKing.instagramHashtags[0]?.replace("#", "") || "부자"} @${getMemberNickname(wealthWinner)}`,
+        stats: formatStats(wealthKing, "wealth", ["재물 흐름", "자산 감각", "실속 조율", "결실 완성"]),
+        desc: `${getMemberNickname(wealthWinner)}님은 감각적이고 세심한 현실 감각으로 모임이 헛돌지 않도록 알차게 채워주는 복덩이입니다. 실속과 균형을 확실하게 챙겨주는 존재입니다.`,
+        bubble: `🏷️ #${cleanRoomTitle} #모임의복덩이 @${getMemberNickname(wealthWinner)}`,
       },
       4: {
         id: "yeokma",
-        tag: "🐎 탈출 넘버원 역마러",
+        tag: "🐎 활력 넘치는 행동대장",
         themeColor: "#06b6d4",
         winner: yeokmaWinner,
         runner: yeokmaRunner,
         displayMembers: [
-          toDisplayMember(yeokmaRunner, "⚡ 번개메이트", "#8b5cf6"),
-          toDisplayMember(yeokmaWinner, "🐎 역마력 1위", "#06b6d4"),
+          toDisplayMember(yeokmaRunner, "⚡ 추진 메이트", "#8b5cf6"),
+          toDisplayMember(yeokmaWinner, "🐎 실행력 1위", "#06b6d4"),
         ],
         headline: (
           <>
-            주말에 집에 안 붙어있는,<br />
-            <span className="text-[#06b6d4]">초고속 기동력 1위 {getMemberNickname(yeokmaWinner)}!</span>
+            약속과 추진력의 아이콘,<br />
+            <span className="text-[#06b6d4]">행동대장 1위는 {getMemberNickname(yeokmaWinner)}!</span>
           </>
         ),
         subHeadline: `사생지(寅·申·巳·亥)와 역마의 폭발적 활동 반경`,
         score: yeokmaKing.score,
-        metricTitle: "활동 기동 지수",
+        metricTitle: "추진 실행 지수",
         quote: `"${yeokmaKing.tagline.replace(/"/g, "")}"`,
-        stats: formatStats(yeokmaKing, "yeokma", ["기동력", "행동반경", "번개추진", "자유본능"]),
-        desc: `${getMemberNickname(yeokmaWinner)}님은 약속이 잡히면 번개처럼 달려오고 전국 방방곡곡 여행을 주도하는 에너자이저입니다. 모임의 야외 활동과 여행은 이 사람 손에 달렸습니다.`,
-        bubble: `🏷️ #${cleanRoomTitle} #${yeokmaKing.instagramHashtags[0]?.replace("#", "") || "역마"} @${getMemberNickname(yeokmaWinner)}`,
+        stats: formatStats(yeokmaKing, "yeokma", ["기동력", "활동 반경", "실행 속도", "도전 정신"]),
+        desc: `${getMemberNickname(yeokmaWinner)}님은 모임의 약속과 새로운 모임 활동에 가장 먼저 불을 지피는 활력 엔진입니다. 망설이지 않고 행동으로 옮기는 추진력의 소유자입니다.`,
+        bubble: `🏷️ #${cleanRoomTitle} #실행력1위 @${getMemberNickname(yeokmaWinner)}`,
       },
     };
   }, [awardsResult, allMembers, roomTitle]);
@@ -453,7 +453,7 @@ export default function GroupStoryModal({
       }
 
       const copyTagText = activeTab === "pair"
-        ? `🏷️ @${getMemberNickname(memberB)} 너 인정? ㅋㅋㅋ 우리 사주 케미 ${pair6Categories.score}점 실화냐 #인연사주 #모임궁합\nhttps://inyeons.com`
+        ? `🏷️ @${getMemberNickname(memberB)} 우리 사주 조합 점수 실시간 확인 ✨ (${pair6Categories.score}점) #인연사주 #사주케미\nhttps://inyeons.com`
         : `${currentGroupPreset.bubble}\nhttps://inyeons.com`;
 
       if (navigator.clipboard) {
@@ -496,7 +496,7 @@ export default function GroupStoryModal({
           </button>
         </div>
 
-        {/* Master Tab Switcher: [1:1 인싸 케미] vs [모임 랭킹 어워즈] */}
+        {/* Master Tab Switcher: [1:1 둘만의 케미] vs [모임 캐릭터 랭킹] */}
         <div className="w-full mb-3 bg-[#141b29] border border-white/10 p-1 rounded-xl grid grid-cols-2 gap-1 text-xs font-bold">
           <button
             type="button"
@@ -508,7 +508,7 @@ export default function GroupStoryModal({
             }`}
           >
             <HeartHandshake className="w-4 h-4" />
-            <span>1:1 인싸 케미 (추천)</span>
+            <span>1:1 둘만의 케미</span>
           </button>
 
           <button
@@ -521,7 +521,7 @@ export default function GroupStoryModal({
             }`}
           >
             <Award className="w-4 h-4" />
-            <span>모임 랭킹 어워즈</span>
+            <span>모임 캐릭터 랭킹</span>
           </button>
         </div>
 
@@ -665,7 +665,7 @@ export default function GroupStoryModal({
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              🌸 인기쟁이
+              🌸 분위기메이커
             </button>
             <button
               type="button"
@@ -676,7 +676,7 @@ export default function GroupStoryModal({
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              👑 단톡실세
+              👑 숨은 리더
             </button>
             <button
               type="button"
@@ -687,7 +687,7 @@ export default function GroupStoryModal({
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              💰 캐리머신
+              💰 현실 조율
             </button>
             <button
               type="button"
@@ -698,7 +698,7 @@ export default function GroupStoryModal({
                   : "text-slate-400 hover:text-white"
               }`}
             >
-              🐎 역마러
+              🐎 행동대장
             </button>
           </div>
         )}
@@ -842,7 +842,7 @@ export default function GroupStoryModal({
               {/* Bottom Tag Sticker & Watermark */}
               <div className="flex flex-col items-center gap-1 pt-1 text-center">
                 <div className="w-full py-1.5 px-3 rounded-xl bg-rose-500/20 border border-rose-500/30 text-[11px] font-extrabold text-rose-200 truncate">
-                  🏷️ @{getMemberNickname(memberB)} 너 인정? ㅋㅋㅋ #인연사주 #모임궁합
+                  🏷️ @{getMemberNickname(memberB)} 우리 사주 조합 점수 실시간 확인 ✨ ({pair6Categories.score}점)
                 </div>
                 <div className="flex items-center justify-between w-full text-[9.5px] text-slate-400 px-1 pt-0.5">
                   <span>사주·자미두수·MBTI 융합 1:1 케미</span>

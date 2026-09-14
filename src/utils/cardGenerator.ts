@@ -89,48 +89,50 @@ export async function generateDedicatedChemistryCard({
 
   const categories = [
     {
-      icon: "🗣️",
-      title: "티키타카 & 개그 핑퐁",
+      icon: "💬",
+      title: "대화 티키타카",
       score: tikitakaScore,
       color: "#F43F5E",
-      desc: tikitakaScore >= 92 ? "숨만 쉬어도 빵 터짐! 침묵 1초도 못 견디는 핑퐁력" : "쿵짝이 척척! 개그 코드 90% 일치하는 대화 메이트",
+      desc: tikitakaScore >= 92 ? "생각의 속도가 비슷해 말 한마디로도 통하는 사이" : "말이 끊이지 않고 자연스럽게 이어지는 대화 흐름",
     },
     {
-      icon: "🍻",
-      title: "술자리 & 텐션 폭발",
+      icon: "⚡",
+      title: "모임 텐션 & 분위기",
       score: alcoholScore,
       color: "#F97316",
-      desc: alcoholScore >= 92 ? "1차에서 집에 갈 생각은 금지! 밤새 텐션 폭주각" : "안주 취향과 음주 페이스가 완벽히 맞아떨어짐",
+      desc: alcoholScore >= 92 ? "함께 있는 것만으로도 모임 분위기를 끌어올리는 시너지" : "서로의 페이스를 편안하게 존중하며 즐기는 호흡",
     },
     {
       icon: "✈️",
-      title: "여행 & 라이프스타일",
+      title: "여행 & 일상 호흡",
       score: travelScore,
       color: "#06B6D4",
-      desc: travelScore >= 90 ? "일정표 없이 떠나도 손발 척척 맞는 여행 꿀조합" : "즉흥과 계획이 적절히 조화를 이루는 안정적 동행",
+      desc: travelScore >= 90 ? "돌발 변수가 생겨도 함께 웃으며 유쾌하게 넘기는 메이트" : "취향과 동선을 자연스럽게 배려하며 맞춰가는 편안함",
     },
     {
-      icon: "🧘",
-      title: "멘탈 힐링 & 고민 상담",
+      icon: "🌿",
+      title: "감정 공감 & 멘탈 케어",
       score: healingScore,
       color: "#10B981",
-      desc: healingScore >= 92 ? "새벽 2시에 전화해도 무조건 내 편 들어주는 안식처" : "속마음 털어놓으면 응어리가 풀리는 든든한 조언자",
+      desc: healingScore >= 92 ? "속 깊은 이야기까지 안심하고 털어놓을 수 있는 안식처" : "진심 어린 경청과 공감으로 서로에게 힘이 되어주는 관계",
     },
     {
       icon: "💼",
-      title: "자본주의 & 동업 케미",
+      title: "현실 시너지 & 협업",
       score: businessScore,
       color: "#EAB308",
-      desc: businessScore >= 90 ? "같이 복권 사거나 동업하면 곳간 채울 머니 콤비" : "돈 계산 철저하고 실속 확실히 챙겨주는 비즈니스 합",
+      desc: businessScore >= 90 ? "기획과 실행의 균형이 뛰어나 확실한 결실을 맺는 파트너" : "역할 분담이 명확할 때 최고의 성과를 내는 콤비",
     },
     {
-      icon: "⚠️",
-      title: "지뢰 팁 & 긁힘 방지",
+      icon: "💡",
+      title: "관계 팁 & 배려 포인트",
       score: safetyScore,
       color: "#8B5CF6",
       desc: (elem1 === "화" && elem2 === "수") || (elem1 === "수" && elem2 === "화")
-        ? "주의: 둘 다 배고플 땐 말 걸지 말고 밥부터 먹일 것!"
-        : "주의: 상대방의 개인 시간과 취향을 쿨하게 존중할 것!",
+        ? "피곤할 땐 즉답을 피하고 한 템포 쉬어가는 대화가 좋아요"
+        : (elem1 === "금" && elem2 === "목") || (elem1 === "목" && elem2 === "금")
+        ? "직설적인 피드백보다는 따뜻한 인정 한마디가 최고의 처방"
+        : "상대방만의 고유한 템포와 개인 시간을 편안하게 존중해 주기",
     },
   ];
 
@@ -379,7 +381,7 @@ export async function generateDedicatedChemistryCard({
   ctx.textAlign = "center";
   ctx.fillStyle = "#FECDD3";
   ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
-  ctx.fillText(`🏷️  @${nick2} 너 인정? ㅋㅋㅋ  #인연사주 #모임궁합`, 540, botY + 47);
+  ctx.fillText(`🏷️  @${nick2} 우리 사주 조합 점수 실시간 확인 ✨ (${pairScore}점)`, 540, botY + 47);
 
   // Footer Watermark
   ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
@@ -664,27 +666,27 @@ export async function generateDedicatedGroupCard({
   const awardsResult = calculateGroupAwards(members);
   const topAwards = [
     {
-      emoji: "👑",
-      title: "도화 1위 · 공식 인기쟁이",
+      emoji: "🌸",
+      title: "분위기 메이커 · 호감도 1위",
       winner: awardsResult.dohwaKing.winner,
       score: awardsResult.dohwaKing.score,
-      tagline: "가만히 있어도 시선과 호감을 독점하는 공식 셀럽",
+      tagline: "특유의 밝고 유쾌한 에너지로 모임에 온기를 불어넣는 사람",
       color: "#F43F5E",
     },
     {
       emoji: "🐎",
-      title: "역마 1위 · 탈출 넘버원",
+      title: "행동대장 · 추진력 1위",
       winner: awardsResult.yeokmaKing.winner,
       score: awardsResult.yeokmaKing.score,
-      tagline: "약속 잡히면 1등 번개 출석! 모임의 기동력 엔진",
+      tagline: "모임의 약속과 새로운 시도에 가장 먼저 불을 지피는 추진력",
       color: "#3B82F6",
     },
     {
       emoji: "💰",
-      title: "재물 1위 · 자본주의 캐리머신",
+      title: "현실적 조율자 · 복덩이 1위",
       winner: awardsResult.wealthKing.winner,
       score: awardsResult.wealthKing.score,
-      tagline: "모임 곳간을 든든하게 불리고 하드캐리할 관상",
+      tagline: "균형 잡힌 현실 감각과 세심한 실속으로 모임을 지탱하는 기운",
       color: "#F59E0B",
     },
   ];
@@ -773,7 +775,7 @@ export async function generateDedicatedGroupCard({
   ctx.textAlign = "center";
   ctx.fillStyle = "#FECDD3";
   ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
-  ctx.fillText(`🏷️  단톡방 박제 완료! 우리 모임 케미 ${groupScore}점 실화냐 ㅋㅋㅋ`, 540, botY + 47);
+  ctx.fillText(`🏷️  우리 모임 종합 화합 점수 ${groupScore}점 ✨ #인연사주 #모임케미`, 540, botY + 47);
 
   // Footer Watermark
   ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
