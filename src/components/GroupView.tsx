@@ -1412,34 +1412,27 @@ export default function GroupView({ code }: GroupViewProps) {
             {/* --- INSTAGRAM STORY COMPACT CAPTURE TARGET END --- */}
 
             {/* Share Action bar in Hanji style */}
-            <div className="bg-surface border border-line p-5 rounded-xl flex flex-col items-center justify-center space-y-3 text-center">
+            {/* Share Action bar */}
+            <div className="bg-surface border border-line p-5 sm:p-6 rounded-2xl flex flex-col items-center justify-center space-y-3.5 text-center shadow-xs">
               <div className="space-y-1">
-                <span className="text-xs font-semibold text-ink flex items-center justify-center gap-1">
-                  ✨ 모임 궁합 카드 저장
+                <span className="text-xs font-bold text-ink flex items-center justify-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-rose-500" />
+                  <span>인스타 스토리 & 모임 케미 카드 공유</span>
                 </span>
                 <p className="text-xs text-ink-soft leading-relaxed">
-                  모임 케미 결과와 궁합 지도를 고화질 카드로 저장하고 단톡방이나 인스타 스토리에 공유해 보세요.
+                  모임 랭킹 어워즈와 1:1 실생활 케미를 9:16 고화질 스토리 카드로 만들고 인스타·단톡방에 자랑해 보세요.
                 </p>
               </div>
-              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <button
-                  id="share-dashboard-btn"
-                  onClick={handleShareResult}
-                  className="w-full flex items-center justify-center space-x-2 py-3.5 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer shadow-sm"
-                >
-                  <Share2 className="w-4 h-4" />
-                  <span>{shareStatus || "고화질 모임 궁합 카드 저장"}</span>
-                </button>
 
-                <button
-                  type="button"
-                  onClick={() => handleOpenStoryModal()}
-                  className="w-full flex items-center justify-center space-x-2 py-3.5 bg-gradient-to-r from-[#f43f5e] to-[#ec4899] hover:opacity-95 text-white text-sm font-bold rounded-xl shadow-md shadow-rose-500/20 transition-all cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>인스타 스토리 카드 만들기 (9:16)</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                id="share-dashboard-btn"
+                onClick={() => handleOpenStoryModal()}
+                className="w-full flex items-center justify-center space-x-2 py-3.5 px-4 bg-gradient-to-r from-[#ff5a36] via-[#f43f5e] to-[#ec4899] hover:opacity-95 text-white text-sm font-bold rounded-xl shadow-md shadow-rose-500/20 transition-all cursor-pointer active:scale-[0.99]"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>인스타 스토리 카드 만들기 (9:16)</span>
+              </button>
             </div>
 
             {/* Free Section 1: 전체 기운 요강 & 화합 극대화 비책 */}

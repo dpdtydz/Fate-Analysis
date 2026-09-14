@@ -79,6 +79,13 @@ export default function GroupStoryModal({
   const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
   const [showLongPressGuide, setShowLongPressGuide] = useState(false);
   const [copiedText, setCopiedText] = useState("");
+  const [selectingTarget, setSelectingTarget] = useState<"A" | "B">("B");
+
+  const handleSwapMembers = () => {
+    const tempA = memberAId;
+    setMemberAId(memberBId);
+    setMemberBId(tempA);
+  };
 
   const memberA = useMemo(() => allMembers.find(m => m.id === memberAId) || allMembers[0], [allMembers, memberAId]);
   const memberB = useMemo(() => allMembers.find(m => m.id === memberBId) || allMembers[1] || allMembers[0], [allMembers, memberBId]);
@@ -520,40 +527,130 @@ export default function GroupStoryModal({
 
         {/* Dynamic Selector based on Active Tab */}
         {activeTab === "pair" ? (
-          /* Member A & Member B Switcher */
-          <div className="w-full mb-3 bg-[#141b29]/80 border border-white/10 p-2 rounded-xl flex items-center justify-between gap-2 text-xs">
-            <div className="flex-1 flex flex-col items-center">
-              <span className="text-[10px] text-slate-400 mb-1 font-semibold">나 (기준)</span>
-              <select
-                value={memberAId}
-                onChange={(e) => setMemberAId(e.target.value)}
-                className="w-full bg-[#0c101c] text-white text-xs font-bold px-2 py-1.5 rounded-lg border border-white/15 focus:outline-none focus:border-rose-400 cursor-pointer"
+          /* High-End Member Matchup Card & Interactive Chip Carousel */
+          <div className="w-full mb-3 bg-[#141b29]/90 border border-white/10 p-2.5 rounded-2xl flex flex-col gap-2 shadow-lg">
+            {/* Upper Face-Off Row */}
+            <div className="flex items-center justify-between gap-2">
+              {/* Slot A: 나 */}
+              <button
+                type="button"
+                onClick={() => setSelectingTarget("A")}
+                className={`flex-1 flex items-center gap-2 p-2 rounded-xl transition-all border cursor-pointer ${
+                  selectingTarget === "A"
+                    ? "bg-rose-500/20 border-rose-500/50 shadow-sm shadow-rose-500/20"
+                    : "bg-white/5 border-white/10 hover:bg-white/10"
+                }`}
               >
-                {allMembers.map(m => (
-                  <option key={`opt-a-${m.id}`} value={m.id}>
-                    {getMemberNickname(m)} ({getMemberElement(m)})
-                  </option>
-                ))}
-              </select>
+                <div className="relative shrink-0">
+                  <img
+                    src={getMemberZodiacSrc(memberA)}
+                    alt={getMemberNickname(memberA)}
+                    className="w-8 h-8 rounded-full bg-slate-800 object-cover border-2"
+                    style={{ borderColor: ROLE_RING_COLOR[getMemberElement(memberA) as any] || "#f43f5e" }}
+                  />
+                  <span className="absolute -bottom-1 -right-1 text-[8px] bg-rose-600 text-white font-black px-1 rounded-full">
+                    ME
+                  </span>
+                </div>
+                <div className="min-w-0 text-left">
+                  <p className="text-[10px] text-rose-300 font-semibold leading-tight">기준 (나)</p>
+                  <p className="text-xs font-bold text-white truncate">{getMemberNickname(memberA)}</p>
+                </div>
+              </button>
+
+              {/* Center Swap Button */}
+              <button
+                type="button"
+                onClick={handleSwapMembers}
+                title="두 사람 자리 바꾸기"
+                className="shrink-0 w-8 h-8 rounded-full bg-white/10 hover:bg-rose-500/20 border border-white/15 hover:border-rose-400/50 text-slate-300 hover:text-rose-300 flex items-center justify-center transition-all cursor-pointer active:scale-95"
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Slot B: 친구 */}
+              <button
+                type="button"
+                onClick={() => setSelectingTarget("B")}
+                className={`flex-1 flex items-center gap-2 p-2 rounded-xl transition-all border cursor-pointer ${
+                  selectingTarget === "B"
+                    ? "bg-blue-500/20 border-blue-500/50 shadow-sm shadow-blue-500/20"
+                    : "bg-white/5 border-white/10 hover:bg-white/10"
+                }`}
+              >
+                <div className="relative shrink-0">
+                  <img
+                    src={getMemberZodiacSrc(memberB)}
+                    alt={getMemberNickname(memberB)}
+                    className="w-8 h-8 rounded-full bg-slate-800 object-cover border-2"
+                    style={{ borderColor: ROLE_RING_COLOR[getMemberElement(memberB) as any] || "#3b82f6" }}
+                  />
+                  <span className="absolute -bottom-1 -right-1 text-[8px] bg-blue-600 text-white font-black px-1 rounded-full">
+                    YOU
+                  </span>
+                </div>
+                <div className="min-w-0 text-left">
+                  <p className="text-[10px] text-blue-300 font-semibold leading-tight">친구 (상대)</p>
+                  <p className="text-xs font-bold text-white truncate">{getMemberNickname(memberB)}</p>
+                </div>
+              </button>
             </div>
 
-            <div className="shrink-0 pt-3 text-rose-400">
-              <Heart className="w-4 h-4 fill-rose-400/20" />
-            </div>
+            {/* Bottom Horizontal Avatar Chips */}
+            <div className="pt-1.5 border-t border-white/10 flex flex-col gap-1.5">
+              <div className="flex items-center justify-between px-0.5 text-[10px] text-slate-400">
+                <span className="font-semibold flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-rose-400" />
+                  <span>{selectingTarget === "B" ? "케미를 볼 친구를 선택하세요" : "나(기준 멤버)를 선택하세요"}</span>
+                </span>
+                <span className="text-[9px] text-slate-500">터치 시 즉시 변경</span>
+              </div>
 
-            <div className="flex-1 flex flex-col items-center">
-              <span className="text-[10px] text-slate-400 mb-1 font-semibold">친구 (상대방)</span>
-              <select
-                value={memberBId}
-                onChange={(e) => setMemberBId(e.target.value)}
-                className="w-full bg-[#0c101c] text-white text-xs font-bold px-2 py-1.5 rounded-lg border border-white/15 focus:outline-none focus:border-rose-400 cursor-pointer"
-              >
-                {allMembers.filter(m => m.id !== memberAId).map(m => (
-                  <option key={`opt-b-${m.id}`} value={m.id}>
-                    {getMemberNickname(m)} ({getMemberElement(m)})
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                {allMembers.map((m) => {
+                  const isSelected = selectingTarget === "B" ? m.id === memberBId : m.id === memberAId;
+                  const isOther = selectingTarget === "B" ? m.id === memberAId : m.id === memberBId;
+                  const elem = getMemberElement(m) || "화";
+                  const nick = getMemberNickname(m);
+
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => {
+                        if (selectingTarget === "B") {
+                          if (m.id === memberAId) {
+                            handleSwapMembers();
+                          } else {
+                            setMemberBId(m.id);
+                          }
+                        } else {
+                          if (m.id === memberBId) {
+                            handleSwapMembers();
+                          } else {
+                            setMemberAId(m.id);
+                          }
+                        }
+                      }}
+                      className={`flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold transition-all shrink-0 border cursor-pointer ${
+                        isSelected
+                          ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white border-rose-400 shadow-sm shadow-rose-500/30 scale-105"
+                          : isOther
+                          ? "bg-white/5 border-dashed border-white/20 text-slate-400 hover:text-white"
+                          : "bg-white/10 border-white/10 text-slate-300 hover:bg-white/20 hover:text-white"
+                      }`}
+                    >
+                      <img
+                        src={getMemberZodiacSrc(m)}
+                        alt={nick}
+                        className="w-4 h-4 rounded-full bg-slate-800 object-cover"
+                      />
+                      <span className="truncate max-w-[65px]">{nick}</span>
+                      <span className="text-[10px] font-normal opacity-70">({elem})</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         ) : (
