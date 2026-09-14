@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect } from "react";
-import { X, Download, Share2, Sparkles, Check, Crown, Flame, Compass, Coins, Award, Users, HeartHandshake, Zap, MessageSquare, Wine, Plane, Heart, ShieldAlert, ArrowRightLeft } from "lucide-react";
+import { X, Download, Share2, Sparkles, Check, Crown, Flame, Compass, Coins, Award, Users, HeartHandshake, Zap, MessageSquare, Wine, Plane, Heart, ShieldAlert, ArrowRightLeft, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import { Member, GroupAnalysis, PairAnalysis } from "../types";
 import { getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS, ROLE_RING_COLOR } from "./ZodiacAvatar";
@@ -80,6 +80,8 @@ export default function GroupStoryModal({
   const [showLongPressGuide, setShowLongPressGuide] = useState(false);
   const [copiedText, setCopiedText] = useState("");
   const [selectingTarget, setSelectingTarget] = useState<"A" | "B">("B");
+  const [isGridExpanded, setIsGridExpanded] = useState(false);
+  const chipScrollRef = useRef<HTMLDivElement>(null);
 
   const handleSwapMembers = () => {
     const tempA = memberAId;
@@ -102,24 +104,24 @@ export default function GroupStoryModal({
     const found = pairs.find(
       p => (matchIdOrNick(p.member_id_1, memberA) && matchIdOrNick(p.member_id_2, memberB)) ||
            (matchIdOrNick(p.member_id_2, memberA) && matchIdOrNick(p.member_id_1, memberB))
-    );
+     );
 
     if (found && !isDummyPair(found)) return found;
     return generateDynamicPairCompatibility(memberA, memberB);
   }, [memberA, memberB, pairs]);
 
-  // 1:1 6 Great Chemistry Categories Calculation
+  // 1:1 6 Great Chemistry Categories Calculation (Realistic, calibrated distribution)
   const pair6Categories = useMemo((): { title: string; score: number; categories: PairStoryCategory[]; tagLine: string } => {
     if (!memberA || !memberB) {
       return {
-        title: "환상의 인연 메이트",
-        score: 88,
+        title: "화합과 배려의 인연",
+        score: 75,
         categories: [],
-        tagLine: "함께하면 시너지가 솟아나는 특급 조합"
+        tagLine: "함께 알아갈수록 깊어지는 인연 조합"
       };
     }
 
-    const pairScore = currentPairAnalysis?.score || 88;
+    const pairScore = currentPairAnalysis?.score || 76;
     const elemA = getMemberElement(memberA);
     const elemB = getMemberElement(memberB);
     const salsA = calculateMemberSals(memberA);
@@ -127,58 +129,75 @@ export default function GroupStoryModal({
 
     const hash = (memberA.id + memberB.id).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
 
-    // 1. 대화 티키타카
-    const tikitakaBase = Math.min(99, Math.max(78, pairScore + (elemA === "화" || elemB === "화" ? 3 : -2) + (hash % 5)));
-    const tikitakaComment = tikitakaBase >= 92
+    // 1. 대화 티키타카 (화·목 기운이나 상생 시 높은 핑퐁)
+    const isTalkGenerating = (elemA === "목" && elemB === "화") || (elemA === "화" && elemB === "목") || elemA === "화" || elemB === "화";
+    const tikitakaBase = Math.min(94, Math.max(48, Math.round(pairScore + (isTalkGenerating ? 4 : -5) + ((hash % 7) - 3))));
+    const tikitakaComment = tikitakaBase >= 86
       ? "생각의 속도가 비슷해 말 한마디로도 통하는 사이"
-      : tikitakaBase >= 84
+      : tikitakaBase >= 72
       ? "말이 끊이지 않고 자연스럽게 이어지는 대화 흐름"
-      : "필요한 순간에 명쾌하게 소통하는 담백한 사이";
+      : tikitakaBase >= 58
+      ? "필요한 순간에 명쾌하게 소통하는 담백한 사이"
+      : "서로의 대화 템포와 표현 방식을 맞춰가는 중인 사이";
 
     // 2. 모임 텐션 & 분위기
-    const alcoholBase = Math.min(99, Math.max(72, pairScore + (salsA.yeokmaCount + salsB.yeokmaCount > 0 ? 4 : 0) + ((hash * 3) % 7)));
-    const alcoholComment = alcoholBase >= 92
+    const hasActiveSal = salsA.yeokmaCount + salsB.yeokmaCount + salsA.dohwaCount + salsB.dohwaCount > 0;
+    const alcoholBase = Math.min(94, Math.max(46, Math.round(pairScore * 0.96 + (hasActiveSal ? 5 : -4) + (((hash * 3) % 7) - 3))));
+    const alcoholComment = alcoholBase >= 86
       ? "함께 있는 것만으로도 모임 분위기를 끌어올리는 시너지"
-      : alcoholBase >= 82
+      : alcoholBase >= 72
       ? "서로의 페이스를 편안하게 존중하며 즐기는 호흡"
-      : "과하지 않게 은은한 즐거움을 나누는 안정적인 무드";
+      : alcoholBase >= 58
+      ? "과하지 않게 은은한 즐거움을 나누는 차분한 무드"
+      : "조용하고 정적인 환경에서 더 편안함을 느끼는 조합";
 
-    // 3. 여행 & 라이프스타일
-    const travelBase = Math.min(98, Math.max(70, pairScore + (salsA.sals.includes("역마살") || salsB.sals.includes("역마살") ? 5 : -1) + ((hash * 7) % 6)));
-    const travelComment = travelBase >= 90
+    // 3. 여행 & 일상 호흡
+    const hasTravelSal = salsA.sals.includes("역마살") || salsB.sals.includes("역마살");
+    const travelBase = Math.min(93, Math.max(45, Math.round(pairScore * 0.93 + (hasTravelSal ? 4 : -5) + (((hash * 7) % 7) - 3))));
+    const travelComment = travelBase >= 85
       ? "돌발 변수가 생겨도 함께 웃으며 유쾌하게 넘기는 메이트"
-      : travelBase >= 80
+      : travelBase >= 70
       ? "취향과 동선을 자연스럽게 배려하며 맞춰가는 편안함"
-      : "사전에 계획과 역할을 조율하면 깔끔하게 어울릴 조합";
+      : travelBase >= 56
+      ? "사전에 계획과 역할을 조율하면 깔끔하게 어울릴 조합"
+      : "각자의 개인 시간과 독립적인 휴식을 보장해야 할 동행";
 
     // 4. 감정 공감 & 멘탈 케어
-    const healingBase = Math.min(99, Math.max(75, pairScore + (elemA === "토" || elemB === "토" ? 4 : 0) + ((hash * 11) % 5)));
-    const healingComment = healingBase >= 92
+    const hasEarthOrWater = elemA === "토" || elemB === "토" || elemA === "수" || elemB === "수";
+    const healingBase = Math.min(95, Math.max(48, Math.round(pairScore * 0.95 + (hasEarthOrWater ? 4 : -4) + (((hash * 11) % 7) - 3))));
+    const healingComment = healingBase >= 86
       ? "속 깊은 이야기까지 안심하고 털어놓을 수 있는 안식처"
-      : healingBase >= 84
+      : healingBase >= 72
       ? "진심 어린 경청과 공감으로 서로에게 힘이 되어주는 관계"
-      : "서로의 감정선을 존중하며 묵묵히 곁을 지켜주는 사이";
+      : healingBase >= 58
+      ? "서로의 감정선을 존중하며 묵묵히 곁을 지켜주는 사이"
+      : "감정적인 의존보다는 적절한 거리감 유지가 편한 사이";
 
     // 5. 현실 시너지 & 협업
-    const businessBase = Math.min(99, Math.max(70, pairScore + (elemA === "금" || elemB === "금" ? 4 : 0) + ((hash * 13) % 6)));
-    const businessComment = businessBase >= 90
+    const hasMetalOrGold = elemA === "금" || elemB === "금" || elemA === "토" || elemB === "토";
+    const businessBase = Math.min(94, Math.max(44, Math.round(pairScore * 0.94 + (hasMetalOrGold ? 4 : -5) + (((hash * 13) % 7) - 3))));
+    const businessComment = businessBase >= 85
       ? "기획과 실행의 균형이 뛰어나 확실한 결실을 맺는 파트너"
-      : businessBase >= 80
+      : businessBase >= 70
       ? "역할 분담이 명확할 때 최고의 성과를 내는 콤비"
-      : "서로의 전문 영역을 인정하고 존중할 때 시너지가 나는 사이";
+      : businessBase >= 56
+      ? "서로의 전문 영역을 인정하고 존중할 때 시너지가 나는 사이"
+      : "금전이나 공동 과제 시 명확한 룰과 문서화가 필요한 관계";
 
-    // 6. 관계 팁 & 배려 포인트
-    const safetyScore = Math.min(98, Math.max(68, pairScore - ((hash * 17) % 9) + 4));
+    // 6. 관계 팁 & 배려 포인트 (주의 & 조율 필요성 점수: 현실적인 40~75점대)
+    const safetyScore = Math.min(88, Math.max(42, Math.round(pairScore * 0.82 - ((hash * 17) % 9))));
     const mineComment = (elemA === "화" && elemB === "수") || (elemA === "수" && elemB === "화")
       ? "피곤할 땐 즉답을 피하고 한 템포 쉬어가는 대화가 좋아요"
       : (elemA === "금" && elemB === "목") || (elemA === "목" && elemB === "금")
       ? "직설적인 피드백보다는 따뜻한 인정 한마디가 최고의 처방"
+      : safetyScore < 60
+      ? "서로의 호의가 간섭으로 느껴지지 않도록 경계를 존중하기"
       : "상대방만의 고유한 템포와 개인 시간을 편안하게 존중해 주기";
 
     let tagLine = "기분 좋은 파장을 나누는 조화로운 인연";
-    if (pairScore >= 95) tagLine = "눈빛만 봐도 뜻이 통하는 최상의 케미스트리";
-    else if (pairScore >= 90) tagLine = "서로의 장점을 극대화해 주는 든든한 파트너";
-    else if (pairScore >= 80) tagLine = "서로의 부족한 기운을 차분히 채워주는 상생 메이트";
+    if (pairScore >= 88) tagLine = "눈빛만 봐도 뜻이 통하는 최상의 케미스트리";
+    else if (pairScore >= 78) tagLine = "서로의 장점을 극대화해 주는 든든한 파트너";
+    else if (pairScore >= 65) tagLine = "서로의 부족한 기운을 차분히 채워주는 상생 메이트";
     else tagLine = "서로 다른 개성이 만나 색다른 재미를 만드는 조합";
 
     const categories: PairStoryCategory[] = [
@@ -596,61 +615,152 @@ export default function GroupStoryModal({
               </button>
             </div>
 
-            {/* Bottom Horizontal Avatar Chips */}
+            {/* Bottom Horizontal Avatar Chips with Scroll Controls & Grid Toggle */}
             <div className="pt-1.5 border-t border-white/10 flex flex-col gap-1.5">
               <div className="flex items-center justify-between px-0.5 text-[10px] text-slate-400">
                 <span className="font-semibold flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-rose-400" />
                   <span>{selectingTarget === "B" ? "케미를 볼 친구를 선택하세요" : "나(기준 멤버)를 선택하세요"}</span>
                 </span>
-                <span className="text-[9px] text-slate-500">터치 시 즉시 변경</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[9px] text-slate-500">
+                    {allMembers.length}명
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsGridExpanded(prev => !prev)}
+                    className="px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white text-[9.5px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <LayoutGrid className="w-2.5 h-2.5" />
+                    <span>{isGridExpanded ? "한줄로 보기" : "전체 펼치기"}</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                {allMembers.map((m) => {
-                  const isSelected = selectingTarget === "B" ? m.id === memberBId : m.id === memberAId;
-                  const isOther = selectingTarget === "B" ? m.id === memberAId : m.id === memberBId;
-                  const elem = getMemberElement(m) || "화";
-                  const nick = getMemberNickname(m);
+              {isGridExpanded ? (
+                /* Multi-row Expanded Grid View */
+                <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 max-h-36 overflow-y-auto p-1 bg-black/30 rounded-xl border border-white/5 scrollbar-thin scrollbar-thumb-white/20">
+                  {allMembers.map((m) => {
+                    const isSelected = selectingTarget === "B" ? m.id === memberBId : m.id === memberAId;
+                    const isOther = selectingTarget === "B" ? m.id === memberAId : m.id === memberBId;
+                    const elem = getMemberElement(m) || "기운";
+                    const nick = getMemberNickname(m);
 
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => {
-                        if (selectingTarget === "B") {
-                          if (m.id === memberAId) {
-                            handleSwapMembers();
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => {
+                          if (selectingTarget === "B") {
+                            if (m.id === memberAId) {
+                              handleSwapMembers();
+                            } else {
+                              setMemberBId(m.id);
+                            }
                           } else {
-                            setMemberBId(m.id);
+                            if (m.id === memberBId) {
+                              handleSwapMembers();
+                            } else {
+                              setMemberAId(m.id);
+                            }
                           }
-                        } else {
-                          if (m.id === memberBId) {
-                            handleSwapMembers();
-                          } else {
-                            setMemberAId(m.id);
-                          }
-                        }
-                      }}
-                      className={`flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold transition-all shrink-0 border cursor-pointer ${
-                        isSelected
-                          ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white border-rose-400 shadow-sm shadow-rose-500/30 scale-105"
-                          : isOther
-                          ? "bg-white/5 border-dashed border-white/20 text-slate-400 hover:text-white"
-                          : "bg-white/10 border-white/10 text-slate-300 hover:bg-white/20 hover:text-white"
-                      }`}
-                    >
-                      <img
-                        src={getMemberZodiacSrc(m)}
-                        alt={nick}
-                        className="w-4 h-4 rounded-full bg-slate-800 object-cover"
-                      />
-                      <span className="truncate max-w-[65px]">{nick}</span>
-                      <span className="text-[10px] font-normal opacity-70">({elem})</span>
-                    </button>
-                  );
-                })}
-              </div>
+                        }}
+                        className={`flex items-center gap-1 py-1 px-2 rounded-lg text-xs font-bold transition-all border cursor-pointer truncate ${
+                          isSelected
+                            ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white border-rose-400 shadow-sm shadow-rose-500/30"
+                            : isOther
+                            ? "bg-white/5 border-dashed border-white/20 text-slate-400 hover:text-white"
+                            : "bg-white/10 border-white/10 text-slate-300 hover:bg-white/20 hover:text-white"
+                        }`}
+                      >
+                        <img
+                          src={getMemberZodiacSrc(m)}
+                          alt={nick}
+                          className="w-3.5 h-3.5 rounded-full bg-slate-800 object-cover shrink-0"
+                        />
+                        <span className="truncate text-[11px]">{nick}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                /* Horizontal Rolling Carousel with Left/Right Buttons */
+                <div className="relative flex items-center gap-1 group">
+                  <button
+                    type="button"
+                    onClick={() => chipScrollRef.current?.scrollBy({ left: -140, behavior: "smooth" })}
+                    className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center shrink-0 cursor-pointer transition-colors shadow-xs"
+                    title="이전 멤버 보기"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5" />
+                  </button>
+
+                  <div
+                    ref={chipScrollRef}
+                    onWheel={(e) => {
+                      if (e.deltaY !== 0 && chipScrollRef.current) {
+                        chipScrollRef.current.scrollLeft += e.deltaY;
+                      }
+                    }}
+                    className="flex-1 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent scroll-smooth touch-pan-x"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {allMembers.map((m) => {
+                      const isSelected = selectingTarget === "B" ? m.id === memberBId : m.id === memberAId;
+                      const isOther = selectingTarget === "B" ? m.id === memberAId : m.id === memberBId;
+                      const elem = getMemberElement(m) || "기운";
+                      const nick = getMemberNickname(m);
+
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={(e) => {
+                            (e.currentTarget as HTMLElement).scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+                            if (selectingTarget === "B") {
+                              if (m.id === memberAId) {
+                                handleSwapMembers();
+                              } else {
+                                setMemberBId(m.id);
+                              }
+                            } else {
+                              if (m.id === memberBId) {
+                                handleSwapMembers();
+                              } else {
+                                setMemberAId(m.id);
+                              }
+                            }
+                          }}
+                          className={`flex items-center gap-1.5 py-1 px-2.5 rounded-full text-xs font-bold transition-all shrink-0 border cursor-pointer select-none ${
+                            isSelected
+                              ? "bg-gradient-to-r from-rose-500 to-pink-500 text-white border-rose-400 shadow-sm shadow-rose-500/30 scale-105"
+                              : isOther
+                              ? "bg-white/5 border-dashed border-white/20 text-slate-400 hover:text-white"
+                              : "bg-white/10 border-white/10 text-slate-300 hover:bg-white/20 hover:text-white"
+                          }`}
+                        >
+                          <img
+                            src={getMemberZodiacSrc(m)}
+                            alt={nick}
+                            className="w-4 h-4 rounded-full bg-slate-800 object-cover"
+                          />
+                          <span className="truncate max-w-[70px]">{nick}</span>
+                          <span className="text-[10px] font-normal opacity-70">({elem})</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => chipScrollRef.current?.scrollBy({ left: 140, behavior: "smooth" })}
+                    className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center shrink-0 cursor-pointer transition-colors shadow-xs"
+                    title="다음 멤버 보기"
+                  >
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ) : (

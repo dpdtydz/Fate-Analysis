@@ -163,6 +163,7 @@ export default function CreateView() {
 
       // 6. Save in local member ID and history
       localStorage.setItem(`saju_member_id_${code}`, hostMemberId);
+      localStorage.setItem(`saju_owner_code_${code}`, "true");
       saveRoomToHistory(code, "owner", title.trim());
 
       // 7. Route directly to the created room

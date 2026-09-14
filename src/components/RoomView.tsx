@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Layout from "./Layout";
-import { db, auth, saveRoomToHistory, saveUserPersonalProfile, checkProductUnlock, getUserPersonalProfile } from "../lib/firebase";
+import { db, auth, saveRoomToHistory, getRoomHistory, saveUserPersonalProfile, checkProductUnlock, getUserPersonalProfile } from "../lib/firebase";
 import { doc, getDoc, setDoc, collection, onSnapshot, deleteDoc } from "firebase/firestore";
 import { Member, Room } from "../types";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
-import { Copy, Share2, Users, Calendar, Crown, Heart, Sparkles, ChevronDown, ChevronUp, Lock, Lightbulb, Ticket } from "lucide-react";
+import { Copy, Share2, Users, Calendar, Crown, Heart, Sparkles, ChevronDown, ChevronUp, Lock, Lightbulb, Ticket, UserX, Trash2 } from "lucide-react";
 import PremiumPaywall from "./PremiumPaywall";
 import PairChemistryModal from "./PairChemistryModal";
 import ViralCardModal from "./ViralCardModal";
@@ -378,6 +378,42 @@ export default function RoomView({ code }: RoomViewProps) {
   const hasJoined = members.some((m) => m.id === localMemberId);
   const myMemberInfo = members.find((m) => m.id === localMemberId);
 
+  const isOwner = useMemo(() => {
+    if (!room) return false;
+    const history = getRoomHistory();
+    const isOwnerHistory = history.some((item) => item.code === code && item.role === "owner");
+    const isOwnerLocalFlag = localStorage.getItem(`saju_owner_code_${code}`) === "true";
+    const isOwnerUid = Boolean(auth.currentUser && room.owner_uid && auth.currentUser.uid === room.owner_uid);
+    const isFirstMemberCreator = Boolean(members.length > 0 && members[0]?.id === localMemberId);
+    return isOwnerUid || isOwnerHistory || isOwnerLocalFlag || isFirstMemberCreator;
+  }, [room, code, members, localMemberId]);
+
+  const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
+
+  const handleDeleteMember = async (memberToDelete: Member, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!confirm(`'${memberToDelete.nickname}' 님을 모임에서 내보내시겠습니까?\n내보낸 후에는 멤버 목록 및 궁합 분석에서 제외됩니다.`)) {
+      return;
+    }
+    setDeletingMemberId(memberToDelete.id);
+    try {
+      await deleteDoc(doc(db, "rooms", code, "members", memberToDelete.id));
+      try {
+        await deleteDoc(doc(db, "rooms", code, "analysis", "result"));
+      } catch (e) {
+        // optional cache cleanup
+      }
+      setMembers((prev) => prev.filter((m) => m.id !== memberToDelete.id));
+      alert(`'${memberToDelete.nickname}' 님이 모임에서 내보내졌습니다.`);
+    } catch (err: any) {
+      console.error("Failed to delete member:", err);
+      alert("멤버 삭제 실패: " + (err.message || "다시 시도해 주세요."));
+    } finally {
+      setDeletingMemberId(null);
+    }
+  };
+
   if (loading) {
     return (
       <Layout title="모임방">
@@ -547,13 +583,25 @@ export default function RoomView({ code }: RoomViewProps) {
 
         {/* SECTION 1: 1-on-1 Individual Chemistry Explorer */}
         <div className="space-y-3 pt-1">
-          <div className="text-left">
-            <h2 className="font-serif text-lg font-semibold text-ink">
-              멤버별 궁합 <span className="text-sm text-ink-faint font-sans font-normal">{members.length}명</span>
-            </h2>
-            <p className="text-xs text-ink-soft mt-0.5">
-              멤버를 누르면 나와의 1:1 궁합이 열립니다.
-            </p>
+          <div className="text-left flex items-start justify-between gap-2 flex-wrap">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="font-serif text-lg font-semibold text-ink">
+                  멤버별 궁합 <span className="text-sm text-ink-faint font-sans font-normal">{members.length}명</span>
+                </h2>
+                {isOwner && (
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                    <Crown className="w-3 h-3 text-amber-500" />
+                    방장 권한
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-ink-soft mt-0.5">
+                {isOwner
+                  ? "멤버를 누르면 1:1 궁합을 보고, 우측 상단 버튼으로 멤버를 내보낼 수 있습니다."
+                  : "멤버를 누르면 나와의 1:1 궁합이 열립니다."}
+              </p>
+            </div>
           </div>
 
           <div id="members-grid" className="grid grid-cols-2 gap-3">
@@ -575,16 +623,52 @@ export default function RoomView({ code }: RoomViewProps) {
               const isMe = member.id === localMemberId;
               if (isMe) {
                 return (
-                  <a
-                    key={member.id}
-                    href={`#/room/${code}/me/${member.id}`}
-                    className="p-4 bg-surface border border-line hover:border-ink-faint rounded-xl flex flex-col items-center justify-center text-center transition-colors group relative"
+                  <div key={member.id} className="relative group">
+                    <a
+                      href={`#/room/${code}/me/${member.id}`}
+                      className="w-full p-4 bg-surface border border-line hover:border-ink-faint rounded-xl flex flex-col items-center justify-center text-center transition-colors group relative block"
+                    >
+                      <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center relative mb-2">
+                        <ZodiacAvatar member={member} size={38} fallbackEmoji={member.character_emoji} />
+                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-seal text-white text-xs flex items-center justify-center rounded-full font-sans font-semibold">
+                          나
+                        </span>
+                      </div>
+                      <span className="text-sm font-semibold text-ink truncate max-w-full">
+                        {member.nickname}
+                      </span>
+                      <span className="text-[11px] font-medium text-seal bg-seal/10 px-2 py-0.5 rounded-md mt-1">
+                        {calculateMemberRole(member).role}
+                      </span>
+                      <span
+                        className="text-xs font-medium px-2 py-0.5 rounded-lg mt-1"
+                        style={{
+                          backgroundColor: `${member.character_color}14`,
+                          color: member.character_color,
+                        }}
+                      >
+                        {member.saju.daymaster.gan} {member.character_animal} {member.mbti ? ` · ${member.mbti.toUpperCase()}` : ""}
+                      </span>
+                      <span className="text-xs text-seal mt-2 font-medium">
+                        내 소울 카드 보기
+                      </span>
+                    </a>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={member.id} className="relative group">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedTargetMember(member);
+                      setIsChemistryModalOpen(true);
+                    }}
+                    className="w-full p-4 bg-surface border border-line hover:border-ink-faint rounded-xl flex flex-col items-center justify-center text-center transition-colors relative cursor-pointer"
                   >
                     <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center relative mb-2">
                       <ZodiacAvatar member={member} size={38} fallbackEmoji={member.character_emoji} />
-                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-seal text-white text-xs flex items-center justify-center rounded-full font-sans font-semibold">
-                        나
-                      </span>
                     </div>
                     <span className="text-sm font-semibold text-ink truncate max-w-full">
                       {member.nickname}
@@ -601,45 +685,24 @@ export default function RoomView({ code }: RoomViewProps) {
                     >
                       {member.saju.daymaster.gan} {member.character_animal} {member.mbti ? ` · ${member.mbti.toUpperCase()}` : ""}
                     </span>
-                    <span className="text-xs text-seal mt-2 font-medium">
-                      내 소울 카드 보기
+                    <span className="text-xs text-ink-faint group-hover:text-ink mt-2 font-medium transition-colors">
+                      나와의 궁합 보기
                     </span>
-                  </a>
-                );
-              }
+                  </button>
 
-              return (
-                <button
-                  type="button"
-                  key={member.id}
-                  onClick={() => {
-                    setSelectedTargetMember(member);
-                    setIsChemistryModalOpen(true);
-                  }}
-                  className="p-4 bg-surface border border-line hover:border-ink-faint rounded-xl flex flex-col items-center justify-center text-center transition-colors group relative cursor-pointer"
-                >
-                  <div className="w-12 h-12 rounded-full bg-sunken flex items-center justify-center relative mb-2">
-                    <ZodiacAvatar member={member} size={38} fallbackEmoji={member.character_emoji} />
-                  </div>
-                  <span className="text-sm font-semibold text-ink truncate max-w-full">
-                    {member.nickname}
-                  </span>
-                  <span className="text-[11px] font-medium text-seal bg-seal/10 px-2 py-0.5 rounded-md mt-1">
-                    {calculateMemberRole(member).role}
-                  </span>
-                  <span
-                    className="text-xs font-medium px-2 py-0.5 rounded-lg mt-1"
-                    style={{
-                      backgroundColor: `${member.character_color}14`,
-                      color: member.character_color,
-                    }}
-                  >
-                    {member.saju.daymaster.gan} {member.character_animal} {member.mbti ? ` · ${member.mbti.toUpperCase()}` : ""}
-                  </span>
-                  <span className="text-xs text-ink-faint group-hover:text-ink mt-2 font-medium transition-colors">
-                    나와의 궁합 보기
-                  </span>
-                </button>
+                  {/* 방장 권한: 멤버 내보내기 버튼 */}
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteMember(member, e)}
+                      disabled={deletingMemberId === member.id}
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-600 transition-colors z-10 cursor-pointer border border-red-500/20 shadow-xs"
+                      title={`${member.nickname}님 내보내기 (방장 권한)`}
+                    >
+                      <UserX className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               );
             })}
           </div>

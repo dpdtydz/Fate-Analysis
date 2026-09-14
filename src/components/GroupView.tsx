@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import Layout from "./Layout";
 import GroupNetwork from "./GroupNetwork";
 import LoadingOverlay from "./LoadingOverlay";
-import { db, getAnonymousUser, auth, checkPremiumStatus, checkProductUnlock, redeemCoupon, getUserMembershipInfo } from "../lib/firebase";
+import { db, getAnonymousUser, auth, checkPremiumStatus, checkProductUnlock, redeemCoupon, getUserMembershipInfo, getRoomHistory } from "../lib/firebase";
 import { doc, getDoc, setDoc, collection, getDocs, onSnapshot, deleteDoc } from "firebase/firestore";
 import { Member, Room, CachedAnalysisResult } from "../types";
-import { Share2, Heart, ArrowLeft, RefreshCw, Smile, Check, Lock, Ticket, ChevronDown, ChevronUp, Award, Sparkles, Trophy, ChevronRight } from "lucide-react";
+import { Share2, Heart, ArrowLeft, RefreshCw, Smile, Check, Lock, Ticket, ChevronDown, ChevronUp, Award, Sparkles, Trophy, ChevronRight, Crown, UserX, Users, X } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import PremiumPaywall from "./PremiumPaywall";
 import GoogleAds from "./GoogleAds";
@@ -482,6 +482,43 @@ export default function GroupView({ code }: GroupViewProps) {
   const [pairViewMode, setPairViewMode] = useState<"matrix" | "cards">("matrix");
   const [isIljuModalOpen, setIsIljuModalOpen] = useState(false);
   const [selectedPairForModal, setSelectedPairForModal] = useState<{ m1: Member; m2: Member; pair?: any } | null>(null);
+
+  const localMemberId = React.useMemo(() => localStorage.getItem(`saju_member_id_${code}`) || "", [code]);
+
+  const isOwner = React.useMemo(() => {
+    if (!room) return false;
+    const history = getRoomHistory();
+    const isOwnerHistory = history.some((item) => item.code === code && item.role === "owner");
+    const isOwnerLocalFlag = localStorage.getItem(`saju_owner_code_${code}`) === "true";
+    const isOwnerUid = Boolean(auth.currentUser && room.owner_uid && auth.currentUser.uid === room.owner_uid);
+    const isFirstMemberCreator = Boolean(members.length > 0 && members[0]?.id === localMemberId);
+    return isOwnerUid || isOwnerHistory || isOwnerLocalFlag || isFirstMemberCreator;
+  }, [room, code, members, localMemberId]);
+
+  const [isMemberManageModalOpen, setIsMemberManageModalOpen] = useState(false);
+  const [deletingMemberId, setDeletingMemberId] = useState<string | null>(null);
+
+  const handleDeleteMember = async (memberToDelete: Member) => {
+    if (!confirm(`'${memberToDelete.nickname}' 님을 모임에서 내보내시겠습니까?\n내보낸 후에는 그룹 분석 및 네트워크에서 즉시 제외됩니다.`)) {
+      return;
+    }
+    setDeletingMemberId(memberToDelete.id);
+    try {
+      await deleteDoc(doc(db, "rooms", code, "members", memberToDelete.id));
+      try {
+        await deleteDoc(doc(db, "rooms", code, "analysis", "result"));
+      } catch (e) {
+        // optional cache cleanup
+      }
+      setMembers(prev => prev.filter(m => m.id !== memberToDelete.id));
+      alert(`'${memberToDelete.nickname}' 님이 모임에서 내보내졌습니다.`);
+    } catch (err: any) {
+      console.error("Failed to delete member:", err);
+      alert("멤버 삭제 실패: " + (err.message || "다시 시도해 주세요."));
+    } finally {
+      setDeletingMemberId(null);
+    }
+  };
 
   // Accordion state for 1:1 pairs list (default: expand 1st pair)
   const [expandedPairIndices, setExpandedPairIndices] = useState<Set<number>>(() => new Set([0]));
@@ -1144,7 +1181,18 @@ export default function GroupView({ code }: GroupViewProps) {
             <ArrowLeft className="w-3.5 h-3.5 mr-1" />
             모임방으로 돌아가기
           </a>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => setIsMemberManageModalOpen(true)}
+                className="inline-flex items-center text-xs font-semibold transition-colors px-3 py-1.5 rounded-xl bg-sunken hover:bg-line text-ink cursor-pointer border border-amber-500/20 shadow-xs"
+                title="방장 권한: 멤버 목록 확인 및 내보내기"
+              >
+                <Crown className="w-3.5 h-3.5 mr-1 text-amber-500" />
+                <span>멤버 관리 ({members.length}명)</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setIsStoryModalOpen(true)}
@@ -2454,6 +2502,85 @@ export default function GroupView({ code }: GroupViewProps) {
           />
         );
       })()}
+
+      {/* 방장 전용 멤버 관리 모달 */}
+      {isMemberManageModalOpen && (
+        <div className="fixed inset-0 z-[1050] bg-black/75 flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-surface border border-line rounded-2xl max-w-md w-full p-5 space-y-4 shadow-2xl text-left">
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <div className="flex items-center gap-1.5">
+                <Crown className="w-4 h-4 text-amber-500" />
+                <h3 className="font-serif text-base font-bold text-ink">방장 멤버 관리 ({members.length}명)</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMemberManageModalOpen(false)}
+                className="p-1 rounded-lg hover:bg-sunken text-ink-soft hover:text-ink cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-ink-soft leading-relaxed">
+              방장은 불필요한 인원이나 잘못 등록된 인원을 모임에서 즉시 내보낼 수 있습니다.
+            </p>
+
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {members.map((m) => {
+                const isMe = m.id === localMemberId;
+                const role = calculateMemberRole(m);
+                return (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-sunken border border-line"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <ZodiacAvatar member={m} size={32} fallbackEmoji={m.character_emoji} />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-ink truncate">{m.nickname}</span>
+                          {isMe && (
+                            <span className="text-[10px] font-semibold text-seal bg-seal/10 px-1.5 py-0.5 rounded">
+                              나 (방장)
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10.5px] text-ink-soft truncate block">
+                          {role.role} · {getMemberElement(m)}기운
+                        </span>
+                      </div>
+                    </div>
+
+                    {!isMe ? (
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteMember(m)}
+                        disabled={deletingMemberId === m.id}
+                        className="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-semibold flex items-center gap-1 cursor-pointer transition-colors border border-red-500/20"
+                      >
+                        <UserX className="w-3.5 h-3.5" />
+                        <span>내보내기</span>
+                      </button>
+                    ) : (
+                      <span className="text-[11px] text-ink-faint px-2">방장 본인</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-2 border-t border-line flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsMemberManageModalOpen(false)}
+                className="px-4 py-2 bg-seal text-white text-xs font-semibold rounded-xl hover:bg-seal-deep transition-colors cursor-pointer"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

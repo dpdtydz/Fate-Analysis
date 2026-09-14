@@ -99,28 +99,28 @@ export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAn
     (elem2 === "금" && elem1 === "목");
 
   if (isGeneratingSajuSupport) {
-    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 17, 88, 98);
-    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 41, 84, 96);
+    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 17, 78, 91);
+    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 41, 74, 88);
     sajuLabel = "오행상생의 창조적 파트너";
     sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. ${g1}의 기운이 ${g2}을 촉진해 주어, ${m1.nickname}님의 추진력이 ${m2.nickname}님의 성과로 부드럽게 이어지는 완벽한 창조적 흐름입니다.`;
   } else if (isReceivingSajuSupport) {
-    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 23, 84, 96);
-    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 59, 88, 98);
+    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 23, 74, 88);
+    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 59, 78, 91);
     sajuLabel = "상생과 든든한 조력 기류";
     sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. ${g2}의 포근한 기운이 ${g1}을 든든하게 생(生)해 주어, 서로 신뢰가 대단히 깊고 함께 대화하면 심리적 안정감을 얻는 훌륭한 관계입니다.`;
   } else if (elem1 === elem2) {
-    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 15, 78, 92);
-    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 45, 78, 92);
+    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 15, 65, 80);
+    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 45, 65, 80);
     sajuLabel = "거울을 보듯 통하는 소울 조합";
     sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. 서로 같은 '${elem1}'의 오행 기운을 공유하여, 굳이 많은 설명을 하지 않아도 깊은 동질감과 끈끈한 유대감을 나누는 완벽한 동료입니다.`;
   } else if (isSajuClash) {
-    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 19, 58, 69);
-    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 37, 58, 69);
+    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 19, 44, 63);
+    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 37, 44, 63);
     sajuLabel = "긴장 속에서 꽃피는 혁신 조합";
     sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. ${g1}과 ${g2}의 기운이 극(剋)하며 팽팽한 텐션을 형성하나, 적절한 거리와 예의를 유지하면 서로의 빈틈을 칼같이 메워주는 최고의 지적 자극제가 됩니다.`;
   } else {
-    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 21, 69, 82);
-    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 51, 69, 82);
+    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 21, 56, 73);
+    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 51, 56, 73);
     sajuLabel = "담백하고 온화한 조율 조합";
     sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. 서로 간섭하지 않는 온화한 오행 기운의 조화로, 편안한 소통과 담백한 신뢰를 지켜나가는 물 흐르듯 잔잔한 인연 기류입니다.`;
   }
@@ -144,24 +144,24 @@ export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAn
   const isZodiacClash = (ze1 === "불" && ze2 === "물") || (ze1 === "물" && ze2 === "불") ||
     (ze1 === "흙" && ze2 === "공기") || (ze1 === "공기" && ze2 === "흙");
 
-  let zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 29, 70, 85);
-  let zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 69, 70, 85);
+  let zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 29, 58, 74);
+  let zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 69, 58, 74);
   let zodiacDesc = "";
 
   if (isZodiacCompatible) {
-    zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 29, 86, 97);
-    zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 69, 86, 97);
+    zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 29, 76, 88);
+    zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 69, 76, 88);
     zodiacDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${zodiacScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${zodiacScore2to1}점. ${z1.name}(${ze1})과 ${z2.name}(${ze2})의 성좌 기운이 조화롭게 화합하여 서로에게 활력과 깊은 교감을 불어넣는 훌륭한 시너지입니다.`;
   } else if (isZodiacClash) {
-    zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 29, 61, 73);
-    zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 69, 61, 73);
+    zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 29, 45, 62);
+    zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 69, 45, 62);
     zodiacDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${zodiacScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${zodiacScore2to1}점. ${z1.name}(${ze1})과 ${z2.name}(${ze2})의 상반된 성좌 원소가 만나 팽팽한 긴장감을 자아내나, 서로 다른 시야를 열어주는 신선한 자극제가 됩니다.`;
   } else {
     zodiacDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${zodiacScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${zodiacScore2to1}점. 서로 다른 성좌 영역에 속해 있으나, 그렇기에 더욱 신선하고 평소 생각지 못한 각도에서 독창적인 아이디어와 새로운 관점을 제공해 줍니다.`;
   }
 
-  let ziweiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 44, 68, 95);
-  let ziweiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 88, 68, 95);
+  let ziweiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 44, 55, 85);
+  let ziweiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 88, 55, 85);
 
   const ziweiStars = [
     { name: "자미성", desc: "고귀한 중심을 잡아주는 리더의 기상" },
@@ -178,8 +178,8 @@ export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAn
 
   let ziweiDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${ziweiScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${ziweiScore2to1}점. ${m1.nickname}님의 명궁 기저에 깃든 ${m1ZStar.name}(${m1ZStar.desc})과 ${m2.nickname}님의 ${m2ZStar.name}(${m2ZStar.desc})이 절묘한 별자리 기류로 만나, 서로의 자리를 빛내주고 존중해주는 품격 있는 관계를 지향합니다.`;
 
-  let mbtiScore1to2 = 74;
-  let mbtiScore2to1 = 74;
+  let mbtiScore1to2 = 68;
+  let mbtiScore2to1 = 68;
   let mbtiDesc = "";
 
   const code1 = m1.mbti?.trim().toUpperCase() || "";
@@ -195,14 +195,14 @@ export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAn
     if (code1[3] === code2[3]) sameCount++;
 
     if (sameCount === 4) {
-      mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 9, 88, 96);
-      mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 19, 88, 96);
+      mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 9, 80, 90);
+      mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 19, 80, 90);
     } else if (sameCount >= 2) {
-      mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 9, 78, 88);
-      mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 19, 78, 88);
+      mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 9, 64, 78);
+      mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 19, 64, 78);
     } else {
-      mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 9, 60, 72);
-      mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 19, 60, 72);
+      mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 9, 45, 62);
+      mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 19, 45, 62);
     }
 
     let synergyBullet = "";
@@ -224,8 +224,8 @@ export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAn
 
     mbtiDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${mbtiScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${mbtiScore2to1}점. ${code1}와 ${code2} 성향이 만나,${detailDiff} ${synergyBullet}`;
   } else {
-    mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 12, 67, 85);
-    mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 24, 67, 85);
+    mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 12, 58, 74);
+    mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 24, 58, 74);
     const unreg = !isMbti1Ok ? m1.nickname : m2.nickname;
     mbtiDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${mbtiScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${mbtiScore2to1}점. ${unreg}님이 성향 지표(MBTI)를 등록하지 않았으므로, 정통 사주와 성좌 데이터를 근간 삼아 입체적 관계를 다듬어 나갑니다.`;
   }
