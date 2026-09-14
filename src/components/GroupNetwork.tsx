@@ -72,6 +72,8 @@ const getPairAsymmetricScores = (pair: PairAnalysis | undefined, m1: Member, m2:
     return getAsymmetricScores(m1, m2, 65);
   }
 
+  const targetScore = typeof pair.score === "number" ? pair.score : 75;
+
   if (pair.saju && pair.ziwei && pair.mbti && pair.zodiac) {
     const isM1First = m1.id.trim().toLowerCase() === pair.member_id_1.trim().toLowerCase() ||
                       m1.nickname.trim().toLowerCase().replace(/님$/, "") === pair.member_id_1.trim().toLowerCase().replace(/님$/, "");
@@ -85,17 +87,37 @@ const getPairAsymmetricScores = (pair: PairAnalysis | undefined, m1: Member, m2:
     const zodiac_1_to_2 = pair.zodiac.score_1_to_2;
     const zodiac_2_to_1 = pair.zodiac.score_2_to_1;
 
-    const avg_1_to_2 = Math.round((saju_1_to_2 + ziwei_1_to_2 + mbti_1_to_2 + zodiac_1_to_2) / 4);
-    const avg_2_to_1 = Math.round((saju_2_to_1 + ziwei_2_to_1 + mbti_2_to_1 + zodiac_2_to_1) / 4);
+    let raw_1_to_2 = (saju_1_to_2 + ziwei_1_to_2 + mbti_1_to_2 + zodiac_1_to_2) / 4;
+    let raw_2_to_1 = (saju_2_to_1 + ziwei_2_to_1 + mbti_2_to_1 + zodiac_2_to_1) / 4;
+
+    // Strictly normalize so that average of both directions matches pair.score exactly
+    const currentAvg = (raw_1_to_2 + raw_2_to_1) / 2;
+    const diff = targetScore - currentAvg;
+    raw_1_to_2 += diff;
+    raw_2_to_1 += diff;
+
+    let final_1_to_2 = Math.max(10, Math.min(99, Math.round(raw_1_to_2)));
+    let final_2_to_1 = Math.max(10, Math.min(99, Math.round(raw_2_to_1)));
+
+    const roundedAvg = Math.round((final_1_to_2 + final_2_to_1) / 2);
+    if (roundedAvg !== targetScore) {
+      final_1_to_2 += (targetScore - roundedAvg);
+    }
 
     if (isM1First) {
-      return { score1to2: avg_1_to_2, score2to1: avg_2_to_1 };
+      return { score1to2: final_1_to_2, score2to1: final_2_to_1 };
     } else {
-      return { score1to2: avg_2_to_1, score2to1: avg_1_to_2 };
+      return { score1to2: final_2_to_1, score2to1: final_1_to_2 };
     }
   }
 
-  return getAsymmetricScores(m1, m2, pair.score);
+  const raw = getAsymmetricScores(m1, m2, targetScore);
+  const roundedAvg = Math.round((raw.score1to2 + raw.score2to1) / 2);
+  const adj = targetScore - roundedAvg;
+  return {
+    score1to2: Math.max(10, Math.min(99, raw.score1to2 + adj)),
+    score2to1: Math.max(10, Math.min(99, raw.score2to1 + adj)),
+  };
 };
 
 export default function GroupNetwork({ members, pairs, isPremium, groupScore }: GroupNetworkProps) {
@@ -251,7 +273,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
         const mOther = other.rawMember;
 
         const { score1to2, score2to1 } = getPairAsymmetricScores(pair, mSelected, mOther);
-        const avgScore = (score1to2 + score2to1) / 2;
+        const avgScore = pair && typeof pair.score === "number" ? pair.score : Math.round((score1to2 + score2to1) / 2);
 
         return {
           id1: selectedNodeId,
@@ -778,10 +800,8 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
             let asymmetricInfo = null;
             if (selectedNodeId && !isSelected) {
               const pair = findBasePair(selectedNodeId, node.id);
-              const baseScore = pair ? pair.score : 65;
               const mSelected = members.find((m) => m.id === selectedNodeId)!;
-
-              const { score1to2, score2to1 } = getAsymmetricScores(mSelected, node.rawMember, baseScore);
+              const { score1to2, score2to1 } = getPairAsymmetricScores(pair, mSelected, node.rawMember);
               asymmetricInfo = { score1to2, score2to1 };
             }
 
@@ -973,7 +993,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
               .map((other) => {
                 const basePair = findBasePair(selectedNodeId, other.id);
                 const { score1to2, score2to1 } = getPairAsymmetricScores(basePair, selectedMember, other.rawMember);
-                const avgScore = (score1to2 + score2to1) / 2;
+                const avgScore = basePair && typeof basePair.score === "number" ? basePair.score : Math.round((score1to2 + score2to1) / 2);
 
                 // Match with active relation filter
                 if (relationFilter === "good" && avgScore < 70) return null;
