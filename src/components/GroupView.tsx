@@ -467,6 +467,17 @@ export default function GroupView({ code }: GroupViewProps) {
   const [capturedImgUrl, setCapturedImgUrl] = useState<string | null>(null);
   const [showLongPressGuide, setShowLongPressGuide] = useState(false);
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
+  const [storyModalPair, setStoryModalPair] = useState<{ m1: Member; m2: Member } | null>(null);
+
+  const handleOpenStoryModal = (m1?: Member, m2?: Member) => {
+    if (m1 && m2) {
+      setStoryModalPair({ m1, m2 });
+    } else {
+      setStoryModalPair(null);
+    }
+    setIsStoryModalOpen(true);
+  };
+
   const [pairViewMode, setPairViewMode] = useState<"matrix" | "cards">("matrix");
   const [isIljuModalOpen, setIsIljuModalOpen] = useState(false);
   const [selectedPairForModal, setSelectedPairForModal] = useState<{ m1: Member; m2: Member; pair?: any } | null>(null);
@@ -1576,14 +1587,25 @@ export default function GroupView({ code }: GroupViewProps) {
                   모임 케미 결과와 궁합 지도를 고화질 카드로 저장하고 단톡방이나 인스타 스토리에 공유해 보세요.
                 </p>
               </div>
-              <button
-                id="share-dashboard-btn"
-                onClick={handleShareResult}
-                className="w-full flex items-center justify-center space-x-2 py-3.5 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer shadow-sm"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>{shareStatus || "고화질 모임 궁합 카드 저장하기"}</span>
-              </button>
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button
+                  id="share-dashboard-btn"
+                  onClick={handleShareResult}
+                  className="w-full flex items-center justify-center space-x-2 py-3.5 bg-seal hover:bg-seal-deep text-white text-sm font-semibold rounded-xl transition-colors cursor-pointer shadow-sm"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>{shareStatus || "고화질 모임 궁합 카드 저장"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenStoryModal()}
+                  className="w-full flex items-center justify-center space-x-2 py-3.5 bg-gradient-to-r from-[#f43f5e] to-[#ec4899] hover:opacity-95 text-white text-sm font-bold rounded-xl shadow-md shadow-rose-500/20 transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>인스타 스토리 카드 만들기 (9:16)</span>
+                </button>
+              </div>
             </div>
 
             {/* Free Section 1: 전체 기운 요강 & 화합 극대화 비책 */}
@@ -2555,12 +2577,17 @@ export default function GroupView({ code }: GroupViewProps) {
       {/* Native Instagram Story Export Modal */}
       <GroupStoryModal
         isOpen={isStoryModalOpen}
-        onClose={() => setIsStoryModalOpen(false)}
+        onClose={() => {
+          setIsStoryModalOpen(false);
+          setStoryModalPair(null);
+        }}
         roomTitle={room?.title || "우리들의 모임"}
         allMembers={members}
         groupScore={analysis?.group?.overall_score || 85}
         groupAnalysis={analysis?.group}
         pairs={upgradedPairs}
+        initialPair={storyModalPair}
+        defaultTab={storyModalPair ? "pair" : "pair"}
       />
 
       {/* 60 Ilju Animal Encyclopedia Modal */}
@@ -2592,6 +2619,10 @@ export default function GroupView({ code }: GroupViewProps) {
             onOpenShop={(tab) => {
               setShopInitialTab(tab);
               setIsShopOpen(true);
+            }}
+            onOpenStoryModal={(m1, m2) => {
+              setSelectedPairForModal(null);
+              handleOpenStoryModal(m1, m2);
             }}
           />
         );

@@ -16,6 +16,7 @@ interface PairChemistryModalProps {
   isSecretUnlocked?: boolean;
   onOpenShop?: (tab: "secret" | "pdf" | "group") => void;
   onJoinPrompt?: () => void;
+  onOpenStoryModal?: (m1: Member, m2: Member) => void;
   pair?: any;
   initialScore?: number;
 }
@@ -109,6 +110,7 @@ export default function PairChemistryModal({
   isSecretUnlocked = false,
   onOpenShop,
   onJoinPrompt,
+  onOpenStoryModal,
   pair,
   initialScore,
 }: PairChemistryModalProps) {
@@ -273,24 +275,39 @@ export default function PairChemistryModal({
           </button>
         </div>
 
-        {/* Kakao share action bar */}
-        <div className="bg-sunken rounded-xl p-3 flex items-center justify-between gap-3">
+        {/* Share Action Bar: Instagram Story 9:16 + Kakao */}
+        <div className="bg-sunken rounded-xl p-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
           <div>
-            <p className="text-xs font-semibold text-ink">
-              {targetMember.nickname}님에게 결과 공유
+            <p className="text-xs font-semibold text-ink flex items-center gap-1">
+              <span>✨ 둘만의 케미 결과 자랑하기</span>
             </p>
-            <p className="text-xs text-ink-soft mt-0.5">
-              요약 카드로 전달됩니다.
+            <p className="text-[11px] text-ink-soft mt-0.5">
+              6대 맞춤 카테고리 인스타 스토리 또는 카톡으로 공유해 보세요.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleShareResult}
-            className="px-3 py-2 bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            <span>카톡 공유</span>
-          </button>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {onOpenStoryModal && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenStoryModal(myMember, targetMember);
+                }}
+                className="flex-1 sm:flex-initial px-3 py-2 bg-gradient-to-r from-[#f43f5e] to-[#ec4899] hover:opacity-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>📸 인스타 스토리</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleShareResult}
+              className="px-3 py-2 bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+            >
+              <Share2 className="w-3.5 h-3.5" />
+              <span>카톡</span>
+            </button>
+          </div>
         </div>
 
         {shareSuccessMsg && (
