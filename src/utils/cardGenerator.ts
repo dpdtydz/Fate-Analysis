@@ -23,10 +23,10 @@ function drawRoundRect(
   h: number,
   r: number
 ) {
+  ctx.beginPath();
   if (ctx.roundRect) {
     ctx.roundRect(x, y, w, h, r);
   } else {
-    ctx.beginPath();
     ctx.moveTo(x + r, y);
     ctx.lineTo(x + w - r, y);
     ctx.quadraticCurveTo(x + w, y, x + w, y + r);
@@ -40,16 +40,77 @@ function drawRoundRect(
   }
 }
 
-// Pre-load image with promise
+// Pre-load image with robust local/CORS handling and fallback
 function loadImage(src: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     if (!src) return resolve(null);
+    const fullSrc =
+      src.startsWith("data:") || src.startsWith("http://") || src.startsWith("https://")
+        ? src
+        : typeof window !== "undefined"
+        ? `${window.location.origin}${src.startsWith("/") ? "" : "/"}${src}`
+        : src;
+
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    // Only set crossOrigin for external domains to avoid canvas CORS taint while preventing local asset failures
+    if (fullSrc.startsWith("http") && typeof window !== "undefined" && !fullSrc.startsWith(window.location.origin)) {
+      img.crossOrigin = "anonymous";
+    }
+
     img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
-    img.src = src;
+    img.onerror = () => {
+      // Second attempt without crossOrigin attribute
+      const fallbackImg = new Image();
+      fallbackImg.onload = () => resolve(fallbackImg);
+      fallbackImg.onerror = () => resolve(null);
+      fallbackImg.src = fullSrc;
+    };
+    img.src = fullSrc;
   });
+}
+
+// Draw avatar with elegant fallback (Zodiac emoji or initial) if image fails
+function drawAvatarWithFallback(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement | null,
+  cx: number,
+  cy: number,
+  r: number,
+  borderColor: string,
+  bgColor: string,
+  element: string
+) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = bgColor;
+  ctx.fill();
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = borderColor;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(cx, cy, r - 3, 0, Math.PI * 2);
+  ctx.clip();
+
+  if (img && img.complete && img.naturalWidth > 0) {
+    const pad = 3;
+    ctx.drawImage(img, cx - r + pad, cy - r + pad, (r - pad) * 2, (r - pad) * 2);
+  } else {
+    const elementEmojis: Record<string, string> = {
+      목: "🌳",
+      화: "🔥",
+      토: "⛰️",
+      금: "🪙",
+      수: "🌊",
+    };
+    const emoji = elementEmojis[element] || "✨";
+    ctx.font = `${Math.round(r * 0.85)}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(emoji, cx, cy);
+  }
+  ctx.restore();
 }
 
 /**
@@ -206,6 +267,7 @@ export async function generateDedicatedChemistryCard({
   ctx.arc(540, 420, 360, 0, Math.PI * 2);
   ctx.stroke();
   ctx.restore();
+  ctx.beginPath(); // Ensure path is fully reset
 
   // 2. Top Story Segments Indicator
   const segW = (1080 - 120 - 5 * 10) / 6;
@@ -246,73 +308,69 @@ export async function generateDedicatedChemistryCard({
   ctx.font = "900 46px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
   const nick1 = getMemberNickname(m1);
   const nick2 = getMemberNickname(m2);
-  ctx.fillText(`${nick1}  ×  ${nick2}`, 60, 245);
+  ctx.fillText(`${nick1}  ×  ${nick2}`, 60, 240);
 
   ctx.textAlign = "right";
   ctx.fillStyle = "#F43F5E";
   ctx.font = "900 52px -apple-system, BlinkMacSystemFont, 'Pretendard', monospace";
-  ctx.fillText(`${pairScore}점`, 1020, 245);
+  ctx.fillText(`${pairScore}점`, 1020, 240);
 
   ctx.textAlign = "left";
-  ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-  ctx.font = "600 24px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+  ctx.font = "600 23px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
   const titleQuote = pairLabel || "오행과 성향이 완벽히 맞물리는 모임의 특급 시너지 엔진!";
-  ctx.fillText(`"${titleQuote}"`, 60, 290);
+  ctx.fillText(`"${titleQuote}"`, 60, 285);
 
   // 5. Main Card Container (Pure White Aesthetic Card)
-  const cardX = 60;
-  const cardY = 325;
-  const cardW = 960;
-  const cardH = 1380;
+  const cardX = 54;
+  const cardY = 320;
+  const cardW = 972;
+  const cardH = 1385;
 
   ctx.save();
-  ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
-  ctx.shadowBlur = 40;
-  ctx.shadowOffsetY = 15;
+  ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
+  ctx.shadowBlur = 36;
+  ctx.shadowOffsetY = 14;
   ctx.fillStyle = "#FFFFFF";
-  drawRoundRect(ctx, cardX, cardY, cardW, cardH, 40);
+  drawRoundRect(ctx, cardX, cardY, cardW, cardH, 36);
   ctx.fill();
   ctx.restore();
 
   // Top Section of Card: Avatars Face-off
-  // Member A Avatar (Left)
-  const avCenterY = cardY + 165;
-  const avRadius = 80;
+  const avCenterY = cardY + 145;
+  const avRadius = 72;
 
-  // Av 1 Circle
-  ctx.save();
-  ctx.strokeStyle = "#F43F5E";
-  ctx.lineWidth = 6;
-  ctx.fillStyle = "#FFF1F2";
-  ctx.beginPath();
-  ctx.arc(cardX + 220, avCenterY, avRadius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-  ctx.clip();
-  if (avatar1) {
-    ctx.drawImage(avatar1, cardX + 220 - avRadius + 5, avCenterY - avRadius + 5, (avRadius - 5) * 2, (avRadius - 5) * 2);
-  }
-  ctx.restore();
+  // Member A Avatar (Left)
+  drawAvatarWithFallback(
+    ctx,
+    avatar1,
+    cardX + 210,
+    avCenterY,
+    avRadius,
+    "#F43F5E",
+    "#FFF1F2",
+    elem1
+  );
 
   // Member A Nickname & Element Pill
-  ctx.fillStyle = "#1E293B";
-  ctx.font = "900 32px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillStyle = "#0F172A";
+  ctx.font = "900 30px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(nick1, cardX + 220, avCenterY + 125);
+  ctx.fillText(nick1, cardX + 210, avCenterY + 115);
 
   ctx.fillStyle = "#F1F5F9";
-  drawRoundRect(ctx, cardX + 220 - 65, avCenterY + 145, 130, 36, 18);
+  drawRoundRect(ctx, cardX + 210 - 65, avCenterY + 132, 130, 36, 18);
   ctx.fill();
   ctx.fillStyle = "#475569";
-  ctx.font = "bold 20px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
-  ctx.fillText(`${elem1} 기운`, cardX + 220, avCenterY + 171);
+  ctx.font = "bold 19px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText(`${elem1} 기운`, cardX + 210, avCenterY + 157);
 
   // Center Score Heart Badge
   ctx.fillStyle = "#FFF1F2";
   ctx.strokeStyle = "#FECDD3";
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.arc(cardX + cardW / 2, avCenterY, 56, 0, Math.PI * 2);
+  ctx.arc(cardX + cardW / 2, avCenterY, 54, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
 
@@ -326,97 +384,102 @@ export async function generateDedicatedChemistryCard({
   ctx.fillText("상생 케미", cardX + cardW / 2, avCenterY + 34);
 
   // Member B Avatar (Right)
-  ctx.save();
-  ctx.strokeStyle = "#F59E0B";
-  ctx.lineWidth = 6;
-  ctx.fillStyle = "#FEF3C7";
-  ctx.beginPath();
-  ctx.arc(cardX + cardW - 220, avCenterY, avRadius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-  ctx.clip();
-  if (avatar2) {
-    ctx.drawImage(avatar2, cardX + cardW - 220 - avRadius + 5, avCenterY - avRadius + 5, (avRadius - 5) * 2, (avRadius - 5) * 2);
-  }
-  ctx.restore();
+  drawAvatarWithFallback(
+    ctx,
+    avatar2,
+    cardX + cardW - 210,
+    avCenterY,
+    avRadius,
+    "#F59E0B",
+    "#FEF3C7",
+    elem2
+  );
 
   // Member B Nickname & Element Pill
-  ctx.fillStyle = "#1E293B";
-  ctx.font = "900 32px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillStyle = "#0F172A";
+  ctx.font = "900 30px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(nick2, cardX + cardW - 220, avCenterY + 125);
+  ctx.fillText(nick2, cardX + cardW - 210, avCenterY + 115);
 
   ctx.fillStyle = "#F1F5F9";
-  drawRoundRect(ctx, cardX + cardW - 220 - 65, avCenterY + 145, 130, 36, 18);
+  drawRoundRect(ctx, cardX + cardW - 210 - 65, avCenterY + 132, 130, 36, 18);
   ctx.fill();
   ctx.fillStyle = "#475569";
-  ctx.font = "bold 20px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
-  ctx.fillText(`${elem2} 기운`, cardX + cardW - 220, avCenterY + 171);
+  ctx.font = "bold 19px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.fillText(`${elem2} 기운`, cardX + cardW - 210, avCenterY + 157);
 
   // Thin Separator Line
   ctx.strokeStyle = "#F1F5F9";
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(cardX + 40, cardY + 395);
-  ctx.lineTo(cardX + cardW - 40, cardY + 395);
+  ctx.moveTo(cardX + 36, cardY + 360);
+  ctx.lineTo(cardX + cardW - 36, cardY + 360);
   ctx.stroke();
 
   // 6 Categories Section
-  const startCatY = cardY + 425;
-  const itemH = 145;
+  const startCatY = cardY + 382;
+  const itemH = 146;
+  const itemGap = 13;
 
   categories.forEach((cat, idx) => {
-    const itemY = startCatY + idx * (itemH + 12);
+    const itemY = startCatY + idx * (itemH + itemGap);
 
+    ctx.save();
     // Box Background
     ctx.fillStyle = "#F8FAFC";
     ctx.strokeStyle = "#E2E8F0";
     ctx.lineWidth = 1.5;
-    drawRoundRect(ctx, cardX + 40, itemY, cardW - 80, itemH, 20);
+    drawRoundRect(ctx, cardX + 36, itemY, cardW - 72, itemH, 18);
     ctx.fill();
     ctx.stroke();
+
+    // Left accent tag line
+    ctx.fillStyle = cat.color;
+    drawRoundRect(ctx, cardX + 36, itemY + 12, 6, itemH - 24, 3);
+    ctx.fill();
 
     // Category Title with Emoji Icon
     ctx.textAlign = "left";
     ctx.fillStyle = "#0F172A";
-    ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
-    ctx.fillText(`${cat.icon}  ${cat.title}`, cardX + 65, itemY + 42);
+    ctx.font = "bold 25px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+    ctx.fillText(`${cat.icon}  ${cat.title}`, cardX + 58, itemY + 42);
 
     // Category Score %
     ctx.textAlign = "right";
     ctx.fillStyle = cat.color;
-    ctx.font = "900 28px monospace";
-    ctx.fillText(`${cat.score}%`, cardX + cardW - 65, itemY + 42);
+    ctx.font = "900 28px -apple-system, BlinkMacSystemFont, 'Pretendard', monospace";
+    ctx.fillText(`${cat.score}%`, cardX + cardW - 58, itemY + 42);
 
     // Progress Track
-    const barX = cardX + 65;
+    const barX = cardX + 58;
     const barY = itemY + 62;
-    const barW = cardW - 130;
-    const barH = 14;
+    const barW = cardW - 116;
+    const barH = 12;
 
     ctx.fillStyle = "#E2E8F0";
-    drawRoundRect(ctx, barX, barY, barW, barH, 7);
+    drawRoundRect(ctx, barX, barY, barW, barH, 6);
     ctx.fill();
 
     // Progress Bar Fill
-    const fillW = (barW * Math.min(100, cat.score)) / 100;
+    const fillW = Math.max(14, (barW * Math.min(100, cat.score)) / 100);
     ctx.fillStyle = cat.color;
-    drawRoundRect(ctx, barX, barY, fillW, barH, 7);
+    drawRoundRect(ctx, barX, barY, fillW, barH, 6);
     ctx.fill();
 
     // AI Wit Comment
     ctx.textAlign = "left";
-    ctx.fillStyle = "#475569";
-    ctx.font = "500 21px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
-    ctx.fillText(cat.desc, cardX + 65, itemY + 115);
+    ctx.fillStyle = "#334155";
+    ctx.font = "600 21px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+    ctx.fillText(cat.desc, cardX + 58, itemY + 116);
+    ctx.restore();
   });
 
   // 6. Bottom Story Tag Banner
-  const botY = 1735;
+  const botY = 1730;
   ctx.fillStyle = "rgba(244, 63, 94, 0.22)";
   ctx.strokeStyle = "rgba(244, 63, 94, 0.4)";
   ctx.lineWidth = 2;
-  drawRoundRect(ctx, 60, botY, 960, 75, 37);
+  drawRoundRect(ctx, 54, botY, 972, 76, 38);
   ctx.fill();
   ctx.stroke();
 
