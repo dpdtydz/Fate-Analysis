@@ -638,6 +638,23 @@ export default function GroupView({ code }: GroupViewProps) {
     });
   };
 
+  // Clean up spacing and format text for aesthetic sharing cards
+  const formatAestheticGroupText = (title?: string, atmosphere?: string) => {
+    const fixStickyText = (str: string) => {
+      if (!str) return "";
+      return str
+        .replace(/([가-힣])([A-Za-z])/g, "$1 $2")
+        .replace(/([A-Za-z])([가-힣])/g, "$1 $2")
+        .replace(/([가-힣]{2,})([·/|])([가-힣]{2,})/g, "$1 $2 $3")
+        .replace(/\s+/g, " ")
+        .trim();
+    };
+    return {
+      cleanTitle: fixStickyText(title || "화합과 배려의 모임"),
+      cleanAtmosphere: fixStickyText(atmosphere || "따뜻하고 편안한 소통의 기류"),
+    };
+  };
+
   // Check and upgrade generic boilerplate pairs to dynamic premium chemistry pairs
   const upgradedPairs = analysis && Array.isArray(analysis.pairs) ? analysis.pairs.map((p) => {
     const m1 = findMemberObj(p.member_id_1);
@@ -1423,31 +1440,35 @@ export default function GroupView({ code }: GroupViewProps) {
             <div
               id="capture-target"
               ref={captureRef}
-              className="w-full bg-[#FCFCFA] rounded-2xl p-4 sm:p-5 border border-line text-left select-none space-y-4 shadow-sm"
+              className="w-full bg-[#FAF8F5] dark:bg-[#1A1A1E] rounded-3xl p-4 sm:p-6 border border-amber-900/10 dark:border-line text-left select-none space-y-4 shadow-sm relative overflow-hidden"
             >
+              {/* Subtle Traditional Korean Hanji Geometric Watermark Background */}
+              <div className="absolute top-0 right-0 w-36 h-36 bg-radial from-amber-500/5 to-transparent rounded-full pointer-events-none -mr-12 -mt-12" />
+
               {/* STAGE 1: FRONT GROUP SOUL CARD */}
-              <div className="w-full bg-surface rounded-xl p-5 border border-line text-left">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-mono tracking-[0.14em] text-ink-faint">
-                    GROUP · {members.length}인
-                  </span>
-                  <span className="text-xs font-medium text-seal bg-seal/10 px-2.5 py-1 rounded-lg">
+              <div className="w-full bg-white/95 dark:bg-surface rounded-2xl p-5 border border-line/80 shadow-xs text-left relative">
+                <div className="flex items-center justify-between mb-3.5">
+                  <div className="flex items-center gap-1.5 font-mono tracking-widest text-xs text-ink-faint font-medium">
+                    <span className="w-1.5 h-1.5 rounded-full bg-seal animate-pulse" />
+                    <span>GROUP · {members.length}인</span>
+                  </div>
+                  <span className="text-[11px] font-bold text-seal bg-seal/10 border border-seal/20 px-3 py-1 rounded-full shadow-xs">
                     {SPACE_NAMES[spaceKey]}
                   </span>
                 </div>
 
                 {/* Circular Geometric Emblem or Space Image */}
-                <div className="w-[84px] h-[84px] mx-auto mb-3 rounded-full bg-sunken flex items-center justify-center overflow-hidden">
+                <div className="w-[88px] h-[88px] mx-auto mb-3 rounded-2xl bg-sunken/60 border border-line/60 flex items-center justify-center overflow-hidden shadow-inner p-1">
                   {spaceSrc ? (
                     <img
                       src={spaceSrc}
                       alt={`${SPACE_NAMES[spaceKey]} 심볼`}
                       decoding="async"
                       onError={() => setSpaceImgFailed(true)}
-                      className="w-[74px] h-[74px] object-contain select-none"
+                      className="w-full h-full object-contain select-none filter drop-shadow-xs"
                     />
                   ) : (
-                    <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[44px] h-[44px]">
+                    <svg viewBox="0 0 48 48" fill="none" stroke="#B3382C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-[48px] h-[48px]">
                       <circle cx="24" cy="24" r="16" />
                       <circle cx="24" cy="14" r="6" />
                       <circle cx="15" cy="29" r="6" />
@@ -1459,45 +1480,74 @@ export default function GroupView({ code }: GroupViewProps) {
                   )}
                 </div>
 
-                <div className="w-full flex items-center justify-center gap-1.5 mb-1.5">
-                  <span className="font-serif text-2xl font-semibold tracking-tight text-ink">
+                <div className="w-full flex items-baseline justify-center gap-1.5 mb-2">
+                  <span className="font-serif text-2xl font-bold tracking-tight text-ink">
                     모임 케미
                   </span>
-                  <span className="font-serif text-2xl font-bold tracking-tight text-seal">
+                  <span className="font-serif text-3xl font-extrabold tracking-tight text-seal">
                     {displayGroupScore}점
                   </span>
                 </div>
 
-                <p className="text-center text-xs leading-relaxed text-ink-soft max-w-[320px] mx-auto mb-3.5">
-                  {analysis.group.title} · {analysis.group.atmosphere}
-                </p>
+                {/* Clean, Non-sticky Aesthetic Typography */}
+                {(() => {
+                  const { cleanTitle, cleanAtmosphere } = formatAestheticGroupText(
+                    analysis.group.title,
+                    analysis.group.atmosphere
+                  );
+                  return (
+                    <div className="space-y-1 text-center max-w-[340px] mx-auto mb-3.5">
+                      <p className="text-xs font-bold text-ink tracking-tight break-keep">
+                        {cleanTitle}
+                      </p>
+                      <p className="text-[11.5px] leading-relaxed text-ink-soft break-keep">
+                        {cleanAtmosphere}
+                      </p>
+                    </div>
+                  );
+                })()}
 
-                {/* 계산 지표 (다양성·순환) */}
-                <div className="space-y-2 pt-3 border-t border-line">
-                  <div className="flex items-center gap-2 w-full">
-                    <span className="text-[11px] font-medium text-ink w-[44px] shrink-0 text-left">다양성</span>
-                    <div className="h-[6px] bg-sunken rounded-full overflow-hidden flex-1">
-                      <div className="h-full rounded-full bg-ink/70" style={{ width: `${Math.min(98, (new Set(members.map(m => m.saju?.daymaster?.element))).size * 22)}%` }} />
+                {/* 계산 지표 (다양성·순환력) - 오행 그라데이션 바로 전면 업그레이드 */}
+                <div className="space-y-2.5 pt-3.5 border-t border-line/60">
+                  <div className="flex items-center gap-2.5 w-full">
+                    <span className="text-[11px] font-semibold text-ink-soft w-[44px] shrink-0 text-left">다양성</span>
+                    <div className="h-[7px] bg-sunken rounded-full overflow-hidden flex-1 p-0.5 border border-line/40">
+                      <div 
+                        className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-500" 
+                        style={{ width: `${Math.min(98, (new Set(members.map(m => m.saju?.daymaster?.element))).size * 22)}%` }} 
+                      />
                     </div>
-                    <span className="text-[11px] font-mono text-right text-ink-faint w-[26px] shrink-0">{Math.min(98, (new Set(members.map(m => m.saju?.daymaster?.element))).size * 22)}</span>
+                    <span className="text-[11px] font-mono font-bold text-right text-ink w-[26px] shrink-0">
+                      {Math.min(98, (new Set(members.map(m => m.saju?.daymaster?.element))).size * 22)}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-2 w-full">
-                    <span className="text-[11px] font-medium text-ink w-[44px] shrink-0 text-left">순환력</span>
-                    <div className="h-[6px] bg-sunken rounded-full overflow-hidden flex-1">
-                      <div className="h-full rounded-full bg-ink/70" style={{ width: `${displayGroupScore}%` }} />
+                  <div className="flex items-center gap-2.5 w-full">
+                    <span className="text-[11px] font-semibold text-ink-soft w-[44px] shrink-0 text-left">순환력</span>
+                    <div className="h-[7px] bg-sunken rounded-full overflow-hidden flex-1 p-0.5 border border-line/40">
+                      <div 
+                        className="h-full rounded-full bg-gradient-to-r from-rose-500 to-seal transition-all duration-500" 
+                        style={{ width: `${displayGroupScore}%` }} 
+                      />
                     </div>
-                    <span className="text-[11px] font-mono text-right text-ink-faint w-[26px] shrink-0">{displayGroupScore}</span>
+                    <span className="text-[11px] font-mono font-bold text-right text-seal w-[26px] shrink-0">
+                      {displayGroupScore}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {/* Free Section 2: SVG Circular Network Graph */}
-              <GroupNetwork members={members} pairs={upgradedPairs} isPremium={isGroupUnlocked} groupScore={displayGroupScore} />
+              <div className="rounded-2xl bg-white/95 dark:bg-surface border border-line/80 p-3 sm:p-4 shadow-xs">
+                <GroupNetwork members={members} pairs={upgradedPairs} isPremium={isGroupUnlocked} groupScore={displayGroupScore} />
+              </div>
 
-              {/* Instagram Story Watermark / Brand Footer */}
-              <div className="pt-2 pb-1 px-1 flex items-center justify-between text-[11px] text-ink-faint border-t border-line/60">
-                <span className="font-serif font-medium text-ink-soft">緣 인연사주 모임 궁합</span>
-                <span className="font-mono tracking-wider text-[10px]">inyeons.com</span>
+              {/* Instagram Story Watermark / Brand Footer with Traditional Seal */}
+              <div className="pt-2.5 pb-1 px-1.5 flex items-center justify-between text-[11px] text-ink-faint border-t border-line/60">
+                <div className="flex items-center gap-1.5 font-serif font-medium text-ink-soft">
+                  <span className="w-4 h-4 rounded-md bg-seal text-white text-[9px] font-serif font-bold flex items-center justify-center shrink-0 shadow-xs">緣</span>
+                  <span className="tracking-tight">인연사주 모임 궁합</span>
+                </div>
+                <span className="font-mono tracking-wider text-[10px] text-ink-faint">inyeons.com</span>
               </div>
             </div>
             {/* --- INSTAGRAM STORY COMPACT CAPTURE TARGET END --- */}

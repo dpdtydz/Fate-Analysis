@@ -122,11 +122,13 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
   };
 
   // --- DYNAMIC SIZING FOR UNRIVALED AVATAR VISIBILITY (ZERO OVERLAP) ---
-  const isLargeGroup = members.length > 8;
-  const svgSize = isLargeGroup ? 520 : 470;
+  const memberCount = members.length;
+  const isMegaGroup = memberCount >= 10;
+  const isLargeGroup = memberCount > 6 && memberCount < 10;
+  const svgSize = isMegaGroup ? 540 : isLargeGroup ? 500 : 460;
   const center = svgSize / 2;
-  const radius = isLargeGroup ? 165 : 145;
-  const nodeRadius = isLargeGroup ? 28 : 34; // Generous size so 3D animal faces are crisp and clear!
+  const radius = isMegaGroup ? 180 : isLargeGroup ? 160 : 140;
+  const nodeRadius = isMegaGroup ? 23 : isLargeGroup ? 28 : 34; // Generous size so 3D animal faces are crisp and clear!
 
   // Pre-calculated ranking of pairs for the insight cards
   const rankedPairs = useMemo(() => {
@@ -655,23 +657,59 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
             ))}
           </defs>
 
-          {/* 1. Quiet guide circle */}
+          {/* 1. Constellation Celestial Background Rings */}
+          <circle
+            cx={center}
+            cy={center}
+            r={radius * 0.42}
+            fill="none"
+            stroke="#B3382C"
+            strokeWidth="0.8"
+            strokeDasharray="2,6"
+            opacity="0.25"
+          />
+          <circle
+            cx={center}
+            cy={center}
+            r={radius * 0.72}
+            fill="none"
+            stroke="#1C1D21"
+            strokeWidth="0.8"
+            strokeDasharray="3,5"
+            opacity="0.15"
+          />
           <circle
             cx={center}
             cy={center}
             r={radius}
             fill="none"
-            stroke="#E7E7E2"
+            stroke="#1C1D21"
             strokeWidth="1.2"
             strokeDasharray="4,4"
+            opacity="0.2"
           />
+          {/* Subtle center coordinate mark */}
+          <circle cx={center} cy={center} r="2.5" fill="#B3382C" opacity="0.3" />
 
-          {/* 2. Relationship lines — 고품질 궁합 선 및 중앙 점수 뱃지 */}
+          {/* 2. Relationship lines — 고품질 궁합 선 및 중앙 분산 점수 뱃지 */}
           {lines.map((line, idx) => {
             const isHighScore = line.avgScore >= 90;
             const isGoodScore = line.avgScore >= 75;
-            const mx = (line.x1 + line.x2) / 2;
-            const my = (line.y1 + line.y2) / 2;
+
+            // Stagger badge positions along the line to completely eliminate overlapping in the center
+            const rawMx = (line.x1 + line.x2) / 2;
+            const rawMy = (line.y1 + line.y2) / 2;
+            const distToCenter = Math.hypot(rawMx - center, rawMy - center);
+            let t = 0.5;
+            if (lines.length > 1) {
+              const offsets = [0.38, 0.62, 0.32, 0.68, 0.45, 0.55];
+              t = offsets[idx % offsets.length];
+              if (distToCenter < 50) {
+                t = idx % 2 === 0 ? 0.34 : 0.66;
+              }
+            }
+            const mx = line.x1 + (line.x2 - line.x1) * t;
+            const my = line.y1 + (line.y2 - line.y1) * t;
             const badgeW = isHighScore ? 36 : 30;
             const badgeH = 15;
 
@@ -691,7 +729,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                   className="transition-all duration-300"
                 />
 
-                {/* Score Badge floating on the line midpoint */}
+                {/* Score Badge floating on staggered line position */}
                 <g transform={`translate(${mx}, ${my})`} className="cursor-pointer">
                   <rect
                     x={-badgeW / 2}
@@ -724,7 +762,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
           {/* 3. DRAW ROUND NODES & DETAILED DYNAMIC LABEL BADGES (ZERO AVATAR OVERLAP) */}
           {nodes.map((node) => {
             // Text placement calculation (pointing outward from circle center with generous clearance)
-            const labelOffset = nodeRadius + (isLargeGroup ? 20 : 26);
+            const labelOffset = nodeRadius + (isMegaGroup ? 14 : isLargeGroup ? 18 : 24);
             const angle = Math.atan2(node.y - center, node.x - center);
             const labelX = node.x + labelOffset * Math.cos(angle);
             const labelY = node.y + labelOffset * Math.sin(angle);
@@ -827,16 +865,16 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
 
                 {/* NICKNAME & SCORE PILL (Completely Outside Circle, ZERO Overlap) */}
                 <foreignObject
-                  x={labelX - 38}
+                  x={labelX - (isMegaGroup ? 32 : 38)}
                   y={labelY - (asymmetricInfo ? 18 : 10)}
-                  width="76"
+                  width={isMegaGroup ? "64" : "76"}
                   height={asymmetricInfo ? "36" : "22"}
                   className="overflow-visible pointer-events-none select-none transition-all duration-300"
                   opacity={isConnected ? 1 : 0.25}
                 >
                   <div className="flex flex-col items-center justify-center space-y-0.5">
                     {/* Nickname pill */}
-                    <div className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight shadow-md truncate text-center w-auto max-w-[70px] border ${
+                    <div className={`px-1.5 py-0.5 rounded-full ${isMegaGroup ? "text-[8.5px]" : "text-[10px]"} font-bold tracking-tight shadow-xs truncate text-center w-auto max-w-[62px] border ${
                       isSelected ? "bg-seal text-white border-seal ring-2 ring-seal/20" : "bg-white text-ink border-line"
                     }`}>
                       {node.nickname}
@@ -1179,22 +1217,22 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
       ) : (
         <div className="space-y-4 pt-2 w-full">
           {/* Legend */}
-          <div className="flex flex-wrap justify-center items-center gap-x-3.5 gap-y-1.5 text-[11px] text-ink-soft py-1 border-t border-b border-line">
-            <div className="flex items-center space-x-1.5">
-              <span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: "#B3382C" }} />
-              <span className="font-semibold text-seal">90점 이상 (환상 시너지)</span>
+          <div className="flex flex-wrap justify-center items-center gap-x-2.5 gap-y-1 text-[10.5px] text-ink-soft py-1.5 border-t border-b border-line/60">
+            <div className="flex items-center space-x-1">
+              <span className="w-2.5 h-2.5 rounded-full inline-block shadow-xs" style={{ backgroundColor: "#B3382C" }} />
+              <span className="font-semibold text-seal">90점+ 환상 케미</span>
             </div>
-            <div className="flex items-center space-x-1.5">
-              <span className="w-2.5 h-2.5 rounded-full inline-block shadow-sm" style={{ backgroundColor: "#2D6A4F" }} />
-              <span className="font-medium text-ink">75–89점 (상생 케미)</span>
+            <div className="flex items-center space-x-1">
+              <span className="w-2.5 h-2.5 rounded-full inline-block shadow-xs" style={{ backgroundColor: "#2D6A4F" }} />
+              <span className="font-medium text-ink">75~89점 상생</span>
             </div>
-            <div className="flex items-center space-x-1.5">
+            <div className="flex items-center space-x-1">
               <span className="w-2.5 h-2.5 rounded-full inline-block opacity-75" style={{ backgroundColor: "#4A4E69" }} />
-              <span>50–74점 (조화)</span>
+              <span>50~74점 조화</span>
             </div>
-            <div className="flex items-center space-x-1.5">
+            <div className="flex items-center space-x-1">
               <span className="w-2.5 h-2.5 rounded-full inline-block opacity-50" style={{ backgroundColor: "#8D99AE" }} />
-              <span>50점 미만 (보완 필요)</span>
+              <span>50점 미만</span>
             </div>
           </div>
 
@@ -1237,49 +1275,55 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                       setSelectedNodeId(nodeA.id);
                       setRelationFilter("all");
                     }}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between hover:shadow-md ${
-                      isTop1 ? "bg-seal/5 border-seal/30 ring-1 ring-seal/20" : "bg-sunken border-line hover:border-ink/20"
+                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between hover:shadow-md ${
+                      isTop1 ? "bg-seal/5 border-seal/30 ring-1 ring-seal/20 shadow-xs" : "bg-sunken border-line hover:border-ink/20"
                     }`}
                   >
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-ink">{rankMedals[idx] || "✨"} {idx + 1}위 환상 케미</span>
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                        <span className="text-xs font-bold text-ink flex items-center gap-1">
+                          <span>{rankMedals[idx] || "✨"}</span>
+                          <span>{idx + 1}위 환상 케미</span>
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-extrabold ${
                           pair.score >= 90 ? "bg-seal text-white" : "bg-ink text-paper"
                         }`}>
                           {pair.score}점
                         </span>
                       </div>
 
-                      {/* Avatars & Names */}
-                      <div className="flex items-center justify-center gap-2.5 my-1">
-                        <div className="flex flex-col items-center">
-                          <div className="w-9 h-9 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
+                      {/* Avatars & Names - Guaranteed Zero Truncation */}
+                      <div className="flex items-center justify-center gap-3 my-2 w-full">
+                        <div className="flex flex-col items-center min-w-[68px] shrink-0">
+                          <div className="w-10 h-10 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
                             {nodeA.imageSrc ? (
                               <img src={nodeA.imageSrc} alt="" crossOrigin="anonymous" className="w-full h-full object-cover" />
                             ) : (
                               <span>{nodeA.emoji || "👤"}</span>
                             )}
                           </div>
-                          <span className="text-[11px] font-semibold text-ink mt-0.5 max-w-[70px] truncate">{nodeA.nickname}</span>
+                          <span className="text-xs font-bold text-ink mt-1 text-center whitespace-nowrap">{nodeA.nickname}</span>
                         </div>
 
-                        <Heart className={`w-4 h-4 ${isTop1 ? "text-seal animate-pulse" : "text-ink-faint"}`} />
+                        <div className="flex flex-col items-center shrink-0 px-1">
+                          <Heart className={`w-4 h-4 ${isTop1 ? "text-seal fill-seal/20 animate-pulse" : "text-ink-faint"}`} />
+                          <span className="text-[9px] font-mono text-seal font-bold mt-0.5">상생 케미</span>
+                        </div>
 
-                        <div className="flex flex-col items-center">
-                          <div className="w-9 h-9 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
+                        <div className="flex flex-col items-center min-w-[68px] shrink-0">
+                          <div className="w-10 h-10 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
                             {nodeB.imageSrc ? (
                               <img src={nodeB.imageSrc} alt="" crossOrigin="anonymous" className="w-full h-full object-cover" />
                             ) : (
                               <span>{nodeB.emoji || "👤"}</span>
                             )}
                           </div>
-                          <span className="text-[11px] font-semibold text-ink mt-0.5 max-w-[70px] truncate">{nodeB.nickname}</span>
+                          <span className="text-xs font-bold text-ink mt-1 text-center whitespace-nowrap">{nodeB.nickname}</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-2 pt-2 border-t border-line/60 text-[10.5px] text-ink-soft text-center leading-tight">
+                    <div className="mt-2.5 pt-2 border-t border-line/60 text-[11px] text-ink-soft text-center leading-normal">
                       {pair.score >= 90
                         ? "오행과 성향이 완벽히 맞물리는 모임의 특급 시너지 엔진!"
                         : "서로에게 부족한 기운을 든든하게 채워주는 상생 케미"}
