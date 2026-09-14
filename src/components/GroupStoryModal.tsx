@@ -6,6 +6,7 @@ import { getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS, ROLE_RING_COLOR 
 import { getMemberNickname, getMemberElement } from "../utils/memberHelper";
 import { calculateGroupAwards, AwardItem, calculateMemberSals } from "../utils/shinsalCalculator";
 import { generateDynamicPairCompatibility, isDummyPair } from "../utils/pairChemistry";
+import { generateDedicatedChemistryCard } from "../utils/cardGenerator";
 
 interface GroupStoryModalProps {
   isOpen: boolean;
@@ -401,57 +402,72 @@ export default function GroupStoryModal({
         })
       );
 
-      // High quality 9:16 capture
-      const canvas = await html2canvas(storyCardRef.current, {
-        scale: 2.5,
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: "#06080e",
-        logging: false,
-        onclone: (clonedDoc, clonedElement) => {
-          try {
-            const originalStyles = document.querySelectorAll("style");
-            originalStyles.forEach((styleTag) => {
-              clonedDoc.head.appendChild(styleTag.cloneNode(true));
-            });
-          } catch (e) {
-            console.warn("Failed to clone styles in story modal:", e);
-          }
-
-          try {
-            clonedElement.querySelectorAll("[data-capture-hide]").forEach((el) => el.remove());
-          } catch (e) {
-            console.warn("Failed to remove data-capture-hide:", e);
-          }
-
-          let compiledCss = "";
-          try {
-            for (let i = 0; i < document.styleSheets.length; i++) {
-              try {
-                const sheet = document.styleSheets[i];
-                const rules = sheet.cssRules || sheet.rules;
-                if (rules) {
-                  for (let j = 0; j < rules.length; j++) {
-                    compiledCss += rules[j].cssText + "\n";
-                  }
-                }
-              } catch (sheetErr) {
-                // Ignore SecurityError
-              }
-            }
-          } catch (e) {}
-
-          if (compiledCss) {
+      let dataUrl = "";
+      if (activeTab === "pair") {
+        const generated = await generateDedicatedChemistryCard({
+          roomTitle: roomTitle || "우리 모임",
+          groupScore: groupScore || 95,
+          members: allMembers,
+          m1: memberA,
+          m2: memberB,
+          pairScore: pair6Categories.score,
+          pairLabel: pair6Categories.label,
+          pairDesc: pair6Categories.desc,
+        });
+        dataUrl = generated.dataUrl;
+      } else {
+        // High quality 9:16 capture for group presets
+        const canvas = await html2canvas(storyCardRef.current, {
+          scale: 2.5,
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: "#06080e",
+          logging: false,
+          onclone: (clonedDoc, clonedElement) => {
             try {
-              const styleTag = clonedDoc.createElement("style");
-              styleTag.innerHTML = compiledCss;
-              clonedDoc.head.appendChild(styleTag);
-            } catch (e) {}
-          }
-        },
-      });
+              const originalStyles = document.querySelectorAll("style");
+              originalStyles.forEach((styleTag) => {
+                clonedDoc.head.appendChild(styleTag.cloneNode(true));
+              });
+            } catch (e) {
+              console.warn("Failed to clone styles in story modal:", e);
+            }
 
-      const dataUrl = canvas.toDataURL("image/png");
+            try {
+              clonedElement.querySelectorAll("[data-capture-hide]").forEach((el) => el.remove());
+            } catch (e) {
+              console.warn("Failed to remove data-capture-hide:", e);
+            }
+
+            let compiledCss = "";
+            try {
+              for (let i = 0; i < document.styleSheets.length; i++) {
+                try {
+                  const sheet = document.styleSheets[i];
+                  const rules = sheet.cssRules || sheet.rules;
+                  if (rules) {
+                    for (let j = 0; j < rules.length; j++) {
+                      compiledCss += rules[j].cssText + "\n";
+                    }
+                  }
+                } catch (sheetErr) {
+                  // Ignore SecurityError
+                }
+              }
+            } catch (e) {}
+
+            if (compiledCss) {
+              try {
+                const styleTag = clonedDoc.createElement("style");
+                styleTag.innerHTML = compiledCss;
+                clonedDoc.head.appendChild(styleTag);
+              } catch (e) {}
+            }
+          },
+        });
+        dataUrl = canvas.toDataURL("image/png");
+      }
+
       setCapturedImageUrl(dataUrl);
 
       const filename = activeTab === "pair"

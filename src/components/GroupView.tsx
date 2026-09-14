@@ -21,6 +21,7 @@ import ChemistryMatrix from "./ChemistryMatrix";
 import IljuEncyclopediaModal from "./IljuEncyclopediaModal";
 import PairChemistryModal from "./PairChemistryModal";
 import { getIljuMeta } from "../utils/iljuData";
+import { generateDedicatedChemistryCard } from "../utils/cardGenerator";
 
 const isMbtiRegistered = (m?: any): boolean => {
   if (!m || !m.mbti) return false;
@@ -1012,241 +1013,78 @@ export default function GroupView({ code }: GroupViewProps) {
     autoTrigger();
   }, [members, room, rawAnalysisDoc, pageLoading, analyzing]);
 
-  // Image capture & sharing utilizing html2canvas
+  // Dedicated Chemistry Card generation using Pure Canvas 2D (100% reliable, immune to html2canvas DOM parsing errors)
   const handleShareResult = async () => {
-    if (!captureRef.current) return;
-    setShareStatus("캡처화면 준비 중...");
+    if (members.length < 2) return;
+    setShareStatus("고화질 카드 생성 중...");
 
     logAnalyticsEvent({
       eventName: "result_capture_click",
       category: "viral",
       metadata: { memberCount: members.length, roomTitle: room?.title },
-      roomCode: code
+      roomCode: code,
     });
 
     try {
-      // 1. Ensure all standard <img> elements are fully loaded
-      const allImgs = Array.from(captureRef.current.querySelectorAll("img")) as HTMLImageElement[];
-      await Promise.all(
-        allImgs.map((img) => {
-          if (img.complete && img.naturalWidth > 0) return Promise.resolve();
-          return new Promise((res) => {
-            img.onload = () => res(null);
-            img.onerror = () => res(null);
-          });
-        })
-      );
+      // Pick top synergy pair or first two members
+      const topPair = sortedPairs.length > 0 ? sortedPairs[0] : null;
+      const m1 = (topPair ? findMemberObj(topPair.member_id_1) : null) || members[0];
+      const m2 = (topPair ? findMemberObj(topPair.member_id_2) : null) || members[1] || members[0];
 
-      // 2. Pre-convert any remaining SVG <image> elements to Data URLs if any
-      const svgImages = Array.from(captureRef.current.querySelectorAll("svg image")) as SVGElement[];
-      const originalAttrs = new Map<SVGElement, { href: string | null; xlink: string | null }>();
-
-      const convertToDataUrl = (url: string): Promise<string> => {
-        return new Promise((resolve) => {
-          const tempImg = new Image();
-          tempImg.crossOrigin = "anonymous";
-          tempImg.onload = () => {
-            try {
-              const c = document.createElement("canvas");
-              c.width = tempImg.naturalWidth || 320;
-              c.height = tempImg.naturalHeight || 320;
-              const ctx = c.getContext("2d");
-              if (!ctx) return resolve(url);
-              ctx.drawImage(tempImg, 0, 0);
-              resolve(c.toDataURL("image/png"));
-            } catch (e) {
-              resolve(url);
-            }
-          };
-          tempImg.onerror = () => resolve(url);
-          tempImg.src = url;
-        });
-      };
-
-      await Promise.all(
-        svgImages.map(async (imgEl: SVGElement) => {
-          const href = imgEl.getAttribute("href") || imgEl.getAttribute("xlink:href");
-          if (href && !href.startsWith("data:")) {
-            const dataUrl = await convertToDataUrl(href);
-            if (dataUrl && dataUrl.startsWith("data:")) {
-              originalAttrs.set(imgEl, {
-                href: imgEl.getAttribute("href"),
-                xlink: imgEl.getAttribute("xlink:href"),
-              });
-              imgEl.setAttribute("href", dataUrl);
-              imgEl.setAttribute("xlink:href", dataUrl);
-            }
-          }
-        })
-      );
-
-      // Ensure fonts are loaded before capture
-      if (document.fonts && document.fonts.ready) {
-        await document.fonts.ready;
-      }
-
-      // Create high-contrast canvas capture with auto crop of interactive noise
-      const canvas = await html2canvas(captureRef.current, {
-        scale: 2, // Double resolution for ultra crisp vector render
-        backgroundColor: "#FCFCFA",
-        useCORS: true,
-        allowTaint: false,
-        logging: false,
-        onclone: (clonedDoc, clonedElement) => {
-          // 1. Copy all dynamic style tags from original head to cloned head
-          try {
-            const originalStyles = document.querySelectorAll("style");
-            originalStyles.forEach((styleTag) => {
-              clonedDoc.head.appendChild(styleTag.cloneNode(true));
-            });
-          } catch (e) {
-            console.warn("Failed to clone style tags in GroupView:", e);
-          }
-
-          // 2. Explicitly serialize rules from linked stylesheets safely
-          let compiledCss = "";
-          try {
-            for (let i = 0; i < document.styleSheets.length; i++) {
-              try {
-                const sheet = document.styleSheets[i];
-                const rules = sheet.cssRules || sheet.rules;
-                if (rules) {
-                  for (let j = 0; j < rules.length; j++) {
-                    compiledCss += rules[j].cssText + "\n";
-                  }
-                }
-              } catch (sheetErr) {
-                // Ignore SecurityError
-              }
-            }
-          } catch (e) {
-            console.warn("Failed to extract stylesheet rules in GroupView:", e);
-          }
-
-          if (compiledCss) {
-            try {
-              const styleTag = clonedDoc.createElement("style");
-              styleTag.innerHTML = compiledCss;
-              clonedDoc.head.appendChild(styleTag);
-
-              const innerStyleTag = clonedDoc.createElement("style");
-              innerStyleTag.innerHTML = compiledCss;
-              clonedElement.appendChild(innerStyleTag);
-            } catch (e) {
-              console.warn("Failed to inject style blocks in GroupView:", e);
-            }
-          }
-
-          // 3. VIRAL CROP CARD FORMATTING:
-          // A. Physically remove all interactive / non-viral noise from cloned DOM
-          try {
-            const hideElements = clonedElement.querySelectorAll("[data-capture-hide]");
-            hideElements.forEach((el) => {
-              el.remove();
-            });
-          } catch (e) {
-            console.warn("Failed to remove data-capture-hide elements:", e);
-          }
-
-          // B. Enforce fixed mobile viral card width (420px) and clean typography
-          try {
-            (clonedElement as HTMLElement).style.width = "420px";
-            (clonedElement as HTMLElement).style.maxWidth = "420px";
-            (clonedElement as HTMLElement).style.minWidth = "420px";
-            (clonedElement as HTMLElement).style.boxSizing = "border-box";
-            (clonedElement as HTMLElement).style.margin = "0 auto";
-            (clonedElement as HTMLElement).style.padding = "20px 16px";
-            (clonedElement as HTMLElement).style.borderRadius = "20px";
-
-            const disableAnimStyle = clonedDoc.createElement("style");
-            disableAnimStyle.innerHTML = `
-              *, *::before, *::after {
-                transition: none !important;
-                transition-duration: 0s !important;
-                animation: none !important;
-                animation-duration: 0s !important;
-              }
-              [data-capture-hide] {
-                display: none !important;
-              }
-            `;
-            clonedDoc.head.appendChild(disableAnimStyle);
-            clonedElement.appendChild(disableAnimStyle.cloneNode(true));
-
-            // C. Guarantee TOP 1 Synergy Card expands to full 100% width
-            const topGrid = clonedElement.querySelector(".top-synergy-grid");
-            if (topGrid) {
-              (topGrid as HTMLElement).style.display = "block";
-              (topGrid as HTMLElement).style.width = "100%";
-              const firstButton = topGrid.querySelector("button");
-              if (firstButton) {
-                (firstButton as HTMLElement).style.display = "block";
-                (firstButton as HTMLElement).style.width = "100%";
-                (firstButton as HTMLElement).style.maxWidth = "100%";
-                (firstButton as HTMLElement).style.boxSizing = "border-box";
-              }
-            }
-          } catch (e) {
-            console.warn("Failed to inject capture layout styles:", e);
-          }
-        }
+      const { dataUrl, blob } = await generateDedicatedChemistryCard({
+        roomTitle: room?.title || "우리 모임",
+        groupScore: displayHarmoniousScore,
+        members,
+        m1,
+        m2,
+        pairScore: topPair ? topPair.score : 96,
+        pairLabel: topPair?.label,
+        pairDesc: topPair?.description,
       });
 
-      // Convert canvas to blob
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          setError("캡처 이미지 생성에 실패했습니다.");
+      setCapturedImgUrl(dataUrl);
+
+      const file = new File([blob], `saju_chemistry_${code || "result"}.png`, { type: "image/png" });
+      const isInstagramOrKakao = /instagram|kakaotalk/i.test(navigator.userAgent);
+
+      if (
+        !isInstagramOrKakao &&
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare({ files: [file] }) &&
+        /mobile|android|iphone|ipad/i.test(navigator.userAgent)
+      ) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `${room?.title || "모임"} 사주 종합 케미 카드`,
+            text: "우리 모임 사주 궁합 카드를 확인해 보세요!",
+          });
+          setShareStatus("인연 공유완료!");
+        } catch (shareErr) {
+          console.log("Navigator share failed, fallback to long-press guide", shareErr);
+          setShowLongPressGuide(true);
           setShareStatus("");
-          return;
         }
-
-        const dataUrl = canvas.toDataURL("image/png");
-        setCapturedImgUrl(dataUrl);
-
-        const file = new File([blob], `saju_chemistry_${code}.png`, { type: "image/png" });
-        const isInstagramOrKakao = /instagram|kakaotalk/i.test(navigator.userAgent);
-
-        // Mobile Native Share Check
-        if (
-          !isInstagramOrKakao &&
-          navigator.share && 
-          navigator.canShare && 
-          navigator.canShare({ files: [file] }) &&
-          /mobile|android|iphone|ipad/i.test(navigator.userAgent)
-        ) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: `${room?.title || "모임"} 사주 종합 궁합`,
-              text: "우리 모임 사주 궁합 결과를 확인해 보세요.",
-            });
-            setShareStatus("인연 공유완료!");
-          } catch (shareErr) {
-            console.log("Navigator share failed, fallback to long-press guide", shareErr);
-            setShowLongPressGuide(true);
-            setShareStatus("");
-          }
+      } else {
+        if (!/mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
+          // Desktop: Download file directly
+          const link = document.createElement("a");
+          link.href = dataUrl;
+          link.download = `saju_chemistry_${code || "result"}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setShareStatus("결과 이미지 저장됨!");
         } else {
-          if (!/mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
-            // Desktop: Download file directly
-            const link = document.createElement("a");
-            link.href = dataUrl;
-            link.download = `saju_group_chemistry_${code}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            setShareStatus("결과 이미지 저장됨!");
-          } else {
-            // Mobile / Kakao / Instagram in-app browser: Show long press guide
-            setShowLongPressGuide(true);
-            setShareStatus("");
-          }
+          // Mobile in-app browser: Show long press guide
+          setShowLongPressGuide(true);
+          setShareStatus("");
         }
-      }, "image/png");
-
+      }
     } catch (err) {
-      console.error("Failed to capture group dashboard:", err);
-      setShareStatus("캡처 오류 발생");
+      console.error("Failed to generate dedicated chemistry card:", err);
+      setShareStatus("생성 오류 발생");
     } finally {
       setTimeout(() => setShareStatus(""), 2000);
     }
