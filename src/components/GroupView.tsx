@@ -469,7 +469,7 @@ export default function GroupView({ code }: GroupViewProps) {
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
   const [pairViewMode, setPairViewMode] = useState<"matrix" | "cards">("matrix");
   const [isIljuModalOpen, setIsIljuModalOpen] = useState(false);
-  const [selectedPairForModal, setSelectedPairForModal] = useState<{ m1: Member; m2: Member } | null>(null);
+  const [selectedPairForModal, setSelectedPairForModal] = useState<{ m1: Member; m2: Member; pair?: any } | null>(null);
 
   // Accordion state for 1:1 pairs list (default: expand 1st pair)
   const [expandedPairIndices, setExpandedPairIndices] = useState<Set<number>>(() => new Set([0]));
@@ -2507,20 +2507,31 @@ export default function GroupView({ code }: GroupViewProps) {
       />
 
       {/* 1:1 Chemistry Detail BottomSheet triggered from Matrix or Podium */}
-      {selectedPairForModal && (
-        <PairChemistryModal
-          isOpen={Boolean(selectedPairForModal)}
-          onClose={() => setSelectedPairForModal(null)}
-          myMember={selectedPairForModal.m1}
-          targetMember={selectedPairForModal.m2}
-          roomCode={code}
-          isSecretUnlocked={isSecretUnlocked}
-          onOpenShop={(tab) => {
-            setShopInitialTab(tab);
-            setIsShopOpen(true);
-          }}
-        />
-      )}
+      {selectedPairForModal && (() => {
+        const matchedPair = selectedPairForModal.pair || upgradedPairs.find(p => {
+          const m1Id = selectedPairForModal.m1.id;
+          const m2Id = selectedPairForModal.m2.id;
+          const p1 = p.member_id_1;
+          const p2 = p.member_id_2;
+          return (p1 === m1Id && p2 === m2Id) || (p1 === m2Id && p2 === m1Id);
+        });
+
+        return (
+          <PairChemistryModal
+            isOpen={Boolean(selectedPairForModal)}
+            onClose={() => setSelectedPairForModal(null)}
+            myMember={selectedPairForModal.m1}
+            targetMember={selectedPairForModal.m2}
+            pair={matchedPair}
+            roomCode={code}
+            isSecretUnlocked={isSecretUnlocked}
+            onOpenShop={(tab) => {
+              setShopInitialTab(tab);
+              setIsShopOpen(true);
+            }}
+          />
+        );
+      })()}
     </Layout>
   );
 }

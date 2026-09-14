@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Member } from "../types";
-import { X, ShieldCheck, Share2, Check, Sparkles, CheckCircle2, HeartHandshake, Compass } from "lucide-react";
+import { X, ShieldCheck, Share2, Check, Sparkles, CheckCircle2, HeartHandshake, Compass, HelpCircle } from "lucide-react";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent, checkProductUnlock } from "../lib/firebase";
+import { generateDynamicPairCompatibility } from "../utils/pairChemistry";
 import ZodiacAvatar from "./ZodiacAvatar";
 import BottomSheet from "./BottomSheet";
 
@@ -15,6 +16,8 @@ interface PairChemistryModalProps {
   isSecretUnlocked?: boolean;
   onOpenShop?: (tab: "secret" | "pdf" | "group") => void;
   onJoinPrompt?: () => void;
+  pair?: any;
+  initialScore?: number;
 }
 
 function getWesternZodiac(birthDateStr: string): { name: string; emoji: string } {
@@ -40,97 +43,21 @@ function getWesternZodiac(birthDateStr: string): { name: string; emoji: string }
   return { name: "알 수 없음", emoji: "⭐" };
 }
 
-function calculatePairDetail(m1: Member, m2: Member) {
-  const getDeterministicHashScore = (str1: string, str2: string, seed: number, min = 68, max = 96) => {
-    const combined = [str1, str2].sort().join("");
-    let hash = 0;
-    for (let i = 0; i < combined.length; i++) {
-      hash = combined.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return Math.abs((hash + seed) % (max - min + 1)) + min;
-  };
+function calculatePairDetail(m1: Member, m2: Member, passedPair?: any, initialScore?: number) {
+  const dynamic = generateDynamicPairCompatibility(m1, m2);
+  const targetPair = passedPair || dynamic;
 
-  const m1Id = m1.id || "m1";
-  const m2Id = m2.id || "m2";
+  // Priority: initialScore > passedPair.score > targetPair.avgScore > dynamic.avgScore
+  const totalScore =
+    typeof initialScore === "number"
+      ? initialScore
+      : typeof targetPair.score === "number"
+        ? targetPair.score
+        : (targetPair.avgScore ?? dynamic.avgScore);
 
-  const g1 = m1.saju?.daymaster?.gan || "무토";
-  const g2 = m2.saju?.daymaster?.gan || "기토";
-  const elem1 = m1.saju?.daymaster?.element || "토";
-  const elem2 = m2.saju?.daymaster?.element || "토";
+  const label = targetPair.label || dynamic.label;
+  const desc = targetPair.description || dynamic.description;
 
-  const GAN_META: Record<string, { nick: string; desc: string }> = {
-    "갑목": { nick: "우직한 거목", desc: "곧고 굳센 기상과 진취적인 리더십" },
-    "을목": { nick: "유연한 화초", desc: "끈질긴 친화력과 부드러운 유연성" },
-    "병화": { nick: "눈부신 태양", desc: "사방을 비추는 열정과 솔직한 사교성" },
-    "정화": { nick: "따뜻한 등불", desc: "내면을 세심하게 읽는 지혜와 강한 집중력" },
-    "무토": { nick: "광활한 태산", desc: "흔들리지 않는 든든한 신용과 묵직한 포용력" },
-    "기토": { nick: "기름진 정원", desc: "주변을 알뜰살뜰 보살피는 포근함과 대처능력" },
-    "경금": { nick: "강인한 원석", desc: "우직한 뚝심과 확실한 의리, 칼날 같은 단호함" },
-    "신금": { nick: "반짝이는 보석", desc: "눈부신 지적 영민함과 세심하고 정교한 완벽주의" },
-    "임수": { nick: "도도한 강물", desc: "웅장한 포용력과 물길처럼 흐르는 깊은 지혜" },
-    "계수": { nick: "촉촉한 이슬", desc: "메마른 세상을 적시는 맑고 지혜로운 임기응변" }
-  };
-
-  const meta1 = GAN_META[g1] || { nick: `${elem1}기운`, desc: `${elem1}의 기운` };
-  const meta2 = GAN_META[g2] || { nick: `${elem2}기운`, desc: `${elem2}의 기운` };
-
-  const isGeneratingSajuSupport =
-    (elem1 === "목" && elem2 === "화") ||
-    (elem1 === "화" && elem2 === "토") ||
-    (elem1 === "토" && elem2 === "금") ||
-    (elem1 === "금" && elem2 === "수") ||
-    (elem1 === "수" && elem2 === "목");
-
-  const isReceivingSajuSupport =
-    (elem2 === "목" && elem1 === "화") ||
-    (elem2 === "화" && elem1 === "토") ||
-    (elem2 === "토" && elem1 === "금") ||
-    (elem2 === "금" && elem1 === "수") ||
-    (elem2 === "수" && elem1 === "목");
-
-  const isSajuClash =
-    (elem1 === "목" && elem2 === "토") ||
-    (elem1 === "토" && elem2 === "수") ||
-    (elem1 === "수" && elem2 === "화") ||
-    (elem1 === "화" && elem2 === "금") ||
-    (elem1 === "금" && elem2 === "목") ||
-    (elem2 === "목" && elem1 === "토") ||
-    (elem2 === "토" && elem1 === "수") ||
-    (elem2 === "수" && elem1 === "화") ||
-    (elem2 === "화" && elem1 === "금") ||
-    (elem2 === "금" && elem1 === "목");
-
-  let sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 11, 75, 96);
-  let sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 33, 75, 96);
-  let label = "상생과 화합의 인연 메이트";
-  let desc = "";
-  let sajuDesc = "";
-
-  if (isGeneratingSajuSupport) {
-    label = "오행상생의 창조적 파트너";
-    desc = `${m1.nickname}님의 ${meta1.nick} 성정이 ${m2.nickname}님의 ${meta2.nick} 성정을 든든하게 촉진해 주는 상생 조합입니다. 두 분이 함께하면 아이디어가 구체적인 결실로 이어집니다.`;
-    sajuDesc = `${m1.nickname}님의 '${elem1}' 기운이 ${m2.nickname}님의 '${elem2}' 기운을 생(生)해 주어, 대화를 나눌수록 서로에게 추진력과 영감을 불어넣습니다.`;
-  } else if (isReceivingSajuSupport) {
-    label = "따뜻한 조력과 든든한 상생 기류";
-    desc = `${m2.nickname}님의 ${meta2.nick} 기운이 ${m1.nickname}님의 ${meta1.nick} 기질을 자상하게 품어주고 힘을 실어주는 신뢰의 인연입니다.`;
-    sajuDesc = `${m2.nickname}님의 '${elem2}' 기운이 ${m1.nickname}님의 '${elem1}' 기운을 든든히 보살펴 주어, 심리적 안정감과 깊은 신뢰를 나누게 됩니다.`;
-  } else if (elem1 === elem2) {
-    label = "거울을 보듯 통하는 소울 조합";
-    desc = `서로 같은 '${elem1}' 오행을 공유하여 긴 설명 없이도 마음이 통하는 깊은 동질감과 유대감을 나눕니다.`;
-    sajuDesc = `같은 성향의 궤도를 달리는 동반자로서 서로의 장점을 거울처럼 비춰주며 함께 성장하는 화합의 기류입니다.`;
-  } else if (isSajuClash) {
-    label = "긴장 속에서 꽃피는 혁신 케미";
-    desc = `서로 다른 관점과 오행 기운을 지녀 긴장감이 돌지만, 적절한 존중을 유지하면 서로의 맹점을 채워주는 좋은 지적 파트너가 됩니다.`;
-    sajuDesc = `${elem1}과 ${elem2}의 기운이 만나 팽팽한 자극을 형성하므로, 함께 프로젝트를 하거나 토론할 때 독창적인 해법을 끌어냅니다.`;
-  } else {
-    label = "서로의 빈틈을 채우는 균형의 인연";
-    desc = `${m1.nickname}님과 ${m2.nickname}님은 서로 다른 매력을 지녀 함께 있을 때 각자의 시야를 넓혀주는 조화로운 조합입니다.`;
-    sajuDesc = `오행의 순환 속에서 서로에게 새로운 자극과 보완적 안목을 제시하는 인연입니다.`;
-  }
-
-  const totalScore = Math.round((sajuScore1to2 + sajuScore2to1) / 2);
-
-  // Zodiac 4-element check
   const z1 = getWesternZodiac(m1.birth_date);
   const z2 = getWesternZodiac(m2.birth_date);
   const ZODIAC_ELEMENTS: Record<string, string> = {
@@ -142,30 +69,13 @@ function calculatePairDetail(m1: Member, m2: Member) {
   const ze1 = ZODIAC_ELEMENTS[z1.name] || "원소";
   const ze2 = ZODIAC_ELEMENTS[z2.name] || "원소";
 
-  let zodiacDesc = `${z1.name}(${ze1})와 ${z2.name}(${ze2})의 만남으로 서로 다른 별자리 에너지를 교환합니다.`;
-  if (ze1 === ze2) {
-    zodiacDesc = `같은 '${ze1}' 성좌 에너지를 공유하여 정서적 공감대와 직관적 소통이 빠르게 이루어집니다.`;
-  } else if ((ze1 === "불(火)" && ze2 === "바람(風)") || (ze1 === "바람(風)" && ze2 === "불(火)")) {
-    zodiacDesc = "바람이 불꽃을 키우듯, 대화할수록 열정과 아이디어가 샘솟는 별자리 조합입니다.";
-  } else if ((ze1 === "흙(土)" && ze2 === "물(水)") || (ze1 === "물(水)" && ze2 === "흙(土)")) {
-    zodiacDesc = "흙에 물이 스며들듯, 서로에게 안정감과 영감을 주는 조화로운 별자리입니다.";
-  }
+  const sajuScore1to2 = targetPair.saju?.score_1_to_2 ?? targetPair.saju?.score1to2 ?? dynamic.saju.score1to2;
+  const sajuScore2to1 = targetPair.saju?.score_2_to_1 ?? targetPair.saju?.score2to1 ?? dynamic.saju.score2to1;
+  const sajuDesc = targetPair.saju?.description ?? dynamic.saju.desc;
+  const zodiacDesc = targetPair.zodiac?.description ?? dynamic.zodiac.desc;
 
-  // MBTI
   const hasMbtiBoth = !!(m1.mbti && m2.mbti && m1.mbti !== "미입력" && m2.mbti !== "미입력");
-  let mbtiDesc = "두 분의 MBTI 성향이 등록되면 심리적 행동 패턴과 대화법을 추가로 분석해 드립니다.";
-  if (hasMbtiBoth) {
-    const mb1 = (m1.mbti || "").toUpperCase();
-    const mb2 = (m2.mbti || "").toUpperCase();
-    const sameCount = (mb1[0] === mb2[0] ? 1 : 0) + (mb1[1] === mb2[1] ? 1 : 0) + (mb1[2] === mb2[2] ? 1 : 0) + (mb1[3] === mb2[3] ? 1 : 0);
-    if (sameCount >= 3) {
-      mbtiDesc = `${mb1}와 ${mb2}의 만남으로 사고방식과 가치관이 흡사하여 첫 만남부터 오랜 친구처럼 편안함을 느낍니다.`;
-    } else if (sameCount === 2) {
-      mbtiDesc = `${mb1}와 ${mb2}의 조합은 공통점과 상반된 매력이 균형을 이루어 서로에게 지루할 틈이 없는 관계입니다.`;
-    } else {
-      mbtiDesc = `${mb1}와 ${mb2}는 서로 다른 심리 유형을 지녀 새로운 시야를 열어주는 지적 자극 파트너입니다.`;
-    }
-  }
+  const mbtiDesc = targetPair.mbti?.description ?? dynamic.mbti.desc;
 
   return {
     totalScore,
@@ -199,8 +109,11 @@ export default function PairChemistryModal({
   isSecretUnlocked = false,
   onOpenShop,
   onJoinPrompt,
+  pair,
+  initialScore,
 }: PairChemistryModalProps) {
   const [activeTab, setActiveTab] = useState<"summary" | "ohaeng" | "psychology">("summary");
+  const [showScoreTooltip, setShowScoreTooltip] = useState(false);
   const [shareSuccessMsg, setShareSuccessMsg] = useState("");
   const [unlocked, setUnlocked] = useState<boolean>(() => {
     if (isSecretUnlocked) return true;
@@ -282,7 +195,7 @@ export default function PairChemistryModal({
   }
 
   // Case 2: Both members exist -> Calculate & Display 1:1 Chemistry
-  const analysis = calculatePairDetail(myMember, targetMember);
+  const analysis = calculatePairDetail(myMember, targetMember, pair, initialScore);
 
   const handleShareResult = async () => {
     const currentUrl = window.location.href;
@@ -429,11 +342,44 @@ export default function PairChemistryModal({
           <div className="space-y-3 animate-fade-in">
             {/* Score & Relationship Title */}
             <div className="bg-sunken rounded-xl p-5 space-y-2 text-center">
-              <div className="flex items-center justify-between text-xs text-ink-faint">
-                <span>인연 상생 지수</span>
-                <span className="font-mono text-2xl font-semibold text-ink">
+              <div className="flex items-center justify-between text-xs text-ink-faint relative">
+                <div className="flex items-center gap-1.5">
+                  <span>인연 상생 지수</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowScoreTooltip((prev) => !prev)}
+                    className="p-0.5 text-ink-faint hover:text-seal transition-colors rounded-full focus:outline-none cursor-pointer"
+                    aria-label="점수 산출 기준 안내"
+                    title="점수 산출 기준"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <span className="font-mono text-2xl font-bold text-seal">
                   {analysis.totalScore}점
                 </span>
+
+                {/* Score Calculation Tooltip */}
+                {showScoreTooltip && (
+                  <div
+                    role="tooltip"
+                    className="absolute top-7 left-0 z-30 w-64 p-3 bg-surface border border-line rounded-xl shadow-xl text-left animate-fade-in text-xs space-y-1.5 text-ink"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-seal text-xs">인연 상생 지수 산출 기준</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowScoreTooltip(false)}
+                        className="text-ink-faint hover:text-ink text-xs p-0.5"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <p className="text-ink-soft text-[11px] leading-relaxed">
+                      두 분의 <strong>사주 오행 상생(주는 기운 vs 받는 기운)</strong>과 <strong>서양 별자리 4원소</strong>, <strong>자미두수 명궁</strong>, <strong>MBTI 성향 기질</strong>의 조화를 종합 평가하여 산출한 종합 궁합 점수입니다.
+                    </p>
+                  </div>
+                )}
               </div>
               <h4 className="font-serif text-lg font-semibold text-ink">
                 {analysis.label}

@@ -11,6 +11,7 @@ import ViralCardModal from "./ViralCardModal";
 import GoogleAds from "./GoogleAds";
 import ZodiacAvatar, { spaceImageSrc, SPACE_NAMES, calculateSpaceKey, calculateMemberRole } from "./ZodiacAvatar";
 import { cacheRoomSnapshot, getCachedRoomSnapshot, recordRecentRoom } from "../lib/offlineVault";
+import { generateDynamicPairCompatibility } from "../utils/pairChemistry";
 
 interface RoomViewProps {
   code: string;
@@ -52,13 +53,41 @@ export default function RoomView({ code }: RoomViewProps) {
     setError("");
     setIsRestoredFromCache(false);
 
+    let isMounted = true;
+    let roomFetchFinished = false;
     let latestRoomData: any = null;
 
+    // Retry helper for newly created rooms or transient network blips
+    const fetchRoomWithRetry = async (retries = 2, delay = 400): Promise<any> => {
+      try {
+        const roomRef = doc(db, "rooms", code);
+        const roomSnap = await getDoc(roomRef);
+        if (roomSnap.exists()) {
+          return roomSnap.data();
+        }
+        if (retries > 0) {
+          await new Promise((res) => setTimeout(res, delay));
+          if (!isMounted) return null;
+          return fetchRoomWithRetry(retries - 1, Math.round(delay * 1.5));
+        }
+        return null;
+      } catch (err) {
+        if (retries > 0) {
+          await new Promise((res) => setTimeout(res, delay));
+          if (!isMounted) return null;
+          return fetchRoomWithRetry(retries - 1, Math.round(delay * 1.5));
+        }
+        throw err;
+      }
+    };
+
     // 1. Fetch Room Info
-    const roomRef = doc(db, "rooms", code);
-    getDoc(roomRef)
-      .then((roomSnap) => {
-        if (!roomSnap.exists()) {
+    fetchRoomWithRetry()
+      .then((roomData) => {
+        if (!isMounted) return;
+        roomFetchFinished = true;
+
+        if (!roomData) {
           // Check if we have offline cache
           const cached = getCachedRoomSnapshot(code);
           if (cached && cached.room) {
@@ -72,11 +101,11 @@ export default function RoomView({ code }: RoomViewProps) {
           setLoading(false);
           return;
         }
-        const roomData = roomSnap.data();
+
         latestRoomData = roomData;
         if (roomData && roomData.expire_at) {
           const expireDate = new Date(roomData.expire_at);
-          if (expireDate < new Date()) {
+          if (!isNaN(expireDate.getTime()) && expireDate < new Date()) {
             setError("만료된 모임입니다 (생성 후 30일 경과).");
             setLoading(false);
             return;
@@ -84,6 +113,7 @@ export default function RoomView({ code }: RoomViewProps) {
         }
         const currentRoom = { code, ...roomData } as Room;
         setRoom(currentRoom);
+        setLoading(false);
 
         // Keep local history fresh for ease of re-entry
         if (roomData) {
@@ -93,6 +123,8 @@ export default function RoomView({ code }: RoomViewProps) {
         }
       })
       .catch((err) => {
+        if (!isMounted) return;
+        roomFetchFinished = true;
         console.warn("Network error fetching room, attempting offline cache recovery:", err);
         const cached = getCachedRoomSnapshot(code);
         if (cached && cached.room) {
@@ -109,6 +141,7 @@ export default function RoomView({ code }: RoomViewProps) {
     // 2. Listen to members dynamically in real-time
     const membersCol = collection(db, "rooms", code, "members");
     const unsubscribe = onSnapshot(membersCol, (snapshot) => {
+      if (!isMounted) return;
       const activeMembers: Member[] = [];
       snapshot.forEach((docSnap) => {
         activeMembers.push({ id: docSnap.id, ...docSnap.data() } as Member);
@@ -116,23 +149,33 @@ export default function RoomView({ code }: RoomViewProps) {
       // Sort members (Host or earlier joins first)
       activeMembers.sort((a, b) => b.joined_at?.localeCompare(a.joined_at));
       setMembers(activeMembers);
-      setLoading(false);
+
+      // Only finish loading if room data fetching has also completed (prevents "room not found" flashing)
+      if (roomFetchFinished) {
+        setLoading(false);
+      }
 
       // Cache snapshot for offline resilience
       if (latestRoomData) {
         cacheRoomSnapshot({ code, ...latestRoomData, members: activeMembers } as Room);
       }
     }, (err) => {
+      if (!isMounted) return;
       console.warn("Real-time member listener error:", err);
       const cached = getCachedRoomSnapshot(code);
       if (cached && cached.room && cached.room.members) {
         setMembers(cached.room.members);
         setIsRestoredFromCache(true);
       }
-      setLoading(false);
+      if (roomFetchFinished) {
+        setLoading(false);
+      }
     });
 
-    return () => unsubscribe();
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
   }, [code]);
 
   // Group summary metrics
@@ -727,6 +770,7 @@ export default function RoomView({ code }: RoomViewProps) {
         onClose={() => setIsChemistryModalOpen(false)}
         myMember={myMemberInfo || null}
         targetMember={selectedTargetMember}
+        pair={myMemberInfo && selectedTargetMember ? generateDynamicPairCompatibility(myMemberInfo, selectedTargetMember) : undefined}
         roomCode={code}
         isSecretUnlocked={isSecretUnlocked}
         onOpenShop={(tab) => {
