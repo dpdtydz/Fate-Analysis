@@ -134,7 +134,7 @@ export function shareToKakaoOrClipboard(data: ShareData): Promise<{ success: boo
       try {
         await navigator.share({
           title: data.title,
-          text: `${data.title}\n\n${data.description}\n\n결과 확인하기:`,
+          text: `${data.title}\n\n${data.description}\n\n결과 확인하기:\n${shareUrl}`,
           url: shareUrl,
         });
         resolve({ success: true, method: "web_share" });
@@ -149,7 +149,7 @@ export function shareToKakaoOrClipboard(data: ShareData): Promise<{ success: boo
     }
 
     // 2. Fallback: Copy structured viral message to clipboard
-    const shareText = `[인연사주] ${data.title}\n\n${data.badge ? `${data.badge}\n` : ""}${data.score ? `인연 지수 ${data.score}점\n` : ""}\n"${data.description}"\n\n궁합과 사주 확인하기:\n${shareUrl}`;
+    const shareText = `[인연사주] ${data.title}\n\n${data.badge ? `${data.badge}\n` : ""}${data.score ? `인연 지수 ${data.score}점\n` : ""}\n"${data.description}"\n\n결과 확인하기:\n${shareUrl}`;
 
     try {
       await navigator.clipboard.writeText(shareText);
