@@ -333,10 +333,85 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
       }).filter((p) => p !== null) as any[];
     }
 
-    return activePairs.map((ap) => {
+    return activePairs.map((ap, idx) => {
       const nodeA = nodes.find((n) => n.id === ap.id1);
       const nodeB = nodes.find((n) => n.id === ap.id2);
       if (!nodeA || !nodeB) return null;
+
+      const dx = nodeB.x - nodeA.x;
+      const dy = nodeB.y - nodeA.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist === 0) return null;
+
+      const midX = (nodeA.x + nodeB.x) / 2;
+      const midY = (nodeA.y + nodeB.y) / 2;
+
+      // Calculate angle difference between nodes around center
+      const angleA = Math.atan2(nodeA.y - center, nodeA.x - center);
+      const angleB = Math.atan2(nodeB.y - center, nodeB.x - center);
+      let diffAngle = Math.abs(angleA - angleB);
+      if (diffAngle > Math.PI) diffAngle = 2 * Math.PI - diffAngle;
+
+      // Determine control point for curved line to avoid overlapping outer boundaries & adjacent nodes
+      let cx = midX;
+      let cy = midY;
+
+      const isAdjacentOrClose = diffAngle < Math.PI * 0.45;
+      const isOpposite = diffAngle > Math.PI * 0.8;
+
+      if (isAdjacentOrClose) {
+        // Pull inward towards center to avoid encroaching adjacent nodes and circumference
+        const pull = 0.38;
+        cx = midX * (1 - pull) + center * pull;
+        cy = midY * (1 - pull) + center * pull;
+      } else if (isOpposite) {
+        // Slightly fan out lines passing near the center so multiple lines don't stack directly
+        const ux = dx / dist;
+        const uy = dy / dist;
+        const perpX = -uy;
+        const perpY = ux;
+        const offset = ((idx % 3) - 1) * 20;
+        cx = midX + perpX * offset;
+        cy = midY + perpY * offset;
+      } else {
+        // Gentle pull towards center for pleasant curvature
+        const pull = 0.22;
+        cx = midX * (1 - pull) + center * pull;
+        cy = midY * (1 - pull) + center * pull;
+      }
+
+      // Trim start and end points so line NEVER penetrates into the avatar node circles
+      const v1x = cx - nodeA.x;
+      const v1y = cy - nodeA.y;
+      const len1 = Math.hypot(v1x, v1y) || 1;
+      const rTrimA = nodeRadius + 4;
+      const startX = nodeA.x + (v1x / len1) * rTrimA;
+      const startY = nodeA.y + (v1y / len1) * rTrimA;
+
+      const v2x = cx - nodeB.x;
+      const v2y = cy - nodeB.y;
+      const len2 = Math.hypot(v2x, v2y) || 1;
+      const rTrimB = nodeRadius + 4;
+      const endX = nodeB.x + (v2x / len2) * rTrimB;
+      const endY = nodeB.y + (v2y / len2) * rTrimB;
+
+      // Midpoint on quadratic bezier curve for score badge (t = 0.5)
+      let mx = 0.25 * startX + 0.5 * cx + 0.25 * endX;
+      let my = 0.25 * startY + 0.5 * cy + 0.25 * endY;
+
+      // Safe clearance: make sure badge is not jammed against either node
+      const distToA = Math.hypot(mx - nodeA.x, my - nodeA.y);
+      const distToB = Math.hypot(mx - nodeB.x, my - nodeB.y);
+      const minSafeDist = nodeRadius + 26;
+
+      if (distToA < minSafeDist || distToB < minSafeDist) {
+        const vToCenterLen = Math.hypot(center - mx, center - my) || 1;
+        const pushDist = minSafeDist - Math.min(distToA, distToB) + 6;
+        mx += ((center - mx) / vToCenterLen) * pushDist;
+        my += ((center - my) / vToCenterLen) * pushDist;
+      }
+
+      const pathD = `M ${startX.toFixed(1)} ${startY.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${endX.toFixed(1)} ${endY.toFixed(1)}`;
 
       return {
         ...ap,
@@ -344,6 +419,15 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
         y1: nodeA.y,
         x2: nodeB.x,
         y2: nodeB.y,
+        startX,
+        startY,
+        endX,
+        endY,
+        cx,
+        cy,
+        mx,
+        my,
+        pathD,
         nodeA,
         nodeB,
       };
@@ -357,12 +441,21 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
       y1: number;
       x2: number;
       y2: number;
+      startX: number;
+      startY: number;
+      endX: number;
+      endY: number;
+      cx: number;
+      cy: number;
+      mx: number;
+      my: number;
+      pathD: string;
       color: string;
       opacity: number;
       nodeA: typeof nodes[0];
       nodeB: typeof nodes[0];
     }>;
-  }, [nodes, pairs, selectedNodeId, members, relationFilter]);
+  }, [nodes, pairs, selectedNodeId, members, relationFilter, center, nodeRadius]);
 
   const selectedMember = useMemo(() => {
     return members.find((m) => m.id === selectedNodeId) || null;
@@ -391,22 +484,22 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // 2. Lines & Score Badges
+    // 2. Lines & Score Badges (Curved & Trimmed to prevent encroaching nodes)
     lines.forEach((line) => {
       const isHighScore = line.avgScore >= 90;
       const isGoodScore = line.avgScore >= 75;
 
       ctx.beginPath();
-      ctx.moveTo(line.x1, line.y1);
-      ctx.lineTo(line.x2, line.y2);
+      ctx.moveTo(line.startX, line.startY);
+      ctx.quadraticCurveTo(line.cx, line.cy, line.endX, line.endY);
       ctx.strokeStyle = line.color;
-      ctx.lineWidth = isHighScore ? 3.5 : (selectedNodeId ? 2 : 2.5);
+      ctx.lineWidth = isHighScore ? 3.2 : (selectedNodeId ? 1.8 : 2.2);
       ctx.globalAlpha = line.opacity;
       ctx.stroke();
 
-      // Score badge on line midpoint
-      const mx = (line.x1 + line.x2) / 2;
-      const my = (line.y1 + line.y2) / 2;
+      // Score badge on curve midpoint (safe clearance from nodes)
+      const mx = line.mx;
+      const my = line.my;
       const badgeW = isHighScore ? 34 : 28;
       const badgeH = 14;
 
@@ -713,46 +806,29 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
           {/* Subtle center coordinate mark */}
           <circle cx={center} cy={center} r="2.5" fill="#B3382C" opacity="0.3" />
 
-          {/* 2. Relationship lines — 고품질 궁합 선 및 중앙 분산 점수 뱃지 */}
+          {/* 2. Relationship lines — 고품질 곡선 궁합 선 및 노드 침범 방지 안전 구역 뱃지 */}
           {lines.map((line, idx) => {
             const isHighScore = line.avgScore >= 90;
             const isGoodScore = line.avgScore >= 75;
-
-            // Stagger badge positions along the line to completely eliminate overlapping in the center
-            const rawMx = (line.x1 + line.x2) / 2;
-            const rawMy = (line.y1 + line.y2) / 2;
-            const distToCenter = Math.hypot(rawMx - center, rawMy - center);
-            let t = 0.5;
-            if (lines.length > 1) {
-              const offsets = [0.38, 0.62, 0.32, 0.68, 0.45, 0.55];
-              t = offsets[idx % offsets.length];
-              if (distToCenter < 50) {
-                t = idx % 2 === 0 ? 0.34 : 0.66;
-              }
-            }
-            const mx = line.x1 + (line.x2 - line.x1) * t;
-            const my = line.y1 + (line.y2 - line.y1) * t;
             const badgeW = isHighScore ? 36 : 30;
             const badgeH = 15;
 
             return (
               <g key={`line-${idx}`} className="transition-all duration-300">
-                {/* Connection Line */}
-                <line
-                  x1={line.x1}
-                  y1={line.y1}
-                  x2={line.x2}
-                  y2={line.y2}
+                {/* Connection Curved Path — 완벽하게 노드 원형 밖에서 시작/종료 */}
+                <path
+                  d={line.pathD}
+                  fill="none"
                   stroke={line.color}
-                  strokeWidth={isHighScore ? "3.5" : selectedNodeId ? "2" : "2.5"}
+                  strokeWidth={isHighScore ? "3.2" : selectedNodeId ? "1.8" : "2.2"}
                   strokeLinecap="round"
                   strokeOpacity={line.opacity}
                   filter={isHighScore ? "url(#synergyGlow)" : undefined}
                   className="transition-all duration-300"
                 />
 
-                {/* Score Badge floating on staggered line position */}
-                <g transform={`translate(${mx}, ${my})`} className="cursor-pointer">
+                {/* Score Badge floating on curve midpoint — 노드 침범 방지 안전 구역 */}
+                <g transform={`translate(${line.mx}, ${line.my})`} className="cursor-pointer">
                   <rect
                     x={-badgeW / 2}
                     y={-badgeH / 2}

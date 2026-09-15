@@ -20,6 +20,7 @@ import { calculateTodayFortune } from "../utils/saju";
 import ViralCardModal from "./ViralCardModal";
 import ZodiacAvatar, { getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS } from "./ZodiacAvatar";
 import HoroscopePanel from "./HoroscopePanel";
+import { MeViewSkeleton } from "./Skeleton";
 
 const ELEMENT_SPECS: Record<string, {
   hanja: string;
@@ -1215,14 +1216,7 @@ export default function MeView({ code, memberId }: MeViewProps) {
   }, [isMyOwnProfile, aiAnalysis, member?.personal_analysis]);
 
   if (loading) {
-    return (
-      <Layout title="리포트 불러오는 중">
-        <div className="flex flex-col items-center justify-center py-24 select-none">
-          <div className="w-8 h-8 border-2 border-line border-t-ink rounded-full animate-spin" />
-          <p className="text-xs text-ink-faint mt-3">사주 리포트를 불러오는 중입니다.</p>
-        </div>
-      </Layout>
-    );
+    return <MeViewSkeleton />;
   }
 
   if (error || !member) {

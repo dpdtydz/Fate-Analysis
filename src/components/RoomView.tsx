@@ -13,6 +13,7 @@ import GoogleAds from "./GoogleAds";
 import ZodiacAvatar, { spaceImageSrc, SPACE_NAMES, calculateSpaceKey, calculateMemberRole } from "./ZodiacAvatar";
 import { cacheRoomSnapshot, getCachedRoomSnapshot, recordRecentRoom } from "../lib/offlineVault";
 import { generateDynamicPairCompatibility } from "../utils/pairChemistry";
+import { RoomViewSkeleton } from "./Skeleton";
 
 interface RoomViewProps {
   code: string;
@@ -435,14 +436,7 @@ export default function RoomView({ code }: RoomViewProps) {
   };
 
   if (loading) {
-    return (
-      <Layout title="모임방">
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="w-10 h-10 rounded-full border-2 border-seal border-t-transparent animate-spin mb-3" />
-          <p className="text-xs text-ink-soft">모임방 정보를 불러오는 중...</p>
-        </div>
-      </Layout>
-    );
+    return <RoomViewSkeleton />;
   }
 
   if (error || !room) {
@@ -503,7 +497,7 @@ export default function RoomView({ code }: RoomViewProps) {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono tracking-[0.14em] text-ink-faint">
-                  GROUP · {groupMetrics.memberCount}인
+                  GROUP {groupMetrics.memberCount}인
                 </span>
                 <span className="text-xs font-medium text-seal bg-seal/10 px-2.5 py-1 rounded-lg">
                   {SPACE_NAMES[spaceKey]}

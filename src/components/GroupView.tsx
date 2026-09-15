@@ -23,6 +23,8 @@ import PairChemistryModal from "./PairChemistryModal";
 import AddGuestMemberModal from "./AddGuestMemberModal";
 import { getIljuMeta } from "../utils/iljuData";
 import { generateDedicatedChemistryCard, generateDedicatedGroupCard } from "../utils/cardGenerator";
+import { findMyMember } from "../utils/memberHelper";
+import { GroupViewSkeleton } from "./Skeleton";
 
 const isMbtiRegistered = (m?: any): boolean => {
   if (!m || !m.mbti) return false;
@@ -485,6 +487,7 @@ export default function GroupView({ code }: GroupViewProps) {
   const [selectedPairForModal, setSelectedPairForModal] = useState<{ m1: Member; m2: Member; pair?: any } | null>(null);
 
   const localMemberId = React.useMemo(() => localStorage.getItem(`saju_member_id_${code}`) || "", [code]);
+  const myMember = React.useMemo(() => findMyMember(members, code), [members, code]);
 
   const isOwner = React.useMemo(() => {
     if (!room) return false;
@@ -1198,11 +1201,7 @@ export default function GroupView({ code }: GroupViewProps) {
   };
 
   if (pageLoading && !room) {
-    return (
-      <LoadingOverlay
-        message="모임방 기록을 불러오는 중이에요..."
-      />
-    );
+    return <GroupViewSkeleton />;
   }
 
   if (error || !room) {
@@ -1447,7 +1446,7 @@ export default function GroupView({ code }: GroupViewProps) {
                 <div className="flex items-center justify-between mb-3.5">
                   <div className="flex items-center gap-1.5 font-mono tracking-widest text-xs text-ink-faint font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-seal animate-pulse" />
-                    <span>GROUP · {members.length}인</span>
+                    <span>GROUP {members.length}인</span>
                   </div>
                   <span className="text-[11px] font-bold text-seal bg-seal/10 border border-seal/20 px-3 py-1 rounded-full shadow-xs">
                     {SPACE_NAMES[spaceKey]}
@@ -2553,6 +2552,8 @@ export default function GroupView({ code }: GroupViewProps) {
         pairs={upgradedPairs}
         initialPair={storyModalPair}
         defaultTab={storyModalPair ? "pair" : "group"}
+        roomCode={code}
+        currentMember={myMember}
       />
 
       {/* 60 Ilju Animal Encyclopedia Modal */}

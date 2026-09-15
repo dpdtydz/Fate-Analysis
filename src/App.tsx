@@ -4,6 +4,7 @@ import KakaoOutlinkGuide from "./components/KakaoOutlinkGuide";
 import SurveyPopup from "./components/SurveyPopup";
 import GlobalAnalysisAlert from "./components/GlobalAnalysisAlert";
 import LoadingOverlay from "./components/LoadingOverlay";
+import { ScreenSkeleton } from "./components/Skeleton";
 import PwaInstallBanner from "./components/PwaInstallBanner";
 import NetworkStatusBar from "./components/NetworkStatusBar";
 import { processReferralReward } from "./lib/firebase";
@@ -167,7 +168,7 @@ export default function App() {
       <NetworkStatusBar />
       <GlobalAnalysisAlert />
       <KakaoOutlinkGuide />
-      <Suspense fallback={<LoadingOverlay message="페이지를 준비하고 있어요..." />}>
+      <Suspense fallback={<ScreenSkeleton />}>
         {renderContent()}
       </Suspense>
       <SurveyPopup />

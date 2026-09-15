@@ -1,9 +1,9 @@
-import React, { useRef, useState, useMemo, useEffect } from "react";
+import React, { useRef, useState, useMemo, useEffect, useCallback } from "react";
 import { X, Download, Share2, Sparkles, Check, Crown, Flame, Compass, Coins, Award, Users, HeartHandshake, Zap, MessageSquare, Wine, Plane, Heart, ShieldAlert, ArrowRightLeft, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import { Member, GroupAnalysis, PairAnalysis } from "../types";
 import { getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS, ROLE_RING_COLOR } from "./ZodiacAvatar";
-import { getMemberNickname, getMemberElement } from "../utils/memberHelper";
+import { getMemberNickname, getMemberElement, findMyMember, sortMembersAlphabetical } from "../utils/memberHelper";
 import { calculateGroupAwards, AwardItem, calculateMemberSals } from "../utils/shinsalCalculator";
 import { generateDynamicPairCompatibility, isDummyPair } from "../utils/pairChemistry";
 import { generateDedicatedChemistryCard, generateDedicatedGroupCard } from "../utils/cardGenerator";
@@ -18,6 +18,8 @@ interface GroupStoryModalProps {
   pairs?: PairAnalysis[];
   initialPair?: { m1: Member; m2: Member } | null;
   defaultTab?: "pair" | "group";
+  roomCode?: string;
+  currentMember?: Member | null;
 }
 
 interface StoryDisplayMember {
@@ -48,30 +50,68 @@ export default function GroupStoryModal({
   pairs = [],
   initialPair = null,
   defaultTab = "pair",
+  roomCode,
+  currentMember = null,
 }: GroupStoryModalProps) {
   const storyCardRef = useRef<HTMLDivElement>(null);
   
   // Tab: "pair" (1:1 Friend Chemistry) or "group" (Group Awards)
   const [activeTab, setActiveTab] = useState<"pair" | "group">(defaultTab);
 
+  // Identify the currently logged-in user (Me)
+  const resolvedMyMember = useMemo(() => {
+    if (currentMember) return currentMember;
+    return findMyMember(allMembers, roomCode);
+  }, [currentMember, allMembers, roomCode]);
+
+  // Sort other members in Korean alphabetical order (가나다 순)
+  const sortedMembersForSelection = useMemo(() => {
+    const me = resolvedMyMember;
+    const others = allMembers.filter((m) => !me || m.id !== me.id);
+    const sortedOthers = sortMembersAlphabetical(others);
+    return me ? [me, ...sortedOthers] : sortedOthers;
+  }, [allMembers, resolvedMyMember]);
+
+  // Default selection: Member A = logged-in user (Me), Member B = next member in Korean alphabetical order (가나다 순)
+  const getDefaultMembers = useCallback(() => {
+    const me = resolvedMyMember || allMembers[0];
+    const aId = initialPair?.m1?.id || me?.id || "";
+    let bId = initialPair?.m2?.id || "";
+    if (!bId) {
+      const others = allMembers.filter((m) => m.id !== aId);
+      const sortedOthers = sortMembersAlphabetical(others);
+      bId = sortedOthers[0]?.id || allMembers.find((m) => m.id !== aId)?.id || aId;
+    }
+    return { aId, bId };
+  }, [initialPair, resolvedMyMember, allMembers]);
+
   // Selected Members for 1:1 Story
   const [memberAId, setMemberAId] = useState<string>(() => {
     if (initialPair?.m1?.id) return initialPair.m1.id;
-    return allMembers[0]?.id || "";
+    const me = currentMember || findMyMember(allMembers, roomCode) || allMembers[0];
+    return me?.id || "";
   });
   const [memberBId, setMemberBId] = useState<string>(() => {
     if (initialPair?.m2?.id) return initialPair.m2.id;
-    return allMembers[1]?.id || allMembers[0]?.id || "";
+    const me = currentMember || findMyMember(allMembers, roomCode) || allMembers[0];
+    const aId = me?.id || "";
+    const others = allMembers.filter((m) => m.id !== aId);
+    const sortedOthers = sortMembersAlphabetical(others);
+    return sortedOthers[0]?.id || allMembers.find((m) => m.id !== aId)?.id || aId;
   });
 
-  // Sync with initialPair if opened with a specific pair
+  // Sync with initialPair or default to logged-in user + alphabetical next when modal opens
   useEffect(() => {
     if (initialPair?.m1 && initialPair?.m2) {
       setMemberAId(initialPair.m1.id);
       setMemberBId(initialPair.m2.id);
       setActiveTab("pair");
+    } else if (isOpen) {
+      const defaults = getDefaultMembers();
+      if (defaults.aId) setMemberAId(defaults.aId);
+      if (defaults.bId) setMemberBId(defaults.bId);
     }
-  }, [initialPair]);
+  }, [initialPair, isOpen, getDefaultMembers]);
 
   // Group Awards preset (1: 인기쟁이, 2: 단톡실세, 3: 캐리머신, 4: 역마러)
   const [selectedPreset, setSelectedPreset] = useState<1 | 2 | 3 | 4>(1);
@@ -641,7 +681,7 @@ export default function GroupStoryModal({
               {isGridExpanded ? (
                 /* Multi-row Expanded Grid View */
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5 max-h-36 overflow-y-auto p-1 bg-black/30 rounded-xl border border-white/5 scrollbar-thin scrollbar-thumb-white/20">
-                  {allMembers.map((m) => {
+                  {sortedMembersForSelection.map((m) => {
                     const isSelected = selectingTarget === "B" ? m.id === memberBId : m.id === memberAId;
                     const isOther = selectingTarget === "B" ? m.id === memberAId : m.id === memberBId;
                     const elem = getMemberElement(m) || "기운";
@@ -706,7 +746,7 @@ export default function GroupStoryModal({
                     className="flex-1 flex items-center gap-1.5 overflow-x-auto py-1 px-0.5 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent scroll-smooth touch-pan-x"
                     style={{ WebkitOverflowScrolling: "touch" }}
                   >
-                    {allMembers.map((m) => {
+                    {sortedMembersForSelection.map((m) => {
                       const isSelected = selectingTarget === "B" ? m.id === memberBId : m.id === memberAId;
                       const isOther = selectingTarget === "B" ? m.id === memberAId : m.id === memberBId;
                       const elem = getMemberElement(m) || "기운";

@@ -1250,7 +1250,7 @@ export default function ViralCardModal({
               {/* 상단: 모임 정보 & 상생 배지 */}
               <div className="flex items-center justify-between mb-6 gap-2">
                 <span className="text-xs font-mono tracking-[0.14em] text-[#8E8F98] whitespace-nowrap">
-                  GROUP · {groupStats.memberCount}인 결속
+                  GROUP {groupStats.memberCount}인 결속
                 </span>
                 <span className={`text-xs font-medium tracking-[0.08em] whitespace-nowrap px-2.5 py-1 rounded-lg ${colors.text} ${colors.chipBg}`}>
                   {groupStats.spaceKey && SPACE_NAMES[groupStats.spaceKey as SpaceKey]
