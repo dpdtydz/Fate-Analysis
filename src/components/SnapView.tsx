@@ -18,7 +18,8 @@ import {
   ArrowRightLeft,
   Lock,
   Eye,
-  Users
+  Users,
+  RefreshCw
 } from "lucide-react";
 import { Member, PairSnap, SajuData } from "../types";
 import { 
@@ -82,17 +83,36 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const chipScrollRef = useRef<HTMLDivElement>(null);
 
+  // 🌟 Guest Member ID managed as reactive state (solves non-reactive freeze!)
+  const [guestMemberId, setGuestMemberId] = useState<string | null>(() => {
+    if (typeof window === "undefined" || !routeCode) return null;
+    return getSnapGuestMemberId(routeCode);
+  });
+
+  // 🌟 Matching interaction overlay state (1: 사주 대조 -> 2: 오행 케미 분석 -> 3: 인연 매듭 완성)
+  const [joiningAnimationStep, setJoiningAnimationStep] = useState<number>(0);
+  const [joiningGuestName, setJoiningGuestName] = useState<string>("");
+  const [joiningGuestEmoji, setJoiningGuestEmoji] = useState<string>("✨");
+
+  // 🌟 Realtime Host Notifications & Manual Refresh
+  const [newGuestToast, setNewGuestToast] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const prevPartnersCountRef = useRef<number>(0);
+
+  // Sync guestMemberId when code changes
+  useEffect(() => {
+    if (currentCode) {
+      setGuestMemberId(getSnapGuestMemberId(currentCode));
+    } else {
+      setGuestMemberId(null);
+    }
+  }, [currentCode]);
+
   // Check if current user is the Host (link creator)
   const isHost = useMemo(() => {
     if (!currentCode || !snapData) return false;
     return isSnapHost(currentCode, snapData.creator_key);
   }, [currentCode, snapData]);
-
-  // Check if current user is a Guest who already joined on this device
-  const guestMemberId = useMemo(() => {
-    if (!currentCode) return null;
-    return getSnapGuestMemberId(currentCode);
-  }, [currentCode]);
 
   // All registered partners
   const partnersList = useMemo(() => {
@@ -131,6 +151,18 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     const unsubscribe = subscribePairSnap(currentCode, (snap) => {
       setIsLoading(false);
       if (snap) {
+        // Detect new partners for Host in realtime
+        const currentCount = snap.partners?.length || (snap.partner ? 1 : 0);
+        if (prevPartnersCountRef.current > 0 && currentCount > prevPartnersCountRef.current) {
+          const newestPartner = snap.partners?.[snap.partners.length - 1] || snap.partner;
+          if (newestPartner) {
+            setNewGuestToast(`🎉 새로운 인연 [${newestPartner.nickname}]님의 사주가 방금 도착했습니다!`);
+            setTimeout(() => setNewGuestToast(null), 5000);
+            setSelectedPartnerId(newestPartner.id);
+          }
+        }
+        prevPartnersCountRef.current = currentCount;
+
         setSnapData(snap);
         if (snap.creator) {
           const firstPartner = snap.partners?.[0] || snap.partner;
@@ -150,6 +182,22 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
       unsubscribe();
     };
   }, [currentCode]);
+
+  // Manual fast-refresh handler
+  const handleManualRefresh = async () => {
+    if (!currentCode) return;
+    setIsRefreshing(true);
+    try {
+      const snap = await getPairSnap(currentCode);
+      if (snap) {
+        setSnapData(snap);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
+  };
 
   // Handle URL change
   useEffect(() => {
@@ -225,7 +273,7 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     }
   };
 
-  // Partner flow: Join Snap
+  // Partner flow: Join Snap with rich interactive stages
   const handleJoinSnap = async (formData: {
     nickname: string;
     gender: string;
@@ -240,7 +288,13 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     birthplace_city?: string;
   }) => {
     if (!currentCode) return;
+
+    // Trigger rich matching interaction
+    setJoiningGuestName(formData.nickname);
+    setJoiningGuestEmoji(formData.character_emoji || "✨");
+    setJoiningAnimationStep(1);
     setIsLoading(true);
+
     try {
       const partnerMember: Member = {
         id: `snap_guest_${Date.now()}`,
@@ -257,13 +311,54 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
         joined_at: new Date().toISOString()
       };
 
-      const updated = await joinPairSnap(currentCode, partnerMember);
-      setSnapData(updated);
+      // Save to personal profile cache for guest too
+      try {
+        saveRecentPersonalProfile({
+          nickname: formData.nickname,
+          gender: (formData.gender as any) || "남성",
+          birth_date: formData.birth_date,
+          birth_time: formData.birth_time,
+          saju: formData.saju,
+          character_emoji: formData.character_emoji,
+          character_animal: formData.character_animal,
+          character_color: formData.character_color,
+          mbti: formData.mbti || null,
+          birthplace_region: formData.birthplace_region || null,
+          birthplace_city: formData.birthplace_city || null,
+          updatedAt: Date.now()
+        });
+      } catch {
+        // ignore
+      }
+
+      // Step 1: Network call + minimum 1.0s visual pacing
+      const [updated] = await Promise.all([
+        joinPairSnap(currentCode, partnerMember),
+        new Promise((resolve) => setTimeout(resolve, 1000))
+      ]);
+
+      // Step 2: Chemistry calculation visual
+      setJoiningAnimationStep(2);
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+
+      // Step 3: Destiny Knot completion visual
+      setJoiningAnimationStep(3);
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Immediately commit new reactive states (Instant re-render without reload!)
+      setGuestMemberId(partnerMember.id);
       setSelectedPartnerId(partnerMember.id);
+      setSnapData(updated);
+
+      // Smooth scroll to top of page
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     } catch (err: any) {
       setErrorMessage(err?.message || "참여 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
+      setJoiningAnimationStep(0);
     }
   };
 
@@ -336,6 +431,117 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
   // Western Zodiac
   const zodiacCreator = useMemo(() => snapData ? getWesternZodiac(snapData.creator.birth_date) : null, [snapData?.creator]);
   const zodiacPartner = useMemo(() => activePartner ? getWesternZodiac(activePartner.birth_date) : null, [activePartner]);
+
+  // 🌟 Interactive Matchmaking Transition Overlay
+  const renderMatchingOverlay = () => {
+    if (joiningAnimationStep === 0) return null;
+    return (
+      <div className="fixed inset-0 z-[9999] bg-paper/95 dark:bg-[#121212]/95 backdrop-blur-lg flex flex-col items-center justify-center p-6 animate-fade-in text-center select-none">
+        <div className="relative max-w-sm w-full space-y-7 p-6 rounded-3xl bg-surface border border-line shadow-2xl">
+          {/* Animated Connecting Avatars */}
+          <div className="flex items-center justify-center gap-4 sm:gap-6">
+            {/* Host Avatar */}
+            <div className="flex flex-col items-center space-y-1.5 animate-pulse">
+              <div className="w-16 h-16 rounded-2xl bg-sunken border-2 border-seal shadow-md flex items-center justify-center text-3xl">
+                {snapData?.creator?.character_emoji || "🐯"}
+              </div>
+              <span className="text-xs font-bold text-ink truncate max-w-[80px]">
+                {snapData?.creator?.nickname || "초대자"}
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-seal/10 text-seal font-semibold">
+                초대자
+              </span>
+            </div>
+
+            {/* Spark & Connection Line */}
+            <div className="relative flex flex-col items-center justify-center px-1">
+              <div className="w-10 h-10 rounded-full bg-seal/10 border border-seal/30 flex items-center justify-center text-seal animate-bounce">
+                <HeartHandshake className="w-5 h-5 text-seal" />
+              </div>
+              <div className="w-12 border-t-2 border-dashed border-seal/50 my-1 animate-pulse" />
+              <div className="text-[10px] text-seal font-mono font-bold animate-pulse">
+                {joiningAnimationStep === 1 ? "명식 대조" : joiningAnimationStep === 2 ? "오행 분석" : "인연 완성"}
+              </div>
+            </div>
+
+            {/* Guest Avatar */}
+            <div className="flex flex-col items-center space-y-1.5 animate-pulse">
+              <div className="w-16 h-16 rounded-2xl bg-sunken border-2 border-wood shadow-md flex items-center justify-center text-3xl">
+                {joiningGuestEmoji || "✨"}
+              </div>
+              <span className="text-xs font-bold text-ink truncate max-w-[80px]">
+                {joiningGuestName || "나"}
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-wood/10 text-wood font-semibold">
+                참여자
+              </span>
+            </div>
+          </div>
+
+          {/* Dynamic Stage Text */}
+          <div className="space-y-3 pt-2">
+            <div className="w-9 h-9 mx-auto rounded-full border-3 border-seal border-t-transparent animate-spin" />
+            
+            {joiningAnimationStep === 1 && (
+              <div className="space-y-1 animate-fade-in">
+                <h3 className="font-serif text-lg font-bold text-ink">
+                  두 사람의 사주 명식을 대조하는 중...
+                </h3>
+                <p className="text-xs text-ink-soft leading-relaxed">
+                  천간과 지지, 태어난 계절의 기운을 맞추어 인연의 좌표를 짚고 있습니다.
+                </p>
+              </div>
+            )}
+
+            {joiningAnimationStep === 2 && (
+              <div className="space-y-1 animate-fade-in">
+                <h3 className="font-serif text-lg font-bold text-ink">
+                  음양오행 케미스트리 심층 분석 중...
+                </h3>
+                <p className="text-xs text-ink-soft leading-relaxed">
+                  서로에게 부족한 오행을 채워주는 보완 에너지와 상생 코드를 도출하고 있습니다.
+                </p>
+              </div>
+            )}
+
+            {joiningAnimationStep === 3 && (
+              <div className="space-y-1 animate-fade-in">
+                <h3 className="font-serif text-lg font-bold text-seal flex items-center justify-center gap-1">
+                  <Sparkles className="w-4 h-4 text-seal" />
+                  <span>1:1 비밀 인연의 매듭이 완성되었습니다!</span>
+                </h3>
+                <p className="text-xs text-ink-soft leading-relaxed">
+                  오직 두 분만을 위한 궁합 결과를 화면에 펼칩니다...
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // 🌟 Realtime Notification Toast
+  const renderToast = () => {
+    if (!newGuestToast) return null;
+    return (
+      <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[9998] max-w-md w-full px-4 animate-fade-in">
+        <div className="p-3.5 bg-seal text-white rounded-2xl shadow-xl flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 shrink-0 animate-spin" />
+            <span>{newGuestToast}</span>
+          </div>
+          <button 
+            type="button" 
+            onClick={() => setNewGuestToast(null)}
+            className="text-white/80 hover:text-white text-xs px-2 py-0.5 rounded-md hover:bg-white/10 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   // Render State 1: Loading
   if (isLoading && !snapData) {
@@ -508,18 +714,47 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
   if (!isHost && !activePartner) {
     return (
       <Layout maxWidth="2xl">
-        <div className="py-8 sm:py-12 space-y-8 animate-fade-in">
+        {renderMatchingOverlay()}
+        {renderToast()}
+
+        <div className="py-6 sm:py-10 space-y-6 animate-fade-in">
+          {/* Header Bar */}
+          <div className="flex items-center justify-between text-xs text-ink-faint border-b border-line pb-3">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-full bg-seal/10 text-seal font-semibold flex items-center gap-1">
+                <Lock className="w-3 h-3" />
+                <span>1:1 비밀 인연 초대장</span>
+              </span>
+              <span className="font-mono text-ink-soft">코드: {currentCode}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Realtime Live Pulse */}
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-sunken border border-line text-[10px] text-ink-faint">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>실시간 연결됨</span>
+              </div>
+
+              {/* Manual Refresh */}
+              <button
+                type="button"
+                onClick={handleManualRefresh}
+                className="px-2 py-1 bg-surface border border-line hover:border-seal text-ink hover:text-seal rounded-lg transition-colors flex items-center gap-1 text-[11px] font-medium cursor-pointer"
+                title="초대장 새로고침"
+              >
+                <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-seal" : ""}`} />
+                <span className="hidden sm:inline">동기화</span>
+              </button>
+            </div>
+          </div>
+
           {/* Creator Profile Preview Card */}
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 pt-2">
             <div className="w-20 h-20 mx-auto rounded-3xl bg-surface border-2 border-seal/30 shadow-md p-2 flex items-center justify-center">
               <ZodiacAvatar member={snapData.creator} size={64} fallbackEmoji={snapData.creator.character_emoji} />
             </div>
 
             <div className="space-y-1.5">
-              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-seal/10 text-seal text-xs font-semibold">
-                <Lock className="w-3 h-3" />
-                <span>1:1 비밀 인연 초대장</span>
-              </span>
               <h1 className="font-serif text-2xl sm:text-3xl font-bold text-ink">
                 {snapData.creator.nickname}님의 비밀 인연 초대
               </h1>
@@ -557,9 +792,38 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
   if (isHost && partnersList.length === 0) {
     return (
       <Layout maxWidth="2xl">
-        <div className="py-8 sm:py-12 space-y-8 animate-fade-in">
+        {renderToast()}
+
+        <div className="py-6 sm:py-10 space-y-6 animate-fade-in">
+          {/* Header Bar */}
+          <div className="flex items-center justify-between text-xs text-ink-faint border-b border-line pb-3">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 rounded-full bg-seal/10 text-seal font-semibold">
+                👑 링크 생성자 (호스트 전용 뷰)
+              </span>
+              <span className="font-mono text-ink-soft">코드: {currentCode}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-sunken border border-line text-[10px] text-ink-faint">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>실시간 대기 중</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleManualRefresh}
+                className="px-2 py-1 bg-surface border border-line hover:border-seal text-ink hover:text-seal rounded-lg transition-colors flex items-center gap-1 text-[11px] font-medium cursor-pointer"
+                title="상태 새로고침"
+              >
+                <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-seal" : ""}`} />
+                <span className="hidden sm:inline">동기화</span>
+              </button>
+            </div>
+          </div>
+
           {/* Creator Profile */}
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 pt-2">
             <div className="w-20 h-20 mx-auto rounded-3xl bg-surface border-2 border-seal/30 shadow-md p-2 flex items-center justify-center">
               <ZodiacAvatar member={snapData.creator} size={64} fallbackEmoji={snapData.creator.character_emoji} />
             </div>
@@ -658,6 +922,9 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
 
   return (
     <Layout maxWidth="2xl">
+      {renderMatchingOverlay()}
+      {renderToast()}
+
       <div className="py-6 sm:py-10 space-y-6 animate-fade-in">
         {/* Top Floating Badge & Actions */}
         <div className="flex items-center justify-between text-xs text-ink-faint border-b border-line pb-3">
@@ -667,7 +934,25 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
             </span>
             <span className="font-mono text-ink-soft">코드: {currentCode}</span>
           </div>
+
           <div className="flex items-center gap-2">
+            {/* Realtime Live Pulse */}
+            <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 rounded-full bg-sunken border border-line text-[10px] text-ink-faint">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>실시간 연결됨</span>
+            </div>
+
+            {/* Manual Refresh */}
+            <button
+              type="button"
+              onClick={handleManualRefresh}
+              className="px-2 py-1 bg-surface border border-line hover:border-seal text-ink hover:text-seal rounded-lg transition-colors flex items-center gap-1 text-[11px] font-medium cursor-pointer"
+              title="데이터 동기화"
+            >
+              <RefreshCw className={`w-3 h-3 ${isRefreshing ? "animate-spin text-seal" : ""}`} />
+              <span className="hidden sm:inline">동기화</span>
+            </button>
+
             {isHost && (
               <button
                 type="button"

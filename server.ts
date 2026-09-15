@@ -5,7 +5,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, doc, deleteDoc } from "firebase/firestore";
+import { getFirestore, collection, getDocs, doc, deleteDoc, getDoc, setDoc } from "firebase/firestore";
 import rateLimit from "express-rate-limit";
 import { PILLAR_PROFILES } from "./src/utils/sajuSynthesis";
 
@@ -322,6 +322,122 @@ async function startServer() {
       res.json(models);
     } catch (e) {
       res.status(500).json({ error: String(e) });
+    }
+  });
+
+  // =========================================================================
+  // 1:1 Snap (인연 스냅) Server-side Synchronization APIs
+  // =========================================================================
+  const pairSnapsCache = new Map<string, any>();
+
+  // 1. Create or save Snap
+  app.post("/api/snap", async (req, res) => {
+    try {
+      const snap = req.body;
+      if (!snap || !snap.code) {
+        return res.status(400).json({ error: "유효하지 않은 스냅 데이터입니다." });
+      }
+      const code = String(snap.code).toUpperCase().trim();
+      pairSnapsCache.set(code, snap);
+
+      // Async persist to Firestore
+      try {
+        const snapRef = doc(serverDb, "pair_snaps", code);
+        await setDoc(snapRef, snap, { merge: true });
+      } catch (fsErr) {
+        console.warn(`[SERVER snap POST firestore warn] ${code}:`, fsErr);
+      }
+
+      res.json({ success: true, snap });
+    } catch (err: any) {
+      console.error("[SERVER snap POST error]:", err);
+      res.status(500).json({ error: err.message || "스냅 저장 실패" });
+    }
+  });
+
+  // 2. Fetch Snap by Code
+  app.get("/api/snap/:code", async (req, res) => {
+    try {
+      const code = String(req.params.code).toUpperCase().trim();
+      // Check in-memory cache first for blazing-fast response
+      if (pairSnapsCache.has(code)) {
+        return res.json(pairSnapsCache.get(code));
+      }
+
+      // Check Firestore
+      try {
+        const snapRef = doc(serverDb, "pair_snaps", code);
+        const docSnap = await getDoc(snapRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          pairSnapsCache.set(code, data);
+          return res.json(data);
+        }
+      } catch (fsErr) {
+        console.warn(`[SERVER snap GET firestore warn] ${code}:`, fsErr);
+      }
+
+      res.status(404).json({ error: "존재하지 않거나 만료된 스냅 코드입니다." });
+    } catch (err: any) {
+      console.error("[SERVER snap GET error]:", err);
+      res.status(500).json({ error: err.message || "스냅 조회 실패" });
+    }
+  });
+
+  // 3. Join Snap (Partner registration)
+  app.post("/api/snap/:code/join", async (req, res) => {
+    try {
+      const code = String(req.params.code).toUpperCase().trim();
+      const { partner } = req.body;
+      if (!partner || !partner.nickname) {
+        return res.status(400).json({ error: "파트너 사주 정보가 올바르지 않습니다." });
+      }
+
+      // Retrieve existing snap from cache or Firestore
+      let existing = pairSnapsCache.get(code);
+      if (!existing) {
+        try {
+          const snapRef = doc(serverDb, "pair_snaps", code);
+          const docSnap = await getDoc(snapRef);
+          if (docSnap.exists()) {
+            existing = docSnap.data();
+          }
+        } catch (fsErr) {
+          console.warn(`[SERVER snap join firestore lookup warn] ${code}:`, fsErr);
+        }
+      }
+
+      if (!existing) {
+        return res.status(404).json({ error: "초대장을 찾을 수 없습니다." });
+      }
+
+      const existingPartners: any[] = existing.partners || (existing.partner ? [existing.partner] : []);
+      const filtered = existingPartners.filter(
+        (p: any) => p.nickname?.trim().toLowerCase() !== partner.nickname.trim().toLowerCase()
+      );
+      const updatedPartners = [...filtered, partner];
+
+      const updatedSnap = {
+        ...existing,
+        partner,
+        partners: updatedPartners,
+        updated_at: new Date().toISOString()
+      };
+
+      pairSnapsCache.set(code, updatedSnap);
+
+      // Async update in Firestore
+      try {
+        const snapRef = doc(serverDb, "pair_snaps", code);
+        await setDoc(snapRef, updatedSnap, { merge: true });
+      } catch (fsErr) {
+        console.warn(`[SERVER snap join firestore update warn] ${code}:`, fsErr);
+      }
+
+      res.json({ success: true, snap: updatedSnap });
+    } catch (err: any) {
+      console.error("[SERVER snap join error]:", err);
+      res.status(500).json({ error: err.message || "참여 정보 저장 실패" });
     }
   });
 

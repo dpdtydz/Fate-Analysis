@@ -2425,9 +2425,38 @@ export function subscribePairSnap(code: string, callback: (snap: PairSnap | null
     }
   });
 
+  // 1) Backup short-interval polling (2.5s) to guarantee updates even if Firestore WebSocket fails or is delayed
+  const pollInterval = setInterval(() => {
+    if (isUnsubscribed) return;
+    getPairSnap(cleanCode).then((snap) => {
+      if (!isUnsubscribed && snap) {
+        callback(snap);
+      }
+    }).catch(() => {
+      // ignore
+    });
+  }, 2500);
+
+  // 2) Listen to cross-tab / window storage events for instant local reflection
+  const handleStorageEvent = (e: StorageEvent) => {
+    if (isUnsubscribed) return;
+    if (e.key === "saju_pair_snaps" || e.key?.includes(cleanCode)) {
+      getPairSnap(cleanCode).then((snap) => {
+        if (!isUnsubscribed && snap) {
+          callback(snap);
+        }
+      });
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", handleStorageEvent);
+  }
+
+  // 3) Firestore onSnapshot listener
+  let firestoreUnsubscribe: (() => void) | null = null;
   try {
     const snapRef = doc(db, "pair_snaps", cleanCode);
-    const unsubscribe = onSnapshot(snapRef, (docSnap) => {
+    firestoreUnsubscribe = onSnapshot(snapRef, (docSnap) => {
       if (isUnsubscribed) return;
       if (docSnap.exists()) {
         callback(docSnap.data() as PairSnap);
@@ -2443,17 +2472,21 @@ export function subscribePairSnap(code: string, callback: (snap: PairSnap | null
         if (!isUnsubscribed) callback(snap);
       });
     });
-    return () => {
-      isUnsubscribed = true;
-      unsubscribe();
-    };
   } catch {
     getPairSnap(cleanCode).then((snap) => {
       if (!isUnsubscribed) callback(snap);
     });
-    return () => {
-      isUnsubscribed = true;
-    };
   }
+
+  return () => {
+    isUnsubscribed = true;
+    clearInterval(pollInterval);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("storage", handleStorageEvent);
+    }
+    if (firestoreUnsubscribe) {
+      firestoreUnsubscribe();
+    }
+  };
 }
 
