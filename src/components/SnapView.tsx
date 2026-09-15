@@ -26,7 +26,13 @@ import {
   joinPairSnap, 
   subscribePairSnap 
 } from "../lib/firebase";
-import { getRecentPersonalProfile, saveRecentPersonalProfile } from "../lib/offlineVault";
+import { 
+  getRecentPersonalProfile, 
+  saveRecentPersonalProfile,
+  recordRecentSnap,
+  getRecentSnaps,
+  RecentSnapItem
+} from "../lib/offlineVault";
 import { generateDynamicPairCompatibility } from "../utils/pairChemistry";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import ZodiacAvatar from "./ZodiacAvatar";
@@ -69,6 +75,11 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
   const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const [recentSnaps, setRecentSnaps] = useState<RecentSnapItem[]>([]);
+
+  useEffect(() => {
+    setRecentSnaps(getRecentSnaps());
+  }, [currentCode]);
 
   // Load existing snap if code exists in URL or state
   useEffect(() => {
@@ -84,6 +95,14 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
       setIsLoading(false);
       if (snap) {
         setSnapData(snap);
+        if (snap.creator) {
+          recordRecentSnap(
+            currentCode, 
+            snap.creator.nickname, 
+            snap.partner?.nickname
+          );
+          setRecentSnaps(getRecentSnaps());
+        }
       } else {
         setErrorMessage("존재하지 않거나 만료된 1:1 인연 초대장입니다.");
       }
@@ -329,6 +348,43 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
               내 사주를 등록하고 초대 링크를 상대방에게 보내보세요.
             </p>
           </div>
+
+          {/* Recent 1:1 Snaps if available */}
+          {recentSnaps.length > 0 && (
+            <div className="p-4 rounded-2xl bg-sunken border border-line space-y-3">
+              <div className="flex items-center justify-between text-xs text-ink-faint">
+                <span className="flex items-center gap-1.5 font-medium text-ink">
+                  <Clock className="w-3.5 h-3.5 text-seal" />
+                  <span>최근 확인한 1:1 인연 궁합</span>
+                </span>
+                <span className="text-[11px]">링크로 언제든 다시 볼 수 있어요</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {recentSnaps.map((item) => (
+                  <a
+                    key={item.code}
+                    href={`#/snap/${item.code}`}
+                    onClick={() => {
+                      setCurrentCode(item.code);
+                      window.location.hash = `#/snap/${item.code}`;
+                    }}
+                    className="p-3 bg-surface rounded-xl border border-line hover:border-seal/50 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
+                  >
+                    <div className="min-w-0 space-y-0.5">
+                      <span className="text-[10px] text-seal font-bold">1:1 스냅 · 코드 {item.code}</span>
+                      <p className="text-xs sm:text-sm font-bold text-ink truncate group-hover:text-seal transition-colors">
+                        {item.partnerName ? `${item.creatorName} & ${item.partnerName}` : `${item.creatorName}님의 초대장`}
+                      </p>
+                      <p className="text-[11px] text-ink-soft">
+                        {item.partnerName ? "궁합 결과 다시보기" : "상대방 접속 대기 중"}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-ink-faint group-hover:text-seal group-hover:translate-x-0.5 transition-all shrink-0" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick profile load if available */}
           {savedProfile && (

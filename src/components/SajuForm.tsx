@@ -90,7 +90,7 @@ export default function SajuForm({
   initialRegion = null,
   initialCity = null,
   initialEmail = "",
-  showEmailField = true,
+  showEmailField = false,
 }: SajuFormProps) {
   const initialLoc = findCityAndRegion(
     initialBirthplaceCity || initialCity || undefined, 
@@ -546,23 +546,6 @@ export default function SajuForm({
           className={`w-full px-4 py-3 ${inputBase} ${inputOk}`}
         />
       </div>
-
-      {/* Email (Optional/External) */}
-      {showEmailField && (
-        <div className="space-y-1.5 text-left">
-          <label className="block text-xs font-medium text-ink-soft">
-            이메일 <span className="text-[10px] text-ink-faint font-normal">(선택 · 궁합 결과 안내용)</span>
-          </label>
-          <input
-            id="email-input"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="example@email.com"
-            className={`w-full px-4 py-3 ${inputBase} ${inputOk}`}
-          />
-        </div>
-      )}
 
       {/* Gender */}
       <div className="space-y-1.5 text-left">

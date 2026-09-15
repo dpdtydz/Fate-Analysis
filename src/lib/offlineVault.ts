@@ -149,3 +149,43 @@ export function saveRecentPersonalProfile(profile: any): void {
   }
 }
 
+export interface RecentSnapItem {
+  code: string;
+  creatorName: string;
+  partnerName?: string;
+  score?: number;
+  lastVisitedAt: number;
+}
+
+export function recordRecentSnap(code: string, creatorName: string, partnerName?: string, score?: number): void {
+  try {
+    const raw = localStorage.getItem("saju_recent_snaps");
+    let list: RecentSnapItem[] = raw ? JSON.parse(raw) : [];
+    list = list.filter(item => item.code !== code);
+    list.unshift({
+      code,
+      creatorName,
+      partnerName,
+      score,
+      lastVisitedAt: Date.now()
+    });
+    if (list.length > 10) {
+      list = list.slice(0, 10);
+    }
+    localStorage.setItem("saju_recent_snaps", JSON.stringify(list));
+  } catch (e) {
+    console.warn("Failed to record recent snap:", e);
+  }
+}
+
+export function getRecentSnaps(): RecentSnapItem[] {
+  try {
+    const raw = localStorage.getItem("saju_recent_snaps");
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+
