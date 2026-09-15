@@ -1698,102 +1698,111 @@ export default function GroupView({ code }: GroupViewProps) {
                 )}
 
             <div className={!isSecretUnlocked ? "filter blur-[3.5px] opacity-35 select-none pointer-events-none space-y-4" : "space-y-4"}>
-              {/* S-등급 천생연분 짝꿍 추천 */}
+              {/* 최고 궁합 짝꿍 추천 & 오행 충·합 기반 전체 등급표 */}
               {(() => {
-                const sGradePairs = sortedPairs.filter(p => p.score >= 88);
-                const aGradePairs = sortedPairs.filter(p => p.score >= 80 && p.score < 88);
+                const getScoreGradeInfo = (score: number) => {
+                  if (score >= 95) return { grade: "S+", fullLabel: "S+ 등급", color: "text-white bg-seal" };
+                  if (score >= 90) return { grade: "S", fullLabel: "S 등급", color: "text-white bg-seal" };
+                  if (score >= 80) return { grade: "A", fullLabel: "A 등급", color: "text-ink bg-sunken" };
+                  if (score >= 70) return { grade: "B", fullLabel: "B 등급", color: "text-ink bg-sunken" };
+                  if (score >= 60) return { grade: "C", fullLabel: "C 등급", color: "text-ink-soft bg-sunken" };
+                  if (score >= 50) return { grade: "D", fullLabel: "D 등급", color: "text-ink-faint bg-sunken" };
+                  return { grade: "F", fullLabel: "F 등급", color: "text-ink-faint bg-sunken" };
+                };
+
+                const sGradePairs = sortedPairs.filter((p) => p.score >= 90);
+                const aGradePairs = sortedPairs.filter((p) => p.score >= 80 && p.score < 90);
+                const hasS = sGradePairs.length > 0;
+                const topDisplayPairs = hasS ? sGradePairs.slice(0, 3) : aGradePairs.slice(0, 2);
+                const topGradeTitle = hasS
+                  ? "모임에서 가장 조화로운 S등급 조합"
+                  : aGradePairs.length > 0
+                    ? "모임에서 가장 조화로운 A등급 추천 조합"
+                    : "모임에서 가장 조화로운 추천 조합";
 
                 return (
-                  <div className="space-y-2.5">
-                    <span className="text-xs text-ink font-semibold block">
-                      모임에서 가장 조화로운 S등급 조합
-                    </span>
-                    {sGradePairs.length > 0 ? (
-                      <div className="grid grid-cols-1 gap-2">
-                        {sGradePairs.slice(0, 3).map((p, idx) => {
+                  <>
+                    {/* 최고 궁합 짝꿍 추천 */}
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-ink font-semibold block">
+                          {topGradeTitle}
+                        </span>
+                        {!hasS && aGradePairs.length > 0 && (
+                          <span className="text-[11px] text-ink-faint">
+                            (S등급 90점 이상 조합 없음)
+                          </span>
+                        )}
+                      </div>
+                      {topDisplayPairs.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-2">
+                          {topDisplayPairs.map((p, idx) => {
+                            const m1 = findMemberObj(p.member_id_1);
+                            const m2 = findMemberObj(p.member_id_2);
+                            if (!m1 || !m2) return null;
+                            const gradeInfo = getScoreGradeInfo(p.score);
+                            return (
+                              <div key={idx} className="flex items-center justify-between p-3 bg-sunken rounded-xl">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-1.5">
+                                    <ZodiacAvatar member={m1} size={20} fallbackEmoji={m1.character_emoji} />
+                                    <span className="text-sm font-semibold text-ink">{m1.nickname}</span>
+                                  </div>
+                                  <span className="text-ink-faint font-sans">·</span>
+                                  <div className="flex items-center gap-1.5">
+                                    <ZodiacAvatar member={m2} size={20} fallbackEmoji={m2.character_emoji} />
+                                    <span className="text-sm font-semibold text-ink">{m2.nickname}</span>
+                                  </div>
+                                </div>
+                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${
+                                  p.score >= 90 ? "text-seal bg-surface" : "text-ink bg-surface border border-line"
+                                }`}>
+                                  {gradeInfo.fullLabel} · {p.score}점
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-sunken rounded-xl text-center text-xs text-ink-faint">
+                          모임 안에 추천할 만한 고득점 조합이 아직 없어요.
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 속마음 상성 지도 다이어그램 (Grid listing grades of all pairs) */}
+                    <div className="space-y-2.5">
+                      <span className="text-xs text-ink font-semibold block">
+                        오행 충·합 기반 전체 등급표
+                      </span>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1">
+                        {sortedPairs.map((p, idx) => {
                           const m1 = findMemberObj(p.member_id_1);
                           const m2 = findMemberObj(p.member_id_2);
                           if (!m1 || !m2) return null;
+
+                          const gradeInfo = getScoreGradeInfo(p.score);
+
                           return (
-                            <div key={idx} className="flex items-center justify-between p-3 bg-sunken rounded-xl">
-                              <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1.5">
-                                  <ZodiacAvatar member={m1} size={20} fallbackEmoji={m1.character_emoji} />
-                                  <span className="text-sm font-semibold text-ink">{m1.nickname}</span>
-                                </div>
-                                <span className="text-ink-faint font-sans">·</span>
-                                <div className="flex items-center gap-1.5">
-                                  <ZodiacAvatar member={m2} size={20} fallbackEmoji={m2.character_emoji} />
-                                  <span className="text-sm font-semibold text-ink">{m2.nickname}</span>
-                                </div>
+                            <div key={idx} className="flex items-center justify-between p-2.5 bg-sunken rounded-xl text-xs">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="truncate text-ink font-medium">{m1.nickname} × {m2.nickname}</span>
                               </div>
-                              <span className="text-xs font-semibold text-seal bg-surface px-2 py-0.5 rounded-md">
-                                {p.score >= 95 ? "S+ 등급" : "S 등급"} · {p.score}점
-                              </span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="text-xs text-ink-faint font-mono">{p.score}점</span>
+                                <span className={`text-xs font-semibold w-6 h-6 rounded-full flex items-center justify-center font-serif leading-none ${gradeInfo.color}`}>
+                                  {gradeInfo.grade}
+                                </span>
+                              </div>
                             </div>
                           );
                         })}
                       </div>
-                    ) : (
-                      <div className="p-3 bg-sunken rounded-xl text-center text-xs text-ink-faint">
-                        모임 안에 S등급(90점 이상) 조합은 없어요. 가장 조화로운 A등급 조합({aGradePairs[0]?.score || 78}점)을 참고해 보세요.
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  </>
                 );
               })()}
-
-              {/* 속마음 상성 지도 다이어그램 (Grid listing grades of all pairs) */}
-              <div className="space-y-2.5">
-                <span className="text-xs text-ink font-semibold block">
-                  오행 충·합 기반 전체 등급표
-                </span>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1">
-                  {sortedPairs.map((p, idx) => {
-                    const m1 = findMemberObj(p.member_id_1);
-                    const m2 = findMemberObj(p.member_id_2);
-                    if (!m1 || !m2) return null;
-
-                    // Get Grade — 등급은 먹 농담(진하게=높음), S에만 인주 포인트
-                    let grade = "C";
-                    let gradeColor = "text-ink-soft bg-sunken";
-                    if (p.score >= 90) {
-                      grade = "S";
-                      gradeColor = "text-white bg-seal";
-                    } else if (p.score >= 80) {
-                      grade = "A";
-                      gradeColor = "text-ink bg-sunken";
-                    } else if (p.score >= 70) {
-                      grade = "B";
-                      gradeColor = "text-ink bg-sunken";
-                    } else if (p.score >= 60) {
-                      grade = "C";
-                      gradeColor = "text-ink-soft bg-sunken";
-                    } else if (p.score >= 50) {
-                      grade = "D";
-                      gradeColor = "text-ink-faint bg-sunken";
-                    } else {
-                      grade = "F";
-                      gradeColor = "text-ink-faint bg-sunken";
-                    }
-
-                    return (
-                      <div key={idx} className="flex items-center justify-between p-2.5 bg-sunken rounded-xl text-xs">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <span className="truncate text-ink font-medium">{m1.nickname} × {m2.nickname}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-xs text-ink-faint font-mono">{p.score}점</span>
-                          <span className={`text-xs font-semibold w-6 h-6 rounded-full flex items-center justify-center font-serif leading-none ${gradeColor}`}>
-                            {grade}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
 
               {/* 성향 충돌을 영리하게 예방하는 맞춤형 비밀 완충 수칙 */}
               {(() => {
