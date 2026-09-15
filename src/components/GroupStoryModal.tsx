@@ -29,6 +29,7 @@ interface StoryDisplayMember {
   ringColor: string;
   avatarSrc: string;
   animal?: string;
+  emoji?: string;
 }
 
 // 6 Viral Categories for 1:1 Instagram Story

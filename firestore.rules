@@ -110,5 +110,15 @@ service cloud.firestore {
         (!('description' in resource.data) || request.resource.data.description == resource.data.description)
       );
     }
+
+    // 1:1 Fate Chemistry Snap (Pair Snaps)
+    match /pair_snaps/{code} {
+      // Anyone can read a pair snap with code
+      allow read: if true;
+      // Anyone can create or join (update) a pair snap
+      allow create, update: if true;
+      // Only admin can delete
+      allow delete: if isAdmin();
+    }
   }
 }

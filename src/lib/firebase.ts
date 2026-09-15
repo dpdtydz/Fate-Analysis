@@ -2265,6 +2265,17 @@ export async function createPairSnap(creator: Member, title?: string): Promise<P
     console.warn("Firestore createPairSnap fallback to localStorage:", err);
   }
 
+  // Server sync attempt (Guarantees incognito & cross-device instant availability)
+  try {
+    await fetch("/api/snap", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(snapData)
+    });
+  } catch (srvErr) {
+    console.warn("Server create snap sync warning:", srvErr);
+  }
+
   // Record host key locally
   try {
     const hostKeys = JSON.parse(localStorage.getItem("saju_snap_host_keys") || "{}");
@@ -2312,6 +2323,8 @@ export function getSnapGuestMemberId(code: string): string | null {
 export async function getPairSnap(code: string): Promise<PairSnap | null> {
   if (!code) return null;
   const cleanCode = code.toUpperCase().trim();
+  
+  // 1) Try client Firestore
   try {
     const snapRef = doc(db, "pair_snaps", cleanCode);
     const snapSnap = await getDoc(snapRef);
@@ -2319,9 +2332,23 @@ export async function getPairSnap(code: string): Promise<PairSnap | null> {
       return snapSnap.data() as PairSnap;
     }
   } catch (err) {
-    console.warn("Firestore getPairSnap error, fallback to local:", err);
+    console.warn("Firestore getPairSnap error, trying server API:", err);
   }
 
+  // 2) Try Server API (Guarantees incognito & cross-device access even when client Firestore permissions fail)
+  try {
+    const res = await fetch(`/api/snap/${cleanCode}`);
+    if (res.ok) {
+      const serverData = await res.json();
+      if (serverData && serverData.code) {
+        return serverData as PairSnap;
+      }
+    }
+  } catch (srvErr) {
+    console.warn("Server API getPairSnap error, fallback to local:", srvErr);
+  }
+
+  // 3) LocalStorage fallback
   try {
     const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
     return localSnaps[cleanCode] || null;
@@ -2356,6 +2383,7 @@ export async function joinPairSnap(code: string, partner: Member): Promise<PairS
     // ignore
   }
 
+  // 1) Firestore sync
   try {
     const snapRef = doc(db, "pair_snaps", cleanCode);
     await setDoc(snapRef, updatedSnap, { merge: true });
@@ -2363,6 +2391,18 @@ export async function joinPairSnap(code: string, partner: Member): Promise<PairS
     console.warn("Firestore joinPairSnap error:", err);
   }
 
+  // 2) Server sync
+  try {
+    await fetch(`/api/snap/${cleanCode}/join`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ partner })
+    });
+  } catch (srvErr) {
+    console.warn("Server joinPairSnap sync warning:", srvErr);
+  }
+
+  // 3) Local storage
   try {
     const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
     localSnaps[cleanCode] = updatedSnap;
@@ -2376,22 +2416,44 @@ export async function joinPairSnap(code: string, partner: Member): Promise<PairS
 
 export function subscribePairSnap(code: string, callback: (snap: PairSnap | null) => void): () => void {
   const cleanCode = code.toUpperCase().trim();
+  let isUnsubscribed = false;
+
+  // Immediate fetch via getPairSnap (checks Firestore -> Server API -> LocalStorage)
+  getPairSnap(cleanCode).then((snap) => {
+    if (!isUnsubscribed && snap) {
+      callback(snap);
+    }
+  });
+
   try {
     const snapRef = doc(db, "pair_snaps", cleanCode);
     const unsubscribe = onSnapshot(snapRef, (docSnap) => {
+      if (isUnsubscribed) return;
       if (docSnap.exists()) {
         callback(docSnap.data() as PairSnap);
       } else {
-        getPairSnap(cleanCode).then(callback);
+        getPairSnap(cleanCode).then((snap) => {
+          if (!isUnsubscribed) callback(snap);
+        });
       }
     }, (err) => {
-      console.warn("subscribePairSnap snapshot error, reading local fallback:", err);
-      getPairSnap(cleanCode).then(callback);
+      if (isUnsubscribed) return;
+      console.warn("subscribePairSnap snapshot error, reading server/local fallback:", err);
+      getPairSnap(cleanCode).then((snap) => {
+        if (!isUnsubscribed) callback(snap);
+      });
     });
-    return unsubscribe;
+    return () => {
+      isUnsubscribed = true;
+      unsubscribe();
+    };
   } catch {
-    getPairSnap(cleanCode).then(callback);
-    return () => {};
+    getPairSnap(cleanCode).then((snap) => {
+      if (!isUnsubscribed) callback(snap);
+    });
+    return () => {
+      isUnsubscribed = true;
+    };
   }
 }
 
