@@ -66,7 +66,7 @@ const getAsymmetricScores = (m1: Member, m2: Member, baseScore: number) => {
   return { score1to2, score2to1 };
 };
 
-const getPairAsymmetricScores = (pair: PairAnalysis | undefined, m1: Member, m2: Member) => {
+export const getPairAsymmetricScores = (pair: PairAnalysis | undefined, m1: Member, m2: Member) => {
   if (!m1 || !m2) return { score1to2: 50, score2to1: 50 };
   if (!pair) {
     return getAsymmetricScores(m1, m2, 65);

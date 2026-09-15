@@ -4,6 +4,7 @@ import { X, ShieldCheck, Share2, Check, Sparkles, CheckCircle2, HeartHandshake, 
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { logAnalyticsEvent, checkProductUnlock } from "../lib/firebase";
 import { generateDynamicPairCompatibility } from "../utils/pairChemistry";
+import { getPairAsymmetricScores } from "./GroupNetwork";
 import ZodiacAvatar from "./ZodiacAvatar";
 import BottomSheet from "./BottomSheet";
 
@@ -44,9 +45,23 @@ function getWesternZodiac(birthDateStr: string): { name: string; emoji: string }
   return { name: "알 수 없음", emoji: "⭐" };
 }
 
+function syncDescriptionScores(text: string, s1to2: number, s2to1: number): string {
+  if (!text) return "";
+  const scoreRegex = /^(.+?님은\s+.+?님에게\s+)\d+점(,\s+.+?님은\s+.+?님에게\s+)\d+점\.\s*/;
+  if (scoreRegex.test(text)) {
+    return text.replace(scoreRegex, `$1${s1to2}점$2${s2to1}점. `);
+  }
+  return text;
+}
+
 function calculatePairDetail(m1: Member, m2: Member, passedPair?: any, initialScore?: number) {
   const dynamic = generateDynamicPairCompatibility(m1, m2);
   const targetPair = passedPair || dynamic;
+
+  const isM1First = targetPair && targetPair.member_id_1
+    ? (m1.id.trim().toLowerCase() === targetPair.member_id_1.trim().toLowerCase() ||
+       m1.nickname.trim().toLowerCase().replace(/님$/, "") === targetPair.member_id_1.trim().toLowerCase().replace(/님$/, ""))
+    : true;
 
   // Priority: initialScore > passedPair.score > targetPair.avgScore > dynamic.avgScore
   const totalScore =
@@ -54,7 +69,9 @@ function calculatePairDetail(m1: Member, m2: Member, passedPair?: any, initialSc
       ? initialScore
       : typeof targetPair.score === "number"
         ? targetPair.score
-        : (targetPair.avgScore ?? dynamic.avgScore);
+        : (targetPair.avgScore ?? dynamic.avgScore ?? 75);
+
+  const { score1to2: totalScore1to2, score2to1: totalScore2to1 } = getPairAsymmetricScores(targetPair, m1, m2);
 
   const label = targetPair.label || dynamic.label;
   const desc = targetPair.description || dynamic.description;
@@ -70,32 +87,73 @@ function calculatePairDetail(m1: Member, m2: Member, passedPair?: any, initialSc
   const ze1 = ZODIAC_ELEMENTS[z1.name] || "원소";
   const ze2 = ZODIAC_ELEMENTS[z2.name] || "원소";
 
-  const sajuScore1to2 = targetPair.saju?.score_1_to_2 ?? targetPair.saju?.score1to2 ?? dynamic.saju.score1to2;
-  const sajuScore2to1 = targetPair.saju?.score_2_to_1 ?? targetPair.saju?.score2to1 ?? dynamic.saju.score2to1;
-  const sajuDesc = targetPair.saju?.description ?? dynamic.saju.desc;
-  const zodiacDesc = targetPair.zodiac?.description ?? dynamic.zodiac.desc;
+  // Saju
+  const rawSaju1to2 = targetPair.saju?.score_1_to_2 ?? targetPair.saju?.score1to2 ?? dynamic.saju.score1to2;
+  const rawSaju2to1 = targetPair.saju?.score_2_to_1 ?? targetPair.saju?.score2to1 ?? dynamic.saju.score2to1;
+  const sajuScore1to2 = isM1First ? rawSaju1to2 : rawSaju2to1;
+  const sajuScore2to1 = isM1First ? rawSaju2to1 : rawSaju1to2;
+  const sajuAvg = Math.round((sajuScore1to2 + sajuScore2to1) / 2);
+  const rawSajuDesc = targetPair.saju?.description ?? dynamic.saju.desc;
+  const sajuDesc = syncDescriptionScores(rawSajuDesc, sajuScore1to2, sajuScore2to1);
 
+  // Ziwei
+  const rawZiwei1to2 = targetPair.ziwei?.score_1_to_2 ?? targetPair.ziwei?.score1to2 ?? dynamic.ziwei?.score1to2 ?? 50;
+  const rawZiwei2to1 = targetPair.ziwei?.score_2_to_1 ?? targetPair.ziwei?.score2to1 ?? dynamic.ziwei?.score2to1 ?? 50;
+  const ziweiScore1to2 = isM1First ? rawZiwei1to2 : rawZiwei2to1;
+  const ziweiScore2to1 = isM1First ? rawZiwei2to1 : rawZiwei1to2;
+  const ziweiAvg = Math.round((ziweiScore1to2 + ziweiScore2to1) / 2);
+
+  // Zodiac
+  const rawZodiac1to2 = targetPair.zodiac?.score_1_to_2 ?? targetPair.zodiac?.score1to2 ?? dynamic.zodiac?.score1to2 ?? 50;
+  const rawZodiac2to1 = targetPair.zodiac?.score_2_to_1 ?? targetPair.zodiac?.score2to1 ?? dynamic.zodiac?.score2to1 ?? 50;
+  const zodiacScore1to2 = isM1First ? rawZodiac1to2 : rawZodiac2to1;
+  const zodiacScore2to1 = isM1First ? rawZodiac2to1 : rawZodiac1to2;
+  const zodiacAvg = Math.round((zodiacScore1to2 + zodiacScore2to1) / 2);
+  const rawZodiacDesc = targetPair.zodiac?.description ?? dynamic.zodiac.desc;
+  const zodiacDesc = syncDescriptionScores(rawZodiacDesc, zodiacScore1to2, zodiacScore2to1);
+
+  // MBTI
   const hasMbtiBoth = !!(m1.mbti && m2.mbti && m1.mbti !== "미입력" && m2.mbti !== "미입력");
-  const mbtiDesc = targetPair.mbti?.description ?? dynamic.mbti.desc;
+  const rawMbti1to2 = targetPair.mbti?.score_1_to_2 ?? targetPair.mbti?.score1to2 ?? dynamic.mbti?.score1to2 ?? 50;
+  const rawMbti2to1 = targetPair.mbti?.score_2_to_1 ?? targetPair.mbti?.score2to1 ?? dynamic.mbti?.score2to1 ?? 50;
+  const mbtiScore1to2 = isM1First ? rawMbti1to2 : rawMbti2to1;
+  const mbtiScore2to1 = isM1First ? rawMbti2to1 : rawMbti1to2;
+  const mbtiAvg = Math.round((mbtiScore1to2 + mbtiScore2to1) / 2);
+  const rawMbtiDesc = targetPair.mbti?.description ?? dynamic.mbti.desc;
+  const mbtiDesc = syncDescriptionScores(rawMbtiDesc, mbtiScore1to2, mbtiScore2to1);
 
   return {
     totalScore,
+    totalScore1to2,
+    totalScore2to1,
     label,
     desc,
     saju: {
       score1to2: sajuScore1to2,
       score2to1: sajuScore2to1,
+      avg: sajuAvg,
       desc: sajuDesc,
+    },
+    ziwei: {
+      score1to2: ziweiScore1to2,
+      score2to1: ziweiScore2to1,
+      avg: ziweiAvg,
     },
     zodiac: {
       z1,
       z2,
       ze1,
       ze2,
+      score1to2: zodiacScore1to2,
+      score2to1: zodiacScore2to1,
+      avg: zodiacAvg,
       desc: zodiacDesc,
     },
     mbti: {
       hasBoth: hasMbtiBoth,
+      score1to2: mbtiScore1to2,
+      score2to1: mbtiScore2to1,
+      avg: mbtiAvg,
       desc: mbtiDesc,
     }
   };
@@ -358,7 +416,7 @@ export default function PairChemistryModal({
         {activeTab === "summary" && (
           <div className="space-y-3 animate-fade-in">
             {/* Score & Relationship Title */}
-            <div className="bg-sunken rounded-xl p-5 space-y-2 text-center">
+            <div className="bg-sunken rounded-xl p-5 space-y-2.5 text-center">
               <div className="flex items-center justify-between text-xs text-ink-faint relative">
                 <div className="flex items-center gap-1.5">
                   <span>인연 상생 지수</span>
@@ -398,6 +456,18 @@ export default function PairChemistryModal({
                   </div>
                 )}
               </div>
+
+              {/* Directional score tags for total chemistry */}
+              <div className="flex items-center justify-center gap-2 pt-0.5 pb-0.5">
+                <span className="text-[11px] px-2.5 py-0.5 bg-surface border border-line rounded-lg text-ink-soft">
+                  주는 기운 <strong className="font-mono text-ink ml-1 font-semibold">{analysis.totalScore1to2}점</strong>
+                </span>
+                <span className="text-ink-faint text-xs">·</span>
+                <span className="text-[11px] px-2.5 py-0.5 bg-surface border border-line rounded-lg text-ink-soft">
+                  받는 기운 <strong className="font-mono text-ink ml-1 font-semibold">{analysis.totalScore2to1}점</strong>
+                </span>
+              </div>
+
               <h4 className="font-serif text-lg font-semibold text-ink">
                 {analysis.label}
               </h4>
@@ -432,7 +502,12 @@ export default function PairChemistryModal({
           <div className="space-y-3 animate-fade-in">
             <div className="bg-sunken rounded-xl p-4 space-y-3">
               <div className="flex items-center justify-between border-b border-line pb-2">
-                <span className="text-sm font-semibold text-ink">오행 상생 조화</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-semibold text-ink">오행 상생 조화</span>
+                  <span className="font-mono text-xs font-bold text-seal bg-surface px-1.5 py-0.5 rounded">
+                    {analysis.saju.avg}점
+                  </span>
+                </div>
                 <span className="text-xs text-ink-soft bg-surface px-2 py-0.5 rounded-lg">
                   {myMember.saju?.daymaster?.gan || "토"} → {targetMember.saju?.daymaster?.gan || "토"}
                 </span>
@@ -440,11 +515,17 @@ export default function PairChemistryModal({
 
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="bg-surface p-2.5 rounded-xl">
-                  <span className="text-ink-faint block">나 → {targetMember.nickname}</span>
+                  <div className="flex items-center justify-between text-ink-faint mb-0.5">
+                    <span className="truncate">나 → {targetMember.nickname}</span>
+                    <span className="text-[10px] shrink-0">주는 기운</span>
+                  </div>
                   <span className="text-sm font-semibold font-mono text-ink">{analysis.saju.score1to2}점</span>
                 </div>
                 <div className="bg-surface p-2.5 rounded-xl">
-                  <span className="text-ink-faint block">{targetMember.nickname} → 나</span>
+                  <div className="flex items-center justify-between text-ink-faint mb-0.5">
+                    <span className="truncate">{targetMember.nickname} → 나</span>
+                    <span className="text-[10px] shrink-0">받는 기운</span>
+                  </div>
                   <span className="text-sm font-semibold font-mono text-ink">{analysis.saju.score2to1}점</span>
                 </div>
               </div>
@@ -462,11 +543,34 @@ export default function PairChemistryModal({
             {/* Zodiac Card */}
             <div className="bg-sunken rounded-xl p-4 space-y-2.5">
               <div className="flex items-center justify-between border-b border-line pb-2">
-                <span className="text-sm font-semibold text-ink">별자리 4원소 조화</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-semibold text-ink">별자리 4원소 조화</span>
+                  <span className="font-mono text-xs font-bold text-seal bg-surface px-1.5 py-0.5 rounded">
+                    {analysis.zodiac.avg}점
+                  </span>
+                </div>
                 <span className="text-xs text-ink-soft bg-surface px-2 py-0.5 rounded-lg">
                   {analysis.zodiac.ze1} × {analysis.zodiac.ze2}
                 </span>
               </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-surface p-2.5 rounded-xl">
+                  <div className="flex items-center justify-between text-ink-faint mb-0.5">
+                    <span className="truncate">나 → {targetMember.nickname}</span>
+                    <span className="text-[10px] shrink-0">주는 기운</span>
+                  </div>
+                  <span className="text-sm font-semibold font-mono text-ink">{analysis.zodiac.score1to2}점</span>
+                </div>
+                <div className="bg-surface p-2.5 rounded-xl">
+                  <div className="flex items-center justify-between text-ink-faint mb-0.5">
+                    <span className="truncate">{targetMember.nickname} → 나</span>
+                    <span className="text-[10px] shrink-0">받는 기운</span>
+                  </div>
+                  <span className="text-sm font-semibold font-mono text-ink">{analysis.zodiac.score2to1}점</span>
+                </div>
+              </div>
+
               <p className="text-sm text-ink-soft leading-relaxed">
                 {analysis.zodiac.desc}
               </p>
@@ -476,11 +580,34 @@ export default function PairChemistryModal({
             {analysis.mbti.hasBoth ? (
               <div className="bg-sunken rounded-xl p-4 space-y-2.5">
                 <div className="flex items-center justify-between border-b border-line pb-2">
-                  <span className="text-sm font-semibold text-ink">MBTI 성향 조화</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-semibold text-ink">MBTI 성향 조화</span>
+                    <span className="font-mono text-xs font-bold text-seal bg-surface px-1.5 py-0.5 rounded">
+                      {analysis.mbti.avg}점
+                    </span>
+                  </div>
                   <span className="text-xs text-ink-soft bg-surface px-2 py-0.5 rounded-lg">
                     {myMember.mbti?.toUpperCase()} × {targetMember.mbti?.toUpperCase()}
                   </span>
                 </div>
+
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-surface p-2.5 rounded-xl">
+                    <div className="flex items-center justify-between text-ink-faint mb-0.5">
+                      <span className="truncate">나 → {targetMember.nickname}</span>
+                      <span className="text-[10px] shrink-0">주는 기운</span>
+                    </div>
+                    <span className="text-sm font-semibold font-mono text-ink">{analysis.mbti.score1to2}점</span>
+                  </div>
+                  <div className="bg-surface p-2.5 rounded-xl">
+                    <div className="flex items-center justify-between text-ink-faint mb-0.5">
+                      <span className="truncate">{targetMember.nickname} → 나</span>
+                      <span className="text-[10px] shrink-0">받는 기운</span>
+                    </div>
+                    <span className="text-sm font-semibold font-mono text-ink">{analysis.mbti.score2to1}점</span>
+                  </div>
+                </div>
+
                 <p className="text-sm text-ink-soft leading-relaxed">
                   {analysis.mbti.desc}
                 </p>

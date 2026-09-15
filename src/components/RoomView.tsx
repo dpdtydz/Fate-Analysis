@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import Layout from "./Layout";
 import { db, auth, saveRoomToHistory, getRoomHistory, saveUserPersonalProfile, checkProductUnlock, getUserPersonalProfile } from "../lib/firebase";
 import { doc, getDoc, setDoc, collection, onSnapshot, deleteDoc } from "firebase/firestore";
-import { Member, Room } from "../types";
+import { Member, Room, PairAnalysis } from "../types";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { Copy, Share2, Users, Calendar, Crown, Heart, Sparkles, ChevronDown, ChevronUp, Lock, Lightbulb, Ticket, UserX, Trash2, UserPlus } from "lucide-react";
 import PremiumPaywall from "./PremiumPaywall";
@@ -181,9 +181,10 @@ export default function RoomView({ code }: RoomViewProps) {
   }, [code]);
 
   // Group summary metrics
-  // GroupView가 쓰는 실제 분석 캐시의 종합 점수(사주·자미두수·MBTI·별자리 4축).
+  // GroupView가 쓰는 실제 분석 캐시의 종합 점수 및 1:1 페어 궁합 데이터(사주·자미두수·MBTI·별자리 4축).
   // 분석 전이거나 읽기 실패면 null이고, 아래에서 오행 기반 어림값으로 폴백한다.
   const [analysisScore, setAnalysisScore] = useState<number | null>(null);
+  const [analysisPairs, setAnalysisPairs] = useState<PairAnalysis[] | null>(null);
 
   useEffect(() => {
     if (!code) return;
@@ -191,10 +192,20 @@ export default function RoomView({ code }: RoomViewProps) {
     const unsub = onSnapshot(
       ref,
       (snap) => {
-        const s = snap.exists() ? snap.data()?.group?.overall_score : null;
-        setAnalysisScore(typeof s === "number" && s > 0 ? s : null);
+        if (snap.exists()) {
+          const data = snap.data();
+          const s = data?.group?.overall_score;
+          setAnalysisScore(typeof s === "number" && s > 0 ? s : null);
+          setAnalysisPairs(Array.isArray(data?.pairs) ? data.pairs : null);
+        } else {
+          setAnalysisScore(null);
+          setAnalysisPairs(null);
+        }
       },
-      () => setAnalysisScore(null)
+      () => {
+        setAnalysisScore(null);
+        setAnalysisPairs(null);
+      }
     );
     return () => unsub();
   }, [code]);
@@ -858,22 +869,50 @@ export default function RoomView({ code }: RoomViewProps) {
       )}
 
       {/* 1:1 Pair Chemistry Modal */}
-      <PairChemistryModal
-        isOpen={isChemistryModalOpen}
-        onClose={() => setIsChemistryModalOpen(false)}
-        myMember={myMemberInfo || null}
-        targetMember={selectedTargetMember}
-        pair={myMemberInfo && selectedTargetMember ? generateDynamicPairCompatibility(myMemberInfo, selectedTargetMember) : undefined}
-        roomCode={code}
-        isSecretUnlocked={isSecretUnlocked}
-        onOpenShop={(tab) => {
-          setShopTab(tab);
-          setIsShopOpen(true);
-        }}
-        onJoinPrompt={() => {
-          window.location.hash = `#/room/${code}/join`;
-        }}
-      />
+      {(() => {
+        let matchedPair: PairAnalysis | undefined;
+        if (myMemberInfo && selectedTargetMember) {
+          const m1Id = myMemberInfo.id.trim().toLowerCase();
+          const m2Id = selectedTargetMember.id.trim().toLowerCase();
+          const m1Nick = myMemberInfo.nickname.trim().toLowerCase().replace(/님$/, "");
+          const m2Nick = selectedTargetMember.nickname.trim().toLowerCase().replace(/님$/, "");
+
+          if (analysisPairs && analysisPairs.length > 0) {
+            matchedPair = analysisPairs.find((p) => {
+              const p1Id = (p.member_id_1 || "").trim().toLowerCase();
+              const p2Id = (p.member_id_2 || "").trim().toLowerCase();
+              const p1Nick = p1Id.replace(/님$/, "");
+              const p2Nick = p2Id.replace(/님$/, "");
+
+              const isIdMatch = (p1Id === m1Id && p2Id === m2Id) || (p1Id === m2Id && p2Id === m1Id);
+              const isNickMatch = (p1Nick === m1Nick && p2Nick === m2Nick) || (p1Nick === m2Nick && p2Nick === m1Nick);
+              return isIdMatch || isNickMatch;
+            });
+          }
+          if (!matchedPair) {
+            matchedPair = generateDynamicPairCompatibility(myMemberInfo, selectedTargetMember);
+          }
+        }
+
+        return (
+          <PairChemistryModal
+            isOpen={isChemistryModalOpen}
+            onClose={() => setIsChemistryModalOpen(false)}
+            myMember={myMemberInfo || null}
+            targetMember={selectedTargetMember}
+            pair={matchedPair}
+            roomCode={code}
+            isSecretUnlocked={isSecretUnlocked}
+            onOpenShop={(tab) => {
+              setShopTab(tab);
+              setIsShopOpen(true);
+            }}
+            onJoinPrompt={() => {
+              window.location.hash = `#/room/${code}/join`;
+            }}
+          />
+        );
+      })()}
 
       {/* Viral Image Card Modal */}
       <ViralCardModal
