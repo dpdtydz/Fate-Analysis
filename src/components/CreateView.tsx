@@ -238,7 +238,7 @@ export default function CreateView() {
             type="button"
             onClick={handleLinkGoogle}
             disabled={loading}
-            className="w-full py-3.5 bg-ink hover:bg-ink/90 text-white font-semibold text-sm rounded-xl transition-colors flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+            className="w-full py-3.5 bg-seal hover:bg-seal-deep text-white font-semibold text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
           >
             <Chrome className="w-4 h-4 text-white" />
             <span>{loading ? "Google 연동 중..." : "Google 계정 연동하기"}</span>
@@ -289,9 +289,9 @@ export default function CreateView() {
                   setLoading(false);
                 }
               }}
-              className="w-full py-3.5 bg-ink hover:bg-ink/90 text-white font-semibold text-sm rounded-xl transition-colors flex items-center justify-center space-x-2 cursor-pointer"
+              className="w-full py-3.5 bg-seal hover:bg-seal-deep text-white font-semibold text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center space-x-2 cursor-pointer"
             >
-              <Chrome className="w-4 h-4" />
+              <Chrome className="w-4 h-4 text-white" />
               <span>Google 계정으로 계속하기</span>
             </button>
 

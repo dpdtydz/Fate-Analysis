@@ -64,8 +64,10 @@ export default function ThemeSwitcher() {
       localStorage.setItem("inyeon_theme", theme);
       if (theme === "baekja") {
         document.documentElement.removeAttribute("data-theme");
+        document.documentElement.classList.remove("dark");
       } else {
         document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.classList.add("dark");
       }
     }
     setIsOpen(false);
@@ -75,8 +77,10 @@ export default function ThemeSwitcher() {
     if (typeof window !== "undefined") {
       if (currentTheme === "baekja") {
         document.documentElement.removeAttribute("data-theme");
+        document.documentElement.classList.remove("dark");
       } else {
         document.documentElement.setAttribute("data-theme", currentTheme);
+        document.documentElement.classList.add("dark");
       }
     }
   }, [currentTheme]);

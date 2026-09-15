@@ -26,7 +26,7 @@ export default function Layout({
   showHomeButton = false,
   showBackButton = false,
   onBack,
-  maxWidth = "3xl",
+  maxWidth = "2xl",
   headerRight,
 }: LayoutProps) {
   const [currentUser, setCurrentUser] = useState(auth.currentUser);

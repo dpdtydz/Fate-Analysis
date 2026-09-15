@@ -177,7 +177,7 @@ export default function KakaoOutlinkGuide() {
             onClick={handleCopyLink}
             className={`flex items-center gap-1.5 py-2 px-3.5 rounded-xl text-xs font-medium shrink-0 transition-colors duration-200 ${
               copied
-                ? "bg-ink text-white"
+                ? "bg-seal text-white font-semibold shadow-xs"
                 : "bg-sunken hover:bg-line text-ink"
             }`}
           >

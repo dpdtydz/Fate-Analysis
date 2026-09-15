@@ -18,7 +18,7 @@ export function Skeleton({
 export function RoomViewSkeleton() {
   return (
     <div className="min-h-screen bg-paper text-ink transition-colors pb-safe">
-      <div className="max-w-md mx-auto px-4 py-4 space-y-5 animate-fade-in">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-5 animate-fade-in">
         {/* Top Navigation Bar */}
         <div className="flex items-center justify-between pt-2">
           <Skeleton className="w-8 h-8 rounded-full" />
@@ -104,7 +104,7 @@ export function RoomViewSkeleton() {
 export function GroupViewSkeleton() {
   return (
     <div className="min-h-screen bg-paper text-ink transition-colors pb-safe">
-      <div className="max-w-md mx-auto px-4 py-4 space-y-5 animate-fade-in">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-5 animate-fade-in">
         {/* Top Header */}
         <div className="flex items-center justify-between pt-2">
           <Skeleton className="w-8 h-8 rounded-full" />
@@ -206,7 +206,7 @@ export function GroupViewSkeleton() {
 export function MeViewSkeleton() {
   return (
     <div className="min-h-screen bg-paper text-ink transition-colors pb-safe">
-      <div className="max-w-md mx-auto px-4 py-4 space-y-5 animate-fade-in">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-5 animate-fade-in">
         {/* Top Navigation */}
         <div className="flex items-center justify-between pt-2">
           <Skeleton className="w-8 h-8 rounded-full" />
@@ -299,7 +299,7 @@ export function MeViewSkeleton() {
 export function ScreenSkeleton() {
   return (
     <div className="min-h-screen bg-paper text-ink transition-colors pb-safe">
-      <div className="max-w-md mx-auto px-4 py-6 space-y-5 animate-fade-in">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-5 animate-fade-in">
         <div className="flex items-center justify-between">
           <Skeleton className="w-8 h-8 rounded-full" />
           <Skeleton className="h-5 w-32 rounded-lg" />

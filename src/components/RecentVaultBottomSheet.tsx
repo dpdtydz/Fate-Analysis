@@ -72,23 +72,23 @@ export default function RecentVaultBottomSheet({ isOpen, onClose }: RecentVaultB
       showCloseButton={true}
     >
       {/* Segmented Control */}
-      <div className="flex rounded-xl bg-sunken p-1 border border-line">
+      <div className="flex rounded-xl bg-sunken p-1 border border-line/60">
         <button
           onClick={() => setActiveTab("rooms")}
-          className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+          className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
             activeTab === "rooms"
-              ? "bg-surface text-ink shadow-xs"
-              : "text-ink-soft hover:text-ink"
+              ? "bg-surface text-ink shadow-xs border border-line/80 ring-1 ring-black/5 dark:ring-white/10"
+              : "text-ink-soft hover:text-ink hover:bg-surface/50"
           }`}
         >
           최근 모임방 ({rooms.length})
         </button>
         <button
           onClick={() => setActiveTab("profile")}
-          className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+          className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
             activeTab === "profile"
-              ? "bg-surface text-ink shadow-xs"
-              : "text-ink-soft hover:text-ink"
+              ? "bg-surface text-ink shadow-xs border border-line/80 ring-1 ring-black/5 dark:ring-white/10"
+              : "text-ink-soft hover:text-ink hover:bg-surface/50"
           }`}
         >
           내 사주 명식 {profile ? "✓" : ""}
@@ -191,7 +191,7 @@ export default function RecentVaultBottomSheet({ isOpen, onClose }: RecentVaultB
 
               <button
                 onClick={handleGoToMySaju}
-                className="w-full py-2.5 bg-ink text-white rounded-xl text-xs font-semibold hover:bg-seal transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2.5 bg-seal hover:bg-seal-deep text-white rounded-xl text-xs font-semibold shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>내 사주 및 소울 카드 보기</span>
                 <ArrowRight className="w-3.5 h-3.5" />

@@ -54,7 +54,7 @@ function showPCShareModal(text: string, url: string) {
         </button>
       </div>
 
-      <div id="pc-share-toast" class="absolute bottom-16 left-1/2 -translate-x-1/2 bg-ink text-white text-xs font-medium px-3 py-2 rounded-xl opacity-0 transition-opacity duration-300 pointer-events-none">
+      <div id="pc-share-toast" class="absolute bottom-16 left-1/2 -translate-x-1/2 bg-seal text-white text-xs font-medium px-3 py-2 rounded-xl opacity-0 transition-opacity duration-300 pointer-events-none shadow-lg">
         다시 복사했습니다
       </div>
     </div>

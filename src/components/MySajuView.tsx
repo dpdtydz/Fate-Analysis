@@ -935,10 +935,10 @@ export default function MySajuView() {
       <div className="space-y-6 py-1">
 
         {/* 탭: 내 사주 / 모임 궁합 */}
-        <div className="grid grid-cols-2 gap-1 bg-sunken p-1 rounded-xl text-sm">
+        <div className="grid grid-cols-2 gap-1 bg-sunken p-1 rounded-xl text-sm border border-line/60">
           <button
             type="button"
-            className="py-2.5 px-3 rounded-lg bg-surface text-ink text-center font-semibold cursor-default"
+            className="py-2.5 px-3 rounded-lg bg-surface text-ink text-center font-bold shadow-xs border border-line/80 ring-1 ring-black/5 dark:ring-white/15 cursor-default"
           >
             내 사주
           </button>
@@ -948,7 +948,7 @@ export default function MySajuView() {
               e.preventDefault();
               window.location.hash = "#/group";
             }}
-            className="py-2.5 px-3 rounded-lg text-ink-soft hover:text-ink text-center font-medium transition-colors cursor-pointer"
+            className="py-2.5 px-3 rounded-lg text-ink-soft hover:text-ink hover:bg-surface/50 text-center font-medium transition-colors cursor-pointer"
           >
             모임 궁합
           </a>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { ChevronDown } from "lucide-react";
 import { calculateSaju, daymasterMap, getDynamicCharacter } from "../utils/saju";
 import { Member } from "../types";
 import { KOREAN_CITIES } from "@orrery/core";
@@ -23,16 +24,16 @@ const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => i); // 0 to 59
 
 function findCityAndRegion(cityName?: string, regionName?: string): { region: string; city: string } {
   if (regionName && cityName) {
-    const exact = KOREAN_CITIES_MODIFIED.find((c) => c.region === regionName && c.name === cityName);
-    if (exact) return { region: exact.region, city: exact.name };
-  }
-  if (cityName) {
-    const match = KOREAN_CITIES_MODIFIED.find((c) => c.name === cityName);
-    if (match) return { region: match.region, city: match.name };
-  }
-  if (regionName) {
-    const matchRegion = KOREAN_CITIES_MODIFIED.find((c) => c.region === regionName);
-    if (matchRegion) return { region: matchRegion.region, city: matchRegion.name };
+    const matchedRegion = REGIONS.find((r) => r.includes(regionName) || regionName.includes(r));
+    if (matchedRegion) {
+      const matchedCity = KOREAN_CITIES_MODIFIED.find(
+        (c) => c.region === matchedRegion && (c.name.includes(cityName) || cityName.includes(c.name))
+      );
+      if (matchedCity) {
+        return { region: matchedRegion, city: matchedCity.name };
+      }
+      return { region: matchedRegion, city: "서울" };
+    }
   }
   return { region: "서울특별시", city: "서울" };
 }
@@ -61,10 +62,10 @@ interface SajuFormProps {
   initialBirthplaceRegion?: string | null;
 }
 
-/** 선택 버튼 그룹의 공통 스타일 (design.md: 활성=먹, 무보더) */
-const chipBase = "py-2.5 text-sm rounded-lg transition-colors cursor-pointer";
-const chipOn = "bg-ink text-white font-semibold";
-const chipOff = "bg-surface text-ink-soft hover:text-ink";
+/** 선택 버튼 그룹의 공통 스타일 (design.md: 활성 상태 = 인주(seal), 다크모드/라이트모드 전면 가독성 보장) */
+const chipBase = "py-2.5 px-3 text-sm rounded-lg transition-all cursor-pointer select-none text-center";
+const chipOn = "bg-seal text-white font-bold shadow-xs";
+const chipOff = "bg-transparent text-ink-soft hover:text-ink hover:bg-surface/60 font-medium";
 
 /** 입력창 공통 스타일 (무보더, 오류 시에만 인주 링) */
 const inputBase = "bg-sunken rounded-xl text-sm text-ink placeholder:text-ink-faint focus:outline-none focus:ring-1";
@@ -535,7 +536,7 @@ export default function SajuForm({
       {/* Gender */}
       <div className="space-y-1.5 text-left">
         <label className="block text-xs font-medium text-ink-soft">성별</label>
-        <div className="grid grid-cols-2 gap-1 bg-sunken p-1 rounded-xl">
+        <div className="grid grid-cols-2 gap-1 bg-sunken p-1 rounded-xl border border-line/60">
           <button
             id="gender-female-btn"
             type="button"
@@ -558,7 +559,7 @@ export default function SajuForm({
       {/* Calendar Type */}
       <div className="space-y-1.5 text-left">
         <label className="block text-xs font-medium text-ink-soft">양력 / 음력</label>
-        <div className="grid grid-cols-3 gap-1 bg-sunken p-1 rounded-xl">
+        <div className="grid grid-cols-3 gap-1 bg-sunken p-1 rounded-xl border border-line/60">
           <button
             type="button"
             onClick={() => setCalendarType("solar")}
@@ -611,13 +612,14 @@ export default function SajuForm({
                 id="birth-year-select"
                 value={birthYear}
                 onChange={(e) => setBirthYear(e.target.value)}
-                className={`w-full text-center px-1.5 py-3 ${inputBase} ${yearError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
+                className={`w-full appearance-none text-left pl-3 pr-7 py-3 ${inputBase} ${yearError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
               >
                 <option value="" disabled>년도 선택</option>
                 {YEAR_OPTIONS.map((y) => (
                   <option key={y} value={y.toString()}>{y}년</option>
                 ))}
               </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
             </div>
 
             {/* Month Select */}
@@ -626,13 +628,14 @@ export default function SajuForm({
                 id="birth-month-select"
                 value={birthMonth}
                 onChange={(e) => setBirthMonth(e.target.value)}
-                className={`w-full text-center px-1.5 py-3 ${inputBase} ${monthError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
+                className={`w-full appearance-none text-left pl-3 pr-7 py-3 ${inputBase} ${monthError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
               >
                 <option value="" disabled>월 선택</option>
                 {MONTH_OPTIONS.map((m) => (
                   <option key={m} value={m.toString()}>{m}월</option>
                 ))}
               </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
             </div>
 
             {/* Day Select */}
@@ -641,13 +644,14 @@ export default function SajuForm({
                 id="birth-day-select"
                 value={birthDay}
                 onChange={(e) => setBirthDay(e.target.value)}
-                className={`w-full text-center px-1.5 py-3 ${inputBase} ${dayError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
+                className={`w-full appearance-none text-left pl-3 pr-7 py-3 ${inputBase} ${dayError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
               >
                 <option value="" disabled>일 선택</option>
                 {availableDays.map((d) => (
                   <option key={d} value={d.toString()}>{d}일</option>
                 ))}
               </select>
+              <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
             </div>
           </div>
         ) : (
@@ -724,36 +728,42 @@ export default function SajuForm({
         <label className="block text-xs font-medium text-ink-soft">출생 지역</label>
         <div className="grid grid-cols-2 gap-2">
           {/* Region Select (시/도) */}
-          <select
-            id="birthplace-region-select"
-            value={selectedRegion}
-            onChange={handleRegionChange}
-            className={`w-full px-3 py-3 ${inputBase} ${inputOk} cursor-pointer`}
-          >
-            {REGIONS.map((region) => (
-              <option key={region} value={region}>
-                {region}
-              </option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id="birthplace-region-select"
+              value={selectedRegion}
+              onChange={handleRegionChange}
+              className={`w-full appearance-none pl-3.5 pr-8 py-3 ${inputBase} ${inputOk} cursor-pointer`}
+            >
+              {REGIONS.map((region) => (
+                <option key={region} value={region}>
+                  {region}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
+          </div>
 
           {/* City Select (시/군/구) */}
-          <select
-            id="birthplace-city-select"
-            value={birthplaceCity}
-            onChange={(e) => setBirthplaceCity(e.target.value)}
-            className={`w-full px-3 py-3 ${inputBase} ${inputOk} cursor-pointer`}
-          >
-            {KOREAN_CITIES_MODIFIED.filter((c) => c.region === selectedRegion).map((city) => {
-              const isMetropolitan = city.region.endsWith("특별시") || city.region.endsWith("광역시") || city.region.endsWith("특별자치시");
-              const displayName = isMetropolitan ? `${city.name} 전역` : `${city.name}시/군`;
-              return (
-                <option key={`${city.region}-${city.name}`} value={city.name}>
-                  {displayName}
-                </option>
-              );
-            })}
-          </select>
+          <div className="relative">
+            <select
+              id="birthplace-city-select"
+              value={birthplaceCity}
+              onChange={(e) => setBirthplaceCity(e.target.value)}
+              className={`w-full appearance-none pl-3.5 pr-8 py-3 ${inputBase} ${inputOk} cursor-pointer`}
+            >
+              {KOREAN_CITIES_MODIFIED.filter((c) => c.region === selectedRegion).map((city) => {
+                const isMetropolitan = city.region.endsWith("특별시") || city.region.endsWith("광역시") || city.region.endsWith("특별자치시");
+                const displayName = isMetropolitan ? `${city.name} 전역` : `${city.name}시/군`;
+                return (
+                  <option key={`${city.region}-${city.name}`} value={city.name}>
+                    {displayName}
+                  </option>
+                );
+              })}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
+          </div>
         </div>
         <p className="text-xs text-ink-faint">출생지의 경도로 태양시를 보정해 계산합니다.</p>
       </div>
@@ -768,7 +778,7 @@ export default function SajuForm({
               type="checkbox"
               checked={knowTime}
               onChange={(e) => setKnowTime(e.target.checked)}
-              className="w-3.5 h-3.5 rounded accent-ink cursor-pointer"
+              className="w-3.5 h-3.5 rounded accent-seal cursor-pointer"
             />
             <span className="text-xs text-ink-soft">태어난 시각을 압니다</span>
           </label>
@@ -794,13 +804,14 @@ export default function SajuForm({
                     id="birth-hour-select"
                     value={birthHour}
                     onChange={(e) => setBirthHour(e.target.value)}
-                    className={`w-full text-center px-3 py-3 ${inputBase} ${hourError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
+                    className={`w-full appearance-none text-left pl-3.5 pr-8 py-3 ${inputBase} ${hourError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
                   >
                     <option value="" disabled>시 선택</option>
                     {HOUR_OPTIONS.map((h) => (
                       <option key={h} value={h.toString()}>{h.toString().padStart(2, "0")}시</option>
                     ))}
                   </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
                 </div>
 
                 {/* Minute Select */}
@@ -809,13 +820,14 @@ export default function SajuForm({
                     id="birth-minute-select"
                     value={birthMin}
                     onChange={(e) => setBirthMin(e.target.value)}
-                    className={`w-full text-center px-3 py-3 ${inputBase} ${minError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
+                    className={`w-full appearance-none text-left pl-3.5 pr-8 py-3 ${inputBase} ${minError ? inputErr : inputOk} cursor-pointer font-medium text-xs sm:text-sm`}
                   >
                     <option value="" disabled>분 선택</option>
                     {MINUTE_OPTIONS.map((m) => (
                       <option key={m} value={m.toString()}>{m.toString().padStart(2, "0")}분</option>
                     ))}
                   </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
                 </div>
               </div>
             ) : (
@@ -885,7 +897,7 @@ export default function SajuForm({
             onClick={() => setUseMbti(!useMbti)}
             aria-label="MBTI 함께 보기"
             className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              useMbti ? "bg-ink" : "bg-line"
+              useMbti ? "bg-seal" : "bg-line"
             }`}
           >
             <span
@@ -906,13 +918,13 @@ export default function SajuForm({
             ] as const).map((row) => (
               <div key={row.label} className="flex flex-col space-y-1">
                 <span className="text-xs text-ink-faint">{row.label}</span>
-                <div className="flex rounded-lg overflow-hidden bg-surface text-sm text-center">
+                <div className="flex rounded-lg overflow-hidden bg-surface text-sm text-center border border-line/60">
                   <button
                     id={row.idA}
                     type="button"
                     onClick={() => row.set(row.a)}
                     className={`flex-1 py-2 transition-colors cursor-pointer ${
-                      row.value === row.a ? "bg-ink text-white font-semibold" : "text-ink-faint hover:text-ink"
+                      row.value === row.a ? "bg-seal text-white font-semibold shadow-xs" : "text-ink-faint hover:text-ink"
                     }`}
                   >
                     {row.a} {row.aDesc}
@@ -922,7 +934,7 @@ export default function SajuForm({
                     type="button"
                     onClick={() => row.set(row.b)}
                     className={`flex-1 py-2 transition-colors cursor-pointer ${
-                      row.value === row.b ? "bg-ink text-white font-semibold" : "text-ink-faint hover:text-ink"
+                      row.value === row.b ? "bg-seal text-white font-semibold shadow-xs" : "text-ink-faint hover:text-ink"
                     }`}
                   >
                     {row.b} {row.bDesc}

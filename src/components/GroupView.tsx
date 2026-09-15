@@ -1250,16 +1250,37 @@ export default function GroupView({ code }: GroupViewProps) {
           </div>
         )}
         
-        {/* Back Link & Action Row */}
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <a
-            href={`#/room/${code}`}
-            className="inline-flex items-center text-xs font-medium text-ink-soft hover:text-ink transition-colors"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            모임방으로 돌아가기
-          </a>
-          <div className="flex items-center gap-2 flex-wrap">
+        {/* Back Link & Action Toolbar (Structured 2-Tier Header) */}
+        <div className="space-y-2.5 pb-1">
+          <div className="flex items-center justify-between gap-2">
+            <a
+              href={`#/room/${code}`}
+              className="inline-flex items-center text-xs font-medium text-ink-soft hover:text-ink transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+              모임방으로 돌아가기
+            </a>
+            <button
+              onClick={() => {
+                if (isWithin24HoursLimit) {
+                  alert(`종합 궁합 분석은 분석 품질 유지를 위해 24시간에 한 번만 가능해요. 새로운 멤버 구성으로 재분석하려면 ${timeLeftText} 후에 시도해 주세요.`);
+                  return;
+                }
+                acquireLockAndAnalyze(members, room.title);
+              }}
+              disabled={analyzing}
+              className={`inline-flex items-center text-xs font-semibold transition-colors px-3 py-1.5 rounded-xl cursor-pointer border border-line/60 ${
+                isWithin24HoursLimit
+                  ? "bg-sunken text-ink-faint cursor-not-allowed"
+                  : "bg-sunken hover:bg-line text-ink"
+              }`}
+            >
+              <RefreshCw className={`w-3 h-3 mr-1 ${analyzing ? 'animate-spin' : ''}`} />
+              <span>{isWithin24HoursLimit ? `재분석 잠금 (${timeLeftText})` : "다시 분석하기"}</span>
+            </button>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap">
             {isOwner && (
               <>
                 <button
@@ -1274,7 +1295,7 @@ export default function GroupView({ code }: GroupViewProps) {
                 <button
                   type="button"
                   onClick={() => setIsMemberManageModalOpen(true)}
-                  className="inline-flex items-center text-xs font-semibold transition-colors px-3 py-1.5 rounded-xl bg-sunken hover:bg-line text-ink cursor-pointer border border-amber-500/20 shadow-xs"
+                  className="inline-flex items-center text-xs font-semibold transition-colors px-3 py-1.5 rounded-xl bg-sunken hover:bg-line text-ink cursor-pointer border border-line/80 shadow-xs"
                   title="방장 권한: 멤버 목록 확인 및 내보내기"
                 >
                   <Crown className="w-3.5 h-3.5 mr-1 text-amber-500" />
@@ -1285,27 +1306,9 @@ export default function GroupView({ code }: GroupViewProps) {
             <button
               type="button"
               onClick={() => setIsStoryModalOpen(true)}
-              className="inline-flex items-center text-xs font-bold transition-opacity px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#ff7043] text-white shadow-xs hover:opacity-90 cursor-pointer"
+              className="inline-flex items-center text-xs font-bold transition-opacity px-3 py-1.5 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#ff7043] text-white shadow-xs hover:opacity-90 cursor-pointer ml-auto sm:ml-0"
             >
               <span>✨ 스토리 공유 카드</span>
-            </button>
-            <button
-              onClick={() => {
-                if (isWithin24HoursLimit) {
-                  alert(`종합 궁합 분석은 분석 품질 유지를 위해 24시간에 한 번만 가능해요. 새로운 멤버 구성으로 재분석하려면 ${timeLeftText} 후에 시도해 주세요.`);
-                  return;
-                }
-                acquireLockAndAnalyze(members, room.title);
-              }}
-              disabled={analyzing}
-              className={`inline-flex items-center text-xs font-semibold transition-colors px-3 py-1.5 rounded-xl cursor-pointer ${
-                isWithin24HoursLimit
-                  ? "bg-sunken text-ink-faint cursor-not-allowed"
-                  : "bg-sunken hover:bg-line text-ink"
-              }`}
-            >
-              <RefreshCw className={`w-3 h-3 mr-1 ${analyzing ? 'animate-spin' : ''}`} />
-              <span>{isWithin24HoursLimit ? `재분석 잠금 (${timeLeftText})` : "다시 분석하기"}</span>
             </button>
           </div>
         </div>

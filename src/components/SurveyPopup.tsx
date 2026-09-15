@@ -340,7 +340,7 @@ export default function SurveyPopup() {
                                 <label
                                   key={option}
                                   className={`flex items-start p-3 rounded-xl cursor-pointer transition-colors text-xs leading-relaxed space-x-2.5 ${
-                                    answers[q.id] === option ? "bg-ink text-white" : "bg-sunken text-ink-soft hover:bg-line"
+                                    answers[q.id] === option ? "bg-seal text-white font-medium shadow-xs" : "bg-sunken text-ink-soft hover:bg-line border border-transparent"
                                   }`}
                                 >
                                   <input
@@ -349,7 +349,7 @@ export default function SurveyPopup() {
                                     value={option}
                                     checked={answers[q.id] === option}
                                     onChange={() => handleAnswerChange(q.id, option)}
-                                    className="mt-0.5 accent-ink"
+                                    className="mt-0.5 accent-seal"
                                   />
                                   <span>{option}</span>
                                 </label>
@@ -366,7 +366,7 @@ export default function SurveyPopup() {
                                   <label
                                     key={option}
                                     className={`flex items-start p-3 rounded-xl cursor-pointer transition-colors text-xs leading-relaxed space-x-2.5 ${
-                                      isChecked ? "bg-ink text-white" : "bg-sunken text-ink-soft hover:bg-line"
+                                      isChecked ? "bg-seal text-white font-medium shadow-xs" : "bg-sunken text-ink-soft hover:bg-line border border-transparent"
                                     }`}
                                   >
                                     <input

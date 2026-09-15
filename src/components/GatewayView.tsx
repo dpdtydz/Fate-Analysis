@@ -15,7 +15,7 @@ export default function GatewayView() {
   const latestRoom = recentRooms[0];
 
   return (
-    <Layout maxWidth="xl" showHomeButton={false}>
+    <Layout maxWidth="2xl" showHomeButton={false}>
       <div className="py-8 sm:py-12 space-y-10">
         {/* 헤드라인 */}
         <div className="text-center space-y-3">

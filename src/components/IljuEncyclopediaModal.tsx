@@ -235,8 +235,8 @@ export default function IljuEncyclopediaModal({
                       onClick={() => setSelectedElement(elem)}
                       className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-colors cursor-pointer whitespace-nowrap ${
                         selectedElement === elem
-                          ? "bg-ink text-white"
-                          : "bg-sunken text-ink-soft hover:text-ink"
+                          ? "bg-seal text-white font-semibold shadow-xs"
+                          : "bg-sunken text-ink-soft hover:text-ink hover:bg-line border border-transparent"
                       }`}
                     >
                       {elem === "전체" ? "전체" : `${elem} (${

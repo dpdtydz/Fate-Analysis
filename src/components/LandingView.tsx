@@ -216,20 +216,20 @@ export default function LandingView() {
       <div className="space-y-10">
 
         {/* 탭: 내 사주 / 모임 궁합 */}
-        <div className="grid grid-cols-2 gap-1 bg-sunken p-1 rounded-xl text-sm">
+        <div className="grid grid-cols-2 gap-1 bg-sunken p-1 rounded-xl text-sm border border-line/60">
           <a
             href="#/my-saju"
             onClick={(e) => {
               e.preventDefault();
               window.location.hash = "#/my-saju";
             }}
-            className="py-2.5 px-3 rounded-lg text-ink-soft hover:text-ink text-center font-medium transition-colors cursor-pointer"
+            className="py-2.5 px-3 rounded-lg text-ink-soft hover:text-ink hover:bg-surface/50 text-center font-medium transition-colors cursor-pointer"
           >
             내 사주
           </a>
           <button
             type="button"
-            className="py-2.5 px-3 rounded-lg bg-surface text-ink text-center font-semibold cursor-default"
+            className="py-2.5 px-3 rounded-lg bg-surface text-ink text-center font-bold shadow-xs border border-line/80 ring-1 ring-black/5 dark:ring-white/15 cursor-default"
           >
             모임 궁합
           </button>
@@ -354,8 +354,8 @@ export default function LandingView() {
                     onClick={() => setRoomFilter(f.key)}
                     className={`px-3 py-1.5 rounded-xl transition-colors font-medium cursor-pointer ${
                       roomFilter === f.key
-                        ? "bg-ink text-white"
-                        : "bg-sunken text-ink-soft hover:text-ink"
+                        ? "bg-seal text-white font-bold shadow-xs"
+                        : "bg-sunken text-ink-soft hover:text-ink hover:bg-line border border-transparent"
                     }`}
                   >
                     {f.label}

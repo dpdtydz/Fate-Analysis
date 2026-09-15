@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, UserPlus, Sparkles, Calendar, Clock, AlertCircle } from "lucide-react";
+import { X, UserPlus, Sparkles, Calendar, Clock, AlertCircle, ChevronDown } from "lucide-react";
 import { calculateSaju, getDynamicCharacter } from "../utils/saju";
 import { Member } from "../types";
 import { db, auth } from "../lib/firebase";
@@ -232,14 +232,14 @@ export default function AddGuestMemberModal({
                 <Calendar className="w-3.5 h-3.5 text-seal" />
                 생년월일 <span className="text-seal">*</span>
               </label>
-              <div className="flex items-center gap-1.5 bg-sunken p-0.5 rounded-lg border border-line text-xs">
+              <div className="flex items-center gap-1.5 bg-sunken p-1 rounded-lg border border-line/60 text-xs">
                 <button
                   type="button"
                   onClick={() => setCalendarType("solar")}
                   className={`px-2.5 py-1 rounded-md font-bold transition-all cursor-pointer ${
                     calendarType === "solar"
-                      ? "bg-surface text-ink shadow-xs"
-                      : "text-ink-faint hover:text-ink"
+                      ? "bg-surface text-ink shadow-xs border border-line/80 ring-1 ring-black/5 dark:ring-white/10"
+                      : "text-ink-soft hover:text-ink"
                   }`}
                 >
                   양력
@@ -249,8 +249,8 @@ export default function AddGuestMemberModal({
                   onClick={() => setCalendarType("lunar")}
                   className={`px-2.5 py-1 rounded-md font-bold transition-all cursor-pointer ${
                     calendarType === "lunar"
-                      ? "bg-surface text-ink shadow-xs"
-                      : "text-ink-faint hover:text-ink"
+                      ? "bg-surface text-ink shadow-xs border border-line/80 ring-1 ring-black/5 dark:ring-white/10"
+                      : "text-ink-soft hover:text-ink"
                   }`}
                 >
                   음력
@@ -264,18 +264,18 @@ export default function AddGuestMemberModal({
                   type="checkbox"
                   checked={isLeapMonth}
                   onChange={(e) => setIsLeapMonth(e.target.checked)}
-                  className="rounded border-line text-seal focus:ring-seal"
+                  className="rounded border-line text-seal focus:ring-seal cursor-pointer"
                 />
                 <span>윤달(음력 윤달)인 경우 체크</span>
               </label>
             )}
 
             <div className="grid grid-cols-3 gap-2">
-              <div>
+              <div className="relative">
                 <select
                   value={birthYear}
                   onChange={(e) => setBirthYear(Number(e.target.value))}
-                  className="w-full px-2.5 py-2 rounded-xl bg-sunken border border-line text-ink text-xs focus:outline-hidden focus:border-seal"
+                  className="w-full appearance-none pl-2.5 pr-7 py-2 rounded-xl bg-sunken border border-line text-ink text-xs focus:outline-hidden focus:border-seal cursor-pointer"
                 >
                   {YEAR_OPTIONS.map((y) => (
                     <option key={y} value={y}>
@@ -283,12 +283,13 @@ export default function AddGuestMemberModal({
                     </option>
                   ))}
                 </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
               </div>
-              <div>
+              <div className="relative">
                 <select
                   value={birthMonth}
                   onChange={(e) => setBirthMonth(Number(e.target.value))}
-                  className="w-full px-2.5 py-2 rounded-xl bg-sunken border border-line text-ink text-xs focus:outline-hidden focus:border-seal"
+                  className="w-full appearance-none pl-2.5 pr-7 py-2 rounded-xl bg-sunken border border-line text-ink text-xs focus:outline-hidden focus:border-seal cursor-pointer"
                 >
                   {MONTH_OPTIONS.map((m) => (
                     <option key={m} value={m}>
@@ -296,12 +297,13 @@ export default function AddGuestMemberModal({
                     </option>
                   ))}
                 </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
               </div>
-              <div>
+              <div className="relative">
                 <select
                   value={birthDay}
                   onChange={(e) => setBirthDay(Number(e.target.value))}
-                  className="w-full px-2.5 py-2 rounded-xl bg-sunken border border-line text-ink text-xs focus:outline-hidden focus:border-seal"
+                  className="w-full appearance-none pl-2.5 pr-7 py-2 rounded-xl bg-sunken border border-line text-ink text-xs focus:outline-hidden focus:border-seal cursor-pointer"
                 >
                   {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                     <option key={d} value={d}>
@@ -309,6 +311,7 @@ export default function AddGuestMemberModal({
                     </option>
                   ))}
                 </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
               </div>
             </div>
           </div>
@@ -325,7 +328,7 @@ export default function AddGuestMemberModal({
                   type="checkbox"
                   checked={unknownTime}
                   onChange={(e) => setUnknownTime(e.target.checked)}
-                  className="rounded border-line text-seal focus:ring-seal"
+                  className="rounded border-line text-seal focus:ring-seal cursor-pointer"
                 />
                 <span>시간 모름 (권장)</span>
               </label>
@@ -333,11 +336,11 @@ export default function AddGuestMemberModal({
 
             {!unknownTime && (
               <div className="grid grid-cols-2 gap-2 animate-fade-in">
-                <div>
+                <div className="relative">
                   <select
                     value={birthHour}
                     onChange={(e) => setBirthHour(Number(e.target.value))}
-                    className="w-full px-2.5 py-2 rounded-xl bg-sunken border border-line text-ink text-xs focus:outline-hidden focus:border-seal"
+                    className="w-full appearance-none pl-3 pr-7 py-2 rounded-xl bg-sunken border border-line text-ink text-xs focus:outline-hidden focus:border-seal cursor-pointer"
                   >
                     {HOUR_OPTIONS.map((h) => (
                       <option key={h} value={h}>
@@ -345,12 +348,13 @@ export default function AddGuestMemberModal({
                       </option>
                     ))}
                   </select>
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
                 </div>
-                <div>
+                <div className="relative">
                   <select
                     value={birthMinute}
                     onChange={(e) => setBirthMinute(Number(e.target.value))}
-                    className="w-full px-2.5 py-2 rounded-xl bg-sunken border border-line text-ink text-xs focus:outline-hidden focus:border-seal"
+                    className="w-full appearance-none pl-3 pr-7 py-2 rounded-xl bg-sunken border border-line text-ink text-xs focus:outline-hidden focus:border-seal cursor-pointer"
                   >
                     {MINUTE_OPTIONS.map((m) => (
                       <option key={m} value={m}>
@@ -358,6 +362,7 @@ export default function AddGuestMemberModal({
                       </option>
                     ))}
                   </select>
+                  <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-faint pointer-events-none" />
                 </div>
               </div>
             )}

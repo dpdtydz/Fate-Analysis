@@ -310,7 +310,7 @@ export default function ShinsalBadges({
 
             <button
               onClick={() => setSelectedShinsal(null)}
-              className="w-full py-3 bg-ink text-white rounded-xl text-xs font-semibold hover:bg-seal transition-colors cursor-pointer"
+              className="w-full py-3 bg-seal hover:bg-seal-deep text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
             >
               확인
             </button>
@@ -358,7 +358,7 @@ export default function ShinsalBadges({
 
             <button
               onClick={() => setSelectedUnseong(null)}
-              className="w-full py-3 bg-ink text-white rounded-xl text-xs font-semibold hover:bg-seal transition-colors cursor-pointer"
+              className="w-full py-3 bg-seal hover:bg-seal-deep text-white rounded-xl text-xs font-semibold shadow-xs transition-colors cursor-pointer"
             >
               확인
             </button>

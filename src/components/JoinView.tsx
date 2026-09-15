@@ -207,7 +207,7 @@ export default function JoinView({ code }: JoinViewProps) {
                 setLoading(false);
               }
             }}
-            className="w-full py-3.5 bg-ink hover:bg-ink/90 text-white font-semibold text-sm rounded-xl transition-colors flex items-center justify-center space-x-2 cursor-pointer"
+            className="w-full py-3.5 bg-seal hover:bg-seal-deep text-white font-semibold text-sm rounded-xl shadow-xs transition-colors flex items-center justify-center space-x-2 cursor-pointer"
           >
             <span>Google 계정으로 계속하기</span>
           </button>
