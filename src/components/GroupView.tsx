@@ -1439,13 +1439,13 @@ export default function GroupView({ code }: GroupViewProps) {
             <div
               id="capture-target"
               ref={captureRef}
-              className="w-full bg-[#FAF8F5] dark:bg-[#1A1A1E] rounded-3xl p-4 sm:p-6 border border-amber-900/10 dark:border-line text-left select-none space-y-4 shadow-sm relative overflow-hidden"
+              className="w-full bg-sunken rounded-3xl p-4 sm:p-6 border border-line text-left select-none space-y-4 shadow-sm relative overflow-hidden"
             >
               {/* Subtle Traditional Korean Hanji Geometric Watermark Background */}
               <div className="absolute top-0 right-0 w-36 h-36 bg-radial from-amber-500/5 to-transparent rounded-full pointer-events-none -mr-12 -mt-12" />
 
               {/* STAGE 1: FRONT GROUP SOUL CARD */}
-              <div className="w-full bg-white/95 dark:bg-surface rounded-2xl p-5 border border-line/80 shadow-xs text-left relative">
+              <div className="w-full bg-surface rounded-2xl p-5 border border-line shadow-xs text-left relative">
                 <div className="flex items-center justify-between mb-3.5">
                   <div className="flex items-center gap-1.5 font-mono tracking-widest text-xs text-ink-faint font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-seal animate-pulse" />
