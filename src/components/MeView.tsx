@@ -40,10 +40,10 @@ const ELEMENT_SPECS: Record<string, {
     quote: '"겨울을 지나 기어이 싹을 틔우듯, 스스로 방향을 정하고 나아가요"',
     tags: ["추진력", "성장 마인드", "따뜻한 의리", "개척 정신"],
     stats: [
-      { label: "추진력", val: 84, color: "#35B37E" },
-      { label: "성장성", val: 78, color: "#C0392B" },
-      { label: "신의", val: 70, color: "#E0A82E" },
-      { label: "직관", val: 62, color: "#7C86A0" }
+      { label: "추진력", val: 74, color: "#35B37E" },
+      { label: "성장성", val: 68, color: "#C0392B" },
+      { label: "신의", val: 62, color: "#E0A82E" },
+      { label: "직관", val: 54, color: "#7C86A0" }
     ],
     desc: "어떤 환경에서도 스스로 길을 만들어내는 생명력을 지녔어요. 굽히지 않는 기개로 주변 사람들을 이끌지만, 때로는 휘어지는 유연함이 더 큰 성장을 만듭니다.",
     renderIcon: () => (
@@ -65,10 +65,10 @@ const ELEMENT_SPECS: Record<string, {
     quote: '"어둠 속에서도 길을 밝히듯, 솔직하고 분명한 에너지가 있어요"',
     tags: ["직관적 판단", "솔직담백", "순발력", "영감"],
     stats: [
-      { label: "순발력", val: 88, color: "#F0632E" },
-      { label: "추진력", val: 76, color: "#35B37E" },
-      { label: "직관", val: 82, color: "#C0392B" },
-      { label: "포용력", val: 56, color: "#E0A82E" }
+      { label: "순발력", val: 76, color: "#F0632E" },
+      { label: "추진력", val: 68, color: "#35B37E" },
+      { label: "직관", val: 70, color: "#C0392B" },
+      { label: "포용력", val: 48, color: "#E0A82E" }
     ],
     desc: "주변의 공기를 단숨에 바꾸는 온기를 지녔어요. 마음에 품은 것은 투명하게 드러나며 뒤끝이 없지만, 에너지를 한 번에 쏟고 지치지 않도록 조절이 필요해요.",
     renderIcon: () => (
@@ -86,10 +86,10 @@ const ELEMENT_SPECS: Record<string, {
     quote: '"모든 것을 품어내는 대지처럼, 묵묵하고 단단한 중심이 있어요"',
     tags: ["깊은 신의", "안정감", "경청", "중재력"],
     stats: [
-      { label: "신의", val: 89, color: "#E0A82E" },
-      { label: "포용력", val: 85, color: "#35B37E" },
-      { label: "결단력", val: 62, color: "#7C86A0" },
-      { label: "혜안", val: 68, color: "#3B5BFF" }
+      { label: "신의", val: 76, color: "#E0A82E" },
+      { label: "포용력", val: 72, color: "#35B37E" },
+      { label: "결단력", val: 52, color: "#7C86A0" },
+      { label: "혜안", val: 58, color: "#3B5BFF" }
     ],
     desc: "어떤 이야기도 묵묵히 받아내어 결실로 만드는 안식처예요. 중심이 단단해 곁에 있는 사람에게 큰 안정감을 주지만, 너무 많은 무게를 혼자 짊어지지 마세요.",
     renderIcon: () => (
@@ -108,10 +108,10 @@ const ELEMENT_SPECS: Record<string, {
     quote: '"칼이 잘 벼려져 있듯, 결정할 때 흔들리지 않아요"',
     tags: ["결단력", "완벽주의", "의리파", "명쾌한 판단"],
     stats: [
-      { label: "결단력", val: 82, color: "#7C86A0" },
-      { label: "추진력", val: 64, color: "#F0632E" },
-      { label: "신의", val: 71, color: "#E0A82E" },
-      { label: "혜안", val: 58, color: "#3B5BFF" }
+      { label: "결단력", val: 74, color: "#7C86A0" },
+      { label: "추진력", val: 56, color: "#F0632E" },
+      { label: "신의", val: 62, color: "#E0A82E" },
+      { label: "혜안", val: 50, color: "#3B5BFF" }
     ],
     desc: "군더더기 없는 명쾌함으로 상황을 정리하는 사람이에요. 한번 정한 원칙은 잘 굽히지 않고, 그 단단함이 주변에 신뢰를 줍니다. 다만 스스로에게도 그 잣대를 들이대니, 가끔은 조금 무뎌져도 괜찮아요.",
     renderIcon: () => (
@@ -130,10 +130,10 @@ const ELEMENT_SPECS: Record<string, {
     quote: '"모난 돌을 감싸며 흐르듯, 깊은 혜안으로 길을 찾아요"',
     tags: ["깊은 혜안", "유연한 처세", "통찰력", "공감"],
     stats: [
-      { label: "혜안", val: 86, color: "#3B5BFF" },
-      { label: "유연성", val: 82, color: "#35B37E" },
-      { label: "결단력", val: 60, color: "#7C86A0" },
-      { label: "신의", val: 72, color: "#E0A82E" }
+      { label: "혜안", val: 75, color: "#3B5BFF" },
+      { label: "유연성", val: 71, color: "#35B37E" },
+      { label: "결단력", val: 52, color: "#7C86A0" },
+      { label: "신의", val: 62, color: "#E0A82E" }
     ],
     desc: "바위에 부딪혀도 막히지 않고 길을 내어가는 지혜를 지녔어요. 상황을 넓게 보고 본질을 짚어내지만, 생각이 깊어져 실행을 망설이지 않도록 한 걸음 내딛어보세요.",
     renderIcon: () => (

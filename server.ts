@@ -952,28 +952,28 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
     let sajuDesc = "";
 
     if (isGeneratingSupport) {
-      saju1to2 = getHashScore(id1, id2, 17, 88, 98);
-      saju2to1 = getHashScore(id1, id2, 41, 84, 96);
+      saju1to2 = getHashScore(id1, id2, 17, 72, 85);
+      saju2to1 = getHashScore(id1, id2, 41, 70, 82);
       sajuLabel = "오행상생의 창조적 파트너";
       sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. ${g1}의 기운이 ${g2}을 부드럽게 북돋아 주어, ${nick1}님의 발상과 추진력이 ${nick2}님의 결실로 자연스럽게 연결되는 훌륭한 상생 궁합입니다.`;
     } else if (isReceivingSupport) {
-      saju1to2 = getHashScore(id1, id2, 23, 84, 96);
-      saju2to1 = getHashScore(id1, id2, 59, 88, 98);
+      saju1to2 = getHashScore(id1, id2, 23, 70, 82);
+      saju2to1 = getHashScore(id1, id2, 59, 72, 85);
       sajuLabel = "상생과 든든한 조력 기류";
       sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. ${g2}의 포근한 기운이 ${g1}을 든든하게 받쳐주어, 서로 깊은 정서적 안정감과 굳건한 신뢰를 형성하는 관계입니다.`;
     } else if (elem1 === elem2) {
-      saju1to2 = getHashScore(id1, id2, 15, 78, 92);
-      saju2to1 = getHashScore(id1, id2, 45, 78, 92);
+      saju1to2 = getHashScore(id1, id2, 15, 65, 78);
+      saju2to1 = getHashScore(id1, id2, 45, 65, 78);
       sajuLabel = "거울을 보듯 통하는 소울 조합";
       sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. 서로 같은 '${elem1}'의 오행 본질을 지녀 말하지 않아도 서로의 생각과 감정을 직관적으로 이해하는 소울메이트 기운입니다.`;
     } else if (isClash) {
-      saju1to2 = getHashScore(id1, id2, 19, 58, 69);
-      saju2to1 = getHashScore(id1, id2, 37, 58, 69);
+      saju1to2 = getHashScore(id1, id2, 19, 38, 52);
+      saju2to1 = getHashScore(id1, id2, 37, 38, 52);
       sajuLabel = "긴장 속에서 꽃피는 혁신 조합";
       sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. ${g1}과 ${g2}의 기운이 팽팽한 텐션을 형성하나, 서로의 사각지대를 예리하게 짚어주는 지적 자극제 역할을 합니다.`;
     } else {
-      saju1to2 = getHashScore(id1, id2, 21, 69, 82);
-      saju2to1 = getHashScore(id1, id2, 51, 69, 82);
+      saju1to2 = getHashScore(id1, id2, 21, 54, 68);
+      saju2to1 = getHashScore(id1, id2, 51, 54, 68);
       sajuLabel = "담백하고 온화한 조율 조합";
       sajuDesc = `${nick1}님은 ${nick2}님에게 ${saju1to2}점, ${nick2}님은 ${nick1}님에게 ${saju2to1}점. 불필요한 마찰 없이 물 흐르듯 잔잔하게 어우러지며 각자의 페이스를 존중해 주는 안정된 인연입니다.`;
     }
@@ -988,15 +988,15 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
     ];
     const zStar1 = ziweiStars[getHashScore(id1, id2, 3, 0, ziweiStars.length - 1)];
     const zStar2 = ziweiStars[getHashScore(id1, id2, 7, 0, ziweiStars.length - 1)];
-    const ziwei1to2 = getHashScore(id1, id2, 44, 68, 95);
-    const ziwei2to1 = getHashScore(id1, id2, 88, 68, 95);
+    const ziwei1to2 = getHashScore(id1, id2, 44, 48, 78);
+    const ziwei2to1 = getHashScore(id1, id2, 88, 48, 78);
     const ziweiDesc = `${nick1}님은 ${nick2}님에게 ${ziwei1to2}점, ${nick2}님은 ${nick1}님에게 ${ziwei2to1}점. ${nick1}님의 명궁 기저에 깃든 ${zStar1.name}(${zStar1.desc})과 ${nick2}님의 ${zStar2.name}(${zStar2.desc})이 서로의 기량을 돋보이게 하는 조화로운 별자리 인연입니다.`;
 
     // MBTI: Dynamic differentiation based on 4-letter alignment
     const mbti1 = (m1.mbti || "").trim().toUpperCase();
     const mbti2 = (m2.mbti || "").trim().toUpperCase();
-    let mbti1to2 = 74;
-    let mbti2to1 = 74;
+    let mbti1to2 = 62;
+    let mbti2to1 = 62;
     let mbtiDesc = "";
     if (mbti1.length === 4 && mbti2.length === 4) {
       let matchCount = 0;
@@ -1004,21 +1004,21 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
         if (mbti1[k] === mbti2[k]) matchCount++;
       }
       if (matchCount === 4) {
-        mbti1to2 = getHashScore(id1, id2, 9, 88, 96);
-        mbti2to1 = getHashScore(id1, id2, 19, 88, 96);
+        mbti1to2 = getHashScore(id1, id2, 9, 76, 86);
+        mbti2to1 = getHashScore(id1, id2, 19, 76, 86);
         mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. 동일한 ${mbti1} 유형으로 생각의 알고리즘이 완벽히 일치하여 눈빛만 봐도 통하는 환상의 싱크로율입니다.`;
       } else if (matchCount >= 2) {
-        mbti1to2 = getHashScore(id1, id2, 9, 78, 88);
-        mbti2to1 = getHashScore(id1, id2, 19, 78, 88);
+        mbti1to2 = getHashScore(id1, id2, 9, 62, 75);
+        mbti2to1 = getHashScore(id1, id2, 19, 62, 75);
         mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. ${mbti1}과 ${mbti2}의 건강한 시너지로, 공통점은 나누고 다른 점은 배려하며 협업 효율이 높은 이상적 짝꿍입니다.`;
       } else {
-        mbti1to2 = getHashScore(id1, id2, 9, 60, 72);
-        mbti2to1 = getHashScore(id1, id2, 19, 60, 72);
+        mbti1to2 = getHashScore(id1, id2, 9, 38, 52);
+        mbti2to1 = getHashScore(id1, id2, 19, 38, 52);
         mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. ${mbti1}과 ${mbti2}의 극과 극 성향으로 초반 소통의 조율이 필요하나, 서로가 갖지 못한 맹점을 메워주는 보완적 조합입니다.`;
       }
     } else {
-      mbti1to2 = getHashScore(id1, id2, 12, 67, 85);
-      mbti2to1 = getHashScore(id1, id2, 24, 67, 85);
+      mbti1to2 = getHashScore(id1, id2, 12, 54, 70);
+      mbti2to1 = getHashScore(id1, id2, 24, 54, 70);
       mbtiDesc = `${nick1}님은 ${nick2}님에게 ${mbti1to2}점, ${nick2}님은 ${nick1}님에게 ${mbti2to1}점. 서로의 타고난 개성과 라이프스타일을 편견 없이 수용하며 자연스럽게 녹아드는 유연한 관계입니다.`;
     }
 
@@ -1042,14 +1042,14 @@ ${JSON.stringify(enrichedMemberInfo, null, 2)}
     const isZodiacClash = (zElem1 === "불" && zElem2 === "물") || (zElem1 === "물" && zElem2 === "불") ||
       (zElem1 === "흙" && zElem2 === "공기") || (zElem1 === "공기" && zElem2 === "흙");
 
-    let zodiac1to2 = getHashScore(id1, id2, 29, 70, 85);
-    let zodiac2to1 = getHashScore(id1, id2, 69, 70, 85);
+    let zodiac1to2 = getHashScore(id1, id2, 29, 54, 70);
+    let zodiac2to1 = getHashScore(id1, id2, 69, 54, 70);
     if (isZodiacCompatible) {
-      zodiac1to2 = getHashScore(id1, id2, 29, 86, 97);
-      zodiac2to1 = getHashScore(id1, id2, 69, 86, 97);
+      zodiac1to2 = getHashScore(id1, id2, 29, 72, 84);
+      zodiac2to1 = getHashScore(id1, id2, 69, 72, 84);
     } else if (isZodiacClash) {
-      zodiac1to2 = getHashScore(id1, id2, 29, 61, 73);
-      zodiac2to1 = getHashScore(id1, id2, 69, 61, 73);
+      zodiac1to2 = getHashScore(id1, id2, 29, 38, 52);
+      zodiac2to1 = getHashScore(id1, id2, 69, 38, 52);
     }
     const zodiacDesc = `${nick1}님은 ${nick2}님에게 ${zodiac1to2}점, ${nick2}님은 ${nick1}님에게 ${zodiac2to1}점. ${zName1}(${zElem1})과 ${zName2}(${zElem2})의 성좌 기운이 만나 ${isZodiacCompatible ? '매끄러운 화합과 활력' : isZodiacClash ? '팽팽한 긴장감과 신선한 자극' : '편안하고 담백한 동반'}을 형성합니다.`;
 
@@ -1287,14 +1287,15 @@ ${JSON.stringify(pairHints, null, 2)}
    - 4대 분야(saju, ziwei, mbti, zodiac)를 입체적으로 융합한 후, 최종적으로 종합 인연 지수(score), 시너지 타이틀(label), 그리고 전체 종합 궁합 해설(description)을 작성하십시오.
 6. **입력 데이터의 고유 식별자(member_id) 원본 유지 절대 원칙:**
    - 'pairs' 내의 'member_id_1'과 'member_id_2'는 무조건 입력 데이터의 멤버 'id' 값과 완벽하게 일치해야 합니다.
-7. **[점수 획일화 방지 및 분산 스펙트럼 강제 지침 - 극도로 중요]:**
-   - 모든 1:1 쌍에 70~75점대 점수가 천편일률적으로 몰리는 현상(Score Flattening)을 엄격히 금지합니다.
-   - 두 사람의 오행 상생/상극(생극제화), 자미두수 주성 조화, MBTI 및 별자리 성향 차이에 따라 58점부터 98점까지 넓고 역동적인 점수 스펙트럼을 부여하십시오:
-     * 최상위 환상의 상생 시너지 짝꿍: 90~98점
-     * 긍정적 지지와 온화한 화합 짝꿍: 80~88점
-     * 보통의 잔잔한 조율 및 상호 존중 짝꿍: 70~79점
-     * 극명한 기운 충돌 및 긴장감 속 혁신 짝꿍: 58~69점
-   - 점수는 1번->2번, 2번->1번이 상호 비대칭적이어야 하며(예: 한 쪽은 92점, 다른 쪽은 85점), 전체 멤버들의 궁합 목록이 다채롭고 생동감 있게 차별화되어야 합니다.
+7. **[현실적 점수 분포 및 분산 스펙트럼 강제 지침 - 극도로 중요]:**
+   - 점수가 과도하게 후하여 80~95점대로 치솟거나 획일화되는 현상을 엄격히 금지합니다.
+   - 평균 궁합 점수는 65~72점 내외가 되어야 하며, 38점부터 88점(극단적 최고점 최대 92점)까지 현실적이고 넓은 점수 스펙트럼을 부여하십시오:
+     * 최상위 환상의 상생 시너지 짝꿍 (상위 10% 미만): 84~90점 (극히 드물게 92점)
+     * 긍정적 지지와 온화한 화합 짝꿍: 73~83점
+     * 보통의 잔잔한 조율 및 상호 존중 짝꿍: 60~72점
+     * 명확한 성향 차이 및 소통 조율 필요 짝꿍: 48~59점
+     * 극명한 기운 충돌(상극/극과 극 성향) 짝꿍: 36~47점
+   - 점수는 1번->2번, 2번->1번이 상호 비대칭적이어야 하며(예: 한 쪽은 82점, 다른 쪽은 74점), 전체 멤버들의 궁합 목록이 다채롭고 생동감 있게 차별화되어야 합니다.
 
 ## 모임 이름: ${room_title || "친목모임"}
 

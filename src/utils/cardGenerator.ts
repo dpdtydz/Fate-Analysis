@@ -123,7 +123,7 @@ export async function generateDedicatedChemistryCard({
   members,
   m1,
   m2,
-  pairScore = 96,
+  pairScore = 74,
   pairLabel,
   pairDesc,
 }: GenerateChemistryCardParams): Promise<{ dataUrl: string; blob: Blob }> {
@@ -140,23 +140,23 @@ export async function generateDedicatedChemistryCard({
 
   const hash = (m1.id + m2.id).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
 
-  // 6 Categories calculation (Realistic, calibrated distribution)
+  // 6 Categories calculation (Realistic, calibrated distribution: 35~88%)
   const isTalkGenerating = (elem1 === "목" && elem2 === "화") || (elem1 === "화" && elem2 === "목") || elem1 === "화" || elem2 === "화";
-  const tikitakaScore = Math.min(94, Math.max(48, Math.round(pairScore + (isTalkGenerating ? 4 : -5) + ((hash % 7) - 3))));
+  const tikitakaScore = Math.min(88, Math.max(38, Math.round(pairScore * 0.95 + (isTalkGenerating ? 5 : -6) + ((hash % 7) - 3))));
 
   const hasActiveSal = sals1.yeokmaCount + sals2.yeokmaCount + sals1.dohwaCount + sals2.dohwaCount > 0;
-  const alcoholScore = Math.min(94, Math.max(46, Math.round(pairScore * 0.96 + (hasActiveSal ? 5 : -4) + (((hash * 3) % 7) - 3))));
+  const alcoholScore = Math.min(88, Math.max(38, Math.round(pairScore * 0.92 + (hasActiveSal ? 6 : -5) + (((hash * 3) % 7) - 3))));
 
   const hasTravelSal = sals1.sals.includes("역마살") || sals2.sals.includes("역마살");
-  const travelScore = Math.min(93, Math.max(45, Math.round(pairScore * 0.93 + (hasTravelSal ? 4 : -5) + (((hash * 7) % 7) - 3))));
+  const travelScore = Math.min(86, Math.max(36, Math.round(pairScore * 0.90 + (hasTravelSal ? 5 : -6) + (((hash * 7) % 7) - 3))));
 
   const hasEarthOrWater = elem1 === "토" || elem2 === "토" || elem1 === "수" || elem2 === "수";
-  const healingScore = Math.min(95, Math.max(48, Math.round(pairScore * 0.95 + (hasEarthOrWater ? 4 : -4) + (((hash * 11) % 7) - 3))));
+  const healingScore = Math.min(88, Math.max(38, Math.round(pairScore * 0.92 + (hasEarthOrWater ? 5 : -5) + (((hash * 11) % 7) - 3))));
 
   const hasMetalOrGold = elem1 === "금" || elem2 === "금" || elem1 === "토" || elem2 === "토";
-  const businessScore = Math.min(94, Math.max(44, Math.round(pairScore * 0.94 + (hasMetalOrGold ? 4 : -5) + (((hash * 13) % 7) - 3))));
+  const businessScore = Math.min(88, Math.max(36, Math.round(pairScore * 0.90 + (hasMetalOrGold ? 5 : -6) + (((hash * 13) % 7) - 3))));
 
-  const safetyScore = Math.min(88, Math.max(42, Math.round(pairScore * 0.82 - ((hash * 17) % 9))));
+  const safetyScore = Math.min(82, Math.max(35, Math.round(pairScore * 0.78 - ((hash * 17) % 8))));
 
   const categories = [
     {
@@ -164,11 +164,11 @@ export async function generateDedicatedChemistryCard({
       title: "대화 티키타카",
       score: tikitakaScore,
       color: "#F43F5E",
-      desc: tikitakaScore >= 86
+      desc: tikitakaScore >= 78
         ? "생각의 속도가 비슷해 말 한마디로도 통하는 사이"
-        : tikitakaScore >= 72
+        : tikitakaScore >= 65
         ? "말이 끊이지 않고 자연스럽게 이어지는 대화 흐름"
-        : tikitakaScore >= 58
+        : tikitakaScore >= 52
         ? "필요한 순간에 명쾌하게 소통하는 담백한 사이"
         : "서로의 대화 템포와 표현 방식을 맞춰가는 중인 사이",
     },
@@ -177,11 +177,11 @@ export async function generateDedicatedChemistryCard({
       title: "모임 텐션 & 분위기",
       score: alcoholScore,
       color: "#F97316",
-      desc: alcoholScore >= 86
+      desc: alcoholScore >= 78
         ? "함께 있는 것만으로도 모임 분위기를 끌어올리는 시너지"
-        : alcoholScore >= 72
+        : alcoholScore >= 65
         ? "서로의 페이스를 편안하게 존중하며 즐기는 호흡"
-        : alcoholScore >= 58
+        : alcoholScore >= 52
         ? "과하지 않게 은은한 즐거움을 나누는 차분한 무드"
         : "조용하고 정적인 환경에서 더 편안함을 느끼는 조합",
     },
@@ -190,11 +190,11 @@ export async function generateDedicatedChemistryCard({
       title: "여행 & 일상 호흡",
       score: travelScore,
       color: "#06B6D4",
-      desc: travelScore >= 85
+      desc: travelScore >= 76
         ? "돌발 변수가 생겨도 함께 웃으며 유쾌하게 넘기는 메이트"
-        : travelScore >= 70
+        : travelScore >= 64
         ? "취향과 동선을 자연스럽게 배려하며 맞춰가는 편안함"
-        : travelScore >= 56
+        : travelScore >= 50
         ? "사전에 계획과 역할을 조율하면 깔끔하게 어울릴 조합"
         : "각자의 개인 시간과 독립적인 휴식을 보장해야 할 동행",
     },
@@ -203,11 +203,11 @@ export async function generateDedicatedChemistryCard({
       title: "감정 공감 & 멘탈 케어",
       score: healingScore,
       color: "#10B981",
-      desc: healingScore >= 86
+      desc: healingScore >= 78
         ? "속 깊은 이야기까지 안심하고 털어놓을 수 있는 안식처"
-        : healingScore >= 72
+        : healingScore >= 65
         ? "진심 어린 경청과 공감으로 서로에게 힘이 되어주는 관계"
-        : healingScore >= 58
+        : healingScore >= 52
         ? "서로의 감정선을 존중하며 묵묵히 곁을 지켜주는 사이"
         : "감정적인 의존보다는 적절한 거리감 유지가 편한 사이",
     },
@@ -216,11 +216,11 @@ export async function generateDedicatedChemistryCard({
       title: "현실 시너지 & 협업",
       score: businessScore,
       color: "#EAB308",
-      desc: businessScore >= 85
+      desc: businessScore >= 76
         ? "기획과 실행의 균형이 뛰어나 확실한 결실을 맺는 파트너"
-        : businessScore >= 70
+        : businessScore >= 64
         ? "역할 분담이 명확할 때 최고의 성과를 내는 콤비"
-        : businessScore >= 56
+        : businessScore >= 50
         ? "서로의 전문 영역을 인정하고 존중할 때 시너지가 나는 사이"
         : "금전이나 공동 과제 시 명확한 룰과 문서화가 필요한 관계",
     },
@@ -233,7 +233,7 @@ export async function generateDedicatedChemistryCard({
         ? "피곤할 땐 즉답을 피하고 한 템포 쉬어가는 대화가 좋아요"
         : (elem1 === "금" && elem2 === "목") || (elem1 === "목" && elem2 === "금")
         ? "직설적인 피드백보다는 따뜻한 인정 한마디가 최고의 처방"
-        : safetyScore < 60
+        : safetyScore < 55
         ? "서로의 호의가 간섭으로 느껴지지 않도록 경계를 존중하기"
         : "상대방만의 고유한 템포와 개인 시간을 편안하게 존중해 주기",
     },

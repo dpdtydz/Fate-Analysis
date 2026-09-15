@@ -17,11 +17,11 @@ interface ChemistryMatrixProps {
 }
 
 function getGradeFromScore(score: number): { grade: string; bgClass: string; textClass: string } {
-  if (score >= 90) return { grade: "S+", bgClass: "bg-emerald-500/15 border-emerald-500/30", textClass: "text-emerald-700 dark:text-emerald-300 font-bold" };
-  if (score >= 85) return { grade: "S", bgClass: "bg-teal-500/15 border-teal-500/30", textClass: "text-teal-700 dark:text-teal-300 font-semibold" };
-  if (score >= 78) return { grade: "A+", bgClass: "bg-blue-500/15 border-blue-500/30", textClass: "text-blue-700 dark:text-blue-300 font-medium" };
-  if (score >= 70) return { grade: "A", bgClass: "bg-amber-500/15 border-amber-500/30", textClass: "text-amber-700 dark:text-amber-300 font-medium" };
-  return { grade: "B", bgClass: "bg-rose-500/10 border-rose-500/25", textClass: "text-rose-700 dark:text-rose-300 font-medium" };
+  if (score >= 85) return { grade: "S", bgClass: "bg-emerald-500/15 border-emerald-500/30", textClass: "text-emerald-700 dark:text-emerald-300 font-bold" };
+  if (score >= 75) return { grade: "A", bgClass: "bg-teal-500/15 border-teal-500/30", textClass: "text-teal-700 dark:text-teal-300 font-semibold" };
+  if (score >= 62) return { grade: "B", bgClass: "bg-blue-500/15 border-blue-500/30", textClass: "text-blue-700 dark:text-blue-300 font-medium" };
+  if (score >= 50) return { grade: "C", bgClass: "bg-amber-500/15 border-amber-500/30", textClass: "text-amber-700 dark:text-amber-300 font-medium" };
+  return { grade: "D", bgClass: "bg-rose-500/10 border-rose-500/25", textClass: "text-rose-700 dark:text-rose-300 font-medium" };
 }
 
 export default function ChemistryMatrix({ members = [], pairs = [], onSelectPair }: ChemistryMatrixProps) {
@@ -40,14 +40,14 @@ export default function ChemistryMatrix({ members = [], pairs = [], onSelectPair
     const found = scoreMap.get(`${id1}:${id2}`);
     if (found) return found;
 
-    // Deterministic fallback if not yet in pair list
+    // Deterministic fallback if not yet in pair list (52~86 distribution)
     const combined = [id1, id2].sort().join("");
     let hash = 0;
     for (let i = 0; i < combined.length; i++) {
       hash = combined.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const score = Math.abs(hash % 25) + 72; // 72~96
-    return { score, label: score >= 88 ? "천생연분" : "상호보완" };
+    const score = Math.abs(hash % 35) + 52;
+    return { score, label: score >= 80 ? "천생연분" : score >= 68 ? "상생화합" : "상호보완" };
   };
 
   return (

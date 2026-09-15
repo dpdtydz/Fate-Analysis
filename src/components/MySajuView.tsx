@@ -115,10 +115,10 @@ const ELEMENT_SPECS: Record<string, {
     quote: '"겨울을 지나 기어이 싹을 틔우듯, 스스로 방향을 정하고 나아가요"',
     tags: ["추진력", "성장 마인드", "따뜻한 의리", "개척 정신"],
     stats: [
-      { label: "추진력", val: 84, color: "#35B37E" },
-      { label: "성장성", val: 78, color: "#C0392B" },
-      { label: "신의", val: 70, color: "#E0A82E" },
-      { label: "직관", val: 62, color: "#7C86A0" }
+      { label: "추진력", val: 74, color: "#35B37E" },
+      { label: "성장성", val: 68, color: "#C0392B" },
+      { label: "신의", val: 62, color: "#E0A82E" },
+      { label: "직관", val: 54, color: "#7C86A0" }
     ],
     desc: "어떤 환경에서도 스스로 길을 만들어내는 생명력을 지녔어요. 굽히지 않는 기개로 주변 사람들을 이끌지만, 때로는 휘어지는 유연함이 더 큰 성장을 만듭니다.",
     renderIcon: () => (
@@ -140,7 +140,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "💧",
           relationName: "수생목(水生木) 상생",
           oneLiner: "마르지 않는 영감과 통찰로 나의 성장을 묵묵히 돕는 최고의 영혼 멘토",
-          score: 98,
+          score: 86,
           tip: "지치거나 방향이 고민될 때 수 카드의 조언을 들으면 막힌 길이 술술 풀립니다."
         },
         {
@@ -150,7 +150,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "🔥",
           relationName: "목생화(木生火) 시너지",
           oneLiner: "나의 기획과 잠재력을 폭발적 에너지와 무대 감각으로 세상에 빛내주는 콤비",
-          score: 95,
+          score: 82,
           tip: "함께 프로젝트를 시작하면 환상적인 속도감과 화제성을 만들어냅니다."
         }
       ],
@@ -162,7 +162,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "⚔️",
           relationName: "금극목(金剋木) 긴장",
           oneLiner: "서로의 칼날 같은 원칙과 굽히지 않는 고집이 부딪힐 수 있어 솔직한 완충이 필요",
-          score: 58,
+          score: 42,
           tip: "비판보다는 서로의 장점을 먼저 인정하고, 규칙과 역할 경계를 명확히 나누세요."
         },
         {
@@ -172,7 +172,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "🌳",
           relationName: "동기 비견(比肩)",
           oneLiner: "둘 다 주도권과 자존심이 강해 영역이 겹치면 양보 없는 신경전이 될 수 있어요",
-          score: 65,
+          score: 50,
           tip: "서로 간섭하기보다 각자 맡은 분야를 완전히 신임해줄 때 든든한 동지가 됩니다."
         }
       ]
@@ -186,10 +186,10 @@ const ELEMENT_SPECS: Record<string, {
     quote: '"어둠 속에서도 길을 밝히듯, 솔직하고 분명한 에너지가 있어요"',
     tags: ["직관적 판단", "솔직담백", "순발력", "영감"],
     stats: [
-      { label: "순발력", val: 88, color: "#F0632E" },
-      { label: "추진력", val: 76, color: "#35B37E" },
-      { label: "직관", val: 82, color: "#C0392B" },
-      { label: "포용력", val: 56, color: "#E0A82E" }
+      { label: "순발력", val: 76, color: "#F0632E" },
+      { label: "추진력", val: 68, color: "#35B37E" },
+      { label: "직관", val: 70, color: "#C0392B" },
+      { label: "포용력", val: 48, color: "#E0A82E" }
     ],
     desc: "주변의 공기를 단숨에 바꾸는 온기를 지녔어요. 마음에 품은 것은 투명하게 드러나며 뒤끝이 없지만, 에너지를 한 번에 쏟고 지치지 않도록 조절이 필요해요.",
     renderIcon: () => (
@@ -207,7 +207,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "🌲",
           relationName: "목생화(木生火) 상생",
           oneLiner: "나의 열정에 마르지 않는 연료를 대어주고 끝까지 깊이 믿어주는 든든한 조력자",
-          score: 98,
+          score: 86,
           tip: "목 카드의 묵묵한 응원을 받을 때 화 카드의 잠재력이 두 배로 만개합니다."
         },
         {
@@ -217,7 +217,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "⛰️",
           relationName: "화생토(火生土) 결실",
           oneLiner: "급한 감정과 폭발적 에너지를 차분하게 받아내 실질적 결실로 굳혀주는 최고의 안식처",
-          score: 94,
+          score: 82,
           tip: "화가 번아웃되거나 흥분했을 때 토 카드의 너른 품에서 마음의 안정을 찾을 수 있습니다."
         }
       ],
@@ -229,7 +229,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "💧",
           relationName: "수극화(水剋火) 충돌",
           oneLiner: "나의 솔직한 열정을 차가운 이성과 팩트로 급랭시킬 수 있어 감정 소모 주의",
-          score: 54,
+          score: 40,
           tip: "상대의 직언을 공격으로 받아들이지 말고, 한 템포 식힌 뒤 논리적으로 소통하세요."
         },
         {
@@ -239,7 +239,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "🔥",
           relationName: "동기 과열(比肩)",
           oneLiner: "둘 다 감정이 솔직하고 불같아 한번 붙으면 걷잡을 수 없이 타오르고 지칠 수 있어요",
-          score: 62,
+          score: 48,
           tip: "갈등이 생겼을 땐 즉각 맞서지 말고 1시간 쿨다운 시간을 갖는 룰을 만드세요."
         }
       ]
@@ -253,10 +253,10 @@ const ELEMENT_SPECS: Record<string, {
     quote: '"모든 것을 품어내는 대지처럼, 묵묵하고 단단한 중심이 있어요"',
     tags: ["깊은 신의", "안정감", "경청", "중재력"],
     stats: [
-      { label: "신의", val: 89, color: "#E0A82E" },
-      { label: "포용력", val: 85, color: "#35B37E" },
-      { label: "결단력", val: 62, color: "#7C86A0" },
-      { label: "혜안", val: 68, color: "#3B5BFF" }
+      { label: "신의", val: 76, color: "#E0A82E" },
+      { label: "포용력", val: 72, color: "#35B37E" },
+      { label: "결단력", val: 52, color: "#7C86A0" },
+      { label: "혜안", val: 58, color: "#3B5BFF" }
     ],
     desc: "어떤 이야기도 묵묵히 받아내어 결실로 만드는 안식처예요. 중심이 단단해 곁에 있는 사람에게 큰 안정감을 주지만, 너무 많은 무게를 혼자 짊어지지 마세요.",
     renderIcon: () => (
@@ -275,7 +275,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "🔥",
           relationName: "화생토(火生土) 상생",
           oneLiner: "신중하고 조용한 나의 마음에 기분 좋은 온기와 활력을 불어넣어주는 비타민",
-          score: 97,
+          score: 86,
           tip: "화 카드의 밝은 에너지는 토 카드가 가진 무거운 생각의 짐을 가볍게 덜어줍니다."
         },
         {
@@ -285,7 +285,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "⚔️",
           relationName: "토생금(土生金) 발굴",
           oneLiner: "나의 묵직한 자원과 배려를 바탕으로 명쾌하고 깔끔한 결과물을 만들어내는 파트너",
-          score: 95,
+          score: 84,
           tip: "토가 기반을 닦고 금이 마무리 결단을 내리면 어떤 일이든 빈틈없이 완성됩니다."
         }
       ],
@@ -297,7 +297,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "🌲",
           relationName: "목극토(木剋土) 침범",
           oneLiner: "나의 인내심과 배려를 당연하게 여기거나 휘두르려 할 때 깊은 피로와 서운함 발생",
-          score: 56,
+          score: 42,
           tip: "참지만 말고 내가 감당할 수 있는 선을 분명히 밝혀야 건강한 관계가 유지됩니다."
         },
         {
@@ -307,7 +307,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "⛰️",
           relationName: "동기 정체(比肩)",
           oneLiner: "서로 속마음을 털어놓지 않고 속으로 삼키다 보면 답답하고 어색한 침묵이 생겨요",
-          score: 66,
+          score: 50,
           tip: "먼저 솔직하게 감정을 표현해주는 작은 용기가 관계의 물꼬를 틉니다."
         }
       ]
@@ -321,10 +321,10 @@ const ELEMENT_SPECS: Record<string, {
     quote: '"칼이 잘 벼려져 있듯, 결정할 때 흔들리지 않아요"',
     tags: ["결단력", "완벽주의", "의리파", "명쾌한 판단"],
     stats: [
-      { label: "결단력", val: 82, color: "#7C86A0" },
-      { label: "추진력", val: 64, color: "#F0632E" },
-      { label: "신의", val: 71, color: "#E0A82E" },
-      { label: "혜안", val: 58, color: "#3B5BFF" }
+      { label: "결단력", val: 74, color: "#7C86A0" },
+      { label: "추진력", val: 56, color: "#F0632E" },
+      { label: "신의", val: 62, color: "#E0A82E" },
+      { label: "혜안", val: 50, color: "#3B5BFF" }
     ],
     desc: "군더더기 없는 명쾌함으로 상황을 정리하는 사람이에요. 한번 정한 원칙은 잘 굽히지 않고, 그 단단함이 주변에 신뢰를 줍니다. 다만 스스로에게도 그 잣대를 들이대니, 가끔은 조금 무뎌져도 괜찮아요.",
     renderIcon: () => (
@@ -343,7 +343,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "⛰️",
           relationName: "토생금(土生金) 상생",
           oneLiner: "나의 날카로운 긴장과 예민한 완벽주의를 따스하게 품어주고 안식처를 주는 힐링 짝꿍",
-          score: 98,
+          score: 86,
           tip: "세상과 싸우느라 지친 금 카드가 유일하게 마음 놓고 무장 해제할 수 있는 사람입니다."
         },
         {
@@ -353,7 +353,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "💧",
           relationName: "금생수(金生水) 유통",
           oneLiner: "나의 예리한 원칙과 재능을 부드러운 통찰력으로 세상에 막힘없이 흘려보내 주는 콤비",
-          score: 95,
+          score: 83,
           tip: "금의 단단한 아이디어를 수 카드가 유연하게 다듬어 대박 성과로 연결해 줍니다."
         }
       ],
@@ -365,7 +365,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "🔥",
           relationName: "화극금(火剋金) 제련",
           oneLiner: "나의 확고한 룰과 독립성을 직설적으로 흔들거나 통제하려 들면 극심한 마찰 발생",
-          score: 55,
+          score: 40,
           tip: "서로의 통제 방식을 내려놓고, 논쟁 시 한 발 물러서서 서로의 룰을 존중해 주세요."
         },
         {
@@ -375,7 +375,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "⚔️",
           relationName: "동기 격돌(比肩)",
           oneLiner: "두 칼날이 맞부딪히듯 한 치의 양보 없는 자존심 대결로 치닫기 쉬워요",
-          score: 60,
+          score: 46,
           tip: "옳고 그름을 따지기보다 서로의 완벽함을 칭찬하고 경청하는 태도가 핵심입니다."
         }
       ]
@@ -389,10 +389,10 @@ const ELEMENT_SPECS: Record<string, {
     quote: '"모난 돌을 감싸며 흐르듯, 깊은 혜안으로 길을 찾아요"',
     tags: ["깊은 혜안", "유연한 처세", "통찰력", "공감"],
     stats: [
-      { label: "혜안", val: 86, color: "#3B5BFF" },
-      { label: "유연성", val: 82, color: "#35B37E" },
-      { label: "결단력", val: 60, color: "#7C86A0" },
-      { label: "신의", val: 72, color: "#E0A82E" }
+      { label: "혜안", val: 75, color: "#3B5BFF" },
+      { label: "유연성", val: 71, color: "#35B37E" },
+      { label: "결단력", val: 52, color: "#7C86A0" },
+      { label: "신의", val: 62, color: "#E0A82E" }
     ],
     desc: "바위에 부딪혀도 막히지 않고 길을 내어가는 지혜를 지녔어요. 상황을 넓게 보고 본질을 짚어내지만, 생각이 깊어져 실행을 망설이지 않도록 한 걸음 내딛어보세요.",
     renderIcon: () => (
@@ -411,7 +411,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "⚔️",
           relationName: "금생수(金生水) 상생",
           oneLiner: "나의 방대한 생각과 깊은 통찰을 명쾌한 결단과 깔끔한 행동력으로 실체화해주는 조력자",
-          score: 98,
+          score: 86,
           tip: "수가 큰 그림을 그리고 금이 신속하게 칼을 빼들 때 최고의 시너지가 터집니다."
         },
         {
@@ -421,7 +421,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "🌲",
           relationName: "수생목(水生木) 양분",
           oneLiner: "나의 지혜와 지식을 거름 삼아 세상 밖으로 거침없이 뻗어나가는 훌륭한 러닝메이트",
-          score: 96,
+          score: 84,
           tip: "목 카드의 성장과 도전을 지켜보는 것만으로도 수 카드에게 큰 보람과 영감이 됩니다."
         }
       ],
@@ -433,7 +433,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "⛰️",
           relationName: "토극수(土剋水) 가둠",
           oneLiner: "나의 자유로운 사고와 유연한 흐름을 과도한 틀과 고집으로 옭아맬 때 답답함 폭발",
-          score: 57,
+          score: 42,
           tip: "서로에게 일방적인 통제를 강요하지 말고, 각자의 공간과 자유를 인정해 주세요."
         },
         {
@@ -443,7 +443,7 @@ const ELEMENT_SPECS: Record<string, {
           emoji: "💧",
           relationName: "동기 고립(比肩)",
           oneLiner: "둘 다 생각이 너무 깊고 조심스러워 행동으로 옮기지 못하고 정체될 위험이 있어요",
-          score: 63,
+          score: 48,
           tip: "생각은 짧게 하고 일단 작은 실행 하나를 정해 함께 도전하는 습관을 들이세요."
         }
       ]

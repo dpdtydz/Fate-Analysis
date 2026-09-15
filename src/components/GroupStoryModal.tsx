@@ -121,7 +121,7 @@ export default function GroupStoryModal({
       };
     }
 
-    const pairScore = currentPairAnalysis?.score || 76;
+    const pairScore = currentPairAnalysis?.score || 70;
     const elemA = getMemberElement(memberA);
     const elemB = getMemberElement(memberB);
     const salsA = calculateMemberSals(memberA);
@@ -129,75 +129,75 @@ export default function GroupStoryModal({
 
     const hash = (memberA.id + memberB.id).split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
 
-    // 1. 대화 티키타카 (화·목 기운이나 상생 시 높은 핑퐁)
+    // 1. 대화 티키타카 (화·목 기운이나 상생 시 높은 핑퐁: 38~88점)
     const isTalkGenerating = (elemA === "목" && elemB === "화") || (elemA === "화" && elemB === "목") || elemA === "화" || elemB === "화";
-    const tikitakaBase = Math.min(94, Math.max(48, Math.round(pairScore + (isTalkGenerating ? 4 : -5) + ((hash % 7) - 3))));
-    const tikitakaComment = tikitakaBase >= 86
+    const tikitakaBase = Math.min(88, Math.max(38, Math.round(pairScore * 0.95 + (isTalkGenerating ? 5 : -6) + ((hash % 7) - 3))));
+    const tikitakaComment = tikitakaBase >= 78
       ? "생각의 속도가 비슷해 말 한마디로도 통하는 사이"
-      : tikitakaBase >= 72
+      : tikitakaBase >= 65
       ? "말이 끊이지 않고 자연스럽게 이어지는 대화 흐름"
-      : tikitakaBase >= 58
+      : tikitakaBase >= 52
       ? "필요한 순간에 명쾌하게 소통하는 담백한 사이"
       : "서로의 대화 템포와 표현 방식을 맞춰가는 중인 사이";
 
     // 2. 모임 텐션 & 분위기
     const hasActiveSal = salsA.yeokmaCount + salsB.yeokmaCount + salsA.dohwaCount + salsB.dohwaCount > 0;
-    const alcoholBase = Math.min(94, Math.max(46, Math.round(pairScore * 0.96 + (hasActiveSal ? 5 : -4) + (((hash * 3) % 7) - 3))));
-    const alcoholComment = alcoholBase >= 86
+    const alcoholBase = Math.min(88, Math.max(38, Math.round(pairScore * 0.92 + (hasActiveSal ? 6 : -5) + (((hash * 3) % 7) - 3))));
+    const alcoholComment = alcoholBase >= 78
       ? "함께 있는 것만으로도 모임 분위기를 끌어올리는 시너지"
-      : alcoholBase >= 72
+      : alcoholBase >= 65
       ? "서로의 페이스를 편안하게 존중하며 즐기는 호흡"
-      : alcoholBase >= 58
+      : alcoholBase >= 52
       ? "과하지 않게 은은한 즐거움을 나누는 차분한 무드"
       : "조용하고 정적인 환경에서 더 편안함을 느끼는 조합";
 
     // 3. 여행 & 일상 호흡
     const hasTravelSal = salsA.sals.includes("역마살") || salsB.sals.includes("역마살");
-    const travelBase = Math.min(93, Math.max(45, Math.round(pairScore * 0.93 + (hasTravelSal ? 4 : -5) + (((hash * 7) % 7) - 3))));
-    const travelComment = travelBase >= 85
+    const travelBase = Math.min(86, Math.max(36, Math.round(pairScore * 0.90 + (hasTravelSal ? 5 : -6) + (((hash * 7) % 7) - 3))));
+    const travelComment = travelBase >= 76
       ? "돌발 변수가 생겨도 함께 웃으며 유쾌하게 넘기는 메이트"
-      : travelBase >= 70
+      : travelBase >= 64
       ? "취향과 동선을 자연스럽게 배려하며 맞춰가는 편안함"
-      : travelBase >= 56
+      : travelBase >= 50
       ? "사전에 계획과 역할을 조율하면 깔끔하게 어울릴 조합"
       : "각자의 개인 시간과 독립적인 휴식을 보장해야 할 동행";
 
     // 4. 감정 공감 & 멘탈 케어
     const hasEarthOrWater = elemA === "토" || elemB === "토" || elemA === "수" || elemB === "수";
-    const healingBase = Math.min(95, Math.max(48, Math.round(pairScore * 0.95 + (hasEarthOrWater ? 4 : -4) + (((hash * 11) % 7) - 3))));
-    const healingComment = healingBase >= 86
+    const healingBase = Math.min(88, Math.max(38, Math.round(pairScore * 0.92 + (hasEarthOrWater ? 5 : -5) + (((hash * 11) % 7) - 3))));
+    const healingComment = healingBase >= 78
       ? "속 깊은 이야기까지 안심하고 털어놓을 수 있는 안식처"
-      : healingBase >= 72
+      : healingBase >= 65
       ? "진심 어린 경청과 공감으로 서로에게 힘이 되어주는 관계"
-      : healingBase >= 58
+      : healingBase >= 52
       ? "서로의 감정선을 존중하며 묵묵히 곁을 지켜주는 사이"
       : "감정적인 의존보다는 적절한 거리감 유지가 편한 사이";
 
     // 5. 현실 시너지 & 협업
     const hasMetalOrGold = elemA === "금" || elemB === "금" || elemA === "토" || elemB === "토";
-    const businessBase = Math.min(94, Math.max(44, Math.round(pairScore * 0.94 + (hasMetalOrGold ? 4 : -5) + (((hash * 13) % 7) - 3))));
-    const businessComment = businessBase >= 85
+    const businessBase = Math.min(88, Math.max(36, Math.round(pairScore * 0.90 + (hasMetalOrGold ? 5 : -6) + (((hash * 13) % 7) - 3))));
+    const businessComment = businessBase >= 76
       ? "기획과 실행의 균형이 뛰어나 확실한 결실을 맺는 파트너"
-      : businessBase >= 70
+      : businessBase >= 64
       ? "역할 분담이 명확할 때 최고의 성과를 내는 콤비"
-      : businessBase >= 56
+      : businessBase >= 50
       ? "서로의 전문 영역을 인정하고 존중할 때 시너지가 나는 사이"
       : "금전이나 공동 과제 시 명확한 룰과 문서화가 필요한 관계";
 
-    // 6. 관계 팁 & 배려 포인트 (주의 & 조율 필요성 점수: 현실적인 40~75점대)
-    const safetyScore = Math.min(88, Math.max(42, Math.round(pairScore * 0.82 - ((hash * 17) % 9))));
+    // 6. 관계 팁 & 배려 포인트 (주의 & 조율 필요성 점수: 현실적인 35~75점대)
+    const safetyScore = Math.min(82, Math.max(35, Math.round(pairScore * 0.78 - ((hash * 17) % 8))));
     const mineComment = (elemA === "화" && elemB === "수") || (elemA === "수" && elemB === "화")
       ? "피곤할 땐 즉답을 피하고 한 템포 쉬어가는 대화가 좋아요"
       : (elemA === "금" && elemB === "목") || (elemA === "목" && elemB === "금")
       ? "직설적인 피드백보다는 따뜻한 인정 한마디가 최고의 처방"
-      : safetyScore < 60
+      : safetyScore < 55
       ? "서로의 호의가 간섭으로 느껴지지 않도록 경계를 존중하기"
       : "상대방만의 고유한 템포와 개인 시간을 편안하게 존중해 주기";
 
     let tagLine = "기분 좋은 파장을 나누는 조화로운 인연";
-    if (pairScore >= 88) tagLine = "눈빛만 봐도 뜻이 통하는 최상의 케미스트리";
-    else if (pairScore >= 78) tagLine = "서로의 장점을 극대화해 주는 든든한 파트너";
-    else if (pairScore >= 65) tagLine = "서로의 부족한 기운을 차분히 채워주는 상생 메이트";
+    if (pairScore >= 82) tagLine = "눈빛만 봐도 뜻이 통하는 최상의 케미스트리";
+    else if (pairScore >= 74) tagLine = "서로의 장점을 극대화해 주는 든든한 파트너";
+    else if (pairScore >= 62) tagLine = "서로의 부족한 기운을 차분히 채워주는 상생 메이트";
     else tagLine = "서로 다른 개성이 만나 색다른 재미를 만드는 조합";
 
     const categories: PairStoryCategory[] = [
@@ -223,22 +223,23 @@ export default function GroupStoryModal({
       return {
         nickname: "멤버",
         element: "기운",
-        roleName: customRole || "✨ 멤버",
-        ringColor: customRingColor || "#c24234",
-        avatarSrc: "/zodiac/zodiac_tiger_item_sunglasses.png",
+        animal: "동물",
+        emoji: "⭐",
+        color: "#B3382C",
+        role: customRole || "신비한 멤버",
+        ringColor: customRingColor || "#B3382C",
+        avatarSrc: "/zodiac/zodiac_tiger_item_sunglasses.png"
       };
     }
-    const role = calculateMemberRole(m);
-    const roleDetail = ROLE_DETAILS[role.key];
-    const ringColor = customRingColor || ROLE_RING_COLOR[role.key] || "#c24234";
-    const avatarSrc = getMemberZodiacSrc(m);
-    const roleEmoji = role.key === "spark" ? "✨" : role.key === "captain" ? "👑" : role.key === "keeper" ? "🛡️" : role.key === "healer" ? "🌿" : "🦉";
     return {
       nickname: getMemberNickname(m),
-      element: getMemberElement(m) || "기운",
-      roleName: customRole || `${roleEmoji} ${roleDetail?.role || "멤버"}`,
-      ringColor,
-      avatarSrc: avatarSrc || "/zodiac/zodiac_tiger_item_sunglasses.png",
+      element: getMemberElement(m),
+      animal: m.character_animal || "수호동물",
+      emoji: m.character_emoji || "⭐",
+      color: m.character_color || "#B3382C",
+      role: customRole || `${getMemberElement(m)} 기운`,
+      ringColor: customRingColor || m.character_color || "#B3382C",
+      avatarSrc: getMemberZodiacSrc(m) || "/zodiac/zodiac_tiger_item_sunglasses.png"
     };
   };
 
@@ -262,25 +263,25 @@ export default function GroupStoryModal({
       let v1 = base, v2 = base, v3 = base, v4 = base;
 
       if (category === "dohwa") {
-        v1 = Math.min(96, Math.max(82, 80 + (sals.dohwaCount * 4) + (elem === "화" ? 5 : 0)));
-        v2 = Math.min(95, Math.max(80, 78 + Math.round((sipseong.식상 || 20) * 0.35)));
-        v3 = Math.min(96, Math.max(83, 82 + (sals.sals.includes("도화살") ? 8 : 2)));
-        v4 = Math.min(94, Math.max(78, 77 + Math.round((sipseong.인성 || 20) * 0.3)));
+        v1 = Math.min(88, Math.max(48, 52 + (sals.dohwaCount * 6) + (elem === "화" ? 5 : 0)));
+        v2 = Math.min(85, Math.max(46, 50 + Math.round((sipseong.식상 || 20) * 0.4)));
+        v3 = Math.min(88, Math.max(50, 54 + (sals.sals.includes("도화살") ? 8 : 2)));
+        v4 = Math.min(84, Math.max(45, 48 + Math.round((sipseong.인성 || 20) * 0.35)));
       } else if (category === "boss") {
-        v1 = Math.min(96, Math.max(82, 80 + Math.round((sipseong.관성 || 20) * 0.4)));
-        v2 = Math.min(95, Math.max(81, 79 + Math.round((sipseong.비겁 || 20) * 0.35) + (sals.sals.includes("괴강살") ? 5 : 0)));
-        v3 = Math.min(96, Math.max(80, 78 + (elem === "금" ? 7 : 2)));
-        v4 = Math.min(93, Math.max(79, 76 + Math.round((sipseong.인성 || 20) * 0.35)));
+        v1 = Math.min(88, Math.max(50, 52 + Math.round((sipseong.관성 || 20) * 0.45)));
+        v2 = Math.min(86, Math.max(48, 50 + Math.round((sipseong.비겁 || 20) * 0.4) + (sals.sals.includes("괴강살") ? 6 : 0)));
+        v3 = Math.min(88, Math.max(46, 50 + (elem === "금" ? 7 : 2)));
+        v4 = Math.min(84, Math.max(46, 48 + Math.round((sipseong.인성 || 20) * 0.4)));
       } else if (category === "wealth") {
-        v1 = Math.min(96, Math.max(82, 80 + Math.round((sipseong.재성 || 20) * 0.4)));
-        v2 = Math.min(95, Math.max(80, 78 + (elem === "토" || elem === "금" ? 6 : 2)));
-        v3 = Math.min(94, Math.max(79, 77 + Math.round((sipseong.식상 || 20) * 0.35)));
-        v4 = Math.min(95, Math.max(81, 80 + (sals.unseong === "건록" || sals.unseong === "제왕" ? 6 : 1)));
+        v1 = Math.min(88, Math.max(48, 52 + Math.round((sipseong.재성 || 20) * 0.45)));
+        v2 = Math.min(85, Math.max(46, 50 + (elem === "토" || elem === "금" ? 6 : 2)));
+        v3 = Math.min(84, Math.max(46, 48 + Math.round((sipseong.식상 || 20) * 0.4)));
+        v4 = Math.min(86, Math.max(48, 52 + (sals.unseong === "건록" || sals.unseong === "제왕" ? 7 : 2)));
       } else if (category === "yeokma") {
-        v1 = Math.min(96, Math.max(83, 81 + (sals.yeokmaCount * 4)));
-        v2 = Math.min(95, Math.max(80, 79 + (sals.sals.includes("역마살") ? 7 : 2)));
-        v3 = Math.min(94, Math.max(81, 78 + (elem === "목" || elem === "화" ? 6 : 2)));
-        v4 = Math.min(93, Math.max(78, 77 + Math.round((sipseong.식상 || 20) * 0.35)));
+        v1 = Math.min(88, Math.max(48, 50 + (sals.yeokmaCount * 6)));
+        v2 = Math.min(86, Math.max(48, 50 + (sals.sals.includes("역마살") ? 8 : 2)));
+        v3 = Math.min(84, Math.max(46, 48 + (elem === "목" || elem === "화" ? 6 : 2)));
+        v4 = Math.min(84, Math.max(45, 48 + Math.round((sipseong.식상 || 20) * 0.4)));
       }
 
       return {

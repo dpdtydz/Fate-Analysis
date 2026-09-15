@@ -211,7 +211,7 @@ export interface GroupAwardsResult {
 export function calculateGroupAwards(
   members: Member[],
   pairs: PairAnalysis[] = [],
-  groupScore: number = 82
+  groupScore: number = 72
 ): GroupAwardsResult {
   const safeMembers = members && members.length > 0 ? members : [];
   if (safeMembers.length === 0) {
@@ -243,54 +243,54 @@ export function calculateGroupAwards(
     return generateSingleAwardsResult(safeMembers[0]);
   }
 
-  // 1. 멤버별 스탯 및 살 연산
+  // 1. 멤버별 스탯 및 살 연산 (현실적 48~88점 정규분포 캘리브레이션)
   const memberStats = safeMembers.map((m) => {
     const { sals, unseong, dayJi, dohwaCount, yeokmaCount, hwagaeCount } = calculateMemberSals(m);
     const elem = getMemberElement(m);
     const ohaeng = m.saju?.ohaeng_count || { 목: 1, 화: 1, 토: 1, 금: 1, 수: 1 };
     const sipseong = m.saju?.sipseong_strength || { 비겁: 20, 식상: 20, 재성: 20, 관성: 20, 인성: 20 };
 
-    // 도화 점수: 도화살 여부 + 子午卯酉 개수 + 火기운 + 목욕지 (자연스러운 82~96점 분포)
-    let dohwaScore = 64 + (dohwaCount * 8);
-    if (sals.includes("도화살")) dohwaScore += 10;
-    if (elem === "화" || ohaeng.화 >= 2) dohwaScore += 6;
+    // 도화 점수: 도화살 여부 + 子午卯酉 개수 + 火기운 + 목욕지 (균형 잡힌 48~88점 분포)
+    let dohwaScore = 48 + (dohwaCount * 7);
+    if (sals.includes("도화살")) dohwaScore += 9;
+    if (elem === "화" || ohaeng.화 >= 2) dohwaScore += 5;
     if (unseong === "목욕" || unseong === "제왕") dohwaScore += 5;
-    dohwaScore = Math.min(96, Math.max(72, dohwaScore));
+    dohwaScore = Math.min(88, Math.max(48, dohwaScore));
 
-    // 재물 점수: 재성(정재/편재) 비중 + 金/土 기운 + 묘지 (82~96점 분포)
-    let wealthScore = 65 + Math.round((sipseong.재성 || 20) * 0.5);
-    if (elem === "금" || ohaeng.금 >= 2) wealthScore += 8;
-    if (elem === "토" || ohaeng.토 >= 2) wealthScore += 6;
-    if (unseong === "건록" || unseong === "묘") wealthScore += 7;
-    wealthScore = Math.min(96, Math.max(72, wealthScore));
+    // 재물 점수: 재성(정재/편재) 비중 + 金/土 기운 + 묘지 (48~88점 분포)
+    let wealthScore = 48 + Math.round((sipseong.재성 || 20) * 0.45);
+    if (elem === "금" || ohaeng.금 >= 2) wealthScore += 7;
+    if (elem === "토" || ohaeng.토 >= 2) wealthScore += 5;
+    if (unseong === "건록" || unseong === "묘") wealthScore += 6;
+    wealthScore = Math.min(88, Math.max(48, wealthScore));
 
-    // 역마 점수: 역마살 여부 + 寅申巳亥 개수 + 木기운 + 장생 (82~96점 분포)
-    let yeokmaScore = 63 + (yeokmaCount * 9);
-    if (sals.includes("역마살")) yeokmaScore += 11;
-    if (elem === "목" || ohaeng.목 >= 2) yeokmaScore += 6;
+    // 역마 점수: 역마살 여부 + 寅申巳亥 개수 + 木기운 + 장생 (46~88점 분포)
+    let yeokmaScore = 46 + (yeokmaCount * 8);
+    if (sals.includes("역마살")) yeokmaScore += 10;
+    if (elem === "목" || ohaeng.목 >= 2) yeokmaScore += 5;
     if (unseong === "장생" || unseong === "절") yeokmaScore += 5;
-    yeokmaScore = Math.min(96, Math.max(72, yeokmaScore));
+    yeokmaScore = Math.min(88, Math.max(46, yeokmaScore));
 
-    // 실세 점수: 괴강/백호/양인 + 관성(통솔) + 모임원 평균 궁합 (82~96점 분포)
-    let bossScore = 64 + Math.round((sipseong.관성 || 20) * 0.45);
-    if (sals.includes("괴강살") || sals.includes("백호대살")) bossScore += 11;
-    if (unseong === "제왕" || unseong === "건록") bossScore += 7;
+    // 실세 점수: 괴강/백호/양인 + 관성(통솔) + 모임원 평균 궁합 (48~88점 분포)
+    let bossScore = 48 + Math.round((sipseong.관성 || 20) * 0.4);
+    if (sals.includes("괴강살") || sals.includes("백호대살")) bossScore += 9;
+    if (unseong === "제왕" || unseong === "건록") bossScore += 6;
 
     // 모임원 간 평균 케미 점수 계산
     const memberPairs = pairs.filter((p) => p.member_id_1 === m.id || p.member_id_2 === m.id);
     const pairAvg = memberPairs.length > 0
-      ? memberPairs.reduce((acc, cur) => acc + (cur.score || 75), 0) / memberPairs.length
+      ? memberPairs.reduce((acc, cur) => acc + (cur.score || 70), 0) / memberPairs.length
       : groupScore;
-    bossScore += Math.round((pairAvg - 70) * 0.3);
-    bossScore = Math.min(96, Math.max(74, bossScore));
+    bossScore += Math.round((pairAvg - 68) * 0.25);
+    bossScore = Math.min(88, Math.max(48, bossScore));
 
-    // 브레인 점수: 문창귀인 + 천을귀인 + 水기운 + 인성 (82~96점 분포)
-    let brainScore = 65 + Math.round((sipseong.인성 || 20) * 0.45);
-    if (sals.includes("문창귀인")) brainScore += 12;
-    if (sals.includes("천을귀인")) brainScore += 8;
-    if (elem === "수" || ohaeng.수 >= 2) brainScore += 6;
+    // 브레인 점수: 문창귀인 + 천을귀인 + 水기운 + 인성 (48~88점 분포)
+    let brainScore = 48 + Math.round((sipseong.인성 || 20) * 0.4);
+    if (sals.includes("문창귀인")) brainScore += 10;
+    if (sals.includes("천을귀인")) brainScore += 7;
+    if (elem === "수" || ohaeng.수 >= 2) brainScore += 5;
     if (sals.includes("화개살")) brainScore += 5;
-    brainScore = Math.min(96, Math.max(72, brainScore));
+    brainScore = Math.min(88, Math.max(48, brainScore));
 
     return {
       member: m,
@@ -458,11 +458,11 @@ function generateSingleAwardsResult(member: Member): GroupAwardsResult {
     instagramHashtags: [`#${nick}_${title}`, `#사주어워즈`, `#${title}`]
   });
 
-  const dohwaKing = makeItem("award_dohwa", "dohwa", "🌸", "호감 매력 1위", "모임의 공식 분위기 메이커", '"특유의 밝고 유쾌한 에너지로 모임에 온기를 불어넣는 사람"', "친화력 & 호감도", 95, "");
-  const wealthKing = makeItem("award_wealth", "wealth", "💰", "현실 조율 1위", "현실적 조율자 & 모임의 복덩이", '"균형 잡힌 현실 감각과 세심한 배려로 모임을 지탱하는 기운"', "현실 감각 & 실속", 92, "");
-  const yeokmaKing = makeItem("award_yeokma", "yeokma", "🐎", "추진력 1위", "약속과 실행을 이끄는 행동대장", '"모임의 새로운 약속과 활동에 가장 먼저 불을 지피는 추진력"', "추진력 & 실행력", 88, "");
-  const bossKing = makeItem("award_boss", "boss", "👑", "신뢰 리더 1위", "모임의 든든한 중심축 & 숨은 리더", '"배려와 포용력으로 멤버들의 깊은 신뢰를 받는 든든한 기둥"', "신뢰 리더십", 96, "");
-  const brainKing = makeItem("award_brain", "brain", "🧠", "지혜 멘토 1위", "지혜로운 조언자 & 모임의 브레인", '"경청과 현명한 조언으로 생각을 명쾌하게 밝혀주는 지혜로운 현자"', "지혜 & 통찰력", 94, "");
+  const dohwaKing = makeItem("award_dohwa", "dohwa", "🌸", "호감 매력 1위", "모임의 공식 분위기 메이커", '"특유의 밝고 유쾌한 에너지로 모임에 온기를 불어넣는 사람"', "친화력 & 호감도", 82, "");
+  const wealthKing = makeItem("award_wealth", "wealth", "💰", "현실 조율 1위", "현실적 조율자 & 모임의 복덩이", '"균형 잡힌 현실 감각과 세심한 배려로 모임을 지탱하는 기운"', "현실 감각 & 실속", 79, "");
+  const yeokmaKing = makeItem("award_yeokma", "yeokma", "🐎", "추진력 1위", "약속과 실행을 이끄는 행동대장", '"모임의 새로운 약속과 활동에 가장 먼저 불을 지피는 추진력"', "추진력 & 실행력", 75, "");
+  const bossKing = makeItem("award_boss", "boss", "👑", "신뢰 리더 1위", "모임의 든든한 중심축 & 숨은 리더", '"배려와 포용력으로 멤버들의 깊은 신뢰를 받는 든든한 기둥"', "신뢰 리더십", 84, "");
+  const brainKing = makeItem("award_brain", "brain", "🧠", "지혜 멘토 1위", "지혜로운 조언자 & 모임의 브레인", '"경청과 현명한 조언으로 생각을 명쾌하게 밝혀주는 지혜로운 현자"', "지혜 & 통찰력", 80, "");
 
   return {
     dohwaKing,

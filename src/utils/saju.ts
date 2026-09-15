@@ -556,7 +556,7 @@ export function calculateTodayFortune(
   const today = targetDate || new Date();
   const dateStr = today.toISOString().slice(0, 10);
   
-  // Deterministic daily score between 75 and 98 based on daymaster and date
+  // Deterministic daily score between 50 and 91 based on daymaster and date
   let seed = 0;
   const cleanGan = daymasterGan || "갑목";
   const cleanElem = daymasterElement || "목";
@@ -566,7 +566,7 @@ export function calculateTodayFortune(
     seed = (seed << 5) - seed + combinedStr.charCodeAt(i);
     seed |= 0;
   }
-  const score = 75 + Math.abs(seed % 24);
+  const score = 50 + Math.abs(seed % 42);
 
   // Five Elements Luck Configuration
   const ELEMENT_LUCK: Record<string, { color: string; direction: string; item: string; number: string; time: string }> = {
