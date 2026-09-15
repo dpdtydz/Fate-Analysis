@@ -50,7 +50,7 @@ test.describe("인연사주 핵심 사용자 여정 E2E 회귀 테스트", () =>
     }
 
     // 네트워크 지도 캔버스나 멤버 카드 컨테이너가 에러 없이 로드되는지 확인
-    await expect(page.locator("canvas").or(page.locator("text=참여 멤버")).or(page.locator("text=모임"))).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("main canvas, main :text('모임'), main :text('참여 멤버')").first()).toBeVisible({ timeout: 15000 });
   });
 
   test("3. 프리미엄 확인권 / 페이월 모달 및 A/B 테스트 헤드라인 검증", async ({ page }) => {
