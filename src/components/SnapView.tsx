@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Layout from "./Layout";
 import { 
   Sparkles, 
@@ -6,25 +6,28 @@ import {
   Copy, 
   Check, 
   ChevronRight, 
+  ChevronLeft,
   HeartHandshake, 
   UserPlus, 
-  HelpCircle, 
-  ArrowRight,
   RotateCcw,
   Compass,
   Star,
   ShieldCheck,
   Zap,
-  Flame,
-  Clock
+  Clock,
+  ArrowRightLeft,
+  Lock,
+  Eye,
+  Users
 } from "lucide-react";
 import { Member, PairSnap, SajuData } from "../types";
-import { calculateSaju } from "../utils/saju";
 import { 
   createPairSnap, 
   getPairSnap, 
   joinPairSnap, 
-  subscribePairSnap 
+  subscribePairSnap,
+  isSnapHost,
+  getSnapGuestMemberId
 } from "../lib/firebase";
 import { 
   getRecentPersonalProfile, 
@@ -76,7 +79,41 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [recentSnaps, setRecentSnaps] = useState<RecentSnapItem[]>([]);
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
+  const chipScrollRef = useRef<HTMLDivElement>(null);
 
+  // Check if current user is the Host (link creator)
+  const isHost = useMemo(() => {
+    if (!currentCode || !snapData) return false;
+    return isSnapHost(currentCode, snapData.creator_key);
+  }, [currentCode, snapData]);
+
+  // Check if current user is a Guest who already joined on this device
+  const guestMemberId = useMemo(() => {
+    if (!currentCode) return null;
+    return getSnapGuestMemberId(currentCode);
+  }, [currentCode]);
+
+  // All registered partners
+  const partnersList = useMemo(() => {
+    if (!snapData) return [];
+    if (snapData.partners && snapData.partners.length > 0) {
+      return snapData.partners;
+    }
+    if (snapData.partner) {
+      return [snapData.partner];
+    }
+    return [];
+  }, [snapData]);
+
+  // If host and no partner selected, select first partner
+  useEffect(() => {
+    if (isHost && partnersList.length > 0 && !selectedPartnerId) {
+      setSelectedPartnerId(partnersList[0].id);
+    }
+  }, [isHost, partnersList, selectedPartnerId]);
+
+  // Load recent snaps from localStorage
   useEffect(() => {
     setRecentSnaps(getRecentSnaps());
   }, [currentCode]);
@@ -96,15 +133,16 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
       if (snap) {
         setSnapData(snap);
         if (snap.creator) {
+          const firstPartner = snap.partners?.[0] || snap.partner;
           recordRecentSnap(
             currentCode, 
             snap.creator.nickname, 
-            snap.partner?.nickname
+            firstPartner?.nickname
           );
           setRecentSnaps(getRecentSnaps());
         }
       } else {
-        setErrorMessage("존재하지 않거나 만료된 1:1 인연 초대장입니다.");
+        setErrorMessage("존재하지 않거나 만료된 1:1 비밀 인연 초대장입니다.");
       }
     });
 
@@ -142,7 +180,6 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     mbti?: string | null;
     birthplace_region?: string;
     birthplace_city?: string;
-    email?: string;
   }) => {
     setIsLoading(true);
     try {
@@ -158,7 +195,6 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
         character_color: formData.character_color,
         mbti: formData.mbti || undefined,
         location: formData.birthplace_region ? `${formData.birthplace_region} ${formData.birthplace_city || ""}`.trim() : undefined,
-        email: formData.email,
         joined_at: new Date().toISOString()
       };
 
@@ -202,7 +238,6 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     mbti?: string | null;
     birthplace_region?: string;
     birthplace_city?: string;
-    email?: string;
   }) => {
     if (!currentCode) return;
     setIsLoading(true);
@@ -219,12 +254,12 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
         character_color: formData.character_color,
         mbti: formData.mbti || undefined,
         location: formData.birthplace_region ? `${formData.birthplace_region} ${formData.birthplace_city || ""}`.trim() : undefined,
-        email: formData.email,
         joined_at: new Date().toISOString()
       };
 
       const updated = await joinPairSnap(currentCode, partnerMember);
       setSnapData(updated);
+      setSelectedPartnerId(partnerMember.id);
     } catch (err: any) {
       setErrorMessage(err?.message || "참여 중 오류가 발생했습니다.");
     } finally {
@@ -262,14 +297,8 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
   const handleKakaoShare = async () => {
     if (!snapData || !currentCode) return;
     const creatorName = snapData.creator.nickname;
-    const partnerName = snapData.partner?.nickname;
-
-    const title = partnerName 
-      ? `✨ ${creatorName}님 & ${partnerName}님의 1:1 인연 궁합 결과`
-      : `💌 ${creatorName}님이 1:1 인연 궁합 초대장을 보냈어요!`;
-    const description = partnerName
-      ? `두 사람만의 사주, 별자리, MBTI, 자미두수 궁합 분석 결과를 확인해보세요!`
-      : `닉네임과 생년월일을 입력하면 두 사람만의 1:1 상세 인연 궁합이 즉시 공개됩니다.`;
+    const title = `🔒 ${creatorName}님의 1:1 비밀 인연 초대장`;
+    const description = `${creatorName}님과 나만의 1:1 비밀 사주 궁합을 확인해보세요! (다른 사람에게는 절대 공개되지 않는 비밀 매칭)`;
 
     await shareToKakaoOrClipboard({
       title,
@@ -278,15 +307,35 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     });
   };
 
-  // 1:1 Analysis calculation when both creator & partner exist
+  // Resolve currently active target partner:
+  // - If Host: selectedPartnerId or first partner
+  // - If Guest: the guest's own member record
+  const activePartner = useMemo(() => {
+    if (!snapData) return null;
+    if (isHost) {
+      if (selectedPartnerId) {
+        return partnersList.find(p => p.id === selectedPartnerId) || partnersList[0] || null;
+      }
+      return partnersList[0] || null;
+    }
+    // Guest view: STRICT PRIVACY - ONLY allow seeing themselves!
+    // NEVER leak or fallback to other partners under any circumstances.
+    if (guestMemberId) {
+      const mySelf = partnersList.find(p => p.id === guestMemberId);
+      if (mySelf) return mySelf;
+    }
+    return null;
+  }, [snapData, isHost, selectedPartnerId, partnersList, guestMemberId]);
+
+  // 1:1 Analysis calculation between Creator and Active Partner
   const analysis = useMemo(() => {
-    if (!snapData?.creator || !snapData?.partner) return null;
-    return generateDynamicPairCompatibility(snapData.creator, snapData.partner);
-  }, [snapData?.creator, snapData?.partner]);
+    if (!snapData?.creator || !activePartner) return null;
+    return generateDynamicPairCompatibility(snapData.creator, activePartner);
+  }, [snapData?.creator, activePartner]);
 
   // Western Zodiac
   const zodiacCreator = useMemo(() => snapData ? getWesternZodiac(snapData.creator.birth_date) : null, [snapData?.creator]);
-  const zodiacPartner = useMemo(() => snapData?.partner ? getWesternZodiac(snapData.partner.birth_date) : null, [snapData?.partner]);
+  const zodiacPartner = useMemo(() => activePartner ? getWesternZodiac(activePartner.birth_date) : null, [activePartner]);
 
   // Render State 1: Loading
   if (isLoading && !snapData) {
@@ -294,7 +343,7 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
       <Layout maxWidth="2xl">
         <div className="py-20 text-center space-y-4">
           <div className="w-12 h-12 mx-auto border-3 border-seal border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-medium text-ink-soft">1:1 인연 초대장을 불러오는 중...</p>
+          <p className="text-sm font-medium text-ink-soft">1:1 비밀 초대장을 불러오는 중...</p>
         </div>
       </Layout>
     );
@@ -322,14 +371,14 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-seal text-white font-semibold text-sm hover:bg-seal-deep transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>새 1:1 초대장 만들기</span>
+            <span>새 비밀 초대장 만들기</span>
           </a>
         </div>
       </Layout>
     );
   }
 
-  // Render State 3: Mode Create (No Code yet)
+  // Render State 3: Mode Create (No Code yet in URL)
   if (!currentCode || !snapData) {
     return (
       <Layout maxWidth="2xl">
@@ -337,15 +386,15 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
           {/* Header */}
           <div className="text-center space-y-3">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-seal/10 text-seal text-xs font-semibold">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>1:1 맞춤형 인연 스냅</span>
+              <Lock className="w-3.5 h-3.5" />
+              <span>1:1 비밀 인연 스냅</span>
             </div>
             <h1 className="font-serif text-2xl sm:text-3xl font-semibold text-ink tracking-tight">
-              둘만의 깊은 인연 궁합
+              나만의 1:1 비밀 궁합 링크 만들기
             </h1>
             <p className="text-sm text-ink-soft leading-relaxed max-w-md mx-auto">
-              모임 없이 친구, 연인, 동료와 1:1로 빠르게!<br />
-              내 사주를 등록하고 초대 링크를 상대방에게 보내보세요.
+              초대 링크를 친구나 지인들에게 공유해보세요.<br />
+              <strong className="text-ink">링크로 들어온 친구들의 궁합은 오직 나에게만 비밀리에 모입니다!</strong>
             </p>
           </div>
 
@@ -355,9 +404,9 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
               <div className="flex items-center justify-between text-xs text-ink-faint">
                 <span className="flex items-center gap-1.5 font-medium text-ink">
                   <Clock className="w-3.5 h-3.5 text-seal" />
-                  <span>최근 확인한 1:1 인연 궁합</span>
+                  <span>최근 확인한 비밀 궁합 링크</span>
                 </span>
-                <span className="text-[11px]">링크로 언제든 다시 볼 수 있어요</span>
+                <span className="text-[11px]">언제든 다시 열어볼 수 있어요</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {recentSnaps.map((item) => (
@@ -371,12 +420,12 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
                     className="p-3 bg-surface rounded-xl border border-line hover:border-seal/50 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
                   >
                     <div className="min-w-0 space-y-0.5">
-                      <span className="text-[10px] text-seal font-bold">1:1 스냅 · 코드 {item.code}</span>
+                      <span className="text-[10px] text-seal font-bold">비밀 스냅 · 코드 {item.code}</span>
                       <p className="text-xs sm:text-sm font-bold text-ink truncate group-hover:text-seal transition-colors">
-                        {item.partnerName ? `${item.creatorName} & ${item.partnerName}` : `${item.creatorName}님의 초대장`}
+                        {item.creatorName}님의 비밀 링크
                       </p>
                       <p className="text-[11px] text-ink-soft">
-                        {item.partnerName ? "궁합 결과 다시보기" : "상대방 접속 대기 중"}
+                        {item.partnerName ? `최근 파트너: ${item.partnerName}` : "친구 참여 대기 중"}
                       </p>
                     </div>
                     <ChevronRight className="w-4 h-4 text-ink-faint group-hover:text-seal group-hover:translate-x-0.5 transition-all shrink-0" />
@@ -430,16 +479,16 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
             <div className="border-b border-line pb-4">
               <h2 className="font-serif text-lg font-bold text-ink flex items-center gap-2">
                 <span className="w-6 h-6 rounded-full bg-seal text-white text-xs flex items-center justify-center font-mono">1</span>
-                <span>내 정보 입력</span>
+                <span>내 사주 등록 (링크 호스트)</span>
               </h2>
               <p className="text-xs text-ink-faint mt-1">
-                상대방과의 1:1 상세 궁합 분석을 위해 본인의 사주 정보를 입력해주세요.
+                친구들이 들어와 궁합을 볼 기준이 되는 본인의 사주 정보를 입력해주세요.
               </p>
             </div>
 
             <SajuForm
               onSubmit={handleCreateSnap}
-              submitButtonText="1:1 초대장 만들고 링크 받기"
+              submitButtonText="비밀 초대장 만들고 링크 받기"
               initialNickname={savedProfile?.nickname || ""}
               initialGender={savedProfile?.gender as any}
               initialBirthDate={savedProfile?.birth_date}
@@ -447,6 +496,7 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
               initialMbti={savedProfile?.mbti}
               initialRegion={savedProfile?.birthplace_region}
               initialCity={savedProfile?.birthplace_city}
+              showEmailField={false}
             />
           </div>
         </div>
@@ -454,8 +504,8 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     );
   }
 
-  // Render State 4: Mode Wait / Join (Partner has NOT joined yet)
-  if (!snapData.partner) {
+  // Render State 4: GUEST VIEW (Not Host, and hasn't registered yet)
+  if (!isHost && !activePartner) {
     return (
       <Layout maxWidth="2xl">
         <div className="py-8 sm:py-12 space-y-8 animate-fade-in">
@@ -467,27 +517,76 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
 
             <div className="space-y-1.5">
               <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-seal/10 text-seal text-xs font-semibold">
-                1:1 인연 초대장
+                <Lock className="w-3 h-3" />
+                <span>1:1 비밀 인연 초대장</span>
               </span>
               <h1 className="font-serif text-2xl sm:text-3xl font-bold text-ink">
-                {snapData.creator.nickname}님과의 1:1 궁합
+                {snapData.creator.nickname}님의 비밀 인연 초대
               </h1>
-              <p className="text-xs sm:text-sm text-ink-soft max-w-sm mx-auto">
-                {snapData.creator.character_animal} 기운을 지닌 {snapData.creator.nickname}님과의<br />
-                상세 사주, 서양 별자리, MBTI, 자미두수 궁합을 확인해보세요!
+              <p className="text-xs sm:text-sm text-ink-soft max-w-sm mx-auto leading-relaxed">
+                {snapData.creator.nickname}님과의 1:1 비밀 궁합입니다.<br />
+                <span className="text-ink font-medium">내가 입력한 사주 정보는 {snapData.creator.nickname}님에게만 전달되며, 다른 참여자에게는 절대 공개되지 않습니다.</span>
               </p>
             </div>
           </div>
 
-          {/* Share Box (For Creator to invite partner) */}
+          {/* Partner Registration Form */}
+          <div className="bg-surface border border-line rounded-2xl p-5 sm:p-7 shadow-xs space-y-6">
+            <div className="border-b border-line pb-4">
+              <h2 className="font-serif text-lg font-bold text-ink flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-seal text-white text-xs flex items-center justify-center font-mono">2</span>
+                <span>내 사주 정보 입력</span>
+              </h2>
+              <p className="text-xs text-ink-faint mt-1">
+                이름(별명), 성별, 생년월일시를 입력하면 {snapData.creator.nickname}님과의 궁합이 완성됩니다.
+              </p>
+            </div>
+
+            <SajuForm
+              onSubmit={handleJoinSnap}
+              submitButtonText={`${snapData.creator.nickname}님에게 비밀 사주 전달하고 궁합 보기`}
+              showEmailField={false}
+            />
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Render State 5: HOST with 0 Partners (Waiting for friends to join)
+  if (isHost && partnersList.length === 0) {
+    return (
+      <Layout maxWidth="2xl">
+        <div className="py-8 sm:py-12 space-y-8 animate-fade-in">
+          {/* Creator Profile */}
+          <div className="text-center space-y-4">
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-surface border-2 border-seal/30 shadow-md p-2 flex items-center justify-center">
+              <ZodiacAvatar member={snapData.creator} size={64} fallbackEmoji={snapData.creator.character_emoji} />
+            </div>
+
+            <div className="space-y-1.5">
+              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded-full bg-seal/10 text-seal text-xs font-semibold">
+                👑 링크 생성자 (호스트 전용 뷰)
+              </span>
+              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-ink">
+                비밀 궁합 링크가 생성되었습니다!
+              </h1>
+              <p className="text-xs sm:text-sm text-ink-soft max-w-sm mx-auto">
+                친구들에게 아래 링크를 공유해보세요.<br />
+                친구가 참여할 때마다 <strong className="text-ink">나만의 화면에 친구들과의 1:1 궁합이 비밀리에 추가</strong>됩니다.
+              </p>
+            </div>
+          </div>
+
+          {/* Share Box */}
           <div className="bg-sunken border border-line rounded-2xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-ink flex items-center gap-1.5">
                 <Share2 className="w-3.5 h-3.5 text-seal" />
-                <span>상대방 초대 링크 공유</span>
+                <span>비밀 초대 링크 공유</span>
               </span>
               <span className="text-[11px] text-seal font-semibold animate-pulse">
-                ● 상대방 접속 대기 중
+                ● 친구들의 참여 대기 중
               </span>
             </div>
 
@@ -517,7 +616,7 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
                 className="py-2.5 px-3 bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Share2 className="w-3.5 h-3.5" />
-                <span>카카오톡으로 초대</span>
+                <span>카카오톡으로 초대장 보내기</span>
               </button>
               <button
                 type="button"
@@ -529,21 +628,19 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
             </div>
           </div>
 
-          {/* Partner Registration Form */}
-          <div className="bg-surface border border-line rounded-2xl p-5 sm:p-7 shadow-xs space-y-6">
-            <div className="border-b border-line pb-4">
-              <h2 className="font-serif text-lg font-bold text-ink flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-seal text-white text-xs flex items-center justify-center font-mono">2</span>
-                <span>상대방 정보 입력</span>
-              </h2>
-              <p className="text-xs text-ink-faint mt-1">
-                닉네임, 이메일, MBTI, 사는곳과 생년월일을 입력하면 둘만의 분석 결과가 즉시 공개됩니다.
-              </p>
-            </div>
-
+          {/* Test Partner Registration (Self test) */}
+          <div className="bg-surface border border-line rounded-2xl p-5 space-y-4">
+            <h3 className="font-serif text-sm font-bold text-ink flex items-center gap-1.5">
+              <UserPlus className="w-4 h-4 text-seal" />
+              <span>직접 친구 정보 등록해보기 (테스트용)</span>
+            </h3>
+            <p className="text-xs text-ink-faint">
+              링크를 보내지 않고 본인이 직접 상대방 사주를 입력해 1:1 궁합을 먼저 확인해볼 수도 있습니다.
+            </p>
             <SajuForm
               onSubmit={handleJoinSnap}
-              submitButtonText={`${snapData.creator.nickname}님과의 궁합 확인하기`}
+              submitButtonText="상대방 추가하고 1:1 궁합 보기"
+              showEmailField={false}
             />
           </div>
         </div>
@@ -551,22 +648,37 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     );
   }
 
-  // Render State 5: Mode Result (Both Creator and Partner exist!)
+  // Render State 6: MASTER 1:1 RESULT VIEW
+  // - Host can see and toggle between ALL partners using the chips UI (as requested in screenshot!)
+  // - Guest can ONLY see themselves with the creator (strict privacy: other partners never leaked!)
   const m1 = snapData.creator;
-  const m2 = snapData.partner;
+  const m2 = activePartner!;
   const pairScore = analysis?.totalScore ?? 82;
   const pairGrade = pairScore >= 90 ? "S+" : pairScore >= 80 ? "S" : pairScore >= 70 ? "A" : pairScore >= 60 ? "B" : "C";
 
   return (
     <Layout maxWidth="2xl">
-      <div className="py-6 sm:py-10 space-y-8 animate-fade-in">
+      <div className="py-6 sm:py-10 space-y-6 animate-fade-in">
         {/* Top Floating Badge & Actions */}
         <div className="flex items-center justify-between text-xs text-ink-faint border-b border-line pb-3">
           <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 rounded-full bg-seal/10 text-seal font-semibold">1:1 인연 스냅</span>
+            <span className="px-2 py-0.5 rounded-full bg-seal/10 text-seal font-semibold">
+              {isHost ? "👑 비밀 궁합 보관함 (호스트)" : "🔒 1:1 비밀 인연 스냅"}
+            </span>
             <span className="font-mono text-ink-soft">코드: {currentCode}</span>
           </div>
           <div className="flex items-center gap-2">
+            {isHost && (
+              <button
+                type="button"
+                onClick={handleCopyUrl}
+                className="hover:text-seal transition-colors flex items-center gap-1 cursor-pointer"
+                title="초대 링크 복사"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>링크 복사</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => {
@@ -581,6 +693,130 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
             </button>
           </div>
         </div>
+
+        {/* 🌟 HOST ONLY: Multi-Partner Switcher (Exactly matches user screenshot!) */}
+        {isHost && (
+          <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
+            {/* Top 2 Cards: [기준 (나)] ↔ [친구 (상대)] */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
+              {/* Creator (Me) */}
+              <div className="p-3 bg-sunken rounded-xl flex items-center gap-2.5 border border-line/50">
+                <div className="relative shrink-0">
+                  <ZodiacAvatar member={m1} size={38} fallbackEmoji={m1.character_emoji} />
+                  <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded bg-seal text-white text-[9px] font-bold">
+                    ME
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-ink-faint block">기준 (나)</span>
+                  <p className="text-xs sm:text-sm font-bold text-ink truncate">{m1.nickname}</p>
+                </div>
+              </div>
+
+              {/* Center Swap Arrow */}
+              <div className="w-8 h-8 rounded-full bg-surface border border-line flex items-center justify-center text-ink-faint shadow-xs shrink-0">
+                <ArrowRightLeft className="w-4 h-4" />
+              </div>
+
+              {/* Target (Friend) */}
+              <div className="p-3 bg-sunken rounded-xl flex items-center gap-2.5 border border-seal/30 bg-seal/5">
+                <div className="relative shrink-0">
+                  <ZodiacAvatar member={m2} size={38} fallbackEmoji={m2.character_emoji} />
+                  <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded bg-wood text-white text-[9px] font-bold">
+                    YOU
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-seal font-bold block">친구 (상대)</span>
+                  <p className="text-xs sm:text-sm font-bold text-ink truncate">{m2.nickname}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Friend Selection Chips Bar */}
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-ink flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-seal" />
+                  <span>케미를 볼 친구를 선택하세요</span>
+                </span>
+                <span className="text-ink-faint text-[11px] font-medium">
+                  참여 {partnersList.length}명
+                </span>
+              </div>
+
+              {/* Horizontal scrollable chips */}
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => chipScrollRef.current?.scrollBy({ left: -140, behavior: "smooth" })}
+                  className="p-1 rounded-lg hover:bg-sunken text-ink-faint hover:text-ink transition-colors shrink-0 cursor-pointer"
+                  aria-label="이전"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                <div 
+                  ref={chipScrollRef}
+                  className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 flex-1"
+                >
+                  {partnersList.map((partner) => {
+                    const isSelected = partner.id === m2.id;
+                    const partnerElement = partner.saju?.daymaster?.element || "오행";
+                    return (
+                      <button
+                        key={partner.id}
+                        type="button"
+                        onClick={() => setSelectedPartnerId(partner.id)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border shrink-0 ${
+                          isSelected
+                            ? "bg-seal text-white border-seal shadow-xs scale-102"
+                            : "bg-sunken text-ink-soft hover:text-ink hover:bg-surface border-line"
+                        }`}
+                      >
+                        <span className="text-sm">{partner.character_emoji}</span>
+                        <span>{partner.nickname}</span>
+                        <span className="text-[10px] opacity-80">({partnerElement})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => chipScrollRef.current?.scrollBy({ left: 140, behavior: "smooth" })}
+                  className="p-1 rounded-lg hover:bg-sunken text-ink-faint hover:text-ink transition-colors shrink-0 cursor-pointer"
+                  aria-label="다음"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 🔒 GUEST ONLY Notice: Other participants remain 100% hidden! */}
+        {!isHost && (
+          <div className="p-4 rounded-2xl bg-sunken border border-line flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-seal/10 text-seal flex items-center justify-center shrink-0">
+                <Lock className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-ink">비밀 인연 궁합 전달 완료</p>
+                <p className="text-[11px] text-ink-soft truncate">
+                  {m1.nickname}님과 {m2.nickname}님만의 1:1 결과이며, 다른 참가자에게는 절대 노출되지 않습니다.
+                </p>
+              </div>
+            </div>
+            <a
+              href="#/snap"
+              className="px-3 py-1.5 rounded-xl bg-surface border border-line hover:border-seal text-ink hover:text-seal text-[11px] font-semibold shrink-0 transition-colors"
+            >
+              내 링크 만들기
+            </a>
+          </div>
+        )}
 
         {/* Hero Head-to-Head Card */}
         <div className="bg-gradient-to-b from-surface via-surface to-sunken border border-line rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-sm relative overflow-hidden">
@@ -628,14 +864,14 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
               </div>
             </div>
 
-            {/* Member 2 (Partner) */}
+            {/* Member 2 (Active Partner) */}
             <div className="flex flex-col items-center space-y-2 min-w-[90px]">
               <div className="relative">
                 <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-surface border-2 border-wood/30 shadow-md p-1.5 flex items-center justify-center">
                   <ZodiacAvatar member={m2} size={64} fallbackEmoji={m2.character_emoji} />
                 </div>
                 <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-wood text-white text-[10px] font-bold">
-                  동반자
+                  친구
                 </span>
               </div>
               <div className="space-y-0.5">
@@ -740,7 +976,7 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
             <div className="bg-surface border border-line rounded-2xl p-5 space-y-4">
               <h3 className="font-serif text-sm font-bold text-ink flex items-center gap-1.5">
                 <HeartHandshake className="w-4 h-4 text-seal" />
-                <span>두 사람의 6대 관계 역학</span>
+                <span>{m1.nickname} & {m2.nickname} 관계 역학</span>
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -145,7 +145,9 @@ export interface PairSnap {
   code: string;
   title?: string;
   creator: Member;
+  creator_key?: string;
   partner?: Member | null;
+  partners?: Member[];
   created_at: any;
   updated_at?: any;
 }

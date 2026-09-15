@@ -28,6 +28,7 @@ interface StoryDisplayMember {
   roleName: string;
   ringColor: string;
   avatarSrc: string;
+  animal?: string;
 }
 
 // 6 Viral Categories for 1:1 Instagram Story
@@ -54,6 +55,18 @@ export default function GroupStoryModal({
   currentMember = null,
 }: GroupStoryModalProps) {
   const storyCardRef = useRef<HTMLDivElement>(null);
+
+  // ESC 키 누르면 모달 닫기
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
   
   // Tab: "pair" (1:1 Friend Chemistry) or "group" (Group Awards)
   const [activeTab, setActiveTab] = useState<"pair" | "group">(defaultTab);
@@ -537,8 +550,26 @@ export default function GroupStoryModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[1000] overflow-y-auto bg-black/85 backdrop-blur-md flex flex-col items-center justify-center p-3 sm:p-4">
-      <div className="w-full max-w-[420px] flex flex-col items-center select-none">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[1000] overflow-y-auto bg-black/85 backdrop-blur-md flex flex-col items-center justify-start p-3 sm:p-6 py-6 sm:py-10"
+    >
+      {/* 우상단 고정 플로팅 닫기 버튼 - 모바일/데스크톱 어디서나 즉시 닫기 */}
+      <button
+        type="button"
+        onClick={onClose}
+        className="fixed top-3 right-3 sm:top-5 sm:right-5 z-[1050] w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer backdrop-blur-md"
+        aria-label="닫기"
+      >
+        <X className="w-5 h-5" />
+      </button>
+
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-[420px] flex flex-col items-center select-none relative shrink-0"
+      >
         
         {/* Top Header */}
         <div className="w-full flex items-center justify-between mb-2.5 px-1 text-white">
@@ -549,7 +580,7 @@ export default function GroupStoryModal({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer text-white"
+            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer text-white"
             aria-label="닫기"
           >
             <X className="w-4 h-4" />
@@ -1152,6 +1183,15 @@ export default function GroupStoryModal({
             )}
           </button>
 
+          {/* 명시적인 닫기 / 취소 버튼 */}
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white font-medium text-xs transition-colors cursor-pointer text-center"
+          >
+            닫기 / 취소
+          </button>
+
           {copiedText && (
             <div className="w-full py-2 px-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs text-center flex items-center justify-center gap-1.5 animate-fade-in">
               <Check className="w-3.5 h-3.5" />
@@ -1164,8 +1204,16 @@ export default function GroupStoryModal({
 
       {/* 모바일 인앱 브라우저용 길게 눌러 저장 가이드 모달 */}
       {showLongPressGuide && capturedImageUrl && (
-        <div className="fixed inset-0 z-[1100] bg-black/90 flex flex-col items-center justify-center p-4">
-          <div className="bg-slate-900 border border-white/20 rounded-2xl max-w-sm w-full p-4 text-white text-center space-y-3">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowLongPressGuide(false);
+          }}
+          className="fixed inset-0 z-[1100] bg-black/90 flex flex-col items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-slate-900 border border-white/20 rounded-2xl max-w-sm w-full p-4 text-white text-center space-y-3"
+          >
             <div className="flex items-center justify-between">
               <span className="text-sm font-bold text-amber-400">📱 사진첩에 저장하는 법</span>
               <button

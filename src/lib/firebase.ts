@@ -2245,11 +2245,15 @@ export function generateSnapCode(): string {
 
 export async function createPairSnap(creator: Member, title?: string): Promise<PairSnap> {
   const code = generateSnapCode();
+  const creatorKey = "key_" + Math.random().toString(36).substring(2, 11) + "_" + Date.now();
+  
   const snapData: PairSnap = {
     code,
     title: title || `${creator.nickname}님의 1:1 인연 초대장`,
     creator,
+    creator_key: creatorKey,
     partner: null,
+    partners: [],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
@@ -2259,6 +2263,15 @@ export async function createPairSnap(creator: Member, title?: string): Promise<P
     await setDoc(snapRef, snapData);
   } catch (err) {
     console.warn("Firestore createPairSnap fallback to localStorage:", err);
+  }
+
+  // Record host key locally
+  try {
+    const hostKeys = JSON.parse(localStorage.getItem("saju_snap_host_keys") || "{}");
+    hostKeys[code] = creatorKey;
+    localStorage.setItem("saju_snap_host_keys", JSON.stringify(hostKeys));
+  } catch (e) {
+    console.error("Local storage host key error:", e);
   }
 
   // Always keep local copy
@@ -2271,6 +2284,29 @@ export async function createPairSnap(creator: Member, title?: string): Promise<P
   }
 
   return snapData;
+}
+
+export function isSnapHost(code: string, creatorKey?: string): boolean {
+  if (!code) return false;
+  const cleanCode = code.toUpperCase().trim();
+  try {
+    const hostKeys = JSON.parse(localStorage.getItem("saju_snap_host_keys") || "{}");
+    if (hostKeys[cleanCode]) return true;
+    if (creatorKey && hostKeys[cleanCode] === creatorKey) return true;
+  } catch {
+    // ignore
+  }
+  return false;
+}
+
+export function getSnapGuestMemberId(code: string): string | null {
+  if (!code) return null;
+  const cleanCode = code.toUpperCase().trim();
+  try {
+    return localStorage.getItem(`saju_snap_guest_id_${cleanCode}`) || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function getPairSnap(code: string): Promise<PairSnap | null> {
@@ -2301,11 +2337,24 @@ export async function joinPairSnap(code: string, partner: Member): Promise<PairS
     throw new Error("존재하지 않거나 만료된 초대 코드입니다.");
   }
 
+  const existingPartners = existing.partners || (existing.partner ? [existing.partner] : []);
+  // Deduplicate by nickname
+  const filtered = existingPartners.filter(p => p.nickname.trim().toLowerCase() !== partner.nickname.trim().toLowerCase());
+  const updatedPartners = [...filtered, partner];
+
   const updatedSnap: PairSnap = {
     ...existing,
-    partner,
+    partner, // most recent partner
+    partners: updatedPartners,
     updated_at: new Date().toISOString()
   };
+
+  // Remember this guest member's id on this device
+  try {
+    localStorage.setItem(`saju_snap_guest_id_${cleanCode}`, partner.id);
+  } catch {
+    // ignore
+  }
 
   try {
     const snapRef = doc(db, "pair_snaps", cleanCode);
