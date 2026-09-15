@@ -11,7 +11,8 @@ import {
   runTransaction,
   arrayUnion,
   addDoc,
-  collection
+  collection,
+  onSnapshot
 } from "firebase/firestore";
 import { 
   getAuth, 
@@ -26,7 +27,7 @@ import {
   deleteUser,
   User
 } from "firebase/auth";
-import { UserMembershipInfo, PersonalAnalysis } from "../types";
+import { UserMembershipInfo, PersonalAnalysis, PairSnap } from "../types";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBDxMgEkCLcYU3X--nJH4JYwnWrsgqljyA",
@@ -2229,3 +2230,119 @@ export async function fetchAllMembersWithSajuForAdmin(): Promise<AdminMemberSaju
 
   return records;
 }
+
+// ==========================================
+// 1:1 Snap (인연 스냅) API
+// ==========================================
+export function generateSnapCode(): string {
+  const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+export async function createPairSnap(creator: Member, title?: string): Promise<PairSnap> {
+  const code = generateSnapCode();
+  const snapData: PairSnap = {
+    code,
+    title: title || `${creator.nickname}님의 1:1 인연 초대장`,
+    creator,
+    partner: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    const snapRef = doc(db, "pair_snaps", code);
+    await setDoc(snapRef, snapData);
+  } catch (err) {
+    console.warn("Firestore createPairSnap fallback to localStorage:", err);
+  }
+
+  // Always keep local copy
+  try {
+    const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
+    localSnaps[code] = snapData;
+    localStorage.setItem("saju_pair_snaps", JSON.stringify(localSnaps));
+  } catch (e) {
+    console.error("Local storage error:", e);
+  }
+
+  return snapData;
+}
+
+export async function getPairSnap(code: string): Promise<PairSnap | null> {
+  if (!code) return null;
+  const cleanCode = code.toUpperCase().trim();
+  try {
+    const snapRef = doc(db, "pair_snaps", cleanCode);
+    const snapSnap = await getDoc(snapRef);
+    if (snapSnap.exists()) {
+      return snapSnap.data() as PairSnap;
+    }
+  } catch (err) {
+    console.warn("Firestore getPairSnap error, fallback to local:", err);
+  }
+
+  try {
+    const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
+    return localSnaps[cleanCode] || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function joinPairSnap(code: string, partner: Member): Promise<PairSnap> {
+  const cleanCode = code.toUpperCase().trim();
+  const existing = await getPairSnap(cleanCode);
+  if (!existing) {
+    throw new Error("존재하지 않거나 만료된 초대 코드입니다.");
+  }
+
+  const updatedSnap: PairSnap = {
+    ...existing,
+    partner,
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    const snapRef = doc(db, "pair_snaps", cleanCode);
+    await setDoc(snapRef, updatedSnap, { merge: true });
+  } catch (err) {
+    console.warn("Firestore joinPairSnap error:", err);
+  }
+
+  try {
+    const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
+    localSnaps[cleanCode] = updatedSnap;
+    localStorage.setItem("saju_pair_snaps", JSON.stringify(localSnaps));
+  } catch (e) {
+    console.error("Local storage error:", e);
+  }
+
+  return updatedSnap;
+}
+
+export function subscribePairSnap(code: string, callback: (snap: PairSnap | null) => void): () => void {
+  const cleanCode = code.toUpperCase().trim();
+  try {
+    const snapRef = doc(db, "pair_snaps", cleanCode);
+    const unsubscribe = onSnapshot(snapRef, (docSnap) => {
+      if (docSnap.exists()) {
+        callback(docSnap.data() as PairSnap);
+      } else {
+        getPairSnap(cleanCode).then(callback);
+      }
+    }, (err) => {
+      console.warn("subscribePairSnap snapshot error, reading local fallback:", err);
+      getPairSnap(cleanCode).then(callback);
+    });
+    return unsubscribe;
+  } catch {
+    getPairSnap(cleanCode).then(callback);
+    return () => {};
+  }
+}
+

@@ -51,6 +51,7 @@ interface SajuFormProps {
     mbti?: string | null;
     birthplace_region?: string;
     birthplace_city?: string;
+    email?: string;
   }) => void;
   submitButtonText?: string;
   initialNickname?: string;
@@ -60,6 +61,10 @@ interface SajuFormProps {
   initialMbti?: string | null;
   initialBirthplaceCity?: string | null;
   initialBirthplaceRegion?: string | null;
+  initialRegion?: string | null;
+  initialCity?: string | null;
+  initialEmail?: string;
+  showEmailField?: boolean;
 }
 
 /** 선택 버튼 그룹의 공통 스타일 (design.md: 활성 상태 = 인주(seal), 다크모드/라이트모드 전면 가독성 보장) */
@@ -82,9 +87,17 @@ export default function SajuForm({
   initialMbti = null,
   initialBirthplaceCity = null,
   initialBirthplaceRegion = null,
+  initialRegion = null,
+  initialCity = null,
+  initialEmail = "",
+  showEmailField = true,
 }: SajuFormProps) {
-  const initialLoc = findCityAndRegion(initialBirthplaceCity || undefined, initialBirthplaceRegion || undefined);
+  const initialLoc = findCityAndRegion(
+    initialBirthplaceCity || initialCity || undefined, 
+    initialBirthplaceRegion || initialRegion || undefined
+  );
   const [nickname, setNickname] = useState(initialNickname);
+  const [email, setEmail] = useState(initialEmail);
   const [gender, setGender] = useState<"남성" | "여성">(initialGender);
   const [birthDate, setBirthDate] = useState(initialBirthDate);
   const [birthYear, setBirthYear] = useState("");
@@ -505,6 +518,7 @@ export default function SajuForm({
         mbti: useMbti ? `${mbtiLetter1}${mbtiLetter2}${mbtiLetter3}${mbtiLetter4}` : null,
         birthplace_region: selectedRegion,
         birthplace_city: birthplaceCity,
+        email: email.trim() || undefined,
       });
     } catch (err: any) {
       console.error(err);
@@ -532,6 +546,23 @@ export default function SajuForm({
           className={`w-full px-4 py-3 ${inputBase} ${inputOk}`}
         />
       </div>
+
+      {/* Email (Optional/External) */}
+      {showEmailField && (
+        <div className="space-y-1.5 text-left">
+          <label className="block text-xs font-medium text-ink-soft">
+            이메일 <span className="text-[10px] text-ink-faint font-normal">(선택 · 궁합 결과 안내용)</span>
+          </label>
+          <input
+            id="email-input"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="example@email.com"
+            className={`w-full px-4 py-3 ${inputBase} ${inputOk}`}
+          />
+        </div>
+      )}
 
       {/* Gender */}
       <div className="space-y-1.5 text-left">

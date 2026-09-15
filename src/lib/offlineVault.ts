@@ -137,3 +137,15 @@ export function getRecentPersonalProfile(): any | null {
     return null;
   }
 }
+
+/**
+ * Save personal saju profile to cache
+ */
+export function saveRecentPersonalProfile(profile: any): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.MY_PROFILE, JSON.stringify(profile));
+  } catch (e) {
+    console.warn("Failed to save personal profile to offlineVault:", e);
+  }
+}
+

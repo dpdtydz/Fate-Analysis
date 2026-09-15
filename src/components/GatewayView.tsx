@@ -81,7 +81,7 @@ export default function GatewayView() {
           </div>
         )}
 
-        {/* 두 폭의 수묵 — 진입 선택지 */}
+        {/* 수묵 화첩 — 진입 선택지 */}
         <div className="space-y-5">
           <a
             href="#/my-saju"
@@ -103,6 +103,34 @@ export default function GatewayView() {
                 </p>
               </div>
               <ChevronRight className="w-5 h-5 shrink-0 text-ink-faint group-hover:text-ink transition-colors" />
+            </div>
+          </a>
+
+          <a
+            href="#/snap"
+            className="group block bg-surface border border-line hover:border-seal/60 rounded-xl overflow-hidden transition-colors relative"
+          >
+            <span className="absolute top-3 right-3 z-10 px-2.5 py-0.5 rounded-full bg-seal text-white text-[11px] font-bold shadow-sm">
+              NEW
+            </span>
+            <div className="relative aspect-[800/460]">
+              <img
+                src="/feed_promo_2_couple.jpg"
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+              />
+            </div>
+            <div className="p-5 flex items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h2 className="font-serif text-lg font-semibold text-ink">1:1 인연 궁합 스냅</h2>
+                </div>
+                <p className="text-sm text-ink-soft mt-1 leading-relaxed">
+                  초대장을 만들어 상대방과 1:1로 사주·별자리·MBTI·자미두수 궁합을 봅니다.
+                </p>
+              </div>
+              <ChevronRight className="w-5 h-5 shrink-0 text-ink-faint group-hover:text-seal transition-colors" />
             </div>
           </a>
 

@@ -136,7 +136,18 @@ export interface Member {
   character_color: string;
   joined_at: any;
   mbti?: string;
+  email?: string;
+  location?: string;
   personal_analysis?: PersonalAnalysis;
+}
+
+export interface PairSnap {
+  code: string;
+  title?: string;
+  creator: Member;
+  partner?: Member | null;
+  created_at: any;
+  updated_at?: any;
 }
 
 export interface Room {

@@ -20,6 +20,7 @@ const MySajuView = lazy(() => import("./components/MySajuView"));
 const GroupView = lazy(() => import("./components/GroupView"));
 const AdminView = lazy(() => import("./components/AdminView"));
 const DevQaHarness = lazy(() => import("./components/DevQaHarness"));
+const SnapView = lazy(() => import("./components/SnapView"));
 
 interface ParsedRoute {
   path: string;
@@ -46,6 +47,13 @@ function parseRoute(hash: string): ParsedRoute {
   }
   if (cleanPath === "/admin") {
     return { path: "/admin" };
+  }
+  if (cleanPath === "/snap" || cleanPath === "/snap/create") {
+    return { path: "/snap" };
+  }
+  const snapMatch = cleanPath.match(/^\/snap\/([A-Za-z0-9]{6})$/);
+  if (snapMatch) {
+    return { path: "/snap", code: snapMatch[1].toUpperCase() };
   }
   if (cleanPath === "/dev-qa" && (import.meta as any).env?.DEV) {
     return { path: "/dev-qa" };
@@ -148,6 +156,8 @@ export default function App() {
         return <CreateView />;
       case "/admin":
         return <AdminView />;
+      case "/snap":
+        return <SnapView code={route.code} />;
       case "/dev-qa":
         return <DevQaHarness />;
       case "/room":
