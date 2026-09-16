@@ -1347,36 +1347,40 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
             <div className="absolute top-0 right-0 w-44 h-44 bg-seal/5 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-44 h-44 bg-wood/5 rounded-full blur-3xl pointer-events-none" />
 
-            {/* Versus Avatars Showcase */}
-            <div className="flex items-center justify-center gap-4 sm:gap-10">
-              {/* Member 1 (Creator) */}
-              <div className="flex flex-col items-center space-y-2.5 min-w-[95px] sm:min-w-[110px]">
-                <div className="relative">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-surface border-2 border-seal/30 shadow-md p-2 flex items-center justify-center">
+            {/* Versus Avatars Showcase (Strict Fixed Grid & Layout Stability) */}
+            <div className="flex items-start justify-center gap-3 sm:gap-8">
+              {/* Member 1 (Creator - Host) */}
+              <div className="flex flex-col items-center space-y-2.5 w-[104px] sm:w-[124px] shrink-0 text-center">
+                <div className="relative shrink-0">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-surface border-2 border-seal/30 shadow-md p-2 flex items-center justify-center shrink-0 aspect-square">
                     <ZodiacAvatar member={m1} size={76} fallbackEmoji={m1.character_emoji} />
                   </div>
-                  <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-seal text-white text-[10px] font-bold shadow-xs">
+                  <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-seal text-white text-[10px] font-bold shadow-xs select-none">
                     나 (호스트)
                   </span>
                 </div>
-                <div className="space-y-0.5">
-                  <p className="text-sm sm:text-base font-bold text-ink truncate max-w-[120px]">
+                <div className="w-full space-y-0.5 h-[66px] flex flex-col items-center justify-start">
+                  <p className="text-sm sm:text-base font-bold text-ink truncate w-full">
                     {m1.nickname}
                   </p>
-                  <p className="text-xs text-ink-faint font-mono">
+                  <p className="text-xs text-ink-faint font-mono truncate w-full">
                     {m1.character_animal} · {m1.saju.daymaster.gan}{m1.saju.daymaster.element}
                   </p>
-                  {m1.mbti && (
+                  {m1.mbti ? (
                     <span className="inline-block px-2 py-0.5 bg-sunken rounded-md text-[10px] font-semibold text-ink-soft">
                       {m1.mbti}
+                    </span>
+                  ) : (
+                    <span className="inline-block px-2 py-0.5 text-[10px] invisible select-none">
+                      MBTI
                     </span>
                   )}
                 </div>
               </div>
 
               {/* Central Seal Badge with Destiny Thread */}
-              <div className="flex flex-col items-center justify-center space-y-1 z-10 shrink-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-surface border-2 border-seal/30 shadow-xl flex flex-col items-center justify-center relative">
+              <div className="flex flex-col items-center justify-center space-y-1 z-10 shrink-0 w-[96px] sm:w-[116px] pt-1">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-surface border-2 border-seal/30 shadow-xl flex flex-col items-center justify-center relative shrink-0 aspect-square">
                   <span className="text-[10px] sm:text-xs font-bold text-ink-faint tracking-tight">인연 지수</span>
                   <span className="text-2xl sm:text-3xl font-black font-mono text-seal leading-none my-0.5">
                     {pairScore}
@@ -1401,44 +1405,48 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
                     </span>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold text-ink-soft truncate max-w-[110px] text-center">
+                <span className="text-[10px] font-bold text-ink-soft truncate w-full text-center">
                   {gradeInfo.title}
                 </span>
                 <div className="w-16 sm:w-20 border-t-2 border-dashed border-seal/40 my-1 animate-pulse" />
               </div>
 
               {/* Member 2 (Active Partner) */}
-              <div className="flex flex-col items-center space-y-2.5 min-w-[95px] sm:min-w-[110px]">
-                <div className="relative">
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-surface border-2 border-wood/30 shadow-md p-2 flex items-center justify-center">
+              <div key={m2.id} className="flex flex-col items-center space-y-2.5 w-[104px] sm:w-[124px] shrink-0 text-center animate-fade-in">
+                <div className="relative shrink-0">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-surface border-2 border-wood/30 shadow-md p-2 flex items-center justify-center shrink-0 aspect-square">
                     <ZodiacAvatar member={m2} size={76} fallbackEmoji={m2.character_emoji} />
                   </div>
-                  <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-wood text-white text-[10px] font-bold shadow-xs">
+                  <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-wood text-white text-[10px] font-bold shadow-xs select-none">
                     상대방
                   </span>
                 </div>
-                <div className="space-y-0.5">
-                  <p className="text-sm sm:text-base font-bold text-ink truncate max-w-[120px]">
+                <div className="w-full space-y-0.5 h-[66px] flex flex-col items-center justify-start">
+                  <p className="text-sm sm:text-base font-bold text-ink truncate w-full">
                     {m2.nickname}
                   </p>
-                  <p className="text-xs text-ink-faint font-mono">
+                  <p className="text-xs text-ink-faint font-mono truncate w-full">
                     {m2.character_animal} · {m2.saju.daymaster.gan}{m2.saju.daymaster.element}
                   </p>
-                  {m2.mbti && (
+                  {m2.mbti ? (
                     <span className="inline-block px-2 py-0.5 bg-sunken rounded-md text-[10px] font-semibold text-ink-soft">
                       {m2.mbti}
+                    </span>
+                  ) : (
+                    <span className="inline-block px-2 py-0.5 text-[10px] invisible select-none">
+                      MBTI
                     </span>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Relation Title & One Liner */}
-            <div className="space-y-2 max-w-md mx-auto pt-1">
-              <h2 className="font-serif text-xl sm:text-2xl font-bold text-ink tracking-tight">
+            {/* Relation Title & One Liner (Fixed Height to prevent card jumping) */}
+            <div className="space-y-1.5 max-w-md mx-auto pt-1">
+              <h2 className="font-serif text-xl sm:text-2xl font-bold text-ink tracking-tight min-h-[32px] flex items-center justify-center">
                 {analysis?.label || `${m1.nickname}님과 ${m2.nickname}님의 인연`}
               </h2>
-              <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+              <p className="text-xs sm:text-sm text-ink-soft leading-relaxed min-h-[44px] flex items-center justify-center text-center">
                 {analysis?.description || "서로에게 긍정적인 에너지를 불어넣으며 함께 성장해 나가는 인연입니다."}
               </p>
             </div>
