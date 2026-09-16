@@ -280,7 +280,7 @@ export default function GroupStoryModal({
         animal: "동물",
         emoji: "⭐",
         color: "#B3382C",
-        role: customRole || "신비한 멤버",
+        roleName: customRole || "신비한 멤버",
         ringColor: customRingColor || "#B3382C",
         avatarSrc: "/zodiac/zodiac_tiger_item_sunglasses.png"
       };
@@ -291,7 +291,7 @@ export default function GroupStoryModal({
       animal: m.character_animal || "수호동물",
       emoji: m.character_emoji || "⭐",
       color: m.character_color || "#B3382C",
-      role: customRole || `${getMemberElement(m)} 기운`,
+      roleName: customRole || `${getMemberElement(m)} 기운`,
       ringColor: customRingColor || m.character_color || "#B3382C",
       avatarSrc: getMemberZodiacSrc(m) || "/zodiac/zodiac_tiger_item_sunglasses.png"
     };
@@ -299,17 +299,22 @@ export default function GroupStoryModal({
 
   // Real awards calculation from actual members
   const awardsResult = useMemo(() => {
-    return calculateGroupAwards(allMembers, pairs, groupScore);
+    try {
+      return calculateGroupAwards(allMembers, pairs, groupScore);
+    } catch (e) {
+      console.warn("Group awards calculation error, fallback:", e);
+      return calculateGroupAwards([], [], groupScore);
+    }
   }, [allMembers, pairs, groupScore]);
 
   // Real Dynamic Preset Content for Group Awards
   const presetData = useMemo(() => {
-    const { dohwaKing, bossKing, wealthKing, yeokmaKing } = awardsResult;
-    const cleanRoomTitle = roomTitle.replace(/\s+/g, "").slice(0, 10);
+    const { dohwaKing, bossKing, wealthKing, yeokmaKing } = awardsResult || {};
+    const cleanRoomTitle = (roomTitle || "우리들의 모임").replace(/\s+/g, "").slice(0, 10);
 
-    const formatStats = (award: AwardItem, category: "dohwa" | "boss" | "wealth" | "yeokma", labels: string[]) => {
-      const base = award.score;
-      const m = award.winner;
+    const formatStats = (award: AwardItem | undefined, category: "dohwa" | "boss" | "wealth" | "yeokma", labels: string[]) => {
+      const base = award?.score || 75;
+      const m = award?.winner;
       const elem = getMemberElement(m);
       const sipseong = m?.saju?.sipseong_strength || { 비겁: 20, 식상: 20, 재성: 20, 관성: 20, 인성: 20 };
       const sals = calculateMemberSals(m);
@@ -344,19 +349,19 @@ export default function GroupStoryModal({
       };
     };
 
-    const dohwaWinner = dohwaKing.winner;
-    const dohwaRunner = dohwaKing.runnerUp || allMembers.find((m) => m.id !== dohwaWinner?.id) || dohwaWinner;
+    const dohwaWinner = dohwaKing?.winner;
+    const dohwaRunner = dohwaKing?.runnerUp || allMembers.find((m) => m.id !== dohwaWinner?.id) || dohwaWinner;
     const dohwaSals = calculateMemberSals(dohwaWinner);
 
-    const bossWinner = bossKing.winner;
-    const bossRunner = bossKing.runnerUp || allMembers.find((m) => m.id !== bossWinner?.id) || bossWinner;
+    const bossWinner = bossKing?.winner;
+    const bossRunner = bossKing?.runnerUp || allMembers.find((m) => m.id !== bossWinner?.id) || bossWinner;
     const bossSals = calculateMemberSals(bossWinner);
 
-    const wealthWinner = wealthKing.winner;
-    const wealthRunner = wealthKing.runnerUp || allMembers.find((m) => m.id !== wealthWinner?.id) || wealthWinner;
+    const wealthWinner = wealthKing?.winner;
+    const wealthRunner = wealthKing?.runnerUp || allMembers.find((m) => m.id !== wealthWinner?.id) || wealthWinner;
 
-    const yeokmaWinner = yeokmaKing.winner;
-    const yeokmaRunner = yeokmaKing.runnerUp || allMembers.find((m) => m.id !== yeokmaWinner?.id) || yeokmaWinner;
+    const yeokmaWinner = yeokmaKing?.winner;
+    const yeokmaRunner = yeokmaKing?.runnerUp || allMembers.find((m) => m.id !== yeokmaWinner?.id) || yeokmaWinner;
 
     return {
       1: {
@@ -375,10 +380,10 @@ export default function GroupStoryModal({
             <span className="text-[#f43f5e]">분위기 메이커 1위는 {getMemberNickname(dohwaWinner)}!</span>
           </>
         ),
-        subHeadline: `사주 명식의 4대 왕지(子·午·卯·酉)와 ${dohwaSals.unseong} 기운`,
-        score: dohwaKing.score,
+        subHeadline: `사주 명식의 4대 왕지(子·午·卯·酉)와 ${dohwaSals.unseong || "건록"} 기운`,
+        score: dohwaKing?.score || 80,
         metricTitle: "호감 친화 지수",
-        quote: `"${dohwaKing.tagline.replace(/"/g, "")}"`,
+        quote: `"${(dohwaKing?.tagline || "특유의 밝고 온화한 에너지").replace(/"/g, "")}"`,
         stats: formatStats(dohwaKing, "dohwa", ["친화력", "호감 지수", "분위기 환기", "공감 매력"]),
         desc: `${getMemberNickname(dohwaWinner)}님은 특유의 밝고 편안한 에너지로 모임에 온기를 불어넣는 사람입니다. 함께 있는 것만으로도 주변 사람들의 기분을 유쾌하게 만들어 줍니다.`,
         bubble: `🏷️ #${cleanRoomTitle} #분위기메이커 @${getMemberNickname(dohwaWinner)}`,
@@ -399,10 +404,10 @@ export default function GroupStoryModal({
             <span className="text-[#ff5a36]">신뢰의 리더 1위는 {getMemberNickname(bossWinner)}!</span>
           </>
         ),
-        subHeadline: `멤버 전체 평균 케미와 ${bossSals.sals.slice(0, 2).join("·")}의 리더십`,
-        score: bossKing.score,
+        subHeadline: `멤버 전체 평균 케미와 ${(bossSals.sals || ["신뢰"]).slice(0, 2).join("·")}의 리더십`,
+        score: bossKing?.score || 82,
         metricTitle: "신뢰 리더십 지수",
-        quote: `"${bossKing.tagline.replace(/"/g, "")}"`,
+        quote: `"${(bossKing?.tagline || "배려와 포용력으로 멤버들의 깊은 신뢰를 받는 기둥").replace(/"/g, "")}"`,
         stats: formatStats(bossKing, "boss", ["통솔력", "위기 대처", "방향 결정", "화합력"]),
         desc: `${getMemberNickname(bossWinner)}님은 평소에는 편안하게 어울리다가도 결정적인 순간에 방향을 잡아주는 든든한 중심축입니다. 멤버들의 깊은 신뢰를 받는 모임의 기둥입니다.`,
         bubble: `🏷️ #${cleanRoomTitle} #모임의기둥 @${getMemberNickname(bossWinner)}`,
@@ -424,9 +429,9 @@ export default function GroupStoryModal({
           </>
         ),
         subHeadline: `사주 명식의 왕성한 재성(財星)과 자산 비축 에너지`,
-        score: wealthKing.score,
+        score: wealthKing?.score || 78,
         metricTitle: "현실 조율 지수",
-        quote: `"${wealthKing.tagline.replace(/"/g, "")}"`,
+        quote: `"${(wealthKing?.tagline || "균형 잡힌 현실 감각과 세심한 배려").replace(/"/g, "")}"`,
         stats: formatStats(wealthKing, "wealth", ["재물 흐름", "자산 감각", "실속 조율", "결실 완성"]),
         desc: `${getMemberNickname(wealthWinner)}님은 감각적이고 세심한 현실 감각으로 모임이 헛돌지 않도록 알차게 채워주는 복덩이입니다. 실속과 균형을 확실하게 챙겨주는 존재입니다.`,
         bubble: `🏷️ #${cleanRoomTitle} #모임의복덩이 @${getMemberNickname(wealthWinner)}`,
@@ -448,9 +453,9 @@ export default function GroupStoryModal({
           </>
         ),
         subHeadline: `사생지(寅·申·巳·亥)와 역마의 폭발적 활동 반경`,
-        score: yeokmaKing.score,
+        score: yeokmaKing?.score || 76,
         metricTitle: "추진 실행 지수",
-        quote: `"${yeokmaKing.tagline.replace(/"/g, "")}"`,
+        quote: `"${(yeokmaKing?.tagline || "새로운 모임 활동에 가장 먼저 불을 지피는 추진력").replace(/"/g, "")}"`,
         stats: formatStats(yeokmaKing, "yeokma", ["기동력", "활동 반경", "실행 속도", "도전 정신"]),
         desc: `${getMemberNickname(yeokmaWinner)}님은 모임의 약속과 새로운 모임 활동에 가장 먼저 불을 지피는 활력 엔진입니다. 망설이지 않고 행동으로 옮기는 추진력의 소유자입니다.`,
         bubble: `🏷️ #${cleanRoomTitle} #실행력1위 @${getMemberNickname(yeokmaWinner)}`,
@@ -458,7 +463,7 @@ export default function GroupStoryModal({
     };
   }, [awardsResult, allMembers, roomTitle]);
 
-  const currentGroupPreset = presetData[selectedPreset];
+  const currentGroupPreset = presetData[selectedPreset] || presetData[1];
 
   if (!isOpen) return null;
 
@@ -492,8 +497,8 @@ export default function GroupStoryModal({
           m1: memberA,
           m2: memberB,
           pairScore: pair6Categories.score,
-          pairLabel: pair6Categories.label,
-          pairDesc: pair6Categories.desc,
+          pairLabel: pair6Categories.title,
+          pairDesc: pair6Categories.tagLine,
         });
         dataUrl = generated.dataUrl;
       } else {

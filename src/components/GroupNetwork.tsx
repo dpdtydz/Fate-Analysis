@@ -1384,7 +1384,7 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                       isTop1 ? "bg-seal/5 border-seal/30 ring-1 ring-seal/20 shadow-xs" : "bg-sunken border-line hover:border-ink/20"
                     }`}
                   >
-                    <div>
+                    <div className="w-full overflow-hidden">
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-xs font-bold text-ink flex items-center gap-1">
                           <span>{rankMedals[idx] || "✨"}</span>
@@ -1397,33 +1397,33 @@ export default function GroupNetwork({ members, pairs, isPremium, groupScore }: 
                         </span>
                       </div>
 
-                      {/* Avatars & Names - Guaranteed Zero Truncation */}
-                      <div className="flex items-center justify-center gap-3 my-2 w-full">
-                        <div className="flex flex-col items-center min-w-[68px] shrink-0">
-                          <div className="w-10 h-10 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
+                      {/* Avatars & Names - Flexible Responsive Layout Guaranteed Within Card Border */}
+                      <div className="flex items-center justify-around gap-1.5 my-2 w-full px-1">
+                        <div className="flex flex-col items-center min-w-0 flex-1 max-w-[76px]">
+                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs shrink-0">
                             {nodeA.imageSrc ? (
                               <img src={nodeA.imageSrc} alt="" crossOrigin="anonymous" className="w-full h-full object-cover" />
                             ) : (
                               <span>{nodeA.emoji || "👤"}</span>
                             )}
                           </div>
-                          <span className="text-xs font-bold text-ink mt-1 text-center whitespace-nowrap">{nodeA.nickname}</span>
+                          <span className="text-xs font-bold text-ink mt-1 text-center truncate max-w-full">{nodeA.nickname}</span>
                         </div>
 
                         <div className="flex flex-col items-center shrink-0 px-1">
-                          <Heart className={`w-4 h-4 ${isTop1 ? "text-seal fill-seal/20 animate-pulse" : "text-ink-faint"}`} />
+                          <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isTop1 ? "text-seal fill-seal/20 animate-pulse" : "text-ink-faint"}`} />
                           <span className="text-[9px] font-mono text-seal font-bold mt-0.5">상생 케미</span>
                         </div>
 
-                        <div className="flex flex-col items-center min-w-[68px] shrink-0">
-                          <div className="w-10 h-10 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs">
+                        <div className="flex flex-col items-center min-w-0 flex-1 max-w-[76px]">
+                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full border border-line bg-white flex items-center justify-center overflow-hidden shadow-xs shrink-0">
                             {nodeB.imageSrc ? (
                               <img src={nodeB.imageSrc} alt="" crossOrigin="anonymous" className="w-full h-full object-cover" />
                             ) : (
                               <span>{nodeB.emoji || "👤"}</span>
                             )}
                           </div>
-                          <span className="text-xs font-bold text-ink mt-1 text-center whitespace-nowrap">{nodeB.nickname}</span>
+                          <span className="text-xs font-bold text-ink mt-1 text-center truncate max-w-full">{nodeB.nickname}</span>
                         </div>
                       </div>
                     </div>

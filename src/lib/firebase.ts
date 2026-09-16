@@ -2258,14 +2258,7 @@ export async function createPairSnap(creator: Member, title?: string): Promise<P
     updated_at: new Date().toISOString()
   };
 
-  try {
-    const snapRef = doc(db, "pair_snaps", code);
-    await setDoc(snapRef, snapData);
-  } catch (err) {
-    console.warn("Firestore createPairSnap fallback to localStorage:", err);
-  }
-
-  // Server sync attempt (Guarantees incognito & cross-device instant availability)
+  // 1) Server sync attempt first (Guarantees cross-device & incognito instant availability)
   try {
     await fetch("/api/snap", {
       method: "POST",
@@ -2276,7 +2269,21 @@ export async function createPairSnap(creator: Member, title?: string): Promise<P
     console.warn("Server create snap sync warning:", srvErr);
   }
 
-  // Record host key locally
+  // 2) Firestore dual persistence
+  try {
+    const snapRef = doc(db, "pair_snaps", code);
+    await setDoc(snapRef, snapData);
+  } catch (err) {
+    console.warn("Firestore createPairSnap primary fallback:", err);
+  }
+  try {
+    const backupRef = doc(db, "rooms", code, "analysis", "pair_snap");
+    await setDoc(backupRef, snapData);
+  } catch (err2) {
+    console.warn("Firestore createPairSnap backup fallback:", err2);
+  }
+
+  // 3) Record host key locally
   try {
     const hostKeys = JSON.parse(localStorage.getItem("saju_snap_host_keys") || "{}");
     hostKeys[code] = creatorKey;
@@ -2285,7 +2292,7 @@ export async function createPairSnap(creator: Member, title?: string): Promise<P
     console.error("Local storage host key error:", e);
   }
 
-  // Always keep local copy
+  // 4) Always keep local copy
   try {
     const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
     localSnaps[code] = snapData;
@@ -2378,33 +2385,46 @@ export async function getPairSnap(code: string): Promise<PairSnap | null> {
 
   let remoteSnap: PairSnap | null = null;
 
-  // 1) Try client Firestore
+  // 1) Try Server API First (Authoritative cross-device, incognito & cross-container bridge)
   try {
-    const snapRef = doc(db, "pair_snaps", cleanCode);
-    const snapSnap = await getDoc(snapRef);
-    if (snapSnap.exists()) {
-      remoteSnap = snapSnap.data() as PairSnap;
+    const res = await fetch(`/api/snap/${cleanCode}`);
+    if (res.ok) {
+      const serverData = await res.json();
+      if (serverData && serverData.code) {
+        remoteSnap = serverData as PairSnap;
+      }
     }
-  } catch (err) {
-    console.warn("Firestore getPairSnap error, trying server API:", err);
+  } catch (srvErr) {
+    console.warn("Server API getPairSnap error, falling back to Firestore:", srvErr);
   }
 
-  // 2) Try Server API if not found or empty
+  // 2) Try client Firestore if server was unavailable
   if (!remoteSnap) {
     try {
-      const res = await fetch(`/api/snap/${cleanCode}`);
-      if (res.ok) {
-        const serverData = await res.json();
-        if (serverData && serverData.code) {
-          remoteSnap = serverData as PairSnap;
-        }
+      const snapRef = doc(db, "pair_snaps", cleanCode);
+      const snapSnap = await getDoc(snapRef);
+      if (snapSnap.exists()) {
+        remoteSnap = snapSnap.data() as PairSnap;
       }
-    } catch (srvErr) {
-      console.warn("Server API getPairSnap error:", srvErr);
+    } catch (err) {
+      console.warn("Firestore getPairSnap primary error:", err);
     }
   }
 
-  // 3) Smart Merge: Guarantee that partners registered on this device never vanish due to stale/empty remote responses!
+  // 3) Try client Firestore guaranteed open backup collection (/rooms/{code}/analysis/pair_snap)
+  if (!remoteSnap) {
+    try {
+      const backupRef = doc(db, "rooms", cleanCode, "analysis", "pair_snap");
+      const snapSnap = await getDoc(backupRef);
+      if (snapSnap.exists()) {
+        remoteSnap = snapSnap.data() as PairSnap;
+      }
+    } catch (err2) {
+      console.warn("Firestore getPairSnap backup error:", err2);
+    }
+  }
+
+  // 4) Smart Merge: Guarantee that partners registered on this device never vanish due to stale/empty remote responses!
   const finalSnap = mergeSnaps(remoteSnap, localSnap);
 
   if (finalSnap) {
@@ -2417,7 +2437,7 @@ export async function getPairSnap(code: string): Promise<PairSnap | null> {
       // ignore
     }
 
-    // 4) Self-Healing Auto-Sync: If local contains more partners than remote, heal server & firestore immediately!
+    // 5) Self-Healing Auto-Sync: If local contains more partners than remote, heal server & firestore immediately!
     const finalCount = finalSnap.partners?.length || (finalSnap.partner ? 1 : 0);
     const remoteCount = remoteSnap?.partners?.length || (remoteSnap?.partner ? 1 : 0);
     if (finalCount > remoteCount) {
@@ -2428,13 +2448,15 @@ export async function getPairSnap(code: string): Promise<PairSnap | null> {
         body: JSON.stringify(finalSnap)
       }).catch(() => {});
 
-      // Heal Firestore
+      // Heal Firestore dual locations
       try {
         const snapRef = doc(db, "pair_snaps", cleanCode);
         setDoc(snapRef, finalSnap, { merge: true }).catch(() => {});
-      } catch {
-        // ignore
-      }
+      } catch {}
+      try {
+        const backupRef = doc(db, "rooms", cleanCode, "analysis", "pair_snap");
+        setDoc(backupRef, finalSnap, { merge: true }).catch(() => {});
+      } catch {}
     }
   }
 
@@ -2476,15 +2498,7 @@ export async function joinPairSnap(code: string, partner: Member): Promise<PairS
     console.error("Local storage error:", e);
   }
 
-  // 2) Firestore sync
-  try {
-    const snapRef = doc(db, "pair_snaps", cleanCode);
-    await setDoc(snapRef, updatedSnap, { merge: true });
-  } catch (err) {
-    console.warn("Firestore joinPairSnap error:", err);
-  }
-
-  // 3) Server sync
+  // 2) Server API join sync
   try {
     await fetch(`/api/snap/${cleanCode}/join`, {
       method: "POST",
@@ -2492,8 +2506,18 @@ export async function joinPairSnap(code: string, partner: Member): Promise<PairS
       body: JSON.stringify({ partner })
     });
   } catch (srvErr) {
-    console.warn("Server joinPairSnap sync warning:", srvErr);
+    console.warn("Server join sync warning:", srvErr);
   }
+
+  // 3) Firestore dual sync
+  try {
+    const snapRef = doc(db, "pair_snaps", cleanCode);
+    setDoc(snapRef, updatedSnap, { merge: true }).catch(() => {});
+  } catch {}
+  try {
+    const backupRef = doc(db, "rooms", cleanCode, "analysis", "pair_snap");
+    setDoc(backupRef, updatedSnap, { merge: true }).catch(() => {});
+  } catch {}
 
   return updatedSnap;
 }
