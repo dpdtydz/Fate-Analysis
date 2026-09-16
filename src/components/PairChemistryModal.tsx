@@ -6,6 +6,7 @@ import { generateDynamicPairCompatibility } from "../utils/pairChemistry";
 import { getPairAsymmetricScores } from "./GroupNetwork";
 import ZodiacAvatar from "./ZodiacAvatar";
 import BottomSheet from "./BottomSheet";
+import RelationshipMetricsCard from "./RelationshipMetricsCard";
 
 interface PairChemistryModalProps {
   isOpen: boolean;
@@ -461,6 +462,14 @@ export default function PairChemistryModal({
                 <span className="text-xs text-ink-soft line-clamp-1">{analysis.zodiac.desc}</span>
               </div>
             </div>
+
+            {/* 6 Core Relation Metrics with interactive detailed breakdown */}
+            <RelationshipMetricsCard
+              m1={myMember}
+              m2={targetMember}
+              pairScore={analysis.totalScore}
+              title={`${myMember.nickname} & ${targetMember.nickname} 관계 역학`}
+            />
           </div>
         )}
 

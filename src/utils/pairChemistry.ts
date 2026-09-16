@@ -623,3 +623,201 @@ export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAn
     },
   };
 }
+
+export interface DetailedRelationshipMetric {
+  id: string;
+  label: string;
+  score: number;
+  shortDesc: string;
+  reasonTitle: string;
+  detailReason: string;
+  actionTipTitle: string;
+  actionTip: string;
+}
+
+/**
+ * 6대 관계 역학(대화, 협업, 감정, 현실, 취향, 지속력)에 대해
+ * 두 사람의 사주 명식(일간/오행)과 MBTI 성향을 반영한 맞춤형 디테일 분석 및 실전 꿀팁 생성
+ */
+export function getDetailedRelationshipMetrics(
+  m1: Member,
+  m2: Member,
+  pairScore: number
+): DetailedRelationshipMetric[] {
+  const elem1 = m1.saju?.daymaster?.element || "토";
+  const elem2 = m2.saju?.daymaster?.element || "토";
+  const mbti1 = (m1.mbti || "").toUpperCase();
+  const mbti2 = (m2.mbti || "").toUpperCase();
+  const n1 = m1.nickname || "나";
+  const n2 = m2.nickname || "상대방";
+
+  // 1. 대화 티키타카 점수
+  const talkScore = Math.min(98, Math.max(25, Math.round(pairScore * 0.98)));
+  let talkReason = "";
+  let talkTip = "";
+  if (talkScore >= 80) {
+    talkReason = `${n1}님의 ${elem1} 기운과 ${n2}님의 ${elem2} 기운이 말의 리듬을 자연스럽게 띄워줍니다. 서로가 말을 던지면 숨은 의도나 유머 코드를 1초 만에 캐치하여 유쾌한 대화가 끊이지 않습니다.`;
+    talkTip = `서로의 창의적인 아이디어를 맞받아칠 때 가벼운 칭찬을 한 스푼 더해주면 둘만의 대화 에너지가 120% 폭발합니다.`;
+  } else if (talkScore >= 50) {
+    talkReason = `${n1}님(${elem1} 기운)의 화법 스타일과 ${n2}님(${elem2} 기운)의 소통 템포가 각자의 매력을 지니고 있습니다. ${
+      mbti1.includes("N") && mbti2.includes("S")
+        ? "상상력과 비유를 즐기는 대화와 구체적 현실 팩트 중심의 대화가 교차되어 "
+        : mbti1.includes("T") && mbti2.includes("F")
+        ? "논리적 팩트 체크와 따뜻한 감정 교류 사이에서 "
+        : "생각을 정리해 말하는 타이밍에서 "
+    }초반에는 약간의 핀트 조율이 필요하여 ${talkScore}점으로 나타났습니다.`;
+    talkTip = `상대의 말이 끝난 뒤 '오, 그렇게 볼 수도 있겠네요!'라는 3초 경청과 맞장구를 먼저 건네면 90점 이상의 마법 같은 티키타카로 급상승합니다.`;
+  } else {
+    talkReason = `${n1}님의 직설적인 ${elem1} 기운과 ${n2}님의 신중한 ${elem2} 기운이 부딪혀 오해나 속도 차이가 생기기 쉬운 구조입니다. 서운한 점이 대화 중에 즉각 드러날 수 있습니다.`;
+    talkTip = `메시지로 대화할 때는 이모티콘을 적극 활용하고, 중요한 이야기는 감정이 차분해진 뒤 직접 만나서 조율하는 것이 현명합니다.`;
+  }
+
+  // 2. 업무 & 협업 시너지 점수
+  const workScore = Math.min(96, Math.max(30, Math.round(pairScore * 0.92 + 5)));
+  let workReason = "";
+  let workTip = "";
+  if (workScore >= 80) {
+    workReason = `한 사람이 큰 그림(아이디어)을 제시하면 다른 한 사람이 정밀하게 실행 계획을 세우는 이상적인 상생 분담 구조입니다. ${n1}님과 ${n2}님이 합을 맞출 때 1+1=3의 시너지가 납니다.`;
+    workTip = `각자의 강점이 명확하므로 R&R(역할 분담)을 초기에 확실히 정해두면 마찰 없이 최고 속도로 달릴 수 있습니다.`;
+  } else if (workScore >= 50) {
+    workReason = `${
+      mbti1.includes("J") && mbti2.includes("P")
+        ? "철저한 계획과 마감을 중시하는 스타일(J)과 상황에 맞춘 유연한 즉흥성을 발휘하는 스타일(P)이 만나 "
+        : "각자가 일하는 방식과 중요하게 여기는 우선순위 기준이 달라 "
+    }협업 초기 일 처리 템포를 맞추는 데 에너지가 소모되어 ${workScore}점의 조율 단계로 분석되었습니다.`;
+    workTip = `서로의 방식이 틀린 것이 아니라 속도와 접근법의 차이임을 인정하고, 중간 점검 일정을 명확히 정해두면 놀라운 상호보완 파트너가 됩니다.`;
+  } else {
+    workReason = `사주 오행 상 상극의 기운이 개입되어 의사결정 방식이나 책임 분담에서 부딪힐 가능성이 높습니다. 서로 본인의 방식을 고집하면 피로감이 누적될 수 있습니다.`;
+    workTip = `사적인 친분과 공적인 일 처리를 명확히 구분하고, 의사결정의 최종 룰을 사전에 문서나 룰로 합의하는 것이 안전합니다.`;
+  }
+
+  // 3. 감정 공감도 점수
+  const emotionScore = Math.min(97, Math.max(25, Math.round(pairScore * 0.95 - 2)));
+  let emotionReason = "";
+  let emotionTip = "";
+  if (emotionScore >= 80) {
+    emotionReason = `눈빛만 보아도 상대가 피곤한지, 서운한지 직관적으로 감지합니다. ${n1}님과 ${n2}님 사이에는 말로 설명하기 어려운 따뜻한 정서적 온기가 흐릅니다.`;
+    emotionTip = `마음속 고마움을 담은 소소한 서프라이즈나 따뜻한 응원 한마디가 두 분의 유대감을 더욱 단단하게 만듭니다.`;
+  } else if (emotionScore >= 50) {
+    emotionReason = `${
+      mbti1.includes("T") && mbti2.includes("T")
+        ? "두 분 모두 감정보다는 이성적 문제 해결을 우선시하여 다정다감한 표현이 겉으로 잘 드러나지 않고, "
+        : mbti1.includes("F") || mbti2.includes("F")
+        ? "한 분은 감정적 위로와 공감을 원하는데 다른 한 분은 이성적 솔루션을 먼저 제시하여 "
+        : `${n1}님의 ${elem1} 기운과 ${n2}님의 ${elem2} 기운의 감정 온도차가 있어 `
+    }마음속 깊은 공감대 형성까지 약간의 시간과 서운함 조율이 필요해 ${emotionScore}점으로 집계되었습니다.`;
+    emotionTip = `고민을 털어놓을 때 '해결책'보다는 '정말 속상했겠다', '그럴 만하네'라는 100% 감정 편들어주기를 먼저 실천해보세요.`;
+  } else {
+    emotionReason = `감정을 표현하는 방식과 스트레스를 푸는 채널이 정반대입니다. 한쪽은 혼자만의 시간이 필요한데 다른 한쪽은 대화로 풀고자 하여 감정적 엇박자가 생기기 쉽습니다.`;
+    emotionTip = `감정이 상했을 때는 즉시 반응하기보다 30분간 냉각기를 갖고 차분하게 본인의 마음을 1인칭('나는 ~해서 서운했어')으로 표현하세요.`;
+  }
+
+  // 4. 현실 문제 조화 점수
+  const realityScore = Math.min(93, Math.max(28, Math.round(pairScore * 0.88 + 8)));
+  let realityReason = "";
+  let realityTip = "";
+  if (realityScore >= 80) {
+    realityReason = `돈, 시간, 위기 대처 등 현실적인 이슈 앞에서 현실 감각의 궁합이 매우 뛰어납니다. 문제가 닥쳤을 때 감정싸움으로 번지지 않고 침착하게 해결책을 찾습니다.`;
+    realityTip = `함께 현실적인 목표(재테크, 프로젝트, 여행 계획)를 세우고 달성해 나가는 과정에서 가장 빛을 발합니다.`;
+  } else if (realityScore >= 50) {
+    realityReason = `일상의 소소한 지출 습관이나 시간 약속, 문제 해결의 우선순위에서 각자의 기준이 다릅니다. 큰 문제는 없지만 사소한 일상의 실천 영역에서 관점 차이가 있어 ${realityScore}점으로 평가됩니다.`;
+    realityTip = `약속 시간, 데이트 코스, 공동 비용 등은 미리 명확하게 가이드라인을 맞춰두면 불필요한 현실적 마찰을 100% 차단할 수 있습니다.`;
+  } else {
+    realityReason = `현실적인 가치관이나 위기 대처 방식에서 격차가 큽니다. 한쪽이 안정성을 추구할 때 다른 한쪽은 모험을 택하는 식의 불협화음이 발생하기 쉽습니다.`;
+    realityTip = `현실적 결정은 혼자 서두르지 말고 반드시 두 사람이 솔직하게 테이블 위에 올려놓고 합의 후 진행하세요.`;
+  }
+
+  // 5. 취향 및 감성 공감 점수
+  const vibeScore = Math.min(95, Math.max(25, Math.round(pairScore * 0.94)));
+  let vibeReason = "";
+  let vibeTip = "";
+  if (vibeScore >= 80) {
+    vibeReason = `좋아하는 음식, 음악, 주말을 보내는 스타일에서 교집합이 매우 넓습니다. 서로 억지로 맞추지 않아도 자연스럽게 같은 공간에서 편안함을 느낍니다.`;
+    vibeTip = `새로운 맛집이나 힐링 스팟을 함께 찾아다니는 취미를 공유하면 관계의 만족도가 날로 높아집니다.`;
+  } else if (vibeScore >= 50) {
+    vibeReason = `각자의 독특한 취향과 관심사가 뚜렷하여 완벽히 일치하지는 않지만, 서로의 다른 세계를 흥미롭게 관찰할 수 있는 ${vibeScore}점의 '신선한 다름'을 가진 관계입니다.`;
+    vibeTip = `서로의 취향을 강요하기보다 '이번 주는 네 취향, 다음 주는 내 취향' 릴레이 체험을 해보면 새로운 세계를 넓히는 기쁨이 됩니다.`;
+  } else {
+    vibeReason = `휴식 방식이나 즐거움을 느끼는 코드의 차이가 큽니다. 한쪽이 야외 활동을 원할 때 다른 한쪽은 집콕 휴식을 선호하는 식의 간극이 있습니다.`;
+    vibeTip = `모든 취미를 같이 하려 하지 말고, 각자의 취미 영역을 존중하며 가벼운 공통분모 하나(예: 맛있는 커피 한잔)부터 공유하세요.`;
+  }
+
+  // 6. 장기 인연 지속력 점수
+  const staminaScore = Math.min(98, Math.max(30, Math.round(pairScore * 0.96 + 3)));
+  let staminaReason = "";
+  let staminaTip = "";
+  if (staminaScore >= 80) {
+    staminaReason = `시간이 흐를수록 맛이 깊어지는 숙성된 와인 같은 인연입니다. 사주 근본 일간의 상생과 지지 합이 받쳐주어 세월이 갈수록 끈끈한 신뢰로 이어집니다.`;
+    staminaTip = `가끔씩 둘만의 특별한 기념일을 챙기며 감사의 마음을 표현하면 평생을 함께할 든든한 평생 인연으로 자리 잡습니다.`;
+  } else if (staminaScore >= 50) {
+    staminaReason = `불꽃처럼 확 타오르지는 않더라도, 적당한 예의와 프라이버시를 지켜줄 때 잔잔하고 오래가는 담백한 인연입니다. 경계를 침범하지 않는 지혜가 필요해 ${staminaScore}점으로 분석됩니다.`;
+    staminaTip = `지나치게 집착하거나 모든 것을 알려 하기보다, 각자의 독립된 공간을 존중해 줄 때 가장 건강하고 길게 지속됩니다.`;
+  } else {
+    staminaReason = `초반의 강렬한 호기심 이후 시간이 지나면서 서로의 가치관 차이가 누적될 수 있습니다. 장기적 관계 유지를 위해서는 의식적인 배려와 노력이 요구됩니다.`;
+    staminaTip = `서운한 점을 혼자 속으로 쌓아두지 말고, 정기적으로 진솔한 대화 시간을 마련해 앙금을 털어내는 것이 장기 인연의 열쇠입니다.`;
+  }
+
+  return [
+    {
+      id: "talk",
+      label: "대화 티키타카",
+      score: talkScore,
+      shortDesc: "생각의 파장이 맞아 자연스럽게 흐르는 대화",
+      reasonTitle: `왜 ${talkScore}점일까요? (소통 기질 분석)`,
+      detailReason: talkReason,
+      actionTipTitle: "케미 200% 끌어올리는 대화법",
+      actionTip: talkTip,
+    },
+    {
+      id: "work",
+      label: "업무 & 협업 시너지",
+      score: workScore,
+      shortDesc: "서로의 부족한 점을 직관적으로 보완",
+      reasonTitle: `왜 ${workScore}점일까요? (역할 분담 분석)`,
+      detailReason: workReason,
+      actionTipTitle: "업무 시너지 극대화 꿀팁",
+      actionTip: workTip,
+    },
+    {
+      id: "emotion",
+      label: "감정 공감도",
+      score: emotionScore,
+      shortDesc: "말하지 않아도 눈빛으로 헤아리는 온기",
+      reasonTitle: `왜 ${emotionScore}점일까요? (정서적 파장 분석)`,
+      detailReason: emotionReason,
+      actionTipTitle: "감정 온도를 높이는 꿀팁",
+      actionTip: emotionTip,
+    },
+    {
+      id: "reality",
+      label: "현실 문제 조화",
+      score: realityScore,
+      shortDesc: "위기 상황에서 침착하게 합을 맞추는 힘",
+      reasonTitle: `왜 ${realityScore}점일까요? (현실 대처 분석)`,
+      detailReason: realityReason,
+      actionTipTitle: "현실 갈등 제로 가이드",
+      actionTip: realityTip,
+    },
+    {
+      id: "vibe",
+      label: "취향 및 감성 공감",
+      score: vibeScore,
+      shortDesc: "일상의 소소한 가치와 아름다움을 공유",
+      reasonTitle: `왜 ${vibeScore}점일까요? (라이프스타일 핏)`,
+      detailReason: vibeReason,
+      actionTipTitle: "둘만의 취향 공감대 넓히기",
+      actionTip: vibeTip,
+    },
+    {
+      id: "stamina",
+      label: "장기 인연 지속력",
+      score: staminaScore,
+      shortDesc: "시간이 흐를수록 깊어지는 든든한 신뢰",
+      reasonTitle: `왜 ${staminaScore}점일까요? (근본 인연 지속력)`,
+      detailReason: staminaReason,
+      actionTipTitle: "오래가는 롱런 관계 비결",
+      actionTip: staminaTip,
+    },
+  ];
+}
+

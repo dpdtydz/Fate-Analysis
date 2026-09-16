@@ -45,6 +45,7 @@ import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import ZodiacAvatar from "./ZodiacAvatar";
 import SajuForm from "./SajuForm";
 import SnapStoryModal from "./SnapStoryModal";
+import RelationshipMetricsCard from "./RelationshipMetricsCard";
 
 interface SnapViewProps {
   code?: string;
@@ -1511,38 +1512,13 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
         {/* Tab Content 1: Summary */}
         {activeTab === "summary" && (
           <div className="space-y-4 animate-fade-in">
-            {/* 6 Core Relation Metrics */}
-            <div className="bg-surface border border-line rounded-2xl p-5 space-y-4">
-              <h3 className="font-serif text-sm font-bold text-ink flex items-center gap-1.5">
-                <HeartHandshake className="w-4 h-4 text-seal" />
-                <span>{m1.nickname} & {m2.nickname} 관계 역학</span>
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
-                  { label: "대화 티키타카", score: Math.min(95, Math.round(pairScore * 0.98)), desc: "생각의 파장이 맞아 자연스럽게 흐르는 대화" },
-                  { label: "업무 & 협업 시너지", score: Math.min(92, Math.round(pairScore * 0.92 + 5)), desc: "서로의 부족한 점을 직관적으로 보완" },
-                  { label: "감정 공감도", score: Math.min(96, Math.round(pairScore * 0.95 - 2)), desc: "말하지 않아도 눈빛으로 헤아리는 온기" },
-                  { label: "현실 문제 조화", score: Math.min(90, Math.round(pairScore * 0.88 + 8)), desc: "위기 상황에서 침착하게 합을 맞추는 힘" },
-                  { label: "취향 및 감성 공감", score: Math.min(94, Math.round(pairScore * 0.94)), desc: "일상의 소소한 가치와 아름다움을 공유" },
-                  { label: "장기 인연 지속력", score: Math.min(98, Math.round(pairScore * 0.96 + 3)), desc: "시간이 흐를수록 깊어지는 든든한 신뢰" },
-                ].map((item, idx) => (
-                  <div key={idx} className="p-3 bg-sunken rounded-xl space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-ink">{item.label}</span>
-                      <span className="font-mono font-bold text-seal">{item.score}점</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-line rounded-full overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-seal to-wood rounded-full" 
-                        style={{ width: `${item.score}%` }} 
-                      />
-                    </div>
-                    <p className="text-[11px] text-ink-faint leading-tight">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* 6 Core Relation Metrics with interactive detailed breakdown */}
+            <RelationshipMetricsCard
+              m1={m1}
+              m2={m2}
+              pairScore={pairScore}
+              title={`${m1.nickname} & ${m2.nickname} 관계 역학`}
+            />
 
             {/* Relationship Tips */}
             <div className="bg-sunken border border-line rounded-2xl p-5 space-y-3">

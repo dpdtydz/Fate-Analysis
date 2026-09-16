@@ -49,18 +49,11 @@ export default function BottomSheet({
     }
   }, [isOpen]);
 
-  // Touch gesture handlers for swipe-to-dismiss on mobile
+  // Touch gesture handlers for swipe-to-dismiss on mobile (exclusively on drag handle/header)
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    // Only allow drag if scrolled to top or started on drag handle
-    const target = e.target as HTMLElement;
-    const isHandle = target.closest(".drag-handle-area");
-    const contentEl = sheetRef.current?.querySelector(".sheet-scroll-content");
-    
-    if (isHandle || !contentEl || contentEl.scrollTop <= 0) {
-      startYRef.current = e.touches[0].clientY;
-      currentYRef.current = e.touches[0].clientY;
-      setIsDragging(true);
-    }
+    startYRef.current = e.touches[0].clientY;
+    currentYRef.current = e.touches[0].clientY;
+    setIsDragging(true);
   }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
@@ -68,11 +61,11 @@ export default function BottomSheet({
     currentYRef.current = e.touches[0].clientY;
     const delta = currentYRef.current - startYRef.current;
     
-    // Only drag downwards (delta > 0) with a little elastic resistance if dragging up
+    // Only drag downwards (delta > 0) to dismiss; ignore or resist upwards
     if (delta > 0) {
       setDragY(delta);
     } else {
-      setDragY(delta * 0.15); // gentle rubber-band resistance
+      setDragY(0);
     }
   }, [isDragging]);
 
@@ -80,8 +73,8 @@ export default function BottomSheet({
     if (!isDragging) return;
     setIsDragging(false);
     
-    // If dragged down by 80px or more, close the sheet
-    if (dragY > 80) {
+    // If dragged down by 60px or more, close the sheet
+    if (dragY > 60) {
       onClose();
     }
     // Snap back
@@ -98,23 +91,30 @@ export default function BottomSheet({
       <div
         ref={sheetRef}
         onClick={(e) => e.stopPropagation()}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
         style={{
-          transform: dragY !== 0 ? `translateY(${Math.max(0, dragY)}px)` : undefined,
+          transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
           transition: isDragging ? "none" : "transform 0.22s cubic-bezier(0.16, 1, 0.3, 1)"
         }}
-        className={`w-full ${maxWidth} bg-surface rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] sm:max-h-[85vh] sm:m-4 text-left border-t sm:border border-line`}
+        className={`w-full ${maxWidth} bg-surface rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88dvh] sm:max-h-[85vh] sm:m-4 text-left border-t sm:border border-line`}
       >
-        {/* Mobile Drag Handle */}
-        <div className="drag-handle-area sm:hidden pt-3 pb-1.5 flex justify-center cursor-grab active:cursor-grabbing select-none touch-none">
-          <div className="w-11 h-1.5 rounded-full bg-ink-faint/30 hover:bg-ink-faint/50 transition-colors" />
+        {/* Mobile Drag Handle Area (Touch gesture enabled) */}
+        <div
+          className="drag-handle-area sm:hidden pt-3 pb-2 flex justify-center cursor-grab active:cursor-grabbing select-none touch-none"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="w-12 h-1.5 rounded-full bg-ink-faint/30 hover:bg-ink-faint/50 transition-colors" />
         </div>
 
-        {/* Optional Header */}
+        {/* Optional Header (Touch gesture enabled on header too for easy pull-down) */}
         {(title || showCloseButton) && (
-          <div className="px-5 pt-3 pb-2.5 flex items-center justify-between border-b border-line/60">
+          <div
+            className="px-5 pt-2 pb-3 flex items-center justify-between border-b border-line/60 touch-none select-none"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <div>
               {typeof title === "string" ? (
                 <h3 className="font-serif text-lg font-bold text-ink">{title}</h3>
@@ -128,6 +128,7 @@ export default function BottomSheet({
 
             {showCloseButton && (
               <button
+                type="button"
                 onClick={onClose}
                 className="p-1.5 rounded-xl text-ink-faint hover:text-ink hover:bg-sunken transition-colors cursor-pointer"
                 aria-label="닫기"
@@ -138,8 +139,14 @@ export default function BottomSheet({
           </div>
         )}
 
-        {/* Content Area */}
-        <div className="sheet-scroll-content p-5 overflow-y-auto space-y-4 pb-8 sm:pb-5 overscroll-contain">
+        {/* Content Area - 100% native smooth touch scrolling for iOS & Android */}
+        <div
+          className="sheet-scroll-content flex-1 min-h-0 p-5 overflow-y-auto space-y-4 pb-12 sm:pb-6 overscroll-contain touch-pan-y"
+          style={{
+            WebkitOverflowScrolling: "touch",
+            touchAction: "pan-y",
+          }}
+        >
           {children}
         </div>
       </div>
