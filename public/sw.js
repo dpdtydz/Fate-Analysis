@@ -1,5 +1,5 @@
-// Inyeon Saju PWA Service Worker (inyeon-saju-v3)
-const CACHE_NAME = "inyeon-saju-v3";
+// Inyeon Saju PWA Service Worker (inyeon-saju-v4)
+const CACHE_NAME = "inyeon-saju-v4";
 
 const PRECACHE_ASSETS = [
   "/manifest.json",
@@ -39,6 +39,11 @@ self.addEventListener("activate", (event) => {
 // Fetch Event
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
+
+  // 0. Only handle http and https requests (Ignore chrome-extension://, moz-extension://, data:, blob:, etc.)
+  if (!url.protocol.startsWith("http")) {
+    return;
+  }
 
   // 1. Pass-through API and dynamic backend routes
   if (url.pathname.startsWith("/api/") || event.request.method !== "GET") {
