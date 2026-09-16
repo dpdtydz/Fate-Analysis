@@ -487,7 +487,21 @@ export default function GroupView({ code }: GroupViewProps) {
   const [selectedPairForModal, setSelectedPairForModal] = useState<{ m1: Member; m2: Member; pair?: any } | null>(null);
 
   const localMemberId = React.useMemo(() => localStorage.getItem(`saju_member_id_${code}`) || "", [code]);
-  const myMember = React.useMemo(() => findMyMember(members, code), [members, code]);
+  
+  // Deduplicated members to ensure zero duplicate cards or counts
+  const displayMembers = React.useMemo(() => {
+    const seen = new Set<string>();
+    const result: Member[] = [];
+    for (const m of members) {
+      if (m && m.id && !seen.has(m.id)) {
+        seen.add(m.id);
+        result.push(m);
+      }
+    }
+    return result;
+  }, [members]);
+
+  const myMember = React.useMemo(() => findMyMember(displayMembers, code), [displayMembers, code]);
 
   const isOwner = React.useMemo(() => {
     if (!room) return false;
@@ -495,9 +509,9 @@ export default function GroupView({ code }: GroupViewProps) {
     const isOwnerHistory = history.some((item) => item.code === code && item.role === "owner");
     const isOwnerLocalFlag = localStorage.getItem(`saju_owner_code_${code}`) === "true";
     const isOwnerUid = Boolean(auth.currentUser && room.owner_uid && auth.currentUser.uid === room.owner_uid);
-    const isFirstMemberCreator = Boolean(members.length > 0 && members[0]?.id === localMemberId);
+    const isFirstMemberCreator = Boolean(displayMembers.length > 0 && displayMembers[0]?.id === localMemberId);
     return isOwnerUid || isOwnerHistory || isOwnerLocalFlag || isFirstMemberCreator;
-  }, [room, code, members, localMemberId]);
+  }, [room, code, displayMembers, localMemberId]);
 
   const [isMemberManageModalOpen, setIsMemberManageModalOpen] = useState(false);
   const [isAddGuestModalOpen, setIsAddGuestModalOpen] = useState(false);
@@ -1006,8 +1020,12 @@ export default function GroupView({ code }: GroupViewProps) {
         const membersCol = collection(db, "rooms", code, "members");
         unsubscribeMembers = onSnapshot(membersCol, (membersSnap) => {
           const mList: Member[] = [];
+          const seenIds = new Set<string>();
           membersSnap.forEach((docSnap) => {
-            mList.push({ id: docSnap.id, ...docSnap.data() } as Member);
+            if (!seenIds.has(docSnap.id)) {
+              seenIds.add(docSnap.id);
+              mList.push({ id: docSnap.id, ...docSnap.data() } as Member);
+            }
           });
 
           if (mList.length < 2) {
@@ -1299,7 +1317,7 @@ export default function GroupView({ code }: GroupViewProps) {
                   title="방장 권한: 멤버 목록 확인 및 내보내기"
                 >
                   <Crown className="w-3.5 h-3.5 mr-1 text-amber-500" />
-                  <span>멤버 관리 ({members.length}명)</span>
+                  <span>멤버 관리 ({displayMembers.length}명)</span>
                 </button>
               </>
             )}
@@ -2613,7 +2631,7 @@ export default function GroupView({ code }: GroupViewProps) {
             <div className="flex items-center justify-between border-b border-line pb-3">
               <div className="flex items-center gap-1.5">
                 <Crown className="w-4 h-4 text-amber-500" />
-                <h3 className="font-serif text-base font-bold text-ink">방장 멤버 관리 ({members.length}명)</h3>
+                <h3 className="font-serif text-base font-bold text-ink">방장 멤버 관리 ({displayMembers.length}명)</h3>
               </div>
               <button
                 type="button"
@@ -2654,7 +2672,7 @@ export default function GroupView({ code }: GroupViewProps) {
             )}
 
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-              {members.map((m) => {
+              {displayMembers.map((m) => {
                 const isMe = m.id === localMemberId;
                 const role = calculateMemberRole(m);
                 const isGuestMember = (m as any).isGuest;
@@ -2722,7 +2740,18 @@ export default function GroupView({ code }: GroupViewProps) {
         onClose={() => setIsAddGuestModalOpen(false)}
         roomCode={code}
         onMemberAdded={(newMember) => {
-          setMembers((prev) => [...prev, newMember]);
+          setMembers((prev) => {
+            let next: Member[];
+            if (prev.some((m) => m.id === newMember.id)) {
+              next = prev.map((m) => (m.id === newMember.id ? newMember : m));
+            } else {
+              next = [...prev, newMember];
+            }
+            if (groupViewCache[code]) {
+              groupViewCache[code].members = next;
+            }
+            return next;
+          });
         }}
       />
     </Layout>

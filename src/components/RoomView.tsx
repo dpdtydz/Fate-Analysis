@@ -145,8 +145,12 @@ export default function RoomView({ code }: RoomViewProps) {
     const unsubscribe = onSnapshot(membersCol, (snapshot) => {
       if (!isMounted) return;
       const activeMembers: Member[] = [];
+      const seenIds = new Set<string>();
       snapshot.forEach((docSnap) => {
-        activeMembers.push({ id: docSnap.id, ...docSnap.data() } as Member);
+        if (!seenIds.has(docSnap.id)) {
+          seenIds.add(docSnap.id);
+          activeMembers.push({ id: docSnap.id, ...docSnap.data() } as Member);
+        }
       });
       // Sort members (Host or earlier joins first)
       activeMembers.sort((a, b) => b.joined_at?.localeCompare(a.joined_at));
@@ -210,11 +214,24 @@ export default function RoomView({ code }: RoomViewProps) {
     return () => unsub();
   }, [code]);
 
+  // Deduplicated members to ensure zero duplicate cards or counts
+  const displayMembers = useMemo(() => {
+    const seen = new Set<string>();
+    const result: Member[] = [];
+    for (const m of members) {
+      if (m && m.id && !seen.has(m.id)) {
+        seen.add(m.id);
+        result.push(m);
+      }
+    }
+    return result;
+  }, [members]);
+
   const groupMetrics = useMemo(() => {
-    if (members.length === 0) return null;
-    const elements = members.map((m) => m.saju?.daymaster?.element).filter(Boolean) as string[];
+    if (displayMembers.length === 0) return null;
+    const elements = displayMembers.map((m) => m.saju?.daymaster?.element).filter(Boolean) as string[];
     const uniqueElements = new Set(elements).size;
-    const memberCount = members.length;
+    const memberCount = displayMembers.length;
     const baseScore = 78;
     const diversityBonus = Math.min(uniqueElements * 4, 16);
     const sizeBonus = Math.min(memberCount * 2, 6);
@@ -234,7 +251,7 @@ export default function RoomView({ code }: RoomViewProps) {
       uniqueElements,
       counts
     };
-  }, [members, analysisScore]);
+  }, [displayMembers, analysisScore]);
 
   // Automatic session recovery & database self-healing deduplication
   // Automatic session recovery, central-profile-based auto-join, and auto-sync
@@ -617,7 +634,7 @@ export default function RoomView({ code }: RoomViewProps) {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-serif text-lg font-semibold text-ink">
-                  멤버별 궁합 <span className="text-sm text-ink-faint font-sans font-normal">{members.length}명</span>
+                  멤버별 궁합 <span className="text-sm text-ink-faint font-sans font-normal">{displayMembers.length}명</span>
                 </h2>
                 {isOwner && (
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
@@ -660,7 +677,7 @@ export default function RoomView({ code }: RoomViewProps) {
                 </span>
               </a>
             )}
-            {members.map((member) => {
+            {displayMembers.map((member) => {
               const isMe = member.id === localMemberId;
               if (isMe) {
                 return (
@@ -931,7 +948,12 @@ export default function RoomView({ code }: RoomViewProps) {
         onClose={() => setIsAddGuestModalOpen(false)}
         roomCode={code}
         onMemberAdded={(newMember) => {
-          setMembers((prev) => [...prev, newMember]);
+          setMembers((prev) => {
+            if (prev.some((m) => m.id === newMember.id)) {
+              return prev.map((m) => (m.id === newMember.id ? newMember : m));
+            }
+            return [...prev, newMember];
+          });
         }}
       />
     </Layout>

@@ -45,11 +45,13 @@ export default function AddGuestMemberModal({
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const isSubmittingRef = React.useRef(false);
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || isSubmittingRef.current) return;
     setError("");
 
     if (!nickname.trim()) {
@@ -57,6 +59,7 @@ export default function AddGuestMemberModal({
       return;
     }
 
+    isSubmittingRef.current = true;
     setLoading(true);
 
     try {
@@ -125,13 +128,16 @@ export default function AddGuestMemberModal({
         ...memberPayload,
       };
 
-      onMemberAdded(createdMember);
+      setNickname("");
+      setError("");
       onClose();
+      onMemberAdded(createdMember);
     } catch (err: any) {
       console.error("Failed to add guest member:", err);
       setError("멤버 추가에 실패했습니다: " + (err.message || "다시 시도해 주세요."));
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
