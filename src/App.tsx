@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
+import ErrorBoundary from "./components/ErrorBoundary";
 import GatewayView from "./components/GatewayView";
 import KakaoOutlinkGuide from "./components/KakaoOutlinkGuide";
 import SurveyPopup from "./components/SurveyPopup";
@@ -174,7 +175,7 @@ export default function App() {
   };
 
   return (
-    <>
+    <ErrorBoundary>
       <NetworkStatusBar />
       <GlobalAnalysisAlert />
       <KakaoOutlinkGuide />
@@ -183,6 +184,6 @@ export default function App() {
       </Suspense>
       <SurveyPopup />
       <PwaInstallBanner />
-    </>
+    </ErrorBoundary>
   );
 }

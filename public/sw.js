@@ -1,9 +1,7 @@
-// Inyeon Saju PWA Service Worker (inyeon-saju-v2)
-const CACHE_NAME = "inyeon-saju-v2";
+// Inyeon Saju PWA Service Worker (inyeon-saju-v3)
+const CACHE_NAME = "inyeon-saju-v3";
 
 const PRECACHE_ASSETS = [
-  "/",
-  "/index.html",
   "/manifest.json",
   "/zodiac/space_balanced.webp",
   "/zodiac/space_metal.webp",
@@ -22,13 +20,14 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// Activate Event: Clear stale cache versions
+// Activate Event: Clear stale cache versions immediately
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
+            console.log("[SW] Deleting old cache:", key);
             return caches.delete(key);
           }
         })
@@ -37,7 +36,7 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// Fetch Event: Cache-First strategy for Zodiac graphics, Network-First for APIs
+// Fetch Event
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
@@ -46,8 +45,30 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2. Cache-First with Network fallback for images (WebP/PNG/SVG)
-  if (url.pathname.startsWith("/zodiac/") || /\.(webp|png|jpe?g|svg|ico)$/i.test(url.pathname)) {
+  // 2. Navigation / HTML requests: Network-First (CRITICAL: prevents stale index.html ChunkLoadError)
+  const isNavigate = event.request.mode === "navigate" || url.pathname === "/" || url.pathname.endsWith(".html");
+  if (isNavigate) {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, clone);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(() => {
+          // Offline fallback only when network fails
+          return caches.match(event.request).then((cached) => cached || caches.match("/"));
+        })
+    );
+    return;
+  }
+
+  // 3. Cache-First with Network fallback for static images (WebP/PNG/SVG)
+  if (url.pathname.startsWith("/zodiac/") || /\.(webp|png|jpe?g|svg|ico|woff2?|ttf)$/i.test(url.pathname)) {
     event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
         if (cachedResponse) {
@@ -63,7 +84,6 @@ self.addEventListener("fetch", (event) => {
           });
           return networkResponse;
         }).catch(() => {
-          // Fallback if offline
           return caches.match("/zodiac/space_balanced.webp");
         });
       })
@@ -71,7 +91,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. Stale-While-Revalidate for SPA navigation and scripts
+  // 4. Stale-While-Revalidate for other static assets (CSS, JS)
   event.respondWith(
     caches.match(event.request).then((cached) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
