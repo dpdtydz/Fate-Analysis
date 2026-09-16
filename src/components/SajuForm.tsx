@@ -2,41 +2,21 @@ import React, { useState, useEffect, useMemo } from "react";
 import { ChevronDown } from "lucide-react";
 import { calculateSaju, daymasterMap, getDynamicCharacter } from "../utils/saju";
 import { Member } from "../types";
-import { KOREAN_CITIES } from "@orrery/core";
 import { Lunar } from "lunar-javascript";
+import {
+  KOREAN_CITIES_MODIFIED,
+  KOREAN_REGIONS,
+  OVERSEAS_COUNTRIES,
+  OVERSEAS_CITIES,
+  findLocation,
+} from "../utils/birthplaces";
 
-const KOREAN_CITIES_MODIFIED = KOREAN_CITIES.map((city) => {
-  if (city.region === "전라남도" || city.region === "광주광역시") {
-    return {
-      ...city,
-      region: "전남광주통합특별시",
-    };
-  }
-  return city;
-});
-
-const REGIONS = Array.from(new Set(KOREAN_CITIES_MODIFIED.map((c) => c.region)));
+const REGIONS = KOREAN_REGIONS;
 
 const YEAR_OPTIONS = Array.from({ length: 97 }, (_, i) => 2026 - i); // 2026 down to 1930
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => i + 1); // 1 to 12
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i); // 0 to 23
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, i) => i); // 0 to 59
-
-function findCityAndRegion(cityName?: string, regionName?: string): { region: string; city: string } {
-  if (regionName && cityName) {
-    const matchedRegion = REGIONS.find((r) => r.includes(regionName) || regionName.includes(r));
-    if (matchedRegion) {
-      const matchedCity = KOREAN_CITIES_MODIFIED.find(
-        (c) => c.region === matchedRegion && (c.name.includes(cityName) || cityName.includes(c.name))
-      );
-      if (matchedCity) {
-        return { region: matchedRegion, city: matchedCity.name };
-      }
-      return { region: matchedRegion, city: "서울" };
-    }
-  }
-  return { region: "서울특별시", city: "서울" };
-}
 
 interface SajuFormProps {
   onSubmit: (formData: {
@@ -92,9 +72,9 @@ export default function SajuForm({
   initialEmail = "",
   showEmailField = false,
 }: SajuFormProps) {
-  const initialLoc = findCityAndRegion(
-    initialBirthplaceCity || initialCity || undefined, 
-    initialBirthplaceRegion || initialRegion || undefined
+  const initialLoc = findLocation(
+    initialBirthplaceRegion || initialRegion || undefined, 
+    initialBirthplaceCity || initialCity || undefined
   );
   const [nickname, setNickname] = useState(initialNickname);
   const [email, setEmail] = useState(initialEmail);
@@ -107,8 +87,12 @@ export default function SajuForm({
   const [birthHour, setBirthHour] = useState("");
   const [birthMin, setBirthMin] = useState("");
   const [knowTime, setKnowTime] = useState(!!initialBirthTime);
-  const [selectedRegion, setSelectedRegion] = useState(initialLoc.region);
-  const [birthplaceCity, setBirthplaceCity] = useState(initialLoc.city);
+  const [isOverseas, setIsOverseas] = useState(initialLoc.isOverseas);
+  const [selectedRegion, setSelectedRegion] = useState(initialLoc.isOverseas ? "서울특별시" : initialLoc.countryOrRegion);
+  const [birthplaceCity, setBirthplaceCity] = useState(initialLoc.isOverseas ? "서울" : initialLoc.city);
+  const [selectedCountry, setSelectedCountry] = useState(initialLoc.isOverseas ? initialLoc.countryOrRegion : "미국");
+  const [overseasCity, setOverseasCity] = useState(initialLoc.isOverseas ? initialLoc.city : "뉴욕");
+  const [isSummerTime, setIsSummerTime] = useState(false);
 
   // Calendar Type: solar, lunar_normal (평달), lunar_leap (윤달)
   const [calendarType, setCalendarType] = useState<"solar" | "lunar_normal" | "lunar_leap">("solar");
@@ -302,6 +286,15 @@ export default function SajuForm({
       setBirthplaceCity(citiesForRegion[0].name);
     }
   };
+
+  const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const country = e.target.value;
+    setSelectedCountry(country);
+    const citiesInCountry = OVERSEAS_CITIES.filter((c) => c.country === country);
+    if (citiesInCountry.length > 0) {
+      setOverseasCity(citiesInCountry[0].name);
+    }
+  };
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -347,9 +340,15 @@ export default function SajuForm({
 
   useEffect(() => {
     if (initialBirthplaceCity || initialBirthplaceRegion) {
-      const loc = findCityAndRegion(initialBirthplaceCity || undefined, initialBirthplaceRegion || undefined);
-      setSelectedRegion(loc.region);
-      setBirthplaceCity(loc.city);
+      const loc = findLocation(initialBirthplaceRegion || undefined, initialBirthplaceCity || undefined);
+      setIsOverseas(loc.isOverseas);
+      if (loc.isOverseas) {
+        setSelectedCountry(loc.countryOrRegion);
+        setOverseasCity(loc.city);
+      } else {
+        setSelectedRegion(loc.countryOrRegion);
+        setBirthplaceCity(loc.city);
+      }
     }
   }, [initialBirthplaceCity, initialBirthplaceRegion]);
 
@@ -498,9 +497,49 @@ export default function SajuForm({
     }
 
     try {
-      const selectedCityObj = KOREAN_CITIES_MODIFIED.find(
-        (c) => c.region === selectedRegion && c.name === birthplaceCity
-      ) || { name: "서울", lat: 37.5665, lon: 126.978 };
+      let selectedCityObj: any;
+      let finalRegion = selectedRegion;
+      let finalCity = birthplaceCity;
+
+      if (isOverseas) {
+        const overseasMatch = OVERSEAS_CITIES.find(
+          (c) => c.country === selectedCountry && c.name === overseasCity
+        ) || OVERSEAS_CITIES.find((c) => c.country === selectedCountry) || {
+          name: overseasCity,
+          country: selectedCountry,
+          lat: 40.7128,
+          lon: -74.006,
+          utcOffset: -5,
+          standardMeridian: -75,
+        };
+
+        selectedCityObj = {
+          name: overseasMatch.name,
+          country: overseasMatch.country,
+          lat: overseasMatch.lat,
+          lon: overseasMatch.lon,
+          standardMeridian: overseasMatch.standardMeridian,
+          isOverseas: true,
+          isSummerTime: isSummerTime,
+        };
+        finalRegion = selectedCountry;
+        finalCity = overseasMatch.name;
+      } else {
+        const koreanMatch = KOREAN_CITIES_MODIFIED.find(
+          (c) => c.region === selectedRegion && c.name === birthplaceCity
+        ) || { name: "서울", lat: 37.5665, lon: 126.978 };
+
+        selectedCityObj = {
+          name: koreanMatch.name,
+          lat: koreanMatch.lat,
+          lon: koreanMatch.lon,
+          standardMeridian: 135.0,
+          isOverseas: false,
+        };
+        finalRegion = selectedRegion;
+        finalCity = birthplaceCity;
+      }
+
       const sajuResult = calculateSaju(compiledDate, selectedTime, selectedCityObj, gender);
       const daymasterChar = sajuResult.daymaster.gan;
       const dayBranchChar = sajuResult.pillars.day.ji;
@@ -516,8 +555,8 @@ export default function SajuForm({
         character_animal: charMeta.animalName,
         character_color: charMeta.color,
         mbti: useMbti ? `${mbtiLetter1}${mbtiLetter2}${mbtiLetter3}${mbtiLetter4}` : null,
-        birthplace_region: selectedRegion,
-        birthplace_city: birthplaceCity,
+        birthplace_region: finalRegion,
+        birthplace_city: finalCity,
         email: email.trim() || undefined,
       });
     } catch (err: any) {
@@ -738,48 +777,138 @@ export default function SajuForm({
       </div>
 
       {/* Birth Place / Timezone Correction */}
-      <div className="space-y-1.5 text-left">
-        <label className="block text-xs font-medium text-ink-soft">출생 지역</label>
-        <div className="grid grid-cols-2 gap-2">
-          {/* Region Select (시/도) */}
-          <div className="relative">
-            <select
-              id="birthplace-region-select"
-              value={selectedRegion}
-              onChange={handleRegionChange}
-              className={`w-full appearance-none pl-3.5 pr-8 py-3 ${inputBase} ${inputOk} cursor-pointer`}
+      <div className="space-y-2 text-left">
+        <div className="flex items-center justify-between">
+          <label className="block text-xs font-medium text-ink-soft">출생 지역</label>
+          <div className="flex rounded-lg bg-sunken p-0.5 text-[11px] font-medium border border-line/40">
+            <button
+              type="button"
+              id="birthplace-domestic-tab"
+              onClick={() => setIsOverseas(false)}
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                !isOverseas
+                  ? "bg-seal text-white font-semibold shadow-xs"
+                  : "text-ink-faint hover:text-ink"
+              }`}
             >
-              {REGIONS.map((region) => (
-                <option key={region} value={region}>
-                  {region}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
-          </div>
-
-          {/* City Select (시/군/구) */}
-          <div className="relative">
-            <select
-              id="birthplace-city-select"
-              value={birthplaceCity}
-              onChange={(e) => setBirthplaceCity(e.target.value)}
-              className={`w-full appearance-none pl-3.5 pr-8 py-3 ${inputBase} ${inputOk} cursor-pointer`}
+              국내 출생
+            </button>
+            <button
+              type="button"
+              id="birthplace-overseas-tab"
+              onClick={() => setIsOverseas(true)}
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                isOverseas
+                  ? "bg-seal text-white font-semibold shadow-xs"
+                  : "text-ink-faint hover:text-ink"
+              }`}
             >
-              {KOREAN_CITIES_MODIFIED.filter((c) => c.region === selectedRegion).map((city) => {
-                const isMetropolitan = city.region.endsWith("특별시") || city.region.endsWith("광역시") || city.region.endsWith("특별자치시");
-                const displayName = isMetropolitan ? `${city.name} 전역` : `${city.name}시/군`;
-                return (
-                  <option key={`${city.region}-${city.name}`} value={city.name}>
-                    {displayName}
-                  </option>
-                );
-              })}
-            </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
+              해외 출생
+            </button>
           </div>
         </div>
-        <p className="text-xs text-ink-faint">출생지의 경도로 태양시를 보정해 계산합니다.</p>
+
+        {!isOverseas ? (
+          <div className="grid grid-cols-2 gap-2">
+            {/* Region Select (시/도) */}
+            <div className="relative">
+              <select
+                id="birthplace-region-select"
+                value={selectedRegion}
+                onChange={handleRegionChange}
+                className={`w-full appearance-none pl-3.5 pr-8 py-3 ${inputBase} ${inputOk} cursor-pointer`}
+              >
+                {REGIONS.map((region) => (
+                  <option key={region} value={region}>
+                    {region}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
+            </div>
+
+            {/* City Select (시/군/구) */}
+            <div className="relative">
+              <select
+                id="birthplace-city-select"
+                value={birthplaceCity}
+                onChange={(e) => setBirthplaceCity(e.target.value)}
+                className={`w-full appearance-none pl-3.5 pr-8 py-3 ${inputBase} ${inputOk} cursor-pointer`}
+              >
+                {KOREAN_CITIES_MODIFIED.filter((c) => c.region === selectedRegion).map((city) => {
+                  const isMetropolitan =
+                    city.region?.endsWith("특별시") ||
+                    city.region?.endsWith("광역시") ||
+                    city.region?.endsWith("특별자치시");
+                  const displayName = isMetropolitan ? `${city.name} 전역` : `${city.name}시/군`;
+                  return (
+                    <option key={`${city.region}-${city.name}`} value={city.name}>
+                      {displayName}
+                    </option>
+                  );
+                })}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              {/* Overseas Country Select */}
+              <div className="relative">
+                <select
+                  id="birthplace-country-select"
+                  value={selectedCountry}
+                  onChange={handleCountryChange}
+                  className={`w-full appearance-none pl-3.5 pr-8 py-3 ${inputBase} ${inputOk} cursor-pointer`}
+                >
+                  {OVERSEAS_COUNTRIES.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
+              </div>
+
+              {/* Overseas City Select */}
+              <div className="relative">
+                <select
+                  id="birthplace-overseas-city-select"
+                  value={overseasCity}
+                  onChange={(e) => setOverseasCity(e.target.value)}
+                  className={`w-full appearance-none pl-3.5 pr-8 py-3 ${inputBase} ${inputOk} cursor-pointer`}
+                >
+                  {OVERSEAS_CITIES.filter((c) => c.country === selectedCountry).map((city) => (
+                    <option key={`${city.country}-${city.name}`} value={city.name}>
+                      {city.name} (UTC{city.utcOffset >= 0 ? `+${city.utcOffset}` : city.utcOffset})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Summer Time (DST) Checkbox */}
+            <div className="flex items-center justify-between px-1 pt-0.5">
+              <label className="flex items-center space-x-2 cursor-pointer select-none text-xs text-ink-soft hover:text-ink">
+                <input
+                  id="dst-check"
+                  type="checkbox"
+                  checked={isSummerTime}
+                  onChange={(e) => setIsSummerTime(e.target.checked)}
+                  className="w-3.5 h-3.5 rounded accent-seal cursor-pointer"
+                />
+                <span>출생 당시 서머타임(썸머타임) 적용 (-60분 보정)</span>
+              </label>
+            </div>
+          </div>
+        )}
+        <p className="text-xs text-ink-faint">
+          {isOverseas
+            ? "현지 출생 시각(출생증명서 기준)을 입력하면 표준 자오선 및 실제 경도 차이를 진태양시로 자동 보정합니다."
+            : "출생지의 경도로 태양시를 보정해 계산합니다."}
+        </p>
       </div>
 
       {/* Birth Time Toggle + Selection */}

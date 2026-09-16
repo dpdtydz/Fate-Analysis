@@ -119,7 +119,15 @@ function getSipseongGroup(daymasterElement: string, targetElement: string): "비
 export function calculateSaju(
   birthDate: string,
   birthTime: string | null,
-  birthplace?: { name: string; lat: number; lon: number } | null,
+  birthplace?: {
+    name: string;
+    lat: number;
+    lon: number;
+    country?: string;
+    standardMeridian?: number;
+    isOverseas?: boolean;
+    isSummerTime?: boolean;
+  } | null,
   genderStr: string = "여성"
 ): SajuData {
   const [y, m, d] = birthDate.split('-').map(Number);
@@ -144,8 +152,16 @@ export function calculateSaju(
   let adjustedDay = d;
 
   if (birthTime) {
-    // 135.0 is the KST standard meridian
-    const offset = birthplace?.lon ? (birthplace.lon - 135.0) * 4 : -32; // Default to Seoul (-32m) if not specified
+    // 135.0 is the KST standard meridian.
+    // For overseas birthplaces, use standardMeridian if specified; otherwise default to 135.0
+    const stdMeridian = birthplace?.standardMeridian !== undefined ? birthplace.standardMeridian : 135.0;
+    let offset = birthplace?.lon !== undefined ? (birthplace.lon - stdMeridian) * 4 : -32; // Default to Seoul (-32m) if not specified
+
+    // If summer time (DST) was active at the birthplace, subtract 60 minutes
+    if (birthplace?.isSummerTime) {
+      offset -= 60;
+    }
+
     solar_correction_minutes = Math.round(offset);
     
     const localDateObj = new Date(Date.UTC(y, m - 1, d, h, min));

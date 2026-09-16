@@ -1706,15 +1706,25 @@ export default function SajuVisual({
           {birthplace && (
             <div className="bg-sunken px-4 py-3 rounded-xl text-left space-y-1">
               <div className="flex items-center justify-between text-xs gap-2">
-                <span className="font-semibold text-ink">
+                <span className="font-semibold text-ink flex items-center gap-1.5">
                   출생지 보정
+                  {birthplace.country && (
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 bg-surface text-ink-soft rounded border border-line/50">
+                      {birthplace.country}
+                    </span>
+                  )}
+                  {birthplace.isSummerTime && (
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 bg-seal/10 text-seal rounded">
+                      서머타임
+                    </span>
+                  )}
                 </span>
                 <span className="text-xs font-medium text-ink-soft bg-surface px-2 py-0.5 rounded-md">
-                  진태양시 {solar_correction_minutes && solar_correction_minutes >= 0 ? `+${solar_correction_minutes}` : solar_correction_minutes}분 조정
+                  진태양시 {solar_correction_minutes !== undefined && solar_correction_minutes >= 0 ? `+${solar_correction_minutes}` : solar_correction_minutes}분 조정
                 </span>
               </div>
               <p className="text-sm text-ink-soft leading-relaxed">
-                {birthplace.name} 출생 (경도 {birthplace.lon.toFixed(2)}°) · 입력 시각을 실제 태양시({solar_birth_time}) 기준으로 보정해 계산했습니다.
+                {birthplace.country ? `${birthplace.country} ${birthplace.name}` : birthplace.name} 출생 (경도 {birthplace.lon.toFixed(2)}°) · {birthplace.country ? "현지" : "입력"} 시각을 실제 태양시({solar_birth_time}) 기준으로 정밀 보정해 계산했습니다.
               </p>
             </div>
           )}

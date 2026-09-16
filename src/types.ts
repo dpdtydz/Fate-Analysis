@@ -47,8 +47,15 @@ export interface SajuData {
   pillars: Pillars;
   daymaster: Daymaster;
   ohaeng_count: OhaengCount;
-  // New rich fields
-  birthplace?: { name: string; lat: number; lon: number } | null;
+  birthplace?: {
+    name: string;
+    lat: number;
+    lon: number;
+    country?: string;
+    standardMeridian?: number;
+    isOverseas?: boolean;
+    isSummerTime?: boolean;
+  } | null;
   solar_birth_time?: string | null;
   solar_correction_minutes?: number;
   daewoon?: DaewoonItem[];
