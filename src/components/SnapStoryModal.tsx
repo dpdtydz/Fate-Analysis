@@ -1,9 +1,11 @@
-import React, { useRef, useState, useEffect } from "react";
-import { X, Download, Sparkles, Check, HeartHandshake, Share2, Copy } from "lucide-react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
+import { X, Download, Heart, HeartHandshake, Share2, Sparkles, Check } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import { Member } from "../types";
+import { getMemberZodiacSrc } from "./ZodiacAvatar";
+import { getMemberNickname, getMemberElement } from "../utils/memberHelper";
+import { calculateMemberSals } from "../utils/shinsalCalculator";
 import { generateDedicatedChemistryCard } from "../utils/cardGenerator";
-import ZodiacAvatar from "./ZodiacAvatar";
 
 interface SnapStoryModalProps {
   isOpen: boolean;
@@ -16,6 +18,15 @@ interface SnapStoryModalProps {
   pairDesc?: string;
 }
 
+export interface PairStoryCategory {
+  id: string;
+  icon: string;
+  title: string;
+  score: number;
+  comment: string;
+  color: string;
+}
+
 export default function SnapStoryModal({
   isOpen,
   onClose,
@@ -24,16 +35,15 @@ export default function SnapStoryModal({
   pairScore,
   pairGrade,
   pairLabel,
-  pairDesc
+  pairDesc,
 }: SnapStoryModalProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const storyCardRef = useRef<HTMLDivElement>(null);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [theme, setTheme] = useState<"midnight" | "hanji" | "neon">("midnight");
-  const [copiedText, setCopiedText] = useState("");
-  const [showLongPressGuide, setShowLongPressGuide] = useState(false);
   const [capturedImageUrl, setCapturedImageUrl] = useState<string | null>(null);
+  const [showLongPressGuide, setShowLongPressGuide] = useState(false);
+  const [copiedText, setCopiedText] = useState("");
 
-  // Close on ESC
+  // ESC key to close modal
   useEffect(() => {
     if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,6 +52,108 @@ export default function SnapStoryModal({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
+
+  // Compute 6 Rich Viral Saju Chemistry Categories (Original High-Fidelity Design)
+  const pair6Categories = useMemo(() => {
+    const elemA = getMemberElement(m1);
+    const elemB = getMemberElement(m2);
+    const nickA = getMemberNickname(m1);
+    const nickB = getMemberNickname(m2);
+
+    const hash = Math.abs(
+      (nickA.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) * 31 +
+       nickB.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0))
+    );
+
+    const salsA = calculateMemberSals(m1);
+    const salsB = calculateMemberSals(m2);
+
+    // 1. 대화 티키타카
+    const hasDohwa = salsA.dohwaCount + salsB.dohwaCount > 0;
+    const tikitakaBase = Math.min(96, Math.max(45, Math.round(pairScore * 0.95 + (hasDohwa ? 5 : -4) + (((hash * 13) % 9) - 4))));
+    const tikitakaComment = tikitakaBase >= 85
+      ? "생각의 속도가 비슷해 말 한마디로도 통하는 사이"
+      : tikitakaBase >= 72
+      ? "말이 끊이지 않고 자연스럽게 이어지는 대화 흐름"
+      : tikitakaBase >= 58
+      ? "필요한 순간에 명쾌하게 소통하는 담백한 사이"
+      : "서로의 대화 템포와 표현 방식을 맞춰가는 중인 사이";
+
+    // 2. 모임 텐션 & 분위기
+    const hasActiveSal = salsA.yeokmaCount + salsB.yeokmaCount + salsA.dohwaCount + salsB.dohwaCount > 0;
+    const alcoholBase = Math.min(94, Math.max(40, Math.round(pairScore * 0.92 + (hasActiveSal ? 6 : -5) + (((hash * 3) % 7) - 3))));
+    const alcoholComment = alcoholBase >= 80
+      ? "함께 있는 것만으로도 분위기를 끌어올리는 특급 시너지"
+      : alcoholBase >= 68
+      ? "서로의 페이스를 편안하게 존중하며 즐기는 호흡"
+      : alcoholBase >= 54
+      ? "과하지 않게 은은한 즐거움을 나누는 차분한 무드"
+      : "조용하고 정적인 환경에서 더 편안함을 느끼는 조합";
+
+    // 3. 여행 & 일상 호흡
+    const hasTravelSal = salsA.sals.includes("역마살") || salsB.sals.includes("역마살");
+    const travelBase = Math.min(92, Math.max(38, Math.round(pairScore * 0.90 + (hasTravelSal ? 5 : -6) + (((hash * 7) % 7) - 3))));
+    const travelComment = travelBase >= 78
+      ? "돌발 변수가 생겨도 함께 웃으며 유쾌하게 넘기는 메이트"
+      : travelBase >= 65
+      ? "취향과 동선을 자연스럽게 배려하며 맞춰가는 편안함"
+      : travelBase >= 52
+      ? "사전에 계획과 역할을 조율하면 깔끔하게 어울릴 조합"
+      : "각자의 개인 시간과 독립적인 휴식을 보장해야 할 동행";
+
+    // 4. 감정 공감 & 멘탈 케어
+    const hasEarthOrWater = elemA === "토" || elemB === "토" || elemA === "수" || elemB === "수";
+    const healingBase = Math.min(95, Math.max(42, Math.round(pairScore * 0.92 + (hasEarthOrWater ? 5 : -5) + (((hash * 11) % 7) - 3))));
+    const healingComment = healingBase >= 80
+      ? "속 깊은 이야기까지 안심하고 털어놓을 수 있는 안식처"
+      : healingBase >= 68
+      ? "진심 어린 경청과 공감으로 서로에게 힘이 되어주는 관계"
+      : healingBase >= 54
+      ? "서로의 감정선을 존중하며 묵묵히 곁을 지켜주는 사이"
+      : "감정적인 의존보다는 적절한 거리감 유지가 편한 사이";
+
+    // 5. 현실 시너지 & 협업
+    const hasMetalOrEarth = elemA === "금" || elemB === "금" || elemA === "토" || elemB === "토";
+    const businessBase = Math.min(94, Math.max(40, Math.round(pairScore * 0.90 + (hasMetalOrEarth ? 5 : -6) + (((hash * 17) % 7) - 3))));
+    const businessComment = businessBase >= 78
+      ? "기획과 실행의 균형이 뛰어나 확실한 결실을 맺는 파트너"
+      : businessBase >= 66
+      ? "역할 분담이 명확할 때 최고의 성과를 내는 콤비"
+      : businessBase >= 52
+      ? "서로의 전문 영역을 인정하고 존중할 때 시너지가 나는 사이"
+      : "공동 작업 시 명확한 룰과 배려가 필요한 관계";
+
+    // 6. 관계 팁 & 배려 포인트
+    const safetyScore = Math.min(84, Math.max(38, Math.round(pairScore * 0.78 - ((hash * 19) % 8))));
+    const mineComment = (elemA === "화" && elemB === "수") || (elemA === "수" && elemB === "화")
+      ? "피곤할 땐 즉답을 피하고 한 템포 쉬어가는 대화가 좋아요"
+      : (elemA === "금" && elemB === "목") || (elemA === "목" && elemB === "금")
+      ? "직설적인 피드백보다는 따뜻한 인정 한마디가 최고의 처방"
+      : safetyScore < 55
+      ? "서로의 호의가 간섭으로 느껴지지 않도록 경계를 존중하기"
+      : "상대방만의 고유한 템포와 개인 시간을 편안하게 존중해 주기";
+
+    let tagLine = pairDesc || "기분 좋은 파장을 나누는 조화로운 인연";
+    if (pairScore >= 85) tagLine = "눈빛만 봐도 뜻이 통하는 최상의 케미스트리";
+    else if (pairScore >= 75) tagLine = "서로의 장점을 극대화해 주는 든든한 파트너";
+    else if (pairScore >= 65) tagLine = "서로의 부족한 기운을 차분히 채워주는 상생 메이트";
+
+    const categories: PairStoryCategory[] = [
+      { id: "talk", icon: "💬", title: "대화 티키타카", score: tikitakaBase, comment: tikitakaComment, color: "#f43f5e" },
+      { id: "drink", icon: "⚡", title: "모임 텐션 & 분위기", score: alcoholBase, comment: alcoholComment, color: "#f97316" },
+      { id: "travel", icon: "✈️", title: "여행 & 일상 호흡", score: travelBase, comment: travelComment, color: "#06b6d4" },
+      { id: "healing", icon: "🌿", title: "감정 공감 & 멘탈 케어", score: healingBase, comment: healingComment, color: "#10b981" },
+      { id: "money", icon: "💼", title: "현실 시너지 & 협업", score: businessBase, comment: businessComment, color: "#eab308" },
+      { id: "warning", icon: "💡", title: "관계 팁 & 배려 포인트", score: safetyScore, comment: mineComment, color: "#8b5cf6" },
+    ];
+
+    return {
+      title: pairLabel || tagLine,
+      score: pairScore,
+      categories,
+      tagLine,
+    };
+  }, [m1, m2, pairScore, pairLabel, pairDesc]);
 
   if (!isOpen) return null;
 
@@ -52,7 +164,7 @@ export default function SnapStoryModal({
 
     try {
       let dataUrl = "";
-      // 1) Try Canvas Generator first for ultra crisp 1080x1920
+      // 1) Try high-res Canvas Generator first
       try {
         const generated = await generateDedicatedChemistryCard({
           roomTitle: "1:1 비밀 인연 스냅",
@@ -61,25 +173,25 @@ export default function SnapStoryModal({
           m1,
           m2,
           pairScore,
-          pairLabel: pairLabel || "운명적 소울메이트",
-          pairDesc: pairDesc || "서로의 기운을 밝혀주는 특별한 인연입니다."
+          pairLabel: pairLabel || pair6Categories.title,
+          pairDesc: pairDesc || pair6Categories.tagLine,
         });
         dataUrl = generated.dataUrl;
       } catch (canvasErr) {
         console.warn("Canvas export fallback to html2canvas-pro:", canvasErr);
-        if (cardRef.current) {
-          const canvas = await html2canvas(cardRef.current, {
+        if (storyCardRef.current) {
+          const canvas = await html2canvas(storyCardRef.current, {
             scale: 2,
             useCORS: true,
             allowTaint: true,
-            backgroundColor: null
+            backgroundColor: null,
           });
           dataUrl = canvas.toDataURL("image/png");
         }
       }
 
       if (!dataUrl) {
-        throw new Error("이미지 생성에 실패했습니다.");
+        throw new Error("포스터 이미지 생성에 실패했습니다.");
       }
 
       setCapturedImageUrl(dataUrl);
@@ -98,239 +210,223 @@ export default function SnapStoryModal({
         link.click();
         document.body.removeChild(link);
       }
-
-      // Copy tag text for Instagram
-      const tagText = `🏷️ @${m2.nickname} 우리 둘만의 1:1 사주 궁합 점수: ${pairScore}점 (${pairGrade}등급)! ✨\n#인연사주 #1대1비밀궁합 #사주케미`;
-      if (navigator.clipboard) {
-        try {
-          await navigator.clipboard.writeText(tagText);
-        } catch {
-          // ignore
-        }
-      }
-
-      setCopiedText(
-        isMobile && isInAppBrowser
-          ? "아래 카드를 길게 눌러 사진첩에 저장하세요! 인스타 태그 문구도 복사되었습니다 ✨"
-          : "스토리 포스터 저장 & 인스타 태그 문구 복사 완료! 🎉"
-      );
-      setTimeout(() => setCopiedText(""), 4500);
-    } catch (err: any) {
+    } catch (err) {
       console.error("Story capture error:", err);
-      alert("이미지 저장 중 오류가 발생했습니다: " + (err?.message || String(err)));
+      alert("포스터 저장 중 오류가 발생했습니다. 화면을 캡처해서 사용해주세요.");
     } finally {
       setIsCapturing(false);
     }
   };
 
-  // Theme styling definitions
-  const themeStyles = {
-    midnight: {
-      cardBg: "bg-gradient-to-b from-[#0f172a] via-[#1e1b4b] to-[#090d16] text-white border-slate-700/50",
-      accent: "text-rose-400",
-      badgeBg: "bg-rose-500/20 text-rose-300 border-rose-500/40",
-      sealRing: "border-amber-400/40 bg-amber-500/10 text-amber-300",
-      knotColor: "#f43f5e"
-    },
-    hanji: {
-      cardBg: "bg-gradient-to-b from-[#FAF7F2] via-[#F5EFEB] to-[#EAE0D5] text-[#2C2523] border-[#D6C7B8]",
-      accent: "text-[#B93826]",
-      badgeBg: "bg-[#B93826]/10 text-[#B93826] border-[#B93826]/30",
-      sealRing: "border-[#B93826]/40 bg-[#B93826]/5 text-[#B93826]",
-      knotColor: "#B93826"
-    },
-    neon: {
-      cardBg: "bg-gradient-to-b from-[#18002e] via-[#090014] to-[#000000] text-white border-fuchsia-500/40",
-      accent: "text-fuchsia-400",
-      badgeBg: "bg-fuchsia-500/20 text-fuchsia-300 border-fuchsia-500/50",
-      sealRing: "border-cyan-400/50 bg-cyan-500/10 text-cyan-300",
-      knotColor: "#ec4899"
+  const handleCopyTag = async () => {
+    const text = `@${getMemberNickname(m2)} 나와의 사주 궁합 점수는 ${pairScore}점! (${pair6Categories.title}) #인연사주`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText("복사완료! 인스타 스토리에 붙여넣기 해보세요.");
+      setTimeout(() => setCopiedText(""), 3000);
+    } catch {
+      // ignore
     }
-  }[theme];
+  };
 
   return (
-    <div
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      className="fixed inset-0 z-[1000] overflow-y-auto bg-black/85 backdrop-blur-md flex flex-col items-center justify-start p-3 sm:p-6 py-6 sm:py-10 animate-fade-in"
-    >
-      {/* Top Floating Close */}
-      <button
-        type="button"
-        onClick={onClose}
-        className="fixed top-4 right-4 z-[1050] w-10 h-10 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white flex items-center justify-center shadow-lg transition-transform active:scale-95 cursor-pointer backdrop-blur-md"
-        aria-label="닫기"
-      >
-        <X className="w-5 h-5" />
-      </button>
-
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[420px] flex flex-col items-center select-none relative shrink-0 space-y-4"
-      >
-        {/* Header */}
-        <div className="w-full flex items-center justify-between px-2 text-white">
-          <div className="flex items-center gap-2 font-bold text-sm">
-            <Sparkles className="w-4 h-4 text-rose-400" />
-            <span>1:1 인스타 스토리 전용 포스터 (9:16)</span>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md overflow-y-auto animate-fadeIn">
+      <div className="relative w-full max-w-[420px] my-auto bg-[#0a0d14] border border-white/15 rounded-3xl p-4 sm:p-5 shadow-2xl flex flex-col items-center">
+        {/* Header (Clean & Minimal: No Select Boxes) */}
+        <div className="flex items-center justify-between w-full mb-3 text-white">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
+            <h3 className="font-serif text-base sm:text-lg font-bold">1:1 인스타 스토리 전용 포스터</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Theme Selector Pills */}
-        <div className="flex items-center gap-2 p-1 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 text-xs font-semibold text-white/80">
-          <button
-            type="button"
-            onClick={() => setTheme("midnight")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              theme === "midnight" ? "bg-white text-slate-900 font-bold shadow-xs" : "hover:text-white"
-            }`}
-          >
-            🌌 미드나잇
-          </button>
-          <button
-            type="button"
-            onClick={() => setTheme("hanji")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              theme === "hanji" ? "bg-white text-slate-900 font-bold shadow-xs" : "hover:text-white"
-            }`}
-          >
-            📜 전통 한지
-          </button>
-          <button
-            type="button"
-            onClick={() => setTheme("neon")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              theme === "neon" ? "bg-white text-slate-900 font-bold shadow-xs" : "hover:text-white"
-            }`}
-          >
-            🔮 네온 팝
-          </button>
-        </div>
-
-        {/* 🌟 9:16 Instagram Story Canvas Card */}
+        {/* ──────────────────────────────────────────
+             9:16 Instagram Story Canvas (Original High-Fidelity Design)
+           ────────────────────────────────────────── */}
         <div
-          ref={cardRef}
-          className={`w-full aspect-[9/16] rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden border shadow-2xl transition-colors duration-300 ${themeStyles.cardBg}`}
+          ref={storyCardRef}
+          className="w-full h-[620px] rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden border border-white/15 shadow-2xl text-white"
+          style={{
+            background: "radial-gradient(circle at 50% 0%, #201127 0%, #0c0d16 65%, #05060a 100%)",
+          }}
         >
-          {/* Top Brand & Title */}
-          <div className="flex items-center justify-between text-xs z-10">
-            <div className="flex items-center gap-1.5 font-bold tracking-wider opacity-90">
-              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-              <span>1:1 인연사주 운명 궁합</span>
-            </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/10 backdrop-blur-xs font-semibold">
-              INSTA STORY
-            </span>
-          </div>
-
-          {/* Central Visual Showdown: Avatars + Destiny Knot */}
-          <div className="flex flex-col items-center justify-center space-y-6 my-auto z-10">
-            <div className="flex items-center justify-center gap-4 sm:gap-6 w-full">
-              {/* Creator */}
-              <div className="flex flex-col items-center space-y-2 flex-1 min-w-0">
-                <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md p-1.5 border border-white/20 shadow-lg flex items-center justify-center">
-                  <ZodiacAvatar member={m1} size={64} fallbackEmoji={m1.character_emoji} />
-                </div>
-                <div className="text-center min-w-0 w-full">
-                  <span className="text-[10px] opacity-70 block font-medium">초대자</span>
-                  <p className="text-sm font-black truncate">{m1.nickname}</p>
-                  <p className="text-[10px] opacity-80 font-mono">
-                    {m1.character_animal} · {m1.saju.daymaster.gan}{m1.saju.daymaster.element}
-                  </p>
-                </div>
-              </div>
-
-              {/* Central Seal Badge */}
-              <div className="relative flex flex-col items-center justify-center shrink-0">
-                <div className={`w-20 h-20 rounded-full border-2 flex flex-col items-center justify-center shadow-lg ${themeStyles.sealRing}`}>
-                  <span className="text-[9px] font-bold tracking-tight opacity-75">인연 지수</span>
-                  <span className="text-2xl font-black font-mono leading-none">{pairScore}</span>
-                  <span className="text-[9px] font-extrabold mt-0.5 tracking-wide">등급 {pairGrade}</span>
-                </div>
-                <div className="w-16 border-t-2 border-dashed border-rose-500/40 my-1 animate-pulse" />
-              </div>
-
-              {/* Partner */}
-              <div className="flex flex-col items-center space-y-2 flex-1 min-w-0">
-                <div className="w-20 h-20 rounded-2xl bg-white/10 backdrop-blur-md p-1.5 border border-white/20 shadow-lg flex items-center justify-center">
-                  <ZodiacAvatar member={m2} size={64} fallbackEmoji={m2.character_emoji} />
-                </div>
-                <div className="text-center min-w-0 w-full">
-                  <span className="text-[10px] opacity-70 block font-medium">친구</span>
-                  <p className="text-sm font-black truncate">{m2.nickname}</p>
-                  <p className="text-[10px] opacity-80 font-mono">
-                    {m2.character_animal} · {m2.saju.daymaster.gan}{m2.saju.daymaster.element}
-                  </p>
-                </div>
-              </div>
+          <div>
+            {/* Top Story Indicator Progress Bars */}
+            <div className="flex gap-1 w-full mb-3">
+              {[1, 2, 3, 4, 5, 6].map((step) => (
+                <div key={step} className="h-0.5 flex-1 rounded-full bg-gradient-to-r from-rose-500 to-amber-400" />
+              ))}
             </div>
 
-            {/* Verdict Headline */}
-            <div className="text-center space-y-1.5 px-3">
-              <span className={`inline-block px-3 py-0.5 rounded-full text-xs font-black border ${themeStyles.badgeBg}`}>
-                {pairLabel || "운명적 소울메이트"}
+            {/* Brand & Room Title */}
+            <div className="flex items-center justify-between mb-2 text-xs">
+              <div className="flex items-center gap-1.5 font-bold text-rose-300">
+                <span>●</span> 1:1 인연사주 운명 궁합
+              </div>
+              <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">
+                INYEON CHEMISTRY
               </span>
-              <p className="text-xs leading-relaxed opacity-85 line-clamp-2 max-w-[280px] mx-auto">
-                {pairDesc || "서로에게 긍정적인 에너지를 채워주며 함께할수록 빛나는 최고의 케미스트리입니다."}
+            </div>
+
+            {/* Pair Tag Pill */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30 mb-2">
+              <HeartHandshake className="w-3.5 h-3.5 text-rose-400" />
+              <span>너랑 나의 사주 팩폭 케미</span>
+            </div>
+
+            {/* Headline Title */}
+            <div className="mt-0.5 mb-1 text-left">
+              <h2 className="text-[18px] font-black leading-tight tracking-tight text-white flex items-baseline gap-1.5">
+                <span>{getMemberNickname(m1)}</span>
+                <span className="text-rose-400 text-sm">×</span>
+                <span>{getMemberNickname(m2)}</span>
+                <span className="ml-auto font-mono text-xl font-extrabold text-rose-400">
+                  {pairScore}점
+                </span>
+              </h2>
+              <p className="text-[11px] text-slate-300 font-semibold mt-0.5">
+                "{pair6Categories.tagLine}"
               </p>
             </div>
           </div>
 
-          {/* Bottom Tags & Watermark */}
-          <div className="space-y-3 z-10 pt-2 border-t border-white/10">
-            <div className="flex items-center justify-center gap-2 text-xs font-bold">
-              <span className="px-2.5 py-1 rounded-lg bg-white/10">@{m1.nickname}</span>
-              <span className="opacity-60">&</span>
-              <span className="px-2.5 py-1 rounded-lg bg-white/10">@{m2.nickname}</span>
+          {/* Center 1:1 Chemistry Card (White/Paper Surface) */}
+          <div className="bg-white rounded-2xl p-3 text-[#1c1d21] shadow-xl my-auto relative space-y-2">
+            {/* Two Avatars Confrontation with Heart Synergy */}
+            <div className="flex items-center justify-around py-1 border-b border-slate-100">
+              {/* Member 1 (초대자) */}
+              <div className="flex flex-col items-center text-center w-24">
+                <div className="w-13 h-13 rounded-full bg-slate-50 border-2 border-rose-400 flex items-center justify-center overflow-hidden shadow-xs relative">
+                  <img
+                    src={getMemberZodiacSrc(m1) || "/zodiac/zodiac_tiger_item_sunglasses.png"}
+                    alt={m1.nickname}
+                    crossOrigin="anonymous"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <span className="text-xs font-black text-slate-900 mt-1 truncate max-w-full">
+                  {getMemberNickname(m1)}
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
+                  {getMemberElement(m1)} 기운
+                </span>
+              </div>
+
+              {/* Center Score Pulse Badge */}
+              <div className="flex flex-col items-center shrink-0 px-2">
+                <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center shadow-xs">
+                  <Heart className="w-4 h-4 fill-rose-500 text-rose-500 animate-pulse" />
+                </div>
+                <span className="text-[10px] font-mono font-black text-rose-600 mt-0.5">
+                  {pairScore}점
+                </span>
+              </div>
+
+              {/* Member 2 (친구) */}
+              <div className="flex flex-col items-center text-center w-24">
+                <div className="w-13 h-13 rounded-full bg-slate-50 border-2 border-amber-400 flex items-center justify-center overflow-hidden shadow-xs relative">
+                  <img
+                    src={getMemberZodiacSrc(m2) || "/zodiac/zodiac_tiger_item_sunglasses.png"}
+                    alt={m2.nickname}
+                    crossOrigin="anonymous"
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                <span className="text-xs font-black text-slate-900 mt-1 truncate max-w-full">
+                  {getMemberNickname(m2)}
+                </span>
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
+                  {getMemberElement(m2)} 기운
+                </span>
+              </div>
             </div>
-            <p className="text-[10px] text-center opacity-60 tracking-widest font-mono">
-              INYEONS.COM · 1:1 SECRET SNAP
-            </p>
+
+            {/* 6 Vital Category Progress Bars */}
+            <div className="space-y-1.5 pt-0.5">
+              {pair6Categories.categories.map((cat) => (
+                <div key={cat.id} className="text-left bg-slate-50/80 rounded-lg p-1.5 border border-slate-100">
+                  <div className="flex items-center justify-between text-[10px] mb-0.5 font-bold">
+                    <span className="flex items-center gap-1 text-slate-800">
+                      <span>{cat.icon}</span>
+                      <span>{cat.title}</span>
+                    </span>
+                    <span className="font-mono text-slate-900" style={{ color: cat.color }}>
+                      {cat.score}%
+                    </span>
+                  </div>
+                  <div className="w-full h-1 bg-slate-200 rounded-full overflow-hidden mb-1">
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${cat.score}%`, backgroundColor: cat.color }}
+                    />
+                  </div>
+                  <p className="text-[9.5px] text-slate-600 leading-tight font-medium break-keep">
+                    {cat.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Tag Sticker & Watermark */}
+          <div className="flex flex-col items-center gap-1 pt-1 text-center">
+            <div className="w-full py-1.5 px-3 rounded-xl bg-rose-500/20 border border-rose-500/30 text-[11px] font-extrabold text-rose-200 truncate">
+              🏷️ @{getMemberNickname(m2)} 우리 사주 조합 점수 실시간 확인 ✨ ({pairScore}점)
+            </div>
+            <div className="flex items-center justify-between w-full text-[9.5px] text-slate-400 px-1 pt-0.5">
+              <span>사주·자미두수·MBTI 융합 1:1 케미</span>
+              <span className="font-mono">inyeons.com</span>
+            </div>
           </div>
         </div>
 
-        {/* Status Toast */}
-        {copiedText && (
-          <div className="w-full p-3 rounded-xl bg-emerald-500/20 border border-emerald-400 text-emerald-200 text-xs font-semibold text-center animate-fade-in flex items-center justify-center gap-1.5">
-            <Check className="w-4 h-4 text-emerald-400" />
-            <span>{copiedText}</span>
-          </div>
-        )}
-
-        {/* Action Button: Download & Copy */}
-        <button
-          type="button"
-          onClick={handleDownload}
-          disabled={isCapturing}
-          className="w-full py-3.5 px-4 bg-gradient-to-r from-[#f43f5e] via-[#e11d48] to-[#ec4899] hover:opacity-95 text-white font-bold text-sm rounded-2xl shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98 disabled:opacity-50"
-        >
-          {isCapturing ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
+        {/* Action Controls */}
+        <div className="w-full mt-4 space-y-2">
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={isCapturing}
+            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:opacity-95 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-rose-500/25 cursor-pointer transition-all active:scale-98 disabled:opacity-50"
+          >
             <Download className="w-4 h-4" />
-          )}
-          <span>{isCapturing ? "포스터 이미지 생성 중..." : "📸 인스타 스토리 포스터 저장하기"}</span>
-        </button>
+            <span>{isCapturing ? "포스터 고화질 생성 중..." : "📸 인스타 스토리 포스터 저장하기"}</span>
+          </button>
 
-        {/* Mobile in-app guide if needed */}
+          <button
+            type="button"
+            onClick={handleCopyTag}
+            className="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-rose-400" />
+            <span>{copiedText || `@${getMemberNickname(m2)} 태그 문구 복사하기`}</span>
+          </button>
+        </div>
+
+        {/* Mobile in-app long press popup if direct download is blocked */}
         {showLongPressGuide && capturedImageUrl && (
-          <div className="w-full p-4 rounded-2xl bg-white/10 border border-white/20 text-center space-y-2">
-            <p className="text-xs text-white/90 font-bold">
-              👇 아래 이미지를 길게 꾹 눌러 '사진 저장'을 선택해주세요!
-            </p>
-            <img
-              src={capturedImageUrl}
-              alt="Story Preview"
-              className="w-40 mx-auto rounded-xl shadow-lg border border-white/30"
-            />
+          <div className="fixed inset-0 z-60 bg-black/90 flex flex-col items-center justify-center p-4">
+            <div className="bg-[#141b29] border border-white/20 rounded-3xl p-5 max-w-sm w-full text-center space-y-4 text-white">
+              <p className="text-sm font-bold text-rose-300">이미지를 길게 눌러 사진첩에 저장하세요</p>
+              <img
+                src={capturedImageUrl}
+                alt="1:1 스토리 포스터"
+                className="max-h-[60vh] mx-auto rounded-2xl shadow-2xl border border-white/10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowLongPressGuide(false)}
+                className="w-full py-2.5 bg-white/15 hover:bg-white/25 rounded-xl text-xs font-bold"
+              >
+                닫기
+              </button>
+            </div>
           </div>
         )}
       </div>
