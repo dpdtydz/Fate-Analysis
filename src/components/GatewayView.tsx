@@ -137,8 +137,8 @@ export default function GatewayView() {
             </span>
             <div className="relative aspect-[800/460]">
               <img
-                src="/feed_promo_2_couple.jpg"
-                alt=""
+                src="/gateway_snap_animals.jpg"
+                alt="1:1 인연 궁합 스냅 수호동물"
                 aria-hidden="true"
                 className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
               />
