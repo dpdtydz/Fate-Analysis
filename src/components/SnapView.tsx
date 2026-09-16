@@ -41,7 +41,7 @@ import { generateDynamicPairCompatibility } from "../utils/pairChemistry";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import ZodiacAvatar from "./ZodiacAvatar";
 import SajuForm from "./SajuForm";
-import GroupStoryModal from "./GroupStoryModal";
+import SnapStoryModal from "./SnapStoryModal";
 
 interface SnapViewProps {
   code?: string;
@@ -125,6 +125,40 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     }
     return [];
   }, [snapData]);
+
+  // Pre-calculate pair scores for each partner in the shelf
+  const partnersWithScores = useMemo(() => {
+    if (!snapData?.creator || partnersList.length === 0) return [];
+    return partnersList.map((partner) => {
+      try {
+        const comp = generateDynamicPairCompatibility(snapData.creator, partner);
+        const score = comp?.totalScore ?? 80;
+        const grade = score >= 90 ? "S+" : score >= 80 ? "S" : score >= 70 ? "A" : score >= 60 ? "B" : "C";
+        return { partner, score, grade };
+      } catch {
+        return { partner, score: 80, grade: "S" };
+      }
+    });
+  }, [snapData?.creator, partnersList]);
+
+  // Current active partner index
+  const activePartnerIndex = useMemo(() => {
+    if (!selectedPartnerId || partnersList.length === 0) return 0;
+    const idx = partnersList.findIndex((p) => p.id === selectedPartnerId);
+    return idx >= 0 ? idx : 0;
+  }, [partnersList, selectedPartnerId]);
+
+  const handlePrevPartner = () => {
+    if (partnersList.length <= 1) return;
+    const prevIdx = (activePartnerIndex - 1 + partnersList.length) % partnersList.length;
+    setSelectedPartnerId(partnersList[prevIdx].id);
+  };
+
+  const handleNextPartner = () => {
+    if (partnersList.length <= 1) return;
+    const nextIdx = (activePartnerIndex + 1) % partnersList.length;
+    setSelectedPartnerId(partnersList[nextIdx].id);
+  };
 
   // If host and no partner selected, select first partner
   useEffect(() => {
@@ -979,103 +1013,98 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
           </div>
         </div>
 
-        {/* 🌟 HOST ONLY: Multi-Partner Switcher (Exactly matches user screenshot!) */}
-        {isHost && (
-          <div className="bg-surface border border-line rounded-2xl p-4 sm:p-5 space-y-4 shadow-xs">
-            {/* Top 2 Cards: [기준 (나)] ↔ [친구 (상대)] */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-3">
-              {/* Creator (Me) */}
-              <div className="p-3 bg-sunken rounded-xl flex items-center gap-2.5 border border-line/50">
-                <div className="relative shrink-0">
-                  <ZodiacAvatar member={m1} size={38} fallbackEmoji={m1.character_emoji} />
-                  <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded bg-seal text-white text-[9px] font-bold">
-                    ME
+        {/* 🌟 HOST ONLY: Modern & Breathable Partner Selector Bar */}
+        {isHost && partnersWithScores.length > 1 && (
+          <div className="bg-surface/90 backdrop-blur-xs border border-line rounded-2xl p-3.5 shadow-xs space-y-2.5">
+            <div className="flex items-center justify-between px-1">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-seal animate-pulse" />
+                <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                  궁합 볼 친구 선택
+                  <span className="px-1.5 py-0.5 rounded-full bg-seal/10 text-seal font-mono text-[11px] font-extrabold">
+                    {partnersWithScores.length}명 참여
                   </span>
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] text-ink-faint block">기준 (나)</span>
-                  <p className="text-xs sm:text-sm font-bold text-ink truncate">{m1.nickname}</p>
-                </div>
+                </span>
               </div>
-
-              {/* Center Swap Arrow */}
-              <div className="w-8 h-8 rounded-full bg-surface border border-line flex items-center justify-center text-ink-faint shadow-xs shrink-0">
-                <ArrowRightLeft className="w-4 h-4" />
-              </div>
-
-              {/* Target (Friend) */}
-              <div className="p-3 bg-sunken rounded-xl flex items-center gap-2.5 border border-seal/30 bg-seal/5">
-                <div className="relative shrink-0">
-                  <ZodiacAvatar member={m2} size={38} fallbackEmoji={m2.character_emoji} />
-                  <span className="absolute -bottom-1 -right-1 px-1 py-0.2 rounded bg-wood text-white text-[9px] font-bold">
-                    YOU
-                  </span>
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] text-seal font-bold block">친구 (상대)</span>
-                  <p className="text-xs sm:text-sm font-bold text-ink truncate">{m2.nickname}</p>
-                </div>
-              </div>
+              <span className="text-[11px] text-ink-faint hidden sm:inline">
+                원하는 친구를 터치하면 궁합이 바로 전환됩니다
+              </span>
             </div>
 
-            {/* Friend Selection Chips Bar */}
-            <div className="space-y-2 pt-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-ink flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-seal" />
-                  <span>케미를 볼 친구를 선택하세요</span>
-                </span>
-                <span className="text-ink-faint text-[11px] font-medium">
-                  참여 {partnersList.length}명
-                </span>
-              </div>
+            {/* Horizontal Friend Avatar Carousel */}
+            <div
+              ref={chipScrollRef}
+              className="flex items-center gap-2.5 overflow-x-auto pb-1 pt-0.5 px-0.5 no-scrollbar scroll-smooth"
+            >
+              {partnersWithScores.map(({ partner, score, grade }) => {
+                const isSelected = partner.id === m2.id;
+                const isHighest = partnersWithScores.length > 1 && score === Math.max(...partnersWithScores.map((p) => p.score));
 
-              {/* Horizontal scrollable chips */}
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => chipScrollRef.current?.scrollBy({ left: -140, behavior: "smooth" })}
-                  className="p-1 rounded-lg hover:bg-sunken text-ink-faint hover:text-ink transition-colors shrink-0 cursor-pointer"
-                  aria-label="이전"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-
-                <div 
-                  ref={chipScrollRef}
-                  className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 flex-1"
-                >
-                  {partnersList.map((partner) => {
-                    const isSelected = partner.id === m2.id;
-                    const partnerElement = partner.saju?.daymaster?.element || "오행";
-                    return (
-                      <button
-                        key={partner.id}
-                        type="button"
-                        onClick={() => setSelectedPartnerId(partner.id)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border shrink-0 ${
-                          isSelected
-                            ? "bg-seal text-white border-seal shadow-xs scale-102"
-                            : "bg-sunken text-ink-soft hover:text-ink hover:bg-surface border-line"
+                return (
+                  <button
+                    key={partner.id}
+                    type="button"
+                    onClick={() => setSelectedPartnerId(partner.id)}
+                    className={`group relative flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all cursor-pointer shrink-0 text-left border ${
+                      isSelected
+                        ? "bg-seal/8 border-seal ring-1 ring-seal shadow-xs scale-[1.02]"
+                        : "bg-sunken/60 hover:bg-surface border-line hover:border-seal/40 opacity-80 hover:opacity-100"
+                    }`}
+                  >
+                    {/* Mini Avatar */}
+                    <div className="relative shrink-0">
+                      <div
+                        className={`w-9 h-9 rounded-full flex items-center justify-center text-base transition-transform ${
+                          isSelected ? "scale-105" : "group-hover:scale-105"
                         }`}
+                        style={{ backgroundColor: partner.character_color ? `${partner.character_color}25` : "#F3F4F6" }}
                       >
-                        <span className="text-sm">{partner.character_emoji}</span>
-                        <span>{partner.nickname}</span>
-                        <span className="text-[10px] opacity-80">({partnerElement})</span>
-                      </button>
-                    );
-                  })}
-                </div>
+                        <span>{partner.character_emoji || "✨"}</span>
+                      </div>
+                      {isHighest && (
+                        <span
+                          className="absolute -top-1.5 -right-1 text-[10px] leading-none drop-shadow-xs"
+                          title="최고 케미 점수"
+                        >
+                          👑
+                        </span>
+                      )}
+                    </div>
 
-                <button
-                  type="button"
-                  onClick={() => chipScrollRef.current?.scrollBy({ left: 140, behavior: "smooth" })}
-                  className="p-1 rounded-lg hover:bg-sunken text-ink-faint hover:text-ink transition-colors shrink-0 cursor-pointer"
-                  aria-label="다음"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+                    {/* Name & Chem Score */}
+                    <div className="min-w-0 pr-1">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`text-xs font-bold truncate max-w-[80px] sm:max-w-[100px] ${
+                            isSelected ? "text-seal" : "text-ink group-hover:text-seal"
+                          }`}
+                        >
+                          {partner.nickname}
+                        </span>
+                        {isSelected && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-seal shrink-0" />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className="text-[10px] font-extrabold font-mono text-ink-soft">
+                          {score}점
+                        </span>
+                        <span
+                          className={`text-[9px] font-bold px-1 py-0.2 rounded ${
+                            score >= 85
+                              ? "bg-rose-100 text-rose-700"
+                              : score >= 75
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-slate-100 text-slate-700"
+                          }`}
+                        >
+                          {grade}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -1103,106 +1132,133 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
           </div>
         )}
 
-        {/* Hero Head-to-Head Card */}
-        <div className="bg-gradient-to-b from-surface via-surface to-sunken border border-line rounded-3xl p-6 sm:p-8 text-center space-y-6 shadow-sm relative overflow-hidden">
-          {/* Subtle background decoration */}
-          <div className="absolute top-0 right-0 w-36 h-36 bg-seal/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-36 h-36 bg-wood/5 rounded-full blur-3xl pointer-events-none" />
+        {/* 🌟 Hero Head-to-Head Stage (Spacious & Breathable with Prev/Next quick switcher) */}
+        <div className="relative group">
+          {/* Left / Right Quick Navigation Buttons (Host with 2+ partners) */}
+          {isHost && partnersList.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrevPartner}
+                className="absolute -left-3 sm:-left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-surface border border-line shadow-lg text-ink hover:text-seal flex items-center justify-center transition-all cursor-pointer hover:scale-110 active:scale-95"
+                title="이전 친구 궁합"
+                aria-label="이전 친구"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextPartner}
+                className="absolute -right-3 sm:-right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-surface border border-line shadow-lg text-ink hover:text-seal flex items-center justify-center transition-all cursor-pointer hover:scale-110 active:scale-95"
+                title="다음 친구 궁합"
+                aria-label="다음 친구"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </>
+          )}
 
-          {/* Versus Avatars */}
-          <div className="flex items-center justify-center gap-4 sm:gap-8">
-            {/* Member 1 (Creator) */}
-            <div className="flex flex-col items-center space-y-2 min-w-[90px]">
-              <div className="relative">
-                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-surface border-2 border-seal/30 shadow-md p-1.5 flex items-center justify-center">
-                  <ZodiacAvatar member={m1} size={64} fallbackEmoji={m1.character_emoji} />
-                </div>
-                <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-seal text-white text-[10px] font-bold">
-                  초대자
-                </span>
-              </div>
-              <div className="space-y-0.5">
-                <p className="text-xs sm:text-sm font-bold text-ink truncate max-w-[110px]">
-                  {m1.nickname}
-                </p>
-                <p className="text-[11px] text-ink-faint">
-                  {m1.character_animal} · {m1.saju.daymaster.gan}{m1.saju.daymaster.element}
-                </p>
-                {m1.mbti && (
-                  <span className="inline-block px-1.5 py-0.2 bg-sunken rounded text-[10px] font-medium text-ink-soft">
-                    {m1.mbti}
+          <div className="bg-gradient-to-b from-surface via-surface to-sunken/60 border border-line rounded-3xl p-6 sm:p-9 text-center space-y-7 shadow-sm relative overflow-hidden">
+            {/* Subtle background decoration */}
+            <div className="absolute top-0 right-0 w-44 h-44 bg-seal/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-44 h-44 bg-wood/5 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Versus Avatars Showcase */}
+            <div className="flex items-center justify-center gap-4 sm:gap-10">
+              {/* Member 1 (Creator) */}
+              <div className="flex flex-col items-center space-y-2.5 min-w-[95px] sm:min-w-[110px]">
+                <div className="relative">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-surface border-2 border-seal/30 shadow-md p-2 flex items-center justify-center">
+                    <ZodiacAvatar member={m1} size={76} fallbackEmoji={m1.character_emoji} />
+                  </div>
+                  <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-seal text-white text-[10px] font-bold shadow-xs">
+                    나 (호스트)
                   </span>
-                )}
-              </div>
-            </div>
-
-            {/* Chemistry Badge in the middle */}
-            <div className="flex flex-col items-center justify-center space-y-1 z-10">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-surface border border-line shadow-lg flex flex-col items-center justify-center">
-                <span className="text-[10px] sm:text-xs font-semibold text-ink-faint">인연 지수</span>
-                <span className="text-xl sm:text-2xl font-bold font-mono text-seal leading-none">
-                  {pairScore}
-                </span>
-                <span className="text-[10px] font-extrabold text-wood mt-0.5">
-                  등급 {pairGrade}
-                </span>
-              </div>
-            </div>
-
-            {/* Member 2 (Active Partner) */}
-            <div className="flex flex-col items-center space-y-2 min-w-[90px]">
-              <div className="relative">
-                <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl bg-surface border-2 border-wood/30 shadow-md p-1.5 flex items-center justify-center">
-                  <ZodiacAvatar member={m2} size={64} fallbackEmoji={m2.character_emoji} />
                 </div>
-                <span className="absolute -bottom-1 -right-1 px-1.5 py-0.5 rounded-md bg-wood text-white text-[10px] font-bold">
-                  친구
-                </span>
+                <div className="space-y-0.5">
+                  <p className="text-sm sm:text-base font-bold text-ink truncate max-w-[120px]">
+                    {m1.nickname}
+                  </p>
+                  <p className="text-xs text-ink-faint font-mono">
+                    {m1.character_animal} · {m1.saju.daymaster.gan}{m1.saju.daymaster.element}
+                  </p>
+                  {m1.mbti && (
+                    <span className="inline-block px-2 py-0.5 bg-sunken rounded-md text-[10px] font-semibold text-ink-soft">
+                      {m1.mbti}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="space-y-0.5">
-                <p className="text-xs sm:text-sm font-bold text-ink truncate max-w-[110px]">
-                  {m2.nickname}
-                </p>
-                <p className="text-[11px] text-ink-faint">
-                  {m2.character_animal} · {m2.saju.daymaster.gan}{m2.saju.daymaster.element}
-                </p>
-                {m2.mbti && (
-                  <span className="inline-block px-1.5 py-0.2 bg-sunken rounded text-[10px] font-medium text-ink-soft">
-                    {m2.mbti}
+
+              {/* Central Seal Badge with Destiny Thread */}
+              <div className="flex flex-col items-center justify-center space-y-1 z-10 shrink-0">
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-surface border-2 border-seal/30 shadow-xl flex flex-col items-center justify-center relative">
+                  <span className="text-[10px] sm:text-xs font-bold text-ink-faint tracking-tight">인연 지수</span>
+                  <span className="text-2xl sm:text-3xl font-black font-mono text-seal leading-none my-0.5">
+                    {pairScore}
                   </span>
-                )}
+                  <span className="text-[10px] sm:text-xs font-extrabold text-wood">
+                    등급 {pairGrade}
+                  </span>
+                </div>
+                <div className="w-16 sm:w-20 border-t-2 border-dashed border-seal/40 my-1 animate-pulse" />
+              </div>
+
+              {/* Member 2 (Active Partner) */}
+              <div className="flex flex-col items-center space-y-2.5 min-w-[95px] sm:min-w-[110px]">
+                <div className="relative">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-surface border-2 border-wood/30 shadow-md p-2 flex items-center justify-center">
+                    <ZodiacAvatar member={m2} size={76} fallbackEmoji={m2.character_emoji} />
+                  </div>
+                  <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-wood text-white text-[10px] font-bold shadow-xs">
+                    상대방
+                  </span>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-sm sm:text-base font-bold text-ink truncate max-w-[120px]">
+                    {m2.nickname}
+                  </p>
+                  <p className="text-xs text-ink-faint font-mono">
+                    {m2.character_animal} · {m2.saju.daymaster.gan}{m2.saju.daymaster.element}
+                  </p>
+                  {m2.mbti && (
+                    <span className="inline-block px-2 py-0.5 bg-sunken rounded-md text-[10px] font-semibold text-ink-soft">
+                      {m2.mbti}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Relation Title & One Liner */}
-          <div className="space-y-2 max-w-lg mx-auto pt-2">
-            <h2 className="font-serif text-lg sm:text-xl font-bold text-ink">
-              {analysis?.label || `${m1.nickname}님과 ${m2.nickname}님의 인연`}
-            </h2>
-            <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
-              {analysis?.description || "서로에게 긍정적인 에너지를 불어넣으며 함께 성장해 나가는 인연입니다."}
-            </p>
-          </div>
+            {/* Relation Title & One Liner */}
+            <div className="space-y-2 max-w-md mx-auto pt-1">
+              <h2 className="font-serif text-xl sm:text-2xl font-bold text-ink tracking-tight">
+                {analysis?.label || `${m1.nickname}님과 ${m2.nickname}님의 인연`}
+              </h2>
+              <p className="text-xs sm:text-sm text-ink-soft leading-relaxed">
+                {analysis?.description || "서로에게 긍정적인 에너지를 불어넣으며 함께 성장해 나가는 인연입니다."}
+              </p>
+            </div>
 
-          {/* Viral Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setIsStoryModalOpen(true)}
-              className="px-4 py-2.5 bg-gradient-to-r from-[#f43f5e] to-[#ec4899] hover:opacity-95 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>📸 인스타 스토리로 공유하기</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleKakaoShare}
-              className="px-4 py-2.5 bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] text-xs sm:text-sm font-bold rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Share2 className="w-4 h-4" />
-              <span>결과 자랑하기 (카톡)</span>
-            </button>
+            {/* Viral Action Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsStoryModalOpen(true)}
+                className="px-5 py-2.5 bg-gradient-to-r from-[#f43f5e] via-[#e11d48] to-[#ec4899] hover:opacity-95 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-sm flex items-center gap-2 transition-all cursor-pointer hover:shadow-md active:scale-98"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>📸 1:1 인스타 스토리 공유하기</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleKakaoShare}
+                className="px-5 py-2.5 bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 transition-colors cursor-pointer active:scale-98"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>결과 자랑하기 (카톡)</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1443,17 +1499,17 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
           </div>
         )}
 
-        {/* Instagram Story Modal (Dedicated 1:1 format) */}
+        {/* 🌟 Dedicated 1:1 Instagram Story Modal (Clean, No Group Clutter) */}
         {isStoryModalOpen && (
-          <GroupStoryModal
+          <SnapStoryModal
             isOpen={isStoryModalOpen}
             onClose={() => setIsStoryModalOpen(false)}
-            roomTitle={`${m1.nickname} & ${m2.nickname} 1:1 인연`}
-            allMembers={[m1, m2]}
-            groupScore={pairScore}
-            initialPair={{ m1, m2 }}
-            defaultTab="pair"
-            currentMember={m1}
+            m1={m1}
+            m2={m2}
+            pairScore={pairScore}
+            pairGrade={pairGrade}
+            pairLabel={analysis?.label}
+            pairDesc={analysis?.description}
           />
         )}
       </div>
