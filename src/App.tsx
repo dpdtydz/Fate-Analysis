@@ -138,8 +138,51 @@ export default function App() {
       });
     };
     window.addEventListener("hashchange", handleHashChange);
+
+    // 3. Periodic Background Check for New App Deployments (Auto Cache Invalidation)
+    const checkVersion = async () => {
+      try {
+        const res = await fetch("/index.html?check=" + Date.now(), {
+          cache: "no-store",
+          headers: { Pragma: "no-cache" }
+        });
+        if (res.ok) {
+          const text = await res.text();
+          // Extract the main JS bundle hash from index.html (e.g. index-BgwFnHaE.css or main script)
+          const scriptMatch = text.match(/\/assets\/index-[A-Za-z0-9_-]+\.js/);
+          const currentScript = scriptMatch ? scriptMatch[0] : "";
+          if (currentScript) {
+            const storedScript = localStorage.getItem("inyeon_app_script_hash");
+            if (storedScript && storedScript !== currentScript) {
+              console.log("[Auto-Update] New version detected! Purging old caches and refreshing...");
+              localStorage.setItem("inyeon_app_script_hash", currentScript);
+              if ("caches" in window) {
+                const keys = await caches.keys();
+                await Promise.all(keys.map((k) => caches.delete(k)));
+              }
+              window.location.reload();
+            } else if (!storedScript) {
+              localStorage.setItem("inyeon_app_script_hash", currentScript);
+            }
+          }
+        }
+      } catch (err) {
+        // Silently skip if offline
+      }
+    };
+
+    // Check version on initial mount and when user returns to the tab
+    checkVersion();
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkVersion();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 

@@ -1606,9 +1606,29 @@ export default function GroupView({ code }: GroupViewProps) {
                 {analysis.group.description}
               </p>
 
-              <div className="p-4 bg-sunken rounded-xl text-left text-xs text-ink-soft leading-relaxed">
-                <span className="font-semibold text-ink block mb-1">화합을 높이는 팁</span>
-                {analysis.group.synergy_tips}
+              <div className="p-4 bg-sunken rounded-xl text-left text-xs text-ink-soft leading-relaxed space-y-2">
+                <span className="font-semibold text-ink block">화합을 높이는 팁</span>
+                {(() => {
+                  const tips = analysis.group.synergy_tips || "";
+                  // Check if tips contain DO and DON'T on single line without line break
+                  if (tips.includes("DON'T:") && !tips.includes("\nDON'T:") && !tips.includes("\n\nDON'T:")) {
+                    const parts = tips.split(/(?=DON'T:)/);
+                    return (
+                      <div className="space-y-2">
+                        {parts.map((part, idx) => (
+                          <p key={idx} className="whitespace-pre-line leading-relaxed">
+                            {part.trim()}
+                          </p>
+                        ))}
+                      </div>
+                    );
+                  }
+                  return (
+                    <p className="whitespace-pre-line leading-relaxed">
+                      {tips}
+                    </p>
+                  );
+                })()}
               </div>
             </div>
 

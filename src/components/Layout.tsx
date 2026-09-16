@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Home, ChevronLeft, LogOut, UserX, X, CheckCircle2, Settings, ShieldCheck, Clock, FolderArchive } from "lucide-react";
+import { Home, ChevronLeft, LogOut, UserX, X, CheckCircle2, Settings, ShieldCheck, Clock, FolderArchive, RefreshCw } from "lucide-react";
 import { auth, getUserMembershipInfo, signOutUser, deleteUserAccount, isAdminUser } from "../lib/firebase";
 import AuthModal from "./AuthModal";
 import UpgradeToSocialModal from "./UpgradeToSocialModal";
@@ -139,6 +139,29 @@ export default function Layout({
             >
               <LogOut className="w-4 h-4 text-ink-faint" />
               <span>로그아웃</span>
+            </button>
+            <button
+              type="button"
+              onClick={async () => {
+                setIsSettingsOpen(false);
+                try {
+                  if ('caches' in window) {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map((k) => caches.delete(k)));
+                  }
+                  if ('serviceWorker' in navigator) {
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(regs.map((r) => r.unregister()));
+                  }
+                } catch (e) {
+                  console.debug('Cache purge error:', e);
+                }
+                window.location.reload();
+              }}
+              className="w-full min-h-[44px] px-4 py-2 text-left text-xs text-ink-soft hover:text-ink hover:bg-sunken flex items-center gap-2.5 transition-colors cursor-pointer"
+            >
+              <RefreshCw className="w-4 h-4 text-ink-faint" />
+              <span>최신 버전으로 새로고침</span>
             </button>
             <div className="h-px bg-line my-1" />
             <button
