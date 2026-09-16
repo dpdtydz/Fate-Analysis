@@ -14,3 +14,4 @@ assets/zodiac/refs/
 scripts/__pycache__/
 playwright-report/
 test-results/
+.data/

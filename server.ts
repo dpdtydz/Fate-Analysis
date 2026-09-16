@@ -6,6 +6,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, doc, deleteDoc, getDoc, setDoc } from "firebase/firestore";
+import { getAuth, signInAnonymously } from "firebase/auth";
 import rateLimit from "express-rate-limit";
 import { PILLAR_PROFILES } from "./src/utils/sajuSynthesis";
 
@@ -23,6 +24,16 @@ const firebaseConfig = {
 
 const serverFbApp = initializeApp(firebaseConfig, "inyeons-server-admin");
 const serverDb = getFirestore(serverFbApp, "ai-studio-87874d9b-de7d-42c6-9ce0-5a2d8b3fb609");
+const serverAuth = getAuth(serverFbApp);
+
+// Automatically authenticate server session to prevent Firestore unauthenticated write rejections
+signInAnonymously(serverAuth)
+  .then(() => {
+    console.log("[SERVER FIREBASE] Anonymous server authentication established successfully.");
+  })
+  .catch((authErr) => {
+    console.warn("[SERVER FIREBASE] Anonymous auth warning:", authErr.message || authErr);
+  });
 
 // Middleware to strictly verify caller's Firebase ID Token and enforce 'lhs41977@gmail.com' master admin role
 async function checkAdmin(req: any, res: any, next: any) {
@@ -326,9 +337,50 @@ async function startServer() {
   });
 
   // =========================================================================
-  // 1:1 Snap (인연 스냅) Server-side Synchronization APIs
+  // 1:1 Snap (인연 스냅) Server-side Synchronization & Disk Persistence APIs
   // =========================================================================
+  const DATA_DIR = path.resolve(process.cwd(), ".data");
+  const SNAP_FILE_PATH = path.join(DATA_DIR, "pair_snaps.json");
+
+  // Ensure persistent data directory exists
+  if (!fs.existsSync(DATA_DIR)) {
+    try {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    } catch (dirErr) {
+      console.warn("[SERVER SNAP PERSISTENCE] Directory creation warning:", dirErr);
+    }
+  }
+
   const pairSnapsCache = new Map<string, any>();
+
+  // Hydrate snaps cache from disk on server startup
+  try {
+    if (fs.existsSync(SNAP_FILE_PATH)) {
+      const rawData = fs.readFileSync(SNAP_FILE_PATH, "utf-8");
+      const parsedSnaps = JSON.parse(rawData);
+      for (const [key, value] of Object.entries(parsedSnaps)) {
+        pairSnapsCache.set(key.toUpperCase().trim(), value);
+      }
+      console.log(`[SERVER SNAP PERSISTENCE] Restored ${pairSnapsCache.size} snaps from disk.`);
+    }
+  } catch (loadErr) {
+    console.warn("[SERVER SNAP PERSISTENCE] Hydration warning:", loadErr);
+  }
+
+  // Helper to persist in-memory cache to disk reliably
+  function persistSnapsToDisk() {
+    try {
+      const dump: Record<string, any> = {};
+      for (const [k, v] of pairSnapsCache.entries()) {
+        dump[k] = v;
+      }
+      fs.writeFile(SNAP_FILE_PATH, JSON.stringify(dump, null, 2), "utf-8", (wErr) => {
+        if (wErr) console.warn("[SERVER SNAP PERSISTENCE] Disk write warning:", wErr);
+      });
+    } catch (e) {
+      console.warn("[SERVER SNAP PERSISTENCE] Write failure:", e);
+    }
+  }
 
   // 1. Create or save Snap
   app.post("/api/snap", async (req, res) => {
@@ -339,6 +391,7 @@ async function startServer() {
       }
       const code = String(snap.code).toUpperCase().trim();
       pairSnapsCache.set(code, snap);
+      persistSnapsToDisk();
 
       // Async persist to Firestore
       try {
@@ -371,6 +424,7 @@ async function startServer() {
         if (docSnap.exists()) {
           const data = docSnap.data();
           pairSnapsCache.set(code, data);
+          persistSnapsToDisk();
           return res.json(data);
         }
       } catch (fsErr) {
@@ -425,6 +479,7 @@ async function startServer() {
       };
 
       pairSnapsCache.set(code, updatedSnap);
+      persistSnapsToDisk();
 
       // Async update in Firestore
       try {
@@ -1862,123 +1917,7 @@ ${FLUENT_KOREAN_SYSTEM_GUIDELINE}
     }
   });
 
-  // 1:1 Fate Chemistry Snap API (Guarantees 100% sync even in incognito mode & cross-devices)
-  const serverSnapMemory = new Map<string, any>();
 
-  // 1) Get Snap
-  app.get("/api/snap/:code", async (req, res) => {
-    try {
-      const code = req.params.code.toUpperCase().trim();
-      // First check in-memory cache
-      if (serverSnapMemory.has(code)) {
-        return res.json(serverSnapMemory.get(code));
-      }
-
-      // Try server Firestore
-      const snapDoc = await doc(serverDb, "pair_snaps", code);
-      const snapSnap = await getDocs(collection(serverDb, "pair_snaps"));
-      // Or direct doc read
-      try {
-        const docRef = doc(serverDb, "pair_snaps", code);
-        const { getDoc } = await import("firebase/firestore");
-        const ds = await getDoc(docRef);
-        if (ds.exists()) {
-          const data = ds.data();
-          serverSnapMemory.set(code, data);
-          return res.json(data);
-        }
-      } catch (e) {
-        console.warn("Server firestore read error:", e);
-      }
-
-      if (serverSnapMemory.has(code)) {
-        return res.json(serverSnapMemory.get(code));
-      }
-
-      return res.status(404).json({ error: "존재하지 않거나 만료된 1:1 비밀 인연 초대장입니다." });
-    } catch (err: any) {
-      console.error("Snap get error:", err);
-      res.status(500).json({ error: "초대장을 불러오는 중 오류가 발생했습니다." });
-    }
-  });
-
-  // 2) Create Snap
-  app.post("/api/snap", async (req, res) => {
-    try {
-      const snapData = req.body;
-      if (!snapData || !snapData.code) {
-        return res.status(400).json({ error: "유효하지 않은 초대장 데이터입니다." });
-      }
-      const code = snapData.code.toUpperCase().trim();
-      serverSnapMemory.set(code, snapData);
-
-      try {
-        const { setDoc } = await import("firebase/firestore");
-        const snapRef = doc(serverDb, "pair_snaps", code);
-        await setDoc(snapRef, snapData);
-      } catch (fsErr) {
-        console.warn("Server Firestore create snap warning:", fsErr);
-      }
-
-      return res.json({ success: true, snap: snapData });
-    } catch (err: any) {
-      console.error("Snap create error:", err);
-      res.status(500).json({ error: "초대장 생성 중 오류가 발생했습니다." });
-    }
-  });
-
-  // 3) Join Partner to Snap
-  app.post("/api/snap/:code/join", async (req, res) => {
-    try {
-      const code = req.params.code.toUpperCase().trim();
-      const { partner } = req.body;
-      if (!partner) {
-        return res.status(400).json({ error: "파트너 정보가 누락되었습니다." });
-      }
-
-      let existing = serverSnapMemory.get(code);
-      if (!existing) {
-        try {
-          const { getDoc } = await import("firebase/firestore");
-          const snapRef = doc(serverDb, "pair_snaps", code);
-          const ds = await getDoc(snapRef);
-          if (ds.exists()) {
-            existing = ds.data();
-          }
-        } catch (e) {}
-      }
-
-      if (!existing) {
-        return res.status(404).json({ error: "초대장을 찾을 수 없습니다." });
-      }
-
-      const existingPartners = existing.partners || (existing.partner ? [existing.partner] : []);
-      const filtered = existingPartners.filter((p: any) => p.nickname.trim().toLowerCase() !== partner.nickname.trim().toLowerCase());
-      const updatedPartners = [...filtered, partner];
-
-      const updatedSnap = {
-        ...existing,
-        partner,
-        partners: updatedPartners,
-        updated_at: new Date().toISOString()
-      };
-
-      serverSnapMemory.set(code, updatedSnap);
-
-      try {
-        const { setDoc } = await import("firebase/firestore");
-        const snapRef = doc(serverDb, "pair_snaps", code);
-        await setDoc(snapRef, updatedSnap, { merge: true });
-      } catch (fsErr) {
-        console.warn("Server Firestore join snap warning:", fsErr);
-      }
-
-      return res.json({ success: true, snap: updatedSnap });
-    } catch (err: any) {
-      console.error("Snap join error:", err);
-      res.status(500).json({ error: "궁합 등록 중 오류가 발생했습니다." });
-    }
-  });
 
   // Dynamic OpenGraph Card Image Generator (SVG 1200x630) for KakaoTalk & Social Sharing
   app.get("/api/og", (req, res) => {
