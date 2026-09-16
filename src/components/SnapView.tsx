@@ -1423,23 +1423,15 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
               </p>
             </div>
 
-            {/* Viral Action Buttons */}
-            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {/* Unified Brag / Share Button */}
+            <div className="flex items-center justify-center pt-2">
               <button
                 type="button"
                 onClick={() => setIsStoryModalOpen(true)}
-                className="px-5 py-2.5 bg-gradient-to-r from-[#f43f5e] via-[#e11d48] to-[#ec4899] hover:opacity-95 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-sm flex items-center gap-2 transition-all cursor-pointer hover:shadow-md active:scale-98"
+                className="w-full sm:w-auto px-7 py-3 bg-gradient-to-r from-[#f43f5e] via-[#e11d48] to-[#ec4899] hover:opacity-95 text-white text-sm font-bold rounded-2xl shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer hover:shadow-md active:scale-98"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>📸 1:1 인스타 스토리 공유하기</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleKakaoShare}
-                className="px-5 py-2.5 bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 transition-colors cursor-pointer active:scale-98"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>결과 자랑하기 (카톡)</span>
+                <span>✨ 자랑하기</span>
               </button>
             </div>
           </div>

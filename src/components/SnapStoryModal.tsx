@@ -222,7 +222,7 @@ export default function SnapStoryModal({
     const text = `@${getMemberNickname(m2)} 나와의 사주 궁합 점수는 ${pairScore}점! (${pair6Categories.title}) #인연사주`;
     try {
       await navigator.clipboard.writeText(text);
-      setCopiedText("복사완료! 인스타 스토리에 붙여넣기 해보세요.");
+      setCopiedText("태그 문구가 복사되었습니다! 원하는 곳에 붙여넣어 보세요.");
       setTimeout(() => setCopiedText(""), 3000);
     } catch {
       // ignore
@@ -236,7 +236,7 @@ export default function SnapStoryModal({
         <div className="flex items-center justify-between w-full mb-3 text-white">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-            <h3 className="font-serif text-base sm:text-lg font-bold">1:1 인스타 스토리 전용 포스터</h3>
+            <h3 className="font-serif text-base sm:text-lg font-bold">1:1 케미 자랑하기 카드</h3>
           </div>
           <button
             type="button"
@@ -383,7 +383,7 @@ export default function SnapStoryModal({
             className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-rose-500 via-pink-500 to-rose-600 hover:opacity-95 text-white font-black text-sm flex items-center justify-center gap-2 shadow-lg shadow-rose-500/25 cursor-pointer transition-all active:scale-98 disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
-            <span>{isCapturing ? "포스터 고화질 생성 중..." : "📸 인스타 스토리 포스터 저장하기"}</span>
+            <span>{isCapturing ? "카드 고화질 생성 중..." : "📸 결과 카드 저장하기"}</span>
           </button>
 
           <button

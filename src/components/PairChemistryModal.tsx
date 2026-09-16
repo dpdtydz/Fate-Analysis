@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Member } from "../types";
-import { X, ShieldCheck, Share2, Check, Sparkles, CheckCircle2, HeartHandshake, Compass, HelpCircle } from "lucide-react";
-import { shareToKakaoOrClipboard } from "../utils/shareHelper";
+import { X, ShieldCheck, Check, Sparkles, CheckCircle2, HeartHandshake, Compass, HelpCircle } from "lucide-react";
 import { logAnalyticsEvent, checkProductUnlock } from "../lib/firebase";
 import { generateDynamicPairCompatibility } from "../utils/pairChemistry";
 import { getPairAsymmetricScores } from "./GroupNetwork";
@@ -174,7 +173,6 @@ export default function PairChemistryModal({
 }: PairChemistryModalProps) {
   const [activeTab, setActiveTab] = useState<"summary" | "ohaeng" | "psychology">("summary");
   const [showScoreTooltip, setShowScoreTooltip] = useState(false);
-  const [shareSuccessMsg, setShareSuccessMsg] = useState("");
   const [unlocked, setUnlocked] = useState<boolean>(() => {
     if (isSecretUnlocked) return true;
     if (typeof window !== "undefined") {
@@ -257,23 +255,6 @@ export default function PairChemistryModal({
   // Case 2: Both members exist -> Calculate & Display 1:1 Chemistry
   const analysis = calculatePairDetail(myMember, targetMember, pair, initialScore);
 
-  const handleShareResult = async () => {
-    const currentUrl = window.location.href;
-    const res = await shareToKakaoOrClipboard({
-      title: `${myMember.nickname}님 & ${targetMember.nickname}님의 1:1 인연 궁합`,
-      badge: analysis.label,
-      score: analysis.totalScore,
-      description: analysis.desc,
-      url: currentUrl,
-    });
-
-    if (res.method === "web_share") {
-      setShareSuccessMsg("공유 창이 열렸습니다.");
-    } else {
-      setShareSuccessMsg("공유 문구와 링크가 클립보드에 복사되었습니다. 카카오톡에 붙여넣어 보세요.");
-    }
-    setTimeout(() => setShareSuccessMsg(""), 3500);
-  };
 
   return (
     <BottomSheet
@@ -340,10 +321,10 @@ export default function PairChemistryModal({
               <span>✨ 둘만의 케미 결과 자랑하기</span>
             </p>
             <p className="text-[11px] text-ink-soft mt-0.5">
-              6대 맞춤 카테고리 인스타 스토리 또는 카톡으로 공유해 보세요.
+              두 사람의 6대 맞춤 케미 결과를 확인하고 자랑해 보세요.
             </p>
           </div>
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="shrink-0">
             {onOpenStoryModal && (
               <button
                 type="button"
@@ -351,29 +332,15 @@ export default function PairChemistryModal({
                   onClose();
                   onOpenStoryModal(myMember, targetMember);
                 }}
-                className="flex-1 sm:flex-initial px-3 py-2 bg-gradient-to-r from-[#f43f5e] to-[#ec4899] hover:opacity-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+                className="px-4 py-2 bg-gradient-to-r from-[#f43f5e] to-[#ec4899] hover:opacity-95 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>📸 인스타 스토리</span>
+                <span>✨ 자랑하기</span>
               </button>
             )}
-            <button
-              type="button"
-              onClick={handleShareResult}
-              className="px-3 py-2 bg-[#FEE500] hover:bg-[#FDD835] text-[#3C1E1E] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>카톡</span>
-            </button>
           </div>
         </div>
 
-        {shareSuccessMsg && (
-          <p className="bg-sunken text-ink p-2.5 rounded-xl text-xs font-medium text-center animate-fade-in flex items-center justify-center gap-1.5">
-            <Check className="w-4 h-4 text-ink-soft" />
-            <span>{shareSuccessMsg}</span>
-          </p>
-        )}
 
         {/* Tab navigation */}
         <div className="flex bg-sunken p-1 rounded-xl text-xs">

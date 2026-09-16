@@ -1557,10 +1557,10 @@ export default function GroupView({ code }: GroupViewProps) {
               <div className="space-y-1">
                 <span className="text-xs font-bold text-ink flex items-center justify-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-                  <span>인스타 스토리 & 모임 케미 카드 공유</span>
+                  <span>모임 케미 결과 자랑하기</span>
                 </span>
                 <p className="text-xs text-ink-soft leading-relaxed">
-                  모임 랭킹 어워즈와 1:1 실생활 케미를 9:16 고화질 스토리 카드로 만들고 인스타·단톡방에 자랑해 보세요.
+                  모임 랭킹 어워즈와 1:1 실생활 케미를 고화질 카드로 만들고 자유롭게 자랑해 보세요.
                 </p>
               </div>
 
@@ -1571,7 +1571,7 @@ export default function GroupView({ code }: GroupViewProps) {
                 className="w-full flex items-center justify-center space-x-2 py-3.5 px-4 bg-gradient-to-r from-[#ff5a36] via-[#f43f5e] to-[#ec4899] hover:opacity-95 text-white text-sm font-bold rounded-xl shadow-md shadow-rose-500/20 transition-all cursor-pointer active:scale-[0.99]"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>인스타 스토리 카드 만들기 (9:16)</span>
+                <span>✨ 결과 자랑하기</span>
               </button>
             </div>
 

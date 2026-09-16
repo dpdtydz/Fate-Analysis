@@ -538,8 +538,8 @@ export default function GroupStoryModal({
 
       setCopiedText(
         isMobile && isInAppBrowser
-          ? "카드를 길게 눌러 사진첩에 저장하세요! 인스타 태그 문구도 복사되었습니다 ✨"
-          : "스토리 이미지 저장 & 태그 복사 완료! 인스타에 공유해 보세요 🎉"
+          ? "카드를 길게 눌러 사진첩에 저장하세요! 태그 문구도 복사되었습니다 ✨"
+          : "결과 카드 저장 & 태그 복사 완료! 원하는 곳에 자유롭게 공유해 보세요 🎉"
       );
       setTimeout(() => setCopiedText(""), 4500);
     } catch (err: any) {
@@ -576,7 +576,7 @@ export default function GroupStoryModal({
         <div className="w-full flex items-center justify-between mb-2.5 px-1 text-white">
           <div className="flex items-center gap-1.5 font-bold text-sm">
             <Sparkles className="w-4 h-4 text-[#ff5a36]" />
-            <span>인스타 스토리 9:16 생성기</span>
+            <span>모임 케미 자랑하기 카드</span>
           </div>
           <button
             type="button"
@@ -1143,14 +1143,14 @@ export default function GroupStoryModal({
             className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#ff5a36] to-[#ec4899] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-[#ff5a36]/30 hover:opacity-95 transition-all cursor-pointer disabled:opacity-50"
           >
             {isCapturing ? (
-              <span>9:16 고화질 스토리 이미지 생성 중...</span>
+              <span>고화질 카드 이미지 생성 중...</span>
             ) : (
               <>
                 <Download className="w-4 h-4" />
                 <span>
                   {activeTab === "pair"
-                    ? `${getMemberNickname(memberB)} 태그하고 스토리 저장하기`
-                    : "스토리 이미지 저장하고 친구 태그하기"}
+                    ? `${getMemberNickname(memberB)} 궁합 결과 카드 저장하기`
+                    : "모임 랭킹 결과 카드 저장하기"}
                 </span>
               </>
             )}

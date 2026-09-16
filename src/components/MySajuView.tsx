@@ -51,7 +51,6 @@ import GoogleAds from "./GoogleAds";
 import UpgradeToSocialModal from "./UpgradeToSocialModal";
 import AuthModal from "./AuthModal";
 import ViralCardModal from "./ViralCardModal";
-import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import { calculateTodayFortune, calculateSaju, getDynamicCharacter } from "../utils/saju";
 import { generatePersonalCoreNarrative } from "../utils/sajuSynthesis";
 import ZodiacAvatar, { zodiacImageSrc } from "./ZodiacAvatar";
@@ -816,28 +815,6 @@ export default function MySajuView() {
 
   const totalOhaeng: number = Math.max(1, Number(Object.values(ohaengCount).reduce((a: number, b: any) => a + Number(b || 0), 0)));
 
-  const handleShareMySaju = async () => {
-    if (!profile) return;
-    const currentUrl = window.location.href;
-    const bestMatches = spec.compatibility?.best?.map(b => `${b.cardName} ${b.score}점`).join(", ") || "";
-    const cautionMatches = spec.compatibility?.caution?.map(c => `${c.cardName} ${c.score}점`).join(", ") || "";
-
-    const fullDesc = `${spec.quote}\n\n잘 맞는 카드: ${bestMatches}\n맞춰가야 할 카드: ${cautionMatches}`;
-
-    const res = await shareToKakaoOrClipboard({
-      title: `[소울 카드] ${profile.nickname}님은 ${spec.colorName}`,
-      badge: `오늘의 일진 ${todayFortune.score}점`,
-      description: fullDesc,
-      url: currentUrl,
-    });
-
-    if (res.method === "web_share") {
-      setShareSuccessMsg("공유 창이 열렸습니다.");
-    } else {
-      setShareSuccessMsg("공유 문구와 링크가 복사되었습니다.");
-    }
-    setTimeout(() => setShareSuccessMsg(""), 3500);
-  };
 
   const handleUnlockWithCoupon = async () => {
     if (isCouponUnlocked) {
@@ -1383,29 +1360,17 @@ export default function MySajuView() {
                 dayJi={profile.saju?.pillars?.day?.ji}
               />
 
-              {/* 하단 액션 버튼 */}
-              <div className="grid grid-cols-2 gap-2 pt-2">
+              {/* 하단 액션 버튼: 단일 자랑하기 버튼 */}
+              <div className="pt-2">
                 <button
                   type="button"
                   onClick={() => setIsViralModalOpen(true)}
-                  className="py-3 px-2 rounded-xl bg-seal hover:bg-seal-deep text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#ff5a36] via-[#f43f5e] to-[#ec4899] hover:opacity-95 text-white text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.99]"
                 >
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span>카드 이미지 저장·공유</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={handleShareMySaju}
-                  className="py-3 px-2 rounded-xl bg-[#FEE500] hover:bg-[#F6DC00] text-[#3C1E1E] text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span>카카오톡으로 공유</span>
+                  <Sparkles className="w-4 h-4" />
+                  <span>✨ 결과 자랑하기</span>
                 </button>
               </div>
-
-              <p className="text-xs text-center text-ink-faint leading-relaxed mt-2.5">
-                카드를 사진으로 올리려면 '카드 이미지 저장·공유'를 이용하세요.
-              </p>
             </div>
 
             {shareSuccessMsg && (
