@@ -190,22 +190,61 @@ const TIMEZONE_MAP: Record<
   "나이로비": { utcOffset: 3, hasDst: false },
 };
 
+const CUSTOM_UTC_CITIES: OverseasCity[] = [
+  { name: "UTC-12 (날짜변경선 서쪽)", country: "기타 (표준시 UTC 직접 선택)", lat: 0, lon: -180, utcOffset: -12, standardMeridian: -180 },
+  { name: "UTC-11 (미드웨이/사모아)", country: "기타 (표준시 UTC 직접 선택)", lat: -14.2, lon: -165, utcOffset: -11, standardMeridian: -165 },
+  { name: "UTC-10 (하와이/호놀룰루)", country: "기타 (표준시 UTC 직접 선택)", lat: 21.3, lon: -150, utcOffset: -10, standardMeridian: -150 },
+  { name: "UTC-9 (알래스카)", country: "기타 (표준시 UTC 직접 선택)", lat: 61.2, lon: -135, utcOffset: -9, standardMeridian: -135, hasDst: true },
+  { name: "UTC-8 (미국/캐나다 서부 - LA, 밴쿠버)", country: "기타 (표준시 UTC 직접 선택)", lat: 34.0, lon: -120, utcOffset: -8, standardMeridian: -120, hasDst: true },
+  { name: "UTC-7 (미국 산악 - 덴버, 피닉스)", country: "기타 (표준시 UTC 직접 선택)", lat: 39.7, lon: -105, utcOffset: -7, standardMeridian: -105, hasDst: true },
+  { name: "UTC-6 (미국 중부, 멕시코 - 시카고, 휴스턴)", country: "기타 (표준시 UTC 직접 선택)", lat: 41.8, lon: -90, utcOffset: -6, standardMeridian: -90, hasDst: true },
+  { name: "UTC-5 (미국/캐나다 동부 - 뉴욕, 토론토)", country: "기타 (표준시 UTC 직접 선택)", lat: 40.7, lon: -75, utcOffset: -5, standardMeridian: -75, hasDst: true },
+  { name: "UTC-4 (칠레, 볼리비아, 대서양)", country: "기타 (표준시 UTC 직접 선택)", lat: -33.4, lon: -60, utcOffset: -4, standardMeridian: -60, hasDst: true },
+  { name: "UTC-3 (브라질, 아르헨티나)", country: "기타 (표준시 UTC 직접 선택)", lat: -23.5, lon: -45, utcOffset: -3, standardMeridian: -45 },
+  { name: "UTC-2 (대서양 중부)", country: "기타 (표준시 UTC 직접 선택)", lat: 0, lon: -30, utcOffset: -2, standardMeridian: -30 },
+  { name: "UTC-1 (카보베르데, 아조레스)", country: "기타 (표준시 UTC 직접 선택)", lat: 14.9, lon: -15, utcOffset: -1, standardMeridian: -15 },
+  { name: "UTC+0 (영국 런던, 아일랜드, 포르투갈)", country: "기타 (표준시 UTC 직접 선택)", lat: 51.5, lon: 0, utcOffset: 0, standardMeridian: 0, hasDst: true },
+  { name: "UTC+1 (서/중유럽 - 프랑스, 독일, 이탈리아, 스페인)", country: "기타 (표준시 UTC 직접 선택)", lat: 48.8, lon: 15, utcOffset: 1, standardMeridian: 15, hasDst: true },
+  { name: "UTC+2 (동유럽, 핀란드, 그리스, 이집트)", country: "기타 (표준시 UTC 직접 선택)", lat: 37.9, lon: 30, utcOffset: 2, standardMeridian: 30, hasDst: true },
+  { name: "UTC+3 (러시아 모스크바, 사우디, 터키)", country: "기타 (표준시 UTC 직접 선택)", lat: 55.7, lon: 45, utcOffset: 3, standardMeridian: 45 },
+  { name: "UTC+3:30 (이란 테헤란)", country: "기타 (표준시 UTC 직접 선택)", lat: 35.6, lon: 52.5, utcOffset: 3.5, standardMeridian: 52.5 },
+  { name: "UTC+4 (UAE 두바이, 코카서스)", country: "기타 (표준시 UTC 직접 선택)", lat: 25.2, lon: 60, utcOffset: 4, standardMeridian: 60 },
+  { name: "UTC+4:30 (아프가니스탄)", country: "기타 (표준시 UTC 직접 선택)", lat: 34.5, lon: 67.5, utcOffset: 4.5, standardMeridian: 67.5 },
+  { name: "UTC+5 (파키스탄, 우즈베키스탄)", country: "기타 (표준시 UTC 직접 선택)", lat: 33.6, lon: 75, utcOffset: 5, standardMeridian: 75 },
+  { name: "UTC+5:30 (인도, 스리랑카)", country: "기타 (표준시 UTC 직접 선택)", lat: 28.6, lon: 82.5, utcOffset: 5.5, standardMeridian: 82.5 },
+  { name: "UTC+5:45 (네팔)", country: "기타 (표준시 UTC 직접 선택)", lat: 27.7, lon: 86.25, utcOffset: 5.75, standardMeridian: 86.25 },
+  { name: "UTC+6 (방글라데시, 카자흐스탄)", country: "기타 (표준시 UTC 직접 선택)", lat: 23.8, lon: 90, utcOffset: 6, standardMeridian: 90 },
+  { name: "UTC+6:30 (미얀마)", country: "기타 (표준시 UTC 직접 선택)", lat: 16.8, lon: 97.5, utcOffset: 6.5, standardMeridian: 97.5 },
+  { name: "UTC+7 (태국 방콕, 베트남, 인도네시아)", country: "기타 (표준시 UTC 직접 선택)", lat: 13.7, lon: 105, utcOffset: 7, standardMeridian: 105 },
+  { name: "UTC+8 (중국, 홍콩, 대만, 싱가포르, 서호주)", country: "기타 (표준시 UTC 직접 선택)", lat: 39.9, lon: 120, utcOffset: 8, standardMeridian: 120 },
+  { name: "UTC+9 (일본, 동티모르)", country: "기타 (표준시 UTC 직접 선택)", lat: 35.6, lon: 135, utcOffset: 9, standardMeridian: 135 },
+  { name: "UTC+9:30 (호주 중부 - 애들레이드, 다윈)", country: "기타 (표준시 UTC 직접 선택)", lat: -34.9, lon: 142.5, utcOffset: 9.5, standardMeridian: 142.5, hasDst: true },
+  { name: "UTC+10 (호주 동부 - 시드니, 괌)", country: "기타 (표준시 UTC 직접 선택)", lat: -33.8, lon: 150, utcOffset: 10, standardMeridian: 150, hasDst: true },
+  { name: "UTC+11 (솔로몬 제도, 바누아투)", country: "기타 (표준시 UTC 직접 선택)", lat: -9.4, lon: 165, utcOffset: 11, standardMeridian: 165 },
+  { name: "UTC+12 (뉴질랜드, 피지)", country: "기타 (표준시 UTC 직접 선택)", lat: -36.8, lon: 180, utcOffset: 12, standardMeridian: 180, hasDst: true },
+  { name: "UTC+13 (사모아, 통가)", country: "기타 (표준시 UTC 직접 선택)", lat: -13.8, lon: 195, utcOffset: 13, standardMeridian: 195 },
+  { name: "UTC+14 (키리바시)", country: "기타 (표준시 UTC 직접 선택)", lat: 1.8, lon: 210, utcOffset: 14, standardMeridian: 210 },
+];
+
 // 3. 글로벌 해외 도시 통합 목록 생성
-export const OVERSEAS_CITIES: OverseasCity[] = WORLD_CITIES.map((c) => {
-  const tz = TIMEZONE_MAP[c.name] || {
-    utcOffset: Math.round(c.lon / 15),
-    hasDst: false,
-  };
-  return {
-    name: c.name,
-    country: c.country || "기타 국가",
-    lat: c.lat,
-    lon: c.lon,
-    utcOffset: tz.utcOffset,
-    standardMeridian: tz.utcOffset * 15,
-    hasDst: !!tz.hasDst,
-  };
-});
+export const OVERSEAS_CITIES: OverseasCity[] = [
+  ...WORLD_CITIES.map((c) => {
+    const tz = TIMEZONE_MAP[c.name] || {
+      utcOffset: Math.round(c.lon / 15),
+      hasDst: false,
+    };
+    return {
+      name: c.name,
+      country: c.country || "기타 국가",
+      lat: c.lat,
+      lon: c.lon,
+      utcOffset: tz.utcOffset,
+      standardMeridian: tz.utcOffset * 15,
+      hasDst: !!tz.hasDst,
+    };
+  }),
+  ...CUSTOM_UTC_CITIES,
+];
 
 // 주요 추천 국가 (상단 우선 배치)
 const POPULAR_COUNTRIES = [
@@ -225,12 +264,16 @@ const POPULAR_COUNTRIES = [
   "뉴질랜드",
 ];
 
-// 정렬된 해외 국가 목록 (인기 국가 상단 -> 나머지 가나다순)
+const OTHER_CUSTOM_COUNTRY = "기타 (표준시 UTC 직접 선택)";
+
+// 정렬된 해외 국가 목록 (인기 국가 상단 -> 나머지 가나다순 -> 기타 표준시 직접 선택 맨 끝)
 export const OVERSEAS_COUNTRIES = (() => {
-  const allCountries = Array.from(new Set(OVERSEAS_CITIES.map((c) => c.country)));
+  const allCountries = Array.from(new Set(OVERSEAS_CITIES.map((c) => c.country))).filter(
+    (c) => c !== OTHER_CUSTOM_COUNTRY
+  );
   const popular = POPULAR_COUNTRIES.filter((c) => allCountries.includes(c));
   const others = allCountries.filter((c) => !popular.includes(c)).sort((a, b) => a.localeCompare(b, "ko"));
-  return [...popular, ...others];
+  return [...popular, ...others, OTHER_CUSTOM_COUNTRY];
 })();
 
 /**
