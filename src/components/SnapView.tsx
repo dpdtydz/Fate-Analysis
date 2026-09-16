@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Layout from "./Layout";
 import { 
   Sparkles, 
@@ -19,7 +19,10 @@ import {
   Lock,
   Eye,
   Users,
-  RefreshCw
+  RefreshCw,
+  Trash2,
+  Crown,
+  ExternalLink
 } from "lucide-react";
 import { Member, PairSnap, SajuData } from "../types";
 import { 
@@ -80,8 +83,70 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [recentSnaps, setRecentSnaps] = useState<RecentSnapItem[]>([]);
+  const [myCreatedSnaps, setMyCreatedSnaps] = useState<PairSnap[]>([]);
+  const [copiedLinkCode, setCopiedLinkCode] = useState<string | null>(null);
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null);
   const chipScrollRef = useRef<HTMLDivElement>(null);
+
+  // 🌟 Load snaps created by the current host user from localStorage
+  const loadMyCreatedSnaps = useCallback(() => {
+    try {
+      const hostKeys: Record<string, string> = JSON.parse(localStorage.getItem("saju_snap_host_keys") || "{}");
+      const allSnaps: Record<string, PairSnap> = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
+      const myCodes = Object.keys(hostKeys);
+      const list: PairSnap[] = [];
+      for (const code of myCodes) {
+        if (allSnaps[code]) {
+          list.push(allSnaps[code]);
+        }
+      }
+      // Sort newest created first
+      list.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+      setMyCreatedSnaps(list);
+    } catch (e) {
+      console.warn("Failed to load my created snaps:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMyCreatedSnaps();
+  }, [loadMyCreatedSnaps, currentCode]);
+
+  const handleDeleteCreatedSnap = (codeToDelete: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (!window.confirm(`비밀 스냅 링크 [${codeToDelete}]를 내 관리 목록에서 삭제하시겠습니까?`)) {
+      return;
+    }
+    try {
+      const hostKeys: Record<string, string> = JSON.parse(localStorage.getItem("saju_snap_host_keys") || "{}");
+      delete hostKeys[codeToDelete];
+      localStorage.setItem("saju_snap_host_keys", JSON.stringify(hostKeys));
+
+      const allSnaps: Record<string, PairSnap> = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
+      delete allSnaps[codeToDelete];
+      localStorage.setItem("saju_pair_snaps", JSON.stringify(allSnaps));
+
+      const recentList: RecentSnapItem[] = JSON.parse(localStorage.getItem("saju_recent_snaps") || "[]");
+      const filtered = recentList.filter(item => item.code !== codeToDelete);
+      localStorage.setItem("saju_recent_snaps", JSON.stringify(filtered));
+
+      loadMyCreatedSnaps();
+      setRecentSnaps(filtered);
+    } catch (err) {
+      console.error("Delete snap error:", err);
+    }
+  };
+
+  const handleCopySnapUrl = (codeToCopy: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const url = `${window.location.origin}/#/snap/${codeToCopy}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedLinkCode(codeToCopy);
+      setTimeout(() => setCopiedLinkCode(null), 2500);
+    });
+  };
 
   // 🌟 Guest Member ID managed as reactive state (solves non-reactive freeze!)
   const [guestMemberId, setGuestMemberId] = useState<string | null>(() => {
@@ -638,39 +703,147 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
             </p>
           </div>
 
-          {/* Recent 1:1 Snaps if available */}
-          {recentSnaps.length > 0 && (
+          {/* 👑 1. 내가 개설한 비밀 초대장 관리 (Host Snaps Management) */}
+          {myCreatedSnaps.length > 0 && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-surface border-2 border-seal/20 shadow-xs space-y-3.5 animate-fadeIn">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-seal/10 text-seal flex items-center justify-center">
+                    <Crown className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-ink flex items-center gap-1.5">
+                      <span>내가 개설한 비밀 초대장</span>
+                      <span className="px-1.5 py-0.2 rounded-full bg-seal text-white font-mono text-[10px] font-extrabold">
+                        {myCreatedSnaps.length}
+                      </span>
+                    </h3>
+                  </div>
+                </div>
+                <span className="text-[11px] text-ink-faint hidden sm:inline">
+                  초대 링크를 다시 복사하거나 친구들의 궁합을 확인하세요
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {myCreatedSnaps.map((item) => {
+                  const partnerCount = item.partners?.length || (item.partner ? 1 : 0);
+                  const isCopied = copiedLinkCode === item.code;
+
+                  return (
+                    <div
+                      key={item.code}
+                      className="p-3.5 bg-sunken/60 hover:bg-sunken rounded-xl border border-line hover:border-seal/40 transition-all flex flex-col justify-between gap-3 group relative"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-mono font-bold text-seal bg-seal/10 px-2 py-0.5 rounded-md">
+                            코드 {item.code}
+                          </span>
+                          {partnerCount > 0 ? (
+                            <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <Users className="w-3 h-3" />
+                              <span>친구 {partnerCount}명 참여 중</span>
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-medium text-ink-faint bg-sunken px-2 py-0.5 rounded-full flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              <span>친구 참여 대기 중</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs sm:text-sm font-bold text-ink truncate">
+                          {item.title || `${item.creator.nickname}님의 비밀 초대장`}
+                        </p>
+                        <p className="text-[11px] text-ink-soft truncate">
+                          {item.partner ? `최근 궁합: ${item.partner.nickname}` : "친구에게 링크를 공유해보세요"}
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-1.5 pt-1 border-t border-line/60">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCurrentCode(item.code);
+                            window.location.hash = `#/snap/${item.code}`;
+                          }}
+                          className="flex-1 py-1.5 px-2 bg-surface hover:bg-seal text-ink hover:text-white border border-line hover:border-seal rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <span>결과 확인</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopySnapUrl(item.code, e)}
+                          className="py-1.5 px-2.5 bg-surface hover:bg-sunken text-ink-soft hover:text-ink border border-line rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                          title="초대 링크 복사"
+                        >
+                          {isCopied ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-600" />
+                              <span className="text-emerald-600 font-bold">복사됨!</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3 h-3" />
+                              <span>복사</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteCreatedSnap(item.code, e)}
+                          className="p-1.5 text-ink-faint hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                          title="관리 목록에서 삭제"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 🕒 2. 최근 확인한 비밀 궁합 링크 (요청대로 깔끔하게 최대 2개만 제공) */}
+          {recentSnaps.filter(s => !myCreatedSnaps.some(m => m.code === s.code)).length > 0 && (
             <div className="p-4 rounded-2xl bg-sunken border border-line space-y-3">
               <div className="flex items-center justify-between text-xs text-ink-faint">
                 <span className="flex items-center gap-1.5 font-medium text-ink">
                   <Clock className="w-3.5 h-3.5 text-seal" />
                   <span>최근 확인한 비밀 궁합 링크</span>
                 </span>
-                <span className="text-[11px]">언제든 다시 열어볼 수 있어요</span>
+                <span className="text-[11px]">최근 2개 링크</span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {recentSnaps.map((item) => (
-                  <a
-                    key={item.code}
-                    href={`#/snap/${item.code}`}
-                    onClick={() => {
-                      setCurrentCode(item.code);
-                      window.location.hash = `#/snap/${item.code}`;
-                    }}
-                    className="p-3 bg-surface rounded-xl border border-line hover:border-seal/50 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
-                  >
-                    <div className="min-w-0 space-y-0.5">
-                      <span className="text-[10px] text-seal font-bold">비밀 스냅 · 코드 {item.code}</span>
-                      <p className="text-xs sm:text-sm font-bold text-ink truncate group-hover:text-seal transition-colors">
-                        {item.creatorName}님의 비밀 링크
-                      </p>
-                      <p className="text-[11px] text-ink-soft">
-                        {item.partnerName ? `최근 파트너: ${item.partnerName}` : "친구 참여 대기 중"}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-ink-faint group-hover:text-seal group-hover:translate-x-0.5 transition-all shrink-0" />
-                  </a>
-                ))}
+                {recentSnaps
+                  .filter(s => !myCreatedSnaps.some(m => m.code === s.code))
+                  .slice(0, 2)
+                  .map((item) => (
+                    <a
+                      key={item.code}
+                      href={`#/snap/${item.code}`}
+                      onClick={() => {
+                        setCurrentCode(item.code);
+                        window.location.hash = `#/snap/${item.code}`;
+                      }}
+                      className="p-3 bg-surface rounded-xl border border-line hover:border-seal/50 transition-colors flex items-center justify-between gap-3 group cursor-pointer"
+                    >
+                      <div className="min-w-0 space-y-0.5">
+                        <span className="text-[10px] text-seal font-bold">비밀 스냅 · 코드 {item.code}</span>
+                        <p className="text-xs sm:text-sm font-bold text-ink truncate group-hover:text-seal transition-colors">
+                          {item.creatorName}님의 비밀 링크
+                        </p>
+                        <p className="text-[11px] text-ink-soft">
+                          {item.partnerName ? `최근 파트너: ${item.partnerName}` : "친구 참여 대기 중"}
+                        </p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-ink-faint group-hover:text-seal group-hover:translate-x-0.5 transition-all shrink-0" />
+                    </a>
+                  ))}
               </div>
             </div>
           )}

@@ -146,13 +146,51 @@ export default function GatewayView() {
               </span>
             </div>
 
-            {/* 12지신 종이컵 전화기 고화질 배너 이미지 */}
-            <div className="relative aspect-[800/460] overflow-hidden bg-[#FFFDF9]">
-              <img
-                src="/gateway_snap_fate.jpg"
-                alt="12지신 종이컵 전화기 1:1 비밀 인연 궁합"
-                className="absolute inset-0 w-full h-full object-cover object-center group-hover:scale-104 transition-transform duration-500"
-              />
+            {/* 🐶 목도리 강아지 & 🐰 선글라스 토끼 1:1 시그니처 배너 (인연의 붉은 실) */}
+            <div className="relative aspect-[800/440] sm:aspect-[800/400] overflow-hidden bg-gradient-to-b from-[#FFFDF9] via-[#FFF8F3] to-[#FDF4EE] dark:from-slate-900/90 dark:via-slate-800/70 dark:to-slate-900/90 flex items-center justify-around px-4 sm:px-10 py-6 select-none">
+              {/* 은은한 배경 오로라 빛 */}
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(244,63,94,0.12),transparent_70%)] pointer-events-none" />
+
+              {/* 🐶 목도리 강아지 */}
+              <div className="relative z-10 flex flex-col items-center group-hover:scale-105 group-hover:-rotate-2 group-hover:translate-x-1.5 transition-all duration-300">
+                <div className="mb-2 px-3 py-1 rounded-full bg-white/95 dark:bg-slate-900/90 border border-rose-200/80 dark:border-rose-900/60 shadow-xs text-[10px] sm:text-[11px] font-bold text-ink flex items-center gap-1 animate-bounce">
+                  <span>우리 인연일까?</span>
+                  <span>🐶</span>
+                </div>
+                <img
+                  src="/zodiac/zodiac_dog_item_scarf.webp"
+                  alt="목도리 강아지"
+                  className="w-28 sm:w-36 h-auto drop-shadow-xl transition-transform duration-300"
+                />
+              </div>
+
+              {/* 중앙 붉은 실 연결 & 99% 하트 배지 */}
+              <div className="relative z-20 flex flex-col items-center justify-center -my-2">
+                {/* 물결치는 붉은 인연의 실 */}
+                <div className="w-24 sm:w-36 flex items-center justify-center relative my-1">
+                  <div className="w-full border-t-2 border-dashed border-rose-400 dark:border-rose-500 animate-pulse" />
+                </div>
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white dark:bg-slate-900 border-2 border-rose-400 dark:border-rose-500 shadow-lg flex flex-col items-center justify-center -my-3 z-10 group-hover:scale-110 transition-transform">
+                  <span className="text-base sm:text-lg leading-none">💖</span>
+                  <span className="text-[10px] sm:text-[11px] font-black font-mono text-rose-600 dark:text-rose-400 leading-tight">
+                    99%
+                  </span>
+                </div>
+                <span className="text-[9px] sm:text-[10px] text-ink-faint font-semibold mt-4">인연의 붉은 실</span>
+              </div>
+
+              {/* 🐰 선글라스 힙한 토끼 */}
+              <div className="relative z-10 flex flex-col items-center group-hover:scale-105 group-hover:rotate-2 group-hover:-translate-x-1.5 transition-all duration-300">
+                <div className="mb-2 px-3 py-1 rounded-full bg-white/95 dark:bg-slate-900/90 border border-amber-200/80 dark:border-amber-900/60 shadow-xs text-[10px] sm:text-[11px] font-bold text-ink flex items-center gap-1 animate-bounce [animation-delay:200ms]">
+                  <span>링크 줘봐, 볼래!</span>
+                  <span>🐰</span>
+                </div>
+                <img
+                  src="/zodiac/zodiac_rabbit_item_sunglasses.webp"
+                  alt="선글라스 토끼"
+                  className="w-28 sm:w-36 h-auto drop-shadow-xl transition-transform duration-300"
+                />
+              </div>
             </div>
 
             {/* 카드 설명 텍스트 및 태그 칩 */}
