@@ -140,7 +140,7 @@ export default function GatewayView() {
                 src="/gateway_snap_animals.jpg"
                 alt="1:1 인연 궁합 스냅 수호동물"
                 aria-hidden="true"
-                className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+                className="absolute inset-0 w-full h-full object-cover object-center"
               />
             </div>
             <div className="p-5 flex items-center justify-between gap-4">
