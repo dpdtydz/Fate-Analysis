@@ -33,8 +33,10 @@ export function isDummyPair(pair?: Partial<PairAnalysis> | null): boolean {
   return false;
 }
 
+export type ChemGrade = "UR" | "SSR" | "SR" | "SSS" | "SS" | "S" | "A" | "B" | "C" | "D" | "F";
+
 export function getGradeFromScore(score: number): {
-  grade: "UR" | "SSR" | "SR" | "S" | "R" | "N" | "D";
+  grade: ChemGrade;
   title: string;
   color: string;
   badgeBg: string;
@@ -45,61 +47,97 @@ export function getGradeFromScore(score: number): {
       grade: "UR",
       title: "신화급 천생연분",
       color: "text-amber-500",
-      badgeBg: "bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm",
-      desc: "우주가 점찍은 0.5% 확률의 전설적인 인연! 눈빛만 봐도 통하는 영혼의 단짝입니다.",
+      badgeBg: "bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm font-black",
+      desc: "우주가 점찍은 100점 만점 전설의 인연! 눈빛만 봐도 통하는 영혼의 단짝입니다.",
     };
   }
-  if (score >= 90) {
+  if (score >= 88) {
     return {
       grade: "SSR",
       title: "환상의 소울메이트",
       color: "text-rose-500",
-      badgeBg: "bg-rose-500 text-white shadow-xs",
+      badgeBg: "bg-rose-500 text-white shadow-xs font-bold",
       desc: "만났다 하면 시간 순삭! 서로의 장점을 최고조로 끌어올리는 환상적인 궁합입니다.",
     };
   }
-  if (score >= 75) {
+  if (score >= 80) {
     return {
       grade: "SR",
       title: "티키타카 꿀케미",
-      color: "text-indigo-600",
-      badgeBg: "bg-indigo-600 text-white",
+      color: "text-purple-600",
+      badgeBg: "bg-purple-600 text-white font-bold",
       desc: "호흡이 척척 맞고 같이 있으면 텐션이 샘솟는 든든한 꿀조합입니다.",
+    };
+  }
+  if (score >= 70) {
+    return {
+      grade: "SSS",
+      title: "특급 시너지 콤비",
+      color: "text-indigo-600",
+      badgeBg: "bg-indigo-600 text-white font-bold",
+      desc: "함께 무언가를 도모할 때 능률과 재미가 200% 폭발하는 최고의 파트너입니다.",
     };
   }
   if (score >= 60) {
     return {
+      grade: "SS",
+      title: "은근히 잘 통하는 호감",
+      color: "text-blue-600",
+      badgeBg: "bg-blue-600 text-white font-semibold",
+      desc: "무리하지 않아도 마음이 편안하고, 대화의 리듬이 자연스럽게 이어지는 좋은 인연입니다.",
+    };
+  }
+  if (score >= 50) {
+    return {
       grade: "S",
-      title: "은근히 편안한 호감",
+      title: "잔잔하고 편안한 인연",
       color: "text-emerald-600",
-      badgeBg: "bg-emerald-600 text-white",
-      desc: "무리하지 않아도 마음이 편안하고, 잔잔하고 오랜 시간 변함없이 이어지는 인연입니다.",
+      badgeBg: "bg-emerald-600 text-white font-semibold",
+      desc: "서로 지나치게 간섭하지 않고 각자의 공간을 지켜주며 담백하고 길게 이어지는 궁합입니다.",
     };
   }
-  if (score >= 45) {
+  if (score >= 40) {
     return {
-      grade: "R",
-      title: "현실적인 보통 인연",
-      color: "text-sky-600",
-      badgeBg: "bg-sky-600 text-white",
-      desc: "코드가 맞을 땐 유쾌하지만 가끔 생각의 차이도 있는, 현실에서 가장 흔하고 무난한 사이입니다.",
+      grade: "A",
+      title: "현실적인 보통 사이",
+      color: "text-teal-600",
+      badgeBg: "bg-teal-600 text-white font-medium",
+      desc: "코드가 맞을 땐 유쾌하지만 가끔 관점 차이도 있는, 현실에서 가장 흔하고 무난한 인연입니다.",
     };
   }
-  if (score >= 35) {
+  if (score >= 30) {
     return {
-      grade: "N",
-      title: "배려가 필요한 조율 관계",
+      grade: "B",
+      title: "밀당과 조율이 필요한 관계",
       color: "text-amber-600",
-      badgeBg: "bg-amber-600 text-white",
-      desc: "서로 다른 별에서 온 것처럼 성향 차이가 뚜렷해, 상대방 입장에서 먼저 양보해야 편안합니다.",
+      badgeBg: "bg-amber-600 text-white font-medium",
+      desc: "생각의 결이 달라 가끔 묘한 정적이 흐릅니다. 적당한 거리두기가 승리 공식입니다.",
+    };
+  }
+  if (score >= 20) {
+    return {
+      grade: "C",
+      title: "자존심 대결 금지! 삐걱 케미",
+      color: "text-orange-600",
+      badgeBg: "bg-orange-600 text-white font-medium",
+      desc: "성향 차이가 뚜렷해 사소한 말에도 오해가 생기기 쉽습니다. 먼저 양보하는 사람이 보살!",
+    };
+  }
+  if (score >= 10) {
+    return {
+      grade: "D",
+      title: "스파크 주의! 애증의 관계",
+      color: "text-rose-700",
+      badgeBg: "bg-rose-700 text-white font-medium",
+      desc: "기운이 정면으로 부딪히는 불꽃 상충 기류! 단둘이 오래 있으면 기빨리니 안전거리 필수입니다.",
     };
   }
   return {
-    grade: "D",
-    title: "스파크 주의! 애증의 관계",
-    color: "text-red-700",
-    badgeBg: "bg-red-700 text-white",
-    desc: "물과 기름처럼 부딪히기 쉬운 상충 기류! 단둘이 오래 있기보다 적당한 안전거리가 필수입니다.",
+    grade: "F",
+    title: "파국 주의! 0점 수렴 악연",
+    color: "text-slate-800 dark:text-slate-200",
+    badgeBg: "bg-slate-900 text-white font-bold",
+    desc: "물과 기름! 서로를 바꾸려 들면 파국으로 치닫습니다. 깍듯한 비즈니스 모드로 대처하세요.",
   };
 }
 

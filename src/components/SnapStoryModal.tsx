@@ -291,11 +291,15 @@ export default function SnapStoryModal({
                   <span className={`text-[10px] px-1.5 py-0.5 rounded font-black leading-none ${
                     pairGrade === "UR" ? "bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow-xs" :
                     pairGrade === "SSR" ? "bg-rose-500 text-white" :
-                    pairGrade === "SR" ? "bg-indigo-600 text-white" :
+                    pairGrade === "SR" ? "bg-purple-600 text-white" :
+                    pairGrade === "SSS" ? "bg-indigo-600 text-white" :
+                    pairGrade === "SS" ? "bg-blue-600 text-white" :
                     pairGrade === "S" ? "bg-emerald-600 text-white" :
-                    pairGrade === "R" ? "bg-sky-600 text-white" :
-                    pairGrade === "N" ? "bg-amber-600 text-white" :
-                    "bg-red-700 text-white"
+                    pairGrade === "A" ? "bg-teal-600 text-white" :
+                    pairGrade === "B" ? "bg-amber-600 text-white" :
+                    pairGrade === "C" ? "bg-orange-600 text-white" :
+                    pairGrade === "D" ? "bg-rose-700 text-white" :
+                    "bg-slate-900 text-white"
                   }`}>
                     {pairGrade}
                   </span>

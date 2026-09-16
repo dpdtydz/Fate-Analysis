@@ -1266,21 +1266,7 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
                           {score}점
                         </span>
                         <span
-                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                            grade === "UR"
-                              ? "bg-amber-500 text-white font-extrabold shadow-xs"
-                              : grade === "SSR"
-                              ? "bg-rose-500 text-white font-bold"
-                              : grade === "SR"
-                              ? "bg-indigo-600 text-white font-semibold"
-                              : grade === "S"
-                              ? "bg-emerald-600 text-white font-semibold"
-                              : grade === "R"
-                              ? "bg-sky-600 text-white"
-                              : grade === "N"
-                              ? "bg-amber-600 text-white"
-                              : "bg-red-700 text-white"
-                          }`}
+                          className={`text-[9px] px-1.5 py-0.5 rounded leading-none ${gradeInfo.badgeBg}`}
                         >
                           {grade}
                         </span>
@@ -1386,21 +1372,7 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
                     {pairScore}
                   </span>
                   <div className="flex items-center gap-1">
-                    <span className={`text-[10px] sm:text-xs font-black px-1.5 py-0.2 rounded ${
-                      pairGrade === "UR"
-                        ? "bg-amber-500 text-white shadow-xs"
-                        : pairGrade === "SSR"
-                        ? "bg-rose-500 text-white"
-                        : pairGrade === "SR"
-                        ? "bg-indigo-600 text-white"
-                        : pairGrade === "S"
-                        ? "bg-emerald-600 text-white"
-                        : pairGrade === "R"
-                        ? "bg-sky-600 text-white"
-                        : pairGrade === "N"
-                        ? "bg-amber-600 text-white"
-                        : "bg-red-700 text-white"
-                    }`}>
+                    <span className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded leading-none ${gradeInfo.badgeBg}`}>
                       {pairGrade}
                     </span>
                   </div>
