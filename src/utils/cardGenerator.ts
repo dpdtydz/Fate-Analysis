@@ -269,63 +269,30 @@ export async function generateDedicatedChemistryCard({
   ctx.restore();
   ctx.beginPath(); // Ensure path is fully reset
 
-  // 2. Top Story Segments Indicator
-  const segW = (1080 - 120 - 5 * 10) / 6;
-  for (let i = 0; i < 6; i++) {
-    const sx = 60 + i * (segW + 10);
-    ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
-    drawRoundRect(ctx, sx, 45, segW, 6, 3);
-    ctx.fill();
-  }
-
-  // 3. Top Header Branding
-  ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-  ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
-  ctx.textAlign = "left";
-  ctx.fillText(`●  ${roomTitle} · ${members.length}인`, 60, 100);
-
-  ctx.textAlign = "right";
-  ctx.fillStyle = "rgba(244, 63, 94, 0.9)";
-  ctx.font = "800 24px monospace";
-  ctx.fillText("INYEON CHEMISTRY", 1020, 100);
-
-  // 4. Headline & Title Badge
-  ctx.fillStyle = "rgba(244, 63, 94, 0.18)";
-  ctx.strokeStyle = "rgba(244, 63, 94, 0.4)";
-  ctx.lineWidth = 1.5;
-  drawRoundRect(ctx, 60, 135, 340, 48, 24);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = "#FDA4AF";
-  ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
-  ctx.textAlign = "center";
-  ctx.fillText("✨ 너랑 나의 사주 팩폭 케미", 230, 168);
-
-  // Big Names Headline
+  // 2. Big Names Headline (Clean Top Layout)
   ctx.textAlign = "left";
   ctx.fillStyle = "#FFFFFF";
-  ctx.font = "900 46px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  ctx.font = "900 48px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
   const nick1 = getMemberNickname(m1);
   const nick2 = getMemberNickname(m2);
-  ctx.fillText(`${nick1}  ×  ${nick2}`, 60, 240);
+  ctx.fillText(`${nick1}  ×  ${nick2}`, 60, 115);
 
   ctx.textAlign = "right";
   ctx.fillStyle = "#F43F5E";
   ctx.font = "900 52px -apple-system, BlinkMacSystemFont, 'Pretendard', monospace";
-  ctx.fillText(`${pairScore}점`, 1020, 240);
+  ctx.fillText(`${pairScore}점`, 1020, 115);
 
   ctx.textAlign = "left";
-  ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
   ctx.font = "600 23px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
   const titleQuote = pairLabel || "오행과 성향이 완벽히 맞물리는 모임의 특급 시너지 엔진!";
-  ctx.fillText(`"${titleQuote}"`, 60, 285);
+  ctx.fillText(`"${titleQuote}"`, 60, 165);
 
-  // 5. Main Card Container (Pure White Aesthetic Card)
+  // 3. Main Card Container (Pure White Aesthetic Card)
   const cardX = 54;
-  const cardY = 320;
+  const cardY = 220;
   const cardW = 972;
-  const cardH = 1385;
+  const cardH = 1420;
 
   ctx.save();
   ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
@@ -474,29 +441,16 @@ export async function generateDedicatedChemistryCard({
     ctx.restore();
   });
 
-  // 6. Bottom Story Tag Banner
-  const botY = 1730;
-  ctx.fillStyle = "rgba(244, 63, 94, 0.22)";
-  ctx.strokeStyle = "rgba(244, 63, 94, 0.4)";
-  ctx.lineWidth = 2;
-  drawRoundRect(ctx, 54, botY, 972, 76, 38);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#FECDD3";
-  ctx.font = "bold 26px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
-  ctx.fillText(`🏷️  @${nick2} 우리 사주 조합 점수 실시간 확인 ✨ (${pairScore}점)`, 540, botY + 47);
-
-  // Footer Watermark
-  ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-  ctx.font = "500 20px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
+  // 4. Footer Watermark
+  ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
+  ctx.font = "500 22px -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif";
   ctx.textAlign = "left";
-  ctx.fillText("緣 인연사주 1:1 케미스트리", 60, 1855);
+  ctx.fillText("緣 인연사주 1:1 케미스트리", 60, 1860);
 
   ctx.textAlign = "right";
-  ctx.font = "500 20px monospace";
-  ctx.fillText("inyeons.com", 1020, 1855);
+  ctx.font = "600 22px monospace";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+  ctx.fillText("inyeons.com", 1020, 1860);
 
   // Convert to DataUrl and Blob
   const dataUrl = canvas.toDataURL("image/png");

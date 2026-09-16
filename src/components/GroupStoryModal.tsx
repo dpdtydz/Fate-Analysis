@@ -1,5 +1,5 @@
 import React, { useRef, useState, useMemo, useEffect, useCallback } from "react";
-import { X, Download, Share2, Sparkles, Check, Crown, Flame, Compass, Coins, Award, Users, HeartHandshake, Zap, MessageSquare, Wine, Plane, Heart, ShieldAlert, ArrowRightLeft, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
+import { X, Download, Share2, Sparkles, Check, Crown, Flame, Compass, Coins, Award, Users, Zap, MessageSquare, Wine, Plane, Heart, ShieldAlert, ArrowRightLeft, ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 import html2canvas from "html2canvas-pro";
 import { Member, GroupAnalysis, PairAnalysis } from "../types";
 import { getMemberZodiacSrc, calculateMemberRole, ROLE_DETAILS, ROLE_RING_COLOR } from "./ZodiacAvatar";
@@ -904,31 +904,8 @@ export default function GroupStoryModal({
                ────────────────────────────────────────── */
             <>
               <div>
-                {/* Top Story Indicator Bars */}
-                <div className="flex gap-1 w-full mb-3">
-                  {[1, 2, 3, 4, 5, 6].map((step) => (
-                    <div key={step} className="h-0.5 flex-1 rounded-full bg-gradient-to-r from-rose-500 to-amber-400" />
-                  ))}
-                </div>
-
-                {/* Brand & Room Title */}
-                <div className="flex items-center justify-between mb-2 text-xs">
-                  <div className="flex items-center gap-1.5 font-bold text-rose-300">
-                    <span>●</span> {roomTitle}
-                  </div>
-                  <span className="text-[10px] font-mono tracking-widest text-slate-400 uppercase">
-                    INYEON CHEMISTRY
-                  </span>
-                </div>
-
-                {/* Pair Tag Pill */}
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/30 mb-2">
-                  <HeartHandshake className="w-3.5 h-3.5 text-rose-400" />
-                  <span>너랑 나의 사주 팩폭 케미</span>
-                </div>
-
                 {/* Headline Title */}
-                <div className="mt-0.5 mb-1 text-left">
+                <div className="mt-1 mb-2 text-left">
                   <h2 className="text-[18px] font-black leading-tight tracking-tight text-white flex items-baseline gap-1.5">
                     <span>{getMemberNickname(memberA)}</span>
                     <span className="text-rose-400 text-sm">×</span>
@@ -1022,15 +999,10 @@ export default function GroupStoryModal({
                 </div>
               </div>
 
-              {/* Bottom Tag Sticker & Watermark */}
-              <div className="flex flex-col items-center gap-1 pt-1 text-center">
-                <div className="w-full py-1.5 px-3 rounded-xl bg-rose-500/20 border border-rose-500/30 text-[11px] font-extrabold text-rose-200 truncate">
-                  🏷️ @{getMemberNickname(memberB)} 우리 사주 조합 점수 실시간 확인 ✨ ({pair6Categories.score}점)
-                </div>
-                <div className="flex items-center justify-between w-full text-[9.5px] text-slate-400 px-1 pt-0.5">
-                  <span>사주·자미두수·MBTI 융합 1:1 케미</span>
-                  <span className="font-mono">inyeons.com</span>
-                </div>
+              {/* Bottom Watermark */}
+              <div className="flex items-center justify-between w-full text-[10px] text-slate-400 px-1 pt-2 border-t border-white/10">
+                <span>사주·자미두수·MBTI 융합 1:1 케미</span>
+                <span className="font-mono text-slate-300 font-semibold">inyeons.com</span>
               </div>
             </>
           ) : (
