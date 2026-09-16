@@ -277,90 +277,133 @@ export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAn
     else mbtiDelta = -4;
   }
 
-  // 🎯 DRAMATIC SCORE COMPUTATION
-  // Base score: 50 (Centers average relationship in the 40-60 range!)
-  let rawScore = 50;
+  // 🎯 11-TIER PRECISE SCORE CALCULATION (10-point scale: 100, 90, 80, 70, 60, 50, 40, 30, 20, 10, 0)
+  // Determine foundational affinity level based on astrological combinations:
+  let scoreTier = 50; // Default base: S (50-59) or A (40-49) for typical ordinary relationships
 
-  // Additions (Positive Chemistry)
-  if (isStemHarmony) rawScore += 16;
-  if (isDaySixHarmony) rawScore += 18;
-  else if (isYearSixHarmony) rawScore += 10;
-  if (isDayTripleHarmony) rawScore += 14;
-  if (isGen1to2 || isGen2to1) rawScore += 10;
-  else if (elem1 === elem2) rawScore += 4;
-  if (isZodiacCompatible) rawScore += 6;
-  rawScore += mbtiDelta;
+  // Count positive points
+  let positiveScore = 0;
+  if (isStemHarmony) positiveScore += 12; // 천간합
+  if (isDaySixHarmony) positiveScore += 16; // 일지 육합 (최고 합)
+  else if (isYearSixHarmony) positiveScore += 8;
+  if (isDayTripleHarmony) positiveScore += 12; // 일지 삼합
+  if (isGen1to2 || isGen2to1) positiveScore += 10; // 오행 상생
+  else if (elem1 === elem2) positiveScore += 4; // 오행 비견
+  if (isZodiacCompatible) positiveScore += 6;
+  positiveScore += mbtiDelta;
 
-  // Subtractions (Negative Clashes)
-  if (isDayClash) rawScore -= 26; // Day clash directly drops score
-  if (isYearClash) rawScore -= 14;
-  if (isWonjin) rawScore -= 22;   // Wonjin creates emotional friction
-  if (isSajuElementClash) rawScore -= 14;
-  if (isZodiacClash) rawScore -= 6;
+  // Count negative clash points
+  let negativeScore = 0;
+  if (isDayClash) negativeScore += 35; // 일지 정면 상충
+  if (isYearClash) negativeScore += 15; // 띠 상충
+  if (isWonjin) negativeScore += 25; // 원진살 (애증/서운함)
+  if (isSajuElementClash) negativeScore += 12; // 오행 상극
+  if (isZodiacClash) negativeScore += 6;
 
-  // Deterministic micro jitter: -4 to +4 based on names/ids
-  const jitter = (getDeterministicHash(m1Id, m2Id, 77) % 9) - 4;
-  rawScore += jitter;
-
-  // Clamping strictly according to guidelines:
-  // - Worst clash: 18 ~ 38 (Under 40!)
-  // - General/average: 42 ~ 64 (Typical 40-60!)
-  // - Good/SR: 68 ~ 86
-  // - Elite/SSR/UR: 90 ~ 98 (Strictly conservative, requires multiple harmonies!)
-  let finalScore = Math.max(16, Math.min(98, rawScore));
-
-  // If severe clash exists (Day Clash or Wonjin), force under 40
-  if ((isDayClash || isWonjin) && finalScore > 39) {
-    finalScore = 32 + (getDeterministicHash(m1Id, m2Id, 13) % 7);
+  // Tier assignment strictly based on net harmony:
+  // 1. Extreme 3-way clash -> F (0 ~ 9)
+  if (negativeScore >= 45) {
+    scoreTier = 2 + (getDeterministicHash(m1Id, m2Id, 11) % 7); // 2~8점 (F)
+  }
+  // 2. Severe Day Clash -> D (10 ~ 19)
+  else if (isDayClash || negativeScore >= 35) {
+    scoreTier = 11 + (getDeterministicHash(m1Id, m2Id, 13) % 8); // 11~18점 (D)
+  }
+  // 3. Wonjin / Strong Friction -> C (20 ~ 29)
+  else if (isWonjin || negativeScore >= 24) {
+    scoreTier = 21 + (getDeterministicHash(m1Id, m2Id, 15) % 8); // 21~28점 (C)
+  }
+  // 4. Element Clash / Mismatch -> B (30 ~ 39)
+  else if (negativeScore >= 12 && positiveScore < 10) {
+    scoreTier = 32 + (getDeterministicHash(m1Id, m2Id, 17) % 7); // 32~38점 (B)
+  }
+  // 5. Ordinary slightly cool -> A (40 ~ 49)
+  else if (positiveScore < 8) {
+    scoreTier = 41 + (getDeterministicHash(m1Id, m2Id, 19) % 8); // 41~48점 (A)
+  }
+  // 6. Ordinary slightly warm / same element -> S (50 ~ 59)
+  else if (positiveScore < 16) {
+    scoreTier = 51 + (getDeterministicHash(m1Id, m2Id, 23) % 8); // 51~58점 (S)
+  }
+  // 7. Single generation or light harmony -> SS (60 ~ 69)
+  else if (positiveScore < 24) {
+    scoreTier = 61 + (getDeterministicHash(m1Id, m2Id, 27) % 8); // 61~68점 (SS)
+  }
+  // 8. Solid generation + compatibility -> SSS (70 ~ 79)
+  else if (positiveScore < 32) {
+    scoreTier = 71 + (getDeterministicHash(m1Id, m2Id, 31) % 8); // 71~78점 (SSS)
+  }
+  // 9. Day Harmony + Generation (Double Harmony) -> SR (80 ~ 87)
+  else if (positiveScore < 40) {
+    scoreTier = 81 + (getDeterministicHash(m1Id, m2Id, 35) % 7); // 81~87점 (SR)
+  }
+  // 10. Triple Harmony (Stem + Branch + Generation) -> SSR (88 ~ 94)
+  else if (positiveScore < 48) {
+    scoreTier = 89 + (getDeterministicHash(m1Id, m2Id, 39) % 6); // 89~94점 (SSR)
+  }
+  // 11. Quadruple Grand Harmony (Miracle 100) -> UR (95 ~ 100)
+  else {
+    scoreTier = 96 + (getDeterministicHash(m1Id, m2Id, 43) % 5); // 96~100점 (UR)
   }
 
-  // If no major harmony exists, strictly keep it below 90
-  if (!isStemHarmony && !isDaySixHarmony && !isDayTripleHarmony && finalScore >= 90) {
-    finalScore = 78 + (getDeterministicHash(m1Id, m2Id, 21) % 8);
-  }
+  const finalScore = Math.max(0, Math.min(100, scoreTier));
 
-  // Asymmetric Sub Scores
+  // Asymmetric Sub Scores strictly aligned with final score bracket
   let sajuScore1to2 = finalScore;
   let sajuScore2to1 = finalScore;
   if (isGen1to2) {
-    sajuScore1to2 = Math.min(98, finalScore + 5);
-    sajuScore2to1 = Math.max(15, finalScore - 4);
+    sajuScore1to2 = Math.min(100, finalScore + 4);
+    sajuScore2to1 = Math.max(0, finalScore - 3);
   } else if (isGen2to1) {
-    sajuScore1to2 = Math.max(15, finalScore - 4);
-    sajuScore2to1 = Math.min(98, finalScore + 5);
+    sajuScore1to2 = Math.max(0, finalScore - 3);
+    sajuScore2to1 = Math.min(100, finalScore + 4);
   }
 
-  let zodiacScore1to2 = isZodiacCompatible ? Math.min(98, finalScore + 8) : isZodiacClash ? Math.max(15, finalScore - 8) : finalScore;
+  let zodiacScore1to2 = isZodiacCompatible ? Math.min(100, finalScore + 5) : isZodiacClash ? Math.max(0, finalScore - 5) : finalScore;
   let zodiacScore2to1 = zodiacScore1to2;
 
-  let mbtiScore1to2 = Math.max(20, Math.min(98, finalScore + mbtiDelta * 2));
+  let mbtiScore1to2 = Math.max(0, Math.min(100, finalScore + mbtiDelta * 2));
   let mbtiScore2to1 = mbtiScore1to2;
 
-  let ziweiScore1to2 = Math.max(25, Math.min(95, finalScore + ((getDeterministicHash(m1Id, m2Id, 33) % 11) - 5)));
-  let ziweiScore2to1 = Math.max(25, Math.min(95, finalScore + ((getDeterministicHash(m1Id, m2Id, 44) % 11) - 5)));
+  let ziweiScore1to2 = Math.max(0, Math.min(100, finalScore + ((getDeterministicHash(m1Id, m2Id, 33) % 9) - 4)));
+  let ziweiScore2to1 = Math.max(0, Math.min(100, finalScore + ((getDeterministicHash(m1Id, m2Id, 44) % 9) - 4)));
 
   // 📝 WITTY, RELATABLE, DOPAMINE-PACKED LABELS & DESCRIPTIONS
   let finalLabel = "";
   let finalDesc = "";
 
-  if (finalScore >= 90) {
-    // UR / SSR (90점 이상)
+  if (finalScore >= 95) {
+    // UR (95 ~ 100점 - 신화급 천생연분)
     const labels = [
-      "우주가 점찍은 찐친·소울메이트",
+      "우주가 점찍은 100점 만점 찐친",
       "말 안 해도 눈빛으로 통하는 갓벽 조합",
-      "만났다 하면 시간 순삭되는 찰떡 콤비",
+      "만났다 하면 시간 순삭! 신화급 케미",
       "전생에 나라를 구한 레전드 인연",
     ];
     finalLabel = labels[getDeterministicHash(m1Id, m2Id, 1) % labels.length];
 
     const descs = [
-      `둘이 붙어만 있어도 웃음보 터지고 대화가 끊이지 않는 최상급 케미입니다! 서로 다른 성향마저 신기할 정도로 보완되어, 굳이 꾸며내지 않고 본래 모습 그대로 있어도 마음이 한없이 편안한 영혼의 단짝입니다.`,
-      `사주의 기운이 착착 감기듯 맞물려 함께할 때 운과 에너지가 두 배로 불어나는 조합입니다. 서로에게 깊은 긍정적 자극을 주며, 무슨 일을 벌이든 척하면 척 손발이 맞는 환상의 파트너입니다.`,
-      `생각의 주파수가 너무 잘 맞아 사소한 눈짓이나 단어 하나만으로도 의도를 꿰뚫어 봅니다. 힘든 날에도 얼굴만 보면 기분이 사르르 풀리는, 살면서 몇 번 만나기 힘든 소중한 인연입니다.`,
+      `둘이 붙어만 있어도 웃음보 터지고 대화가 끊이지 않는 100점 만점 최상급 케미입니다! 서로 다른 성향마저 신기할 정도로 보완되어, 굳이 꾸며내지 않고 본래 모습 그대로 있어도 마음이 한없이 편안한 영혼의 단짝입니다.`,
+      `사주의 기운이 착착 감기듯 맞물려 함께할 때 운과 에너지가 두 배로 불어나는 신화급 조합입니다. 서로에게 깊은 긍정적 자극을 주며, 무슨 일을 벌이든 척하면 척 손발이 맞는 최고의 파트너입니다.`,
     ];
     finalDesc = descs[getDeterministicHash(m1Id, m2Id, 2) % descs.length];
-  } else if (finalScore >= 75) {
-    // SR (75 ~ 89점)
+  } else if (finalScore >= 88) {
+    // SSR (88 ~ 94점 - 환상의 소울메이트)
+    const labels = [
+      "축복받은 환상의 소울메이트",
+      "대화할수록 빠져드는 찰떡 콤비",
+      "서로의 포텐을 폭발시키는 인연",
+      "만나면 텐션 200% 충전되는 듀오",
+    ];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 13) % labels.length];
+
+    const descs = [
+      `생각의 주파수가 너무 잘 맞아 사소한 단어 하나만으로도 의도를 꿰뚫어 봅니다. 힘든 날에도 얼굴만 보면 기분이 사르르 풀리는, 살면서 몇 번 만나기 힘든 소중한 소울메이트입니다.`,
+      `서로의 장점을 기분 좋게 인정해주고 북돋아 줄 줄 아는 든든한 사이입니다. 대화를 나눌수록 유쾌한 영감이 샘솟으며, 함께할 때 시너지가 배가됩니다.`,
+    ];
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 14) % descs.length];
+  } else if (finalScore >= 80) {
+    // SR (80 ~ 87점 - 티키타카 꿀케미)
     const labels = [
       "티키타카 척척 맞는 꿀잼 듀오",
       "텐션 폭발하는 환상의 콤비플레이",
@@ -371,48 +414,84 @@ export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAn
 
     const descs = [
       `한 사람이 드립을 던지면 다른 한 사람이 찰떡같이 받아치는 유쾌한 티키타카가 일품입니다! 같이 있으면 텐션이 훅 올라가고 긍정적인 에너지를 주고받는 든든한 꿀조합입니다.`,
-      `서로의 장점을 기분 좋게 인정해주고 북돋아 줄 줄 아는 사이입니다. 대화를 나눌수록 유쾌한 영감이 샘솟으며, 함께 모임이나 프로젝트를 진행할 때 시너지가 배가됩니다.`,
       `호흡이 안정적이고 대화가 막힘없이 이어집니다. 가끔 사소한 이견이 생겨도 웃으며 쿨하게 조율해낼 수 있는 건강하고 성숙한 호감 조합입니다.`,
     ];
     finalDesc = descs[getDeterministicHash(m1Id, m2Id, 4) % descs.length];
+  } else if (finalScore >= 70) {
+    // SSS (70 ~ 79점 - 특급 시너지 콤비)
+    const labels = [
+      "합이 잘 맞는 특급 시너지 콤비",
+      "함께하면 일도 놀이도 술술 풀리는 사이",
+      "긍정 에너지를 뿜어내는 호감 듀오",
+    ];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 25) % labels.length];
+
+    const descs = [
+      `서로의 장단점이 조화롭게 어우러져 함께 움직일 때 효율과 즐거움이 동시에 커지는 조합입니다. 신뢰를 바탕으로 서로에게 훌륭한 자극제가 되어줍니다.`,
+      `사소한 오해가 생겨도 금방 털어내고 웃을 수 있는 쿨한 케미입니다. 대화가 유익하고 서로의 발전을 진심으로 응원해주는 건강한 관계입니다.`,
+    ];
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 26) % descs.length];
   } else if (finalScore >= 60) {
-    // S (60 ~ 74점)
+    // SS (60 ~ 69점 - 은근히 잘 통하는 호감)
     const labels = [
       "은근히 마음 편한 힐링 조합",
       "잔잔하고 부담 없는 안정적 인연",
       "서로의 영역을 지켜주는 든든한 친구",
-      "오래 봐도 질리지 않는 담백한 사이",
     ];
     finalLabel = labels[getDeterministicHash(m1Id, m2Id, 5) % labels.length];
 
     const descs = [
       `불꽃처럼 격렬하진 않아도 묘하게 마음이 차분해지고 편안한 관계입니다. 서로 지나치게 간섭하지 않으면서도 필요할 때 곁에서 힘이 되어주는 담백하고 오래가는 궁합입니다.`,
       `서로의 고유한 개성을 있는 그대로 존중해주는 쿨하고 성숙한 사이입니다. 굳이 매일 연락하지 않아도 오랜만에 만났을 때 어제 본 것처럼 편안함을 유지합니다.`,
-      `취향과 속도가 비슷해 함께 있을 때 피로감이 전혀 없습니다. 서로의 경계를 침범하지 않고 알맞은 보폭으로 길게 동행할 수 있는 안정적인 조합입니다.`,
     ];
     finalDesc = descs[getDeterministicHash(m1Id, m2Id, 6) % descs.length];
-  } else if (finalScore >= 45) {
-    // R (45 ~ 59점 - 일반적인 경우)
+  } else if (finalScore >= 50) {
+    // S (50 ~ 59점 - 잔잔하고 편안한 인연)
+    const labels = [
+      "부담 없이 잔잔한 무난한 인연",
+      "오래 봐도 질리지 않는 담백한 사이",
+      "적당한 보폭으로 동행하는 관계",
+    ];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 37) % labels.length];
+
+    const descs = [
+      `취향과 속도가 비슷해 함께 있을 때 피로감이 없습니다. 서로의 경계를 침범하지 않고 알맞은 보폭으로 길게 동행할 수 있는 평온하고 안정적인 인연입니다.`,
+      `서로에게 과한 기대를 하지 않고 있는 그대로 바라봐 주는 편안함이 장점입니다. 은은한 차 한 잔처럼 부담 없이 길게 유지되는 궁합입니다.`,
+    ];
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 38) % descs.length];
+  } else if (finalScore >= 40) {
+    // A (40 ~ 49점 - 현실적인 보통 사이)
     const labels = [
       "코드가 맞을 땐 빵 터지는 현실 케미",
       "적당한 거리두기가 보약인 인연",
       "밀당과 조율이 필요한 보통 사이",
-      "가끔씩 정적 흐르는 알쏭달쏭 조합",
     ];
     finalLabel = labels[getDeterministicHash(m1Id, m2Id, 7) % labels.length];
 
     const descs = [
       `공통 관심사가 있을 때는 세상 재밌게 떠들다가도, 관점이 부딪히면 묘한 어색함이 흐르기도 합니다. 서로의 방식을 강요하지 않고 쿨하게 인정해줄 때 가장 편안하게 유지되는 현실적인 인연입니다.`,
-      `살아온 방식이나 생각의 결이 꽤 달라 가끔씩 물음표가 뜨는 관계입니다. 하지만 편견 없이 대화를 나누면 나와 전혀 다른 신선한 시야를 선물받을 수 있습니다.`,
       `너무 바짝 붙어있기보다는 적당한 거리를 두고 만날 때 가장 유쾌합니다. 서로의 다름을 '틀림'이 아니라 '개성'으로 받아들이는 센스가 필요합니다.`,
     ];
     finalDesc = descs[getDeterministicHash(m1Id, m2Id, 8) % descs.length];
-  } else if (finalScore >= 35) {
-    // N (35 ~ 44점)
+  } else if (finalScore >= 30) {
+    // B (30 ~ 39점 - 밀당과 조율이 필요한 관계)
+    const labels = [
+      "가끔씩 정적 흐르는 알쏭달쏭 조합",
+      "생각의 결이 다른 물음표 케미",
+      "서로 다른 리듬으로 걷는 두 사람",
+    ];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 47) % labels.length];
+
+    const descs = [
+      `살아온 방식이나 생각의 결이 꽤 달라 가끔씩 물음표가 뜨는 관계입니다. 내 기준에 상대방을 맞추려 하지 말고, 서로의 다름을 담백하게 관찰할 때 불필요한 마찰을 줄일 수 있습니다.`,
+      `대화의 핀트가 가끔 엇갈릴 수 있으니 중요한 이야기는 직설적이고 명확하게 나누는 것이 오해를 방지하는 비결입니다.`,
+    ];
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 48) % descs.length];
+  } else if (finalScore >= 20) {
+    // C (20 ~ 29점 - 자존심 대결 금지! 삐걱 케미)
     const labels = [
       "다른 행성에서 온 외계인 조합",
       "자존심 대결 금지! 양보가 필수인 사이",
-      "서로 다른 언어로 말하는 두 사람",
       "말조심 필수! 아슬아슬 줄타기 케미",
     ];
     finalLabel = labels[getDeterministicHash(m1Id, m2Id, 9) % labels.length];
@@ -420,25 +499,36 @@ export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAn
     const descs = [
       `세상을 바라보는 렌즈 자체가 완전히 상반되어 사소한 말투에도 오해가 생기기 쉽습니다. '쟤는 왜 저러지?' 대신 '저렇게 생각할 수도 있구나' 하고 한 템포 쉬어가는 여유가 절대적으로 필요합니다.`,
       `둘 다 자기만의 주관과 고집이 뚜렷해 한 번 의견이 갈리면 팽팽한 줄다리기가 이어집니다. 이기려 들기보다 먼저 웃으며 한 발 물러서는 사람이 진짜 위너입니다.`,
-      `기질상 맞추려면 꽤 많은 에너지와 인내심이 요구됩니다. 공적인 거리감을 유지하거나 중간에서 분위기를 풀어줄 중재자가 있을 때 훨씬 편안합니다.`,
     ];
     finalDesc = descs[getDeterministicHash(m1Id, m2Id, 10) % descs.length];
-  } else {
-    // D (35점 미만 - 최악의 악연/상충)
+  } else if (finalScore >= 10) {
+    // D (10 ~ 19점 - 스파크 주의! 애증의 관계)
     const labels = [
       "스치기만 해도 스파크! 일촉즉발 폭탄",
       "단둘이 있으면 기빨리는 애증의 관계",
       "파국 주의! 팽팽한 살기와 충돌 기류",
-      "물과 기름! 절대 안 섞이는 상극 조합",
     ];
     finalLabel = labels[getDeterministicHash(m1Id, m2Id, 11) % labels.length];
 
     const descs = [
       `물과 기름처럼 기운이 정면으로 부딪히는 불꽃 튀는 상충 기류입니다! 둘이 단둘이 오래 있으면 사소한 불씨 하나로도 감정 소모가 극심해지니, 반드시 여럿이 함께 어울리거나 철저한 안전거리를 유지해야 합니다.`,
-      `성향, 가치관, 표현법까지 모든 게 극과 극입니다. 서로를 바꾸려고 들면 파국으로 치닫기 십상이니, '우린 완전히 다른 사람이다'를 인정하고 쿨하게 선을 지키는 게 상책입니다.`,
       `자존심을 건드리는 순간 걷잡을 수 없이 삐걱거리는 살기(殺氣)가 서려 있습니다. 깊은 감정적 기대보다는 담백하고 깍듯한 예의를 갖추는 것이 서로의 평화를 지키는 지름길입니다.`,
     ];
     finalDesc = descs[getDeterministicHash(m1Id, m2Id, 12) % descs.length];
+  } else {
+    // F (0 ~ 9점 - 파국 주의! 0점 수렴 악연)
+    const labels = [
+      "파국 확정! 0점 수렴 일촉즉발 악연",
+      "절대 섞일 수 없는 극상극 폭탄",
+      "마주치면 기빨림 100%! 비즈니스 모드 필수",
+    ];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 59) % labels.length];
+
+    const descs = [
+      `오행, 지지, 기운이 모두 정면 충돌하여 스치기만 해도 불꽃이 튀는 극상극 악연입니다! 서로를 이해하려 들지 말고 철저한 공적 거리감과 비즈니스 매너로 대처하는 것이 최선의 생존법입니다.`,
+      `0점에 수렴할 만큼 사주 상생의 기운이 전무합니다. 개인적인 감정을 섞지 않고 깍듯한 예의와 거리두기를 유지하세요.`,
+    ];
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 60) % descs.length];
   }
 
   // 💬 REALISTIC SUB-ANALYSIS DESCRIPTIONS
