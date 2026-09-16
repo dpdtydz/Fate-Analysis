@@ -179,7 +179,7 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     return isSnapHost(currentCode, snapData.creator_key);
   }, [currentCode, snapData]);
 
-  // All registered partners
+  // All registered partners (with resilient local storage fallback)
   const partnersList = useMemo(() => {
     if (!snapData) return [];
     if (snapData.partners && snapData.partners.length > 0) {
@@ -188,8 +188,23 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     if (snapData.partner) {
       return [snapData.partner];
     }
+    // Resilient fallback: If memory snapData lost partners due to network hiccup, recover from local storage
+    if (currentCode) {
+      try {
+        const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
+        const cached = localSnaps[currentCode.toUpperCase().trim()];
+        if (cached?.partners && cached.partners.length > 0) {
+          return cached.partners;
+        }
+        if (cached?.partner) {
+          return [cached.partner];
+        }
+      } catch {
+        // ignore
+      }
+    }
     return [];
-  }, [snapData]);
+  }, [snapData, currentCode]);
 
   // Pre-calculate pair scores for each partner in the shelf
   const partnersWithScores = useMemo(() => {

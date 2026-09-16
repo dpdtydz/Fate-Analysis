@@ -2320,41 +2320,125 @@ export function getSnapGuestMemberId(code: string): string | null {
   }
 }
 
+export function mergeSnaps(remote: PairSnap | null, local: PairSnap | null): PairSnap | null {
+  if (!remote && !local) return null;
+  if (!remote) return local;
+  if (!local) return remote;
+
+  const remotePartners = remote.partners || (remote.partner ? [remote.partner] : []);
+  const localPartners = local.partners || (local.partner ? [local.partner] : []);
+
+  const partnerMap = new Map<string, Member>();
+  // 1) First add remote partners
+  for (const p of remotePartners) {
+    if (p && p.nickname) {
+      partnerMap.set(p.nickname.trim().toLowerCase(), p);
+    }
+  }
+  // 2) Merge with local partners so that partners on this device never vanish
+  for (const p of localPartners) {
+    if (p && p.nickname) {
+      partnerMap.set(p.nickname.trim().toLowerCase(), p);
+    }
+  }
+
+  const mergedPartners = Array.from(partnerMap.values());
+  const latestPartner = mergedPartners.length > 0 
+    ? mergedPartners[mergedPartners.length - 1] 
+    : (remote.partner || local.partner);
+
+  return {
+    ...remote,
+    ...local,
+    title: remote.title || local.title,
+    creator: remote.creator || local.creator,
+    creator_key: remote.creator_key || local.creator_key,
+    partner: latestPartner,
+    partners: mergedPartners,
+    created_at: remote.created_at || local.created_at,
+    updated_at: new Date(Math.max(
+      new Date(remote.updated_at || 0).getTime(),
+      new Date(local.updated_at || 0).getTime()
+    )).toISOString()
+  };
+}
+
 export async function getPairSnap(code: string): Promise<PairSnap | null> {
   if (!code) return null;
   const cleanCode = code.toUpperCase().trim();
   
+  // Read local storage copy first
+  let localSnap: PairSnap | null = null;
+  try {
+    const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
+    localSnap = localSnaps[cleanCode] || null;
+  } catch {
+    // ignore
+  }
+
+  let remoteSnap: PairSnap | null = null;
+
   // 1) Try client Firestore
   try {
     const snapRef = doc(db, "pair_snaps", cleanCode);
     const snapSnap = await getDoc(snapRef);
     if (snapSnap.exists()) {
-      return snapSnap.data() as PairSnap;
+      remoteSnap = snapSnap.data() as PairSnap;
     }
   } catch (err) {
     console.warn("Firestore getPairSnap error, trying server API:", err);
   }
 
-  // 2) Try Server API (Guarantees incognito & cross-device access even when client Firestore permissions fail)
-  try {
-    const res = await fetch(`/api/snap/${cleanCode}`);
-    if (res.ok) {
-      const serverData = await res.json();
-      if (serverData && serverData.code) {
-        return serverData as PairSnap;
+  // 2) Try Server API if not found or empty
+  if (!remoteSnap) {
+    try {
+      const res = await fetch(`/api/snap/${cleanCode}`);
+      if (res.ok) {
+        const serverData = await res.json();
+        if (serverData && serverData.code) {
+          remoteSnap = serverData as PairSnap;
+        }
       }
+    } catch (srvErr) {
+      console.warn("Server API getPairSnap error:", srvErr);
     }
-  } catch (srvErr) {
-    console.warn("Server API getPairSnap error, fallback to local:", srvErr);
   }
 
-  // 3) LocalStorage fallback
-  try {
-    const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
-    return localSnaps[cleanCode] || null;
-  } catch {
-    return null;
+  // 3) Smart Merge: Guarantee that partners registered on this device never vanish due to stale/empty remote responses!
+  const finalSnap = mergeSnaps(remoteSnap, localSnap);
+
+  if (finalSnap) {
+    // Cache the merged result locally
+    try {
+      const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
+      localSnaps[cleanCode] = finalSnap;
+      localStorage.setItem("saju_pair_snaps", JSON.stringify(localSnaps));
+    } catch {
+      // ignore
+    }
+
+    // 4) Self-Healing Auto-Sync: If local contains more partners than remote, heal server & firestore immediately!
+    const finalCount = finalSnap.partners?.length || (finalSnap.partner ? 1 : 0);
+    const remoteCount = remoteSnap?.partners?.length || (remoteSnap?.partner ? 1 : 0);
+    if (finalCount > remoteCount) {
+      // Heal server
+      fetch("/api/snap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(finalSnap)
+      }).catch(() => {});
+
+      // Heal Firestore
+      try {
+        const snapRef = doc(db, "pair_snaps", cleanCode);
+        setDoc(snapRef, finalSnap, { merge: true }).catch(() => {});
+      } catch {
+        // ignore
+      }
+    }
   }
+
+  return finalSnap;
 }
 
 export async function joinPairSnap(code: string, partner: Member): Promise<PairSnap> {
@@ -2383,7 +2467,16 @@ export async function joinPairSnap(code: string, partner: Member): Promise<PairS
     // ignore
   }
 
-  // 1) Firestore sync
+  // 1) Local storage (Instant absolute save!)
+  try {
+    const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
+    localSnaps[cleanCode] = updatedSnap;
+    localStorage.setItem("saju_pair_snaps", JSON.stringify(localSnaps));
+  } catch (e) {
+    console.error("Local storage error:", e);
+  }
+
+  // 2) Firestore sync
   try {
     const snapRef = doc(db, "pair_snaps", cleanCode);
     await setDoc(snapRef, updatedSnap, { merge: true });
@@ -2391,7 +2484,7 @@ export async function joinPairSnap(code: string, partner: Member): Promise<PairS
     console.warn("Firestore joinPairSnap error:", err);
   }
 
-  // 2) Server sync
+  // 3) Server sync
   try {
     await fetch(`/api/snap/${cleanCode}/join`, {
       method: "POST",
@@ -2402,15 +2495,6 @@ export async function joinPairSnap(code: string, partner: Member): Promise<PairS
     console.warn("Server joinPairSnap sync warning:", srvErr);
   }
 
-  // 3) Local storage
-  try {
-    const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
-    localSnaps[cleanCode] = updatedSnap;
-    localStorage.setItem("saju_pair_snaps", JSON.stringify(localSnaps));
-  } catch (e) {
-    console.error("Local storage error:", e);
-  }
-
   return updatedSnap;
 }
 
@@ -2418,7 +2502,7 @@ export function subscribePairSnap(code: string, callback: (snap: PairSnap | null
   const cleanCode = code.toUpperCase().trim();
   let isUnsubscribed = false;
 
-  // Immediate fetch via getPairSnap (checks Firestore -> Server API -> LocalStorage)
+  // Immediate fetch via getPairSnap (checks Firestore -> Server API -> LocalStorage + Smart Merge)
   getPairSnap(cleanCode).then((snap) => {
     if (!isUnsubscribed && snap) {
       callback(snap);
@@ -2452,14 +2536,23 @@ export function subscribePairSnap(code: string, callback: (snap: PairSnap | null
     window.addEventListener("storage", handleStorageEvent);
   }
 
-  // 3) Firestore onSnapshot listener
+  // 3) Firestore onSnapshot listener with Smart Merge
   let firestoreUnsubscribe: (() => void) | null = null;
   try {
     const snapRef = doc(db, "pair_snaps", cleanCode);
     firestoreUnsubscribe = onSnapshot(snapRef, (docSnap) => {
       if (isUnsubscribed) return;
       if (docSnap.exists()) {
-        callback(docSnap.data() as PairSnap);
+        const fsData = docSnap.data() as PairSnap;
+        let localSnap: PairSnap | null = null;
+        try {
+          const localSnaps = JSON.parse(localStorage.getItem("saju_pair_snaps") || "{}");
+          localSnap = localSnaps[cleanCode] || null;
+        } catch {}
+        const merged = mergeSnaps(fsData, localSnap);
+        if (merged) {
+          callback(merged);
+        }
       } else {
         getPairSnap(cleanCode).then((snap) => {
           if (!isUnsubscribed) callback(snap);
