@@ -304,6 +304,14 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     if (!currentCode) return;
     setIsRefreshing(true);
     try {
+      if (isHost && snapData) {
+        // Force sync host snap to server & firestore
+        fetch("/api/snap", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(snapData)
+        }).catch(() => {});
+      }
       const snap = await getPairSnap(currentCode);
       if (snap) {
         setSnapData(snap);

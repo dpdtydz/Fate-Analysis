@@ -2437,10 +2437,10 @@ export async function getPairSnap(code: string): Promise<PairSnap | null> {
       // ignore
     }
 
-    // 5) Self-Healing Auto-Sync: If local contains more partners than remote, heal server & firestore immediately!
+    // 5) Self-Healing Auto-Sync: If remote is missing OR local contains more partners, heal server & firestore immediately!
     const finalCount = finalSnap.partners?.length || (finalSnap.partner ? 1 : 0);
     const remoteCount = remoteSnap?.partners?.length || (remoteSnap?.partner ? 1 : 0);
-    if (finalCount > remoteCount) {
+    if (!remoteSnap || finalCount > remoteCount) {
       // Heal server
       fetch("/api/snap", {
         method: "POST",
