@@ -33,60 +33,167 @@ export function isDummyPair(pair?: Partial<PairAnalysis> | null): boolean {
   return false;
 }
 
-export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAnalysis {
-  const getDeterministicHashScore = (str1: string, str2: string, seed: number, min = 65, max = 95) => {
-    const combined = [str1, str2].sort().join("");
-    let hash = 0;
-    for (let i = 0; i < combined.length; i++) {
-      hash = combined.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return Math.abs((hash + seed) % (max - min + 1)) + min;
+export function getGradeFromScore(score: number): {
+  grade: "UR" | "SSR" | "SR" | "S" | "R" | "N" | "D";
+  title: string;
+  color: string;
+  badgeBg: string;
+  desc: string;
+} {
+  if (score >= 95) {
+    return {
+      grade: "UR",
+      title: "신화급 천생연분",
+      color: "text-amber-500",
+      badgeBg: "bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow-sm",
+      desc: "우주가 점찍은 0.5% 확률의 전설적인 인연! 눈빛만 봐도 통하는 영혼의 단짝입니다.",
+    };
+  }
+  if (score >= 90) {
+    return {
+      grade: "SSR",
+      title: "환상의 소울메이트",
+      color: "text-rose-500",
+      badgeBg: "bg-rose-500 text-white shadow-xs",
+      desc: "만났다 하면 시간 순삭! 서로의 장점을 최고조로 끌어올리는 환상적인 궁합입니다.",
+    };
+  }
+  if (score >= 75) {
+    return {
+      grade: "SR",
+      title: "티키타카 꿀케미",
+      color: "text-indigo-600",
+      badgeBg: "bg-indigo-600 text-white",
+      desc: "호흡이 척척 맞고 같이 있으면 텐션이 샘솟는 든든한 꿀조합입니다.",
+    };
+  }
+  if (score >= 60) {
+    return {
+      grade: "S",
+      title: "은근히 편안한 호감",
+      color: "text-emerald-600",
+      badgeBg: "bg-emerald-600 text-white",
+      desc: "무리하지 않아도 마음이 편안하고, 잔잔하고 오랜 시간 변함없이 이어지는 인연입니다.",
+    };
+  }
+  if (score >= 45) {
+    return {
+      grade: "R",
+      title: "현실적인 보통 인연",
+      color: "text-sky-600",
+      badgeBg: "bg-sky-600 text-white",
+      desc: "코드가 맞을 땐 유쾌하지만 가끔 생각의 차이도 있는, 현실에서 가장 흔하고 무난한 사이입니다.",
+    };
+  }
+  if (score >= 35) {
+    return {
+      grade: "N",
+      title: "배려가 필요한 조율 관계",
+      color: "text-amber-600",
+      badgeBg: "bg-amber-600 text-white",
+      desc: "서로 다른 별에서 온 것처럼 성향 차이가 뚜렷해, 상대방 입장에서 먼저 양보해야 편안합니다.",
+    };
+  }
+  return {
+    grade: "D",
+    title: "스파크 주의! 애증의 관계",
+    color: "text-red-700",
+    badgeBg: "bg-red-700 text-white",
+    desc: "물과 기름처럼 부딪히기 쉬운 상충 기류! 단둘이 오래 있기보다 적당한 안전거리가 필수입니다.",
   };
+}
 
+// Deterministic Pseudo Random Helper
+function getDeterministicHash(str1: string, str2: string, seed: number): number {
+  const combined = [str1, str2].sort().join("::");
+  let hash = 0;
+  for (let i = 0; i < combined.length; i++) {
+    hash = (hash << 5) - hash + combined.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs((hash + seed * 997) % 10000);
+}
+
+export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAnalysis {
   const m1Id = m1.id || "m1";
   const m2Id = m2.id || "m2";
 
-  const g1 = m1.saju?.daymaster?.gan || "무토";
-  const g2 = m2.saju?.daymaster?.gan || "기토";
+  // 1. Daymaster & Elements
+  const g1 = m1.saju?.daymaster?.gan || m1.saju?.pillars?.day?.gan || "무토";
+  const g2 = m2.saju?.daymaster?.gan || m2.saju?.pillars?.day?.gan || "기토";
   const elem1 = m1.saju?.daymaster?.element || "토";
   const elem2 = m2.saju?.daymaster?.element || "토";
 
-  const GAN_META: Record<string, { nick: string; desc: string }> = {
-    "갑목": { nick: "우직한 거목", desc: "곧고 굳센 기상과 진취적인 리더십" },
-    "을목": { nick: "유연한 화초", desc: "끈질긴 친화력과 아름답고 부드러운 유연성" },
-    "병화": { nick: "눈부신 태양", desc: "사방을 비추는 열정과 화끈하고 솔직한 사교성" },
-    "정화": { nick: "따뜻한 등불", desc: "내면을 세심하게 읽는 세심한 지혜와 강한 집중력" },
-    "무토": { nick: "광활한 태산", desc: "흔들리지 않는 든든한 신용과 묵직한 포용력" },
-    "기토": { nick: "기름진 정원", desc: "주변을 알뜰살뜰 보살피는 포근함과 뛰어난 대처능력" },
-    "경금": { nick: "강인한 원석", desc: "우직한 뚝심과 확실한 의리, 칼날 같은 단호함" },
-    "신금": { nick: "반짝이는 보석", desc: "눈부신 지적 영민함과 세심하고 정교한 완벽주의" },
-    "임수": { nick: "도도한 강물", desc: "웅장한 포용력과 물길처럼 흐르는 깊은 지혜" },
-    "계수": { nick: "촉촉한 이슬", desc: "메마른 세상을 적시는 맑고 지혜로운 임기응변" },
+  // Branches (지지)
+  const dBranch1 = m1.saju?.pillars?.day?.ji || "";
+  const dBranch2 = m2.saju?.pillars?.day?.ji || "";
+  const yBranch1 = m1.saju?.pillars?.year?.ji || "";
+  const yBranch2 = m2.saju?.pillars?.year?.ji || "";
+
+  // 2. Heavenly Stem Combinations (천간합: 갑기, 을경, 병신, 정임, 무계)
+  const isStemHarmony =
+    (g1.includes("갑") && g2.includes("기")) || (g1.includes("기") && g2.includes("갑")) ||
+    (g1.includes("을") && g2.includes("경")) || (g1.includes("경") && g2.includes("을")) ||
+    (g1.includes("병") && g2.includes("신")) || (g1.includes("신") && g2.includes("병")) ||
+    (g1.includes("정") && g2.includes("임")) || (g1.includes("임") && g2.includes("정")) ||
+    (g1.includes("무") && g2.includes("계")) || (g1.includes("계") && g2.includes("무"));
+
+  // 3. Earthly Branch Six Combinations (지지 육합: 자축, 인해, 묘술, 진유, 사신, 오미)
+  const checkSixHarmony = (b1: string, b2: string) => {
+    if (!b1 || !b2) return false;
+    const pair = [b1, b2].sort().join("");
+    return pair === "자축" || pair === "인해" || pair === "묘술" || pair === "진유" || pair === "사신" || pair === "오미";
   };
+  const isDaySixHarmony = checkSixHarmony(dBranch1, dBranch2);
+  const isYearSixHarmony = checkSixHarmony(yBranch1, yBranch2);
 
-  const meta1 = GAN_META[g1] || { nick: `${elem1}기운`, desc: `${elem1}의 기운` };
-  const meta2 = GAN_META[g2] || { nick: `${elem2}기운`, desc: `${elem2}의 기운` };
+  // 4. Earthly Branch Triple Combinations (지지 삼합: 신자진, 사유축, 인오술, 해묘미)
+  const checkTripleHarmony = (b1: string, b2: string) => {
+    if (!b1 || !b2) return false;
+    const pair = [b1, b2].sort().join("");
+    return (
+      ["신자", "자진", "신진"].includes(pair) ||
+      ["사유", "유축", "사축"].includes(pair) ||
+      ["인오", "오술", "인술"].includes(pair) ||
+      ["해묘", "묘미", "해미"].includes(pair)
+    );
+  };
+  const isDayTripleHarmony = checkTripleHarmony(dBranch1, dBranch2);
 
-  let sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 11, 55, 82);
-  let sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 33, 55, 82);
-  let sajuLabel = "상생과 화합의 인연 조합";
-  let sajuDesc = "";
+  // 5. Earthly Branch Clash (지지 충: 자오, 축미, 인신, 묘유, 진술, 사해)
+  const checkBranchClash = (b1: string, b2: string) => {
+    if (!b1 || !b2) return false;
+    const pair = [b1, b2].sort().join("");
+    return pair === "자오" || pair === "축미" || pair === "인신" || pair === "묘유" || pair === "진술" || pair === "사해";
+  };
+  const isDayClash = checkBranchClash(dBranch1, dBranch2);
+  const isYearClash = checkBranchClash(yBranch1, yBranch2);
 
-  const isGeneratingSajuSupport =
+  // 6. Earthly Branch Wonjin (원진살: 자미, 축오, 인유, 묘신, 진해, 사술)
+  const checkWonjin = (b1: string, b2: string) => {
+    if (!b1 || !b2) return false;
+    const pair = [b1, b2].sort().join("");
+    return pair === "자미" || pair === "축오" || pair === "인유" || pair === "묘신" || pair === "진해" || pair === "사술";
+  };
+  const isWonjin = checkWonjin(dBranch1, dBranch2) || checkWonjin(yBranch1, yBranch2);
+
+  // 7. Five Elements Generation (오행 상생)
+  const isGen1to2 =
     (elem1 === "목" && elem2 === "화") ||
     (elem1 === "화" && elem2 === "토") ||
     (elem1 === "토" && elem2 === "금") ||
     (elem1 === "금" && elem2 === "수") ||
     (elem1 === "수" && elem2 === "목");
 
-  const isReceivingSajuSupport =
+  const isGen2to1 =
     (elem2 === "목" && elem1 === "화") ||
     (elem2 === "화" && elem1 === "토") ||
     (elem2 === "토" && elem1 === "금") ||
     (elem2 === "금" && elem1 === "수") ||
     (elem2 === "수" && elem1 === "목");
 
-  const isSajuClash =
+  // Five Elements Clash (오행 상극)
+  const isSajuElementClash =
     (elem1 === "목" && elem2 === "토") ||
     (elem1 === "토" && elem2 === "수") ||
     (elem1 === "수" && elem2 === "화") ||
@@ -98,242 +205,272 @@ export function generateDynamicPairCompatibility(m1: Member, m2: Member): PairAn
     (elem2 === "화" && elem1 === "금") ||
     (elem2 === "금" && elem1 === "목");
 
-  if (isGeneratingSajuSupport) {
-    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 17, 72, 85);
-    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 41, 68, 82);
-    sajuLabel = "오행상생의 창조적 파트너";
-    sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. ${g1}의 기운이 ${g2}을 촉진해 주어, ${m1.nickname}님의 추진력이 ${m2.nickname}님의 성과로 부드럽게 이어지는 완벽한 창조적 흐름입니다.`;
-  } else if (isReceivingSajuSupport) {
-    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 23, 68, 82);
-    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 59, 72, 85);
-    sajuLabel = "상생과 든든한 조력 기류";
-    sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. ${g2}의 포근한 기운이 ${g1}을 든든하게 생(生)해 주어, 서로 신뢰가 대단히 깊고 함께 대화하면 심리적 안정감을 얻는 훌륭한 관계입니다.`;
-  } else if (elem1 === elem2) {
-    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 15, 58, 72);
-    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 45, 58, 72);
-    sajuLabel = "거울을 보듯 통하는 소울 조합";
-    sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. 서로 같은 '${elem1}'의 오행 기운을 공유하여, 굳이 많은 설명을 하지 않아도 깊은 동질감과 끈끈한 유대감을 나누는 완벽한 동료입니다.`;
-  } else if (isSajuClash) {
-    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 19, 36, 52);
-    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 37, 36, 52);
-    sajuLabel = "긴장 속에서 꽃피는 혁신 조합";
-    sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. ${g1}과 ${g2}의 기운이 극(剋)하며 팽팽한 텐션을 형성하나, 적절한 거리와 예의를 유지하면 서로의 빈틈을 칼같이 메워주는 최고의 지적 자극제가 됩니다.`;
-  } else {
-    sajuScore1to2 = getDeterministicHashScore(m1Id, m2Id, 21, 50, 66);
-    sajuScore2to1 = getDeterministicHashScore(m1Id, m2Id, 51, 50, 66);
-    sajuLabel = "담백하고 온화한 조율 조합";
-    sajuDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${sajuScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${sajuScore2to1}점. 서로 간섭하지 않는 온화한 오행 기운의 조화로, 편안한 소통과 담백한 신뢰를 지켜나가는 물 흐르듯 잔잔한 인연 기류입니다.`;
-  }
-
+  // 8. Western Zodiac
   const z1 = getWesternZodiac(m1.birth_date);
   const z2 = getWesternZodiac(m2.birth_date);
-
   const getZodiacElement = (name: string) => {
     if (["양자리", "사자자리", "사수자리"].includes(name)) return "불";
     if (["황소자리", "처녀자리", "염소자리"].includes(name)) return "흙";
     if (["쌍둥이자리", "천칭자리", "물병자리"].includes(name)) return "공기";
     return "물";
   };
-
   const ze1 = getZodiacElement(z1.name);
   const ze2 = getZodiacElement(z2.name);
-
   const isZodiacCompatible = (ze1 === ze2) ||
     (ze1 === "불" && ze2 === "공기") || (ze1 === "공기" && ze2 === "불") ||
     (ze1 === "흙" && ze2 === "물") || (ze1 === "물" && ze2 === "흙");
   const isZodiacClash = (ze1 === "불" && ze2 === "물") || (ze1 === "물" && ze2 === "불") ||
     (ze1 === "흙" && ze2 === "공기") || (ze1 === "공기" && ze2 === "흙");
 
-  let zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 29, 52, 68);
-  let zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 69, 52, 68);
-  let zodiacDesc = "";
-
-  if (isZodiacCompatible) {
-    zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 29, 72, 84);
-    zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 69, 72, 84);
-    zodiacDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${zodiacScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${zodiacScore2to1}점. ${z1.name}(${ze1})과 ${z2.name}(${ze2})의 성좌 기운이 조화롭게 화합하여 서로에게 활력과 깊은 교감을 불어넣는 훌륭한 시너지입니다.`;
-  } else if (isZodiacClash) {
-    zodiacScore1to2 = getDeterministicHashScore(m1Id, m2Id, 29, 38, 54);
-    zodiacScore2to1 = getDeterministicHashScore(m1Id, m2Id, 69, 38, 54);
-    zodiacDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${zodiacScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${zodiacScore2to1}점. ${z1.name}(${ze1})과 ${z2.name}(${ze2})의 상반된 성좌 원소가 만나 팽팽한 긴장감을 자아내나, 서로 다른 시야를 열어주는 신선한 자극제가 됩니다.`;
-  } else {
-    zodiacDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${zodiacScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${zodiacScore2to1}점. 서로 다른 성좌 영역에 속해 있으나, 그렇기에 더욱 신선하고 평소 생각지 못한 각도에서 독창적인 아이디어와 새로운 관점을 제공해 줍니다.`;
-  }
-
-  let ziweiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 44, 48, 78);
-  let ziweiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 88, 48, 78);
-
-  const ziweiStars = [
-    { name: "자미성", desc: "고귀한 중심을 잡아주는 리더의 기상" },
-    { name: "거문성", desc: "명쾌하고 치밀하며 어두운 틈을 찾아내는 수완" },
-    { name: "천부성", desc: "풍요롭고 너그러우며 다정히 품어주는 기량" },
-    { name: "태양성", desc: "공명정대하고 시원시원하며 정의를 사랑하는 열정" },
-    { name: "무곡성", desc: "한번 맺은 약속은 철저히 지키는 강직한 재물 성정" },
-  ];
-
-  const m1ZIndex = getDeterministicHashScore(m1Id, m2Id, 1, 0, ziweiStars.length - 1);
-  const m2ZIndex = getDeterministicHashScore(m1Id, m2Id, 9, 0, ziweiStars.length - 1);
-  const m1ZStar = ziweiStars[m1ZIndex];
-  const m2ZStar = ziweiStars[m2ZIndex];
-
-  let ziweiDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${ziweiScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${ziweiScore2to1}점. ${m1.nickname}님의 명궁 기저에 깃든 ${m1ZStar.name}(${m1ZStar.desc})과 ${m2.nickname}님의 ${m2ZStar.name}(${m2ZStar.desc})이 절묘한 별자리 기류로 만나, 서로의 자리를 빛내주고 존중해주는 품격 있는 관계를 지향합니다.`;
-
-  let mbtiScore1to2 = 62;
-  let mbtiScore2to1 = 62;
-  let mbtiDesc = "";
-
+  // 9. MBTI
   const code1 = m1.mbti?.trim().toUpperCase() || "";
   const code2 = m2.mbti?.trim().toUpperCase() || "";
   const isMbti1Ok = code1.length === 4 && !code1.includes("미");
   const isMbti2Ok = code2.length === 4 && !code2.includes("미");
-
+  let mbtiDelta = 0;
   if (isMbti1Ok && isMbti2Ok) {
-    let sameCount = 0;
-    if (code1[0] === code2[0]) sameCount++;
-    if (code1[1] === code2[1]) sameCount++;
-    if (code1[2] === code2[2]) sameCount++;
-    if (code1[3] === code2[3]) sameCount++;
-
-    if (sameCount === 4) {
-      mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 9, 75, 86);
-      mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 19, 75, 86);
-    } else if (sameCount >= 2) {
-      mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 9, 58, 72);
-      mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 19, 58, 72);
-    } else {
-      mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 9, 38, 54);
-      mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 19, 38, 54);
-    }
-
-    let synergyBullet = "";
-    if (code1[2] === code2[2] && code1[2] === "T") {
-      synergyBullet = "이성적이고 담백한 팩트 체크와 효율 중심 소통이 완벽하게 일치합니다.";
-    } else if (code1[2] === code2[2] && code1[2] === "F") {
-      synergyBullet = "따뜻하고 속 깊은 정서적 교감과 따뜻한 리액션이 어우러져 한없이 포근합니다.";
-    } else {
-      synergyBullet = "냉철한 피드백(T)과 따뜻한 심리적 위로(F)가 결합하여 지성과 감성을 고루 다듬어줍니다.";
-    }
-
-    let detailDiff = "";
-    if (code1[1] !== code2[1]) {
-      detailDiff += " 현실 감각(S)과 넓은 상상력(N)의 조화로 시너지를 내며,";
-    }
-    if (code1[3] !== code2[3]) {
-      detailDiff += " 체계적인 정리(J)와 민첩하고 유연한 대처(P)가 어우러져 돌발 상황에 무척 강합니다.";
-    }
-
-    mbtiDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${mbtiScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${mbtiScore2to1}점. ${code1}와 ${code2} 성향이 만나,${detailDiff} ${synergyBullet}`;
-  } else {
-    mbtiScore1to2 = getDeterministicHashScore(m1Id, m2Id, 12, 52, 68);
-    mbtiScore2to1 = getDeterministicHashScore(m1Id, m2Id, 24, 52, 68);
-    const unreg = !isMbti1Ok ? m1.nickname : m2.nickname;
-    mbtiDesc = `${m1.nickname}님은 ${m2.nickname}님에게 ${mbtiScore1to2}점, ${m2.nickname}님은 ${m1.nickname}님에게 ${mbtiScore2to1}점. ${unreg}님이 성향 지표(MBTI)를 등록하지 않았으므로, 정통 사주와 성좌 데이터를 근간 삼아 입체적 관계를 다듬어 나갑니다.`;
+    let same = 0;
+    if (code1[0] === code2[0]) same++;
+    if (code1[1] === code2[1]) same++;
+    if (code1[2] === code2[2]) same++;
+    if (code1[3] === code2[3]) same++;
+    if (same === 4) mbtiDelta = 6;
+    else if (same >= 2) mbtiDelta = 2;
+    else mbtiDelta = -4;
   }
 
-  const avgScore = Math.round(
-    (sajuScore1to2 + sajuScore2to1 + ziweiScore1to2 + ziweiScore2to1 + zodiacScore1to2 + zodiacScore2to1 + mbtiScore1to2 + mbtiScore2to1) / 8
-  );
+  // 🎯 DRAMATIC SCORE COMPUTATION
+  // Base score: 50 (Centers average relationship in the 40-60 range!)
+  let rawScore = 50;
 
-  const getGanNick = (gan: string, elem?: string) => {
-    const g = String(gan || "");
-    if (g.includes("갑")) return "거목";
-    if (g.includes("을")) return "화초";
-    if (g.includes("병")) return "태양";
-    if (g.includes("정")) return "등불";
-    if (g.includes("무")) return "태산";
-    if (g.includes("기")) return "정원";
-    if (g.includes("경")) return "원석";
-    if (g.includes("신")) return "보석";
-    if (g.includes("임")) return "강물";
-    if (g.includes("계")) return "이슬";
+  // Additions (Positive Chemistry)
+  if (isStemHarmony) rawScore += 16;
+  if (isDaySixHarmony) rawScore += 18;
+  else if (isYearSixHarmony) rawScore += 10;
+  if (isDayTripleHarmony) rawScore += 14;
+  if (isGen1to2 || isGen2to1) rawScore += 10;
+  else if (elem1 === elem2) rawScore += 4;
+  if (isZodiacCompatible) rawScore += 6;
+  rawScore += mbtiDelta;
 
-    const e = String(elem || "");
-    if (e.includes("목") || g.includes("목")) return "목 기운";
-    if (e.includes("화") || g.includes("화")) return "화 기운";
-    if (e.includes("토") || g.includes("토")) return "토 기운";
-    if (e.includes("금") || g.includes("금")) return "금 기운";
-    if (e.includes("수") || g.includes("수")) return "수 기운";
+  // Subtractions (Negative Clashes)
+  if (isDayClash) rawScore -= 26; // Day clash directly drops score
+  if (isYearClash) rawScore -= 14;
+  if (isWonjin) rawScore -= 22;   // Wonjin creates emotional friction
+  if (isSajuElementClash) rawScore -= 14;
+  if (isZodiacClash) rawScore -= 6;
 
-    return "고유 기운";
-  };
+  // Deterministic micro jitter: -4 to +4 based on names/ids
+  const jitter = (getDeterministicHash(m1Id, m2Id, 77) % 9) - 4;
+  rawScore += jitter;
 
-  const nick1 = getGanNick(g1, elem1);
-  const nick2 = getGanNick(g2, elem2);
+  // Clamping strictly according to guidelines:
+  // - Worst clash: 18 ~ 38 (Under 40!)
+  // - General/average: 42 ~ 64 (Typical 40-60!)
+  // - Good/SR: 68 ~ 86
+  // - Elite/SSR/UR: 90 ~ 98 (Strictly conservative, requires multiple harmonies!)
+  let finalScore = Math.max(16, Math.min(98, rawScore));
 
+  // If severe clash exists (Day Clash or Wonjin), force under 40
+  if ((isDayClash || isWonjin) && finalScore > 39) {
+    finalScore = 32 + (getDeterministicHash(m1Id, m2Id, 13) % 7);
+  }
+
+  // If no major harmony exists, strictly keep it below 90
+  if (!isStemHarmony && !isDaySixHarmony && !isDayTripleHarmony && finalScore >= 90) {
+    finalScore = 78 + (getDeterministicHash(m1Id, m2Id, 21) % 8);
+  }
+
+  // Asymmetric Sub Scores
+  let sajuScore1to2 = finalScore;
+  let sajuScore2to1 = finalScore;
+  if (isGen1to2) {
+    sajuScore1to2 = Math.min(98, finalScore + 5);
+    sajuScore2to1 = Math.max(15, finalScore - 4);
+  } else if (isGen2to1) {
+    sajuScore1to2 = Math.max(15, finalScore - 4);
+    sajuScore2to1 = Math.min(98, finalScore + 5);
+  }
+
+  let zodiacScore1to2 = isZodiacCompatible ? Math.min(98, finalScore + 8) : isZodiacClash ? Math.max(15, finalScore - 8) : finalScore;
+  let zodiacScore2to1 = zodiacScore1to2;
+
+  let mbtiScore1to2 = Math.max(20, Math.min(98, finalScore + mbtiDelta * 2));
+  let mbtiScore2to1 = mbtiScore1to2;
+
+  let ziweiScore1to2 = Math.max(25, Math.min(95, finalScore + ((getDeterministicHash(m1Id, m2Id, 33) % 11) - 5)));
+  let ziweiScore2to1 = Math.max(25, Math.min(95, finalScore + ((getDeterministicHash(m1Id, m2Id, 44) % 11) - 5)));
+
+  // 📝 WITTY, RELATABLE, DOPAMINE-PACKED LABELS & DESCRIPTIONS
   let finalLabel = "";
   let finalDesc = "";
 
-  if (isGeneratingSajuSupport) {
-    const labelOptions = [
-      `${nick1}과 ${nick2}의 상생적 영감`,
-      `오행상생의 창조적 파트너십`,
-      `${z1.name}와 ${z2.name}의 시너지 기류`,
+  if (finalScore >= 90) {
+    // UR / SSR (90점 이상)
+    const labels = [
+      "우주가 점찍은 찐친·소울메이트",
+      "말 안 해도 눈빛으로 통하는 갓벽 조합",
+      "만났다 하면 시간 순삭되는 찰떡 콤비",
+      "전생에 나라를 구한 레전드 인연",
     ];
-    finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 1) % labels.length];
 
-    const descOptions = [
-      `${m1.nickname}님의 ${meta1.nick} 성정(${meta1.desc})이 ${m2.nickname}님의 ${meta2.nick} 성정(${meta2.desc})을 촉진하여 기적 같은 성장을 만들어내는 흐름입니다. 오행상 ${elem1}의 활기찬 에너지가 ${elem2}을 생(生)하며 촉발하여, 대화를 나눌수록 창조적인 영감이 끝없이 솟구치는 환상적인 파트너십이 발휘됩니다.`,
-      `${m1.nickname}님의 진취적인 기획력과 ${m2.nickname}님의 안정적인 디테일이 합을 맞춰 하나의 아름다운 작품을 완성해 가듯, 두 분이 힘을 합쳤을 때 상상을 초월하는 완성도와 시너지를 보여주는 아름다운 궁합입니다.`,
+    const descs = [
+      `둘이 붙어만 있어도 웃음보 터지고 대화가 끊이지 않는 최상급 케미입니다! 서로 다른 성향마저 신기할 정도로 보완되어, 굳이 꾸며내지 않고 본래 모습 그대로 있어도 마음이 한없이 편안한 영혼의 단짝입니다.`,
+      `사주의 기운이 착착 감기듯 맞물려 함께할 때 운과 에너지가 두 배로 불어나는 조합입니다. 서로에게 깊은 긍정적 자극을 주며, 무슨 일을 벌이든 척하면 척 손발이 맞는 환상의 파트너입니다.`,
+      `생각의 주파수가 너무 잘 맞아 사소한 눈짓이나 단어 하나만으로도 의도를 꿰뚫어 봅니다. 힘든 날에도 얼굴만 보면 기분이 사르르 풀리는, 살면서 몇 번 만나기 힘든 소중한 인연입니다.`,
     ];
-    finalDesc = descOptions[getDeterministicHashScore(m1Id, m2Id, 17, 0, descOptions.length - 1)];
-  } else if (isReceivingSajuSupport) {
-    const labelOptions = [
-      `${nick2}과 ${nick1}의 든든한 상생 기류`,
-      `따뜻한 조력과 편안한 교감`,
-      `${z2.name}가 품어주는 상생 연대`,
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 2) % descs.length];
+  } else if (finalScore >= 75) {
+    // SR (75 ~ 89점)
+    const labels = [
+      "티키타카 척척 맞는 꿀잼 듀오",
+      "텐션 폭발하는 환상의 콤비플레이",
+      "서로에게 든든한 최고의 페이스메이커",
+      "웃음 코드가 똑 닮은 찰떡 케미",
     ];
-    finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 3) % labels.length];
 
-    const descOptions = [
-      `${m2.nickname}님의 포근하고 넓은 ${meta2.nick} 기운이 ${m1.nickname}님의 섬세한 ${meta1.nick} 성정을 든든하게 받쳐주고 생(生)해주는 완벽한 조력의 기류입니다. 두 분이 함께하면 일상에서 쌓였던 불안과 피로가 마법처럼 해소되며 서로에 대한 대단한 신뢰가 굳건하게 형성됩니다.`,
-      `${m2.nickname}님의 깊은 포용력이 ${m1.nickname}님의 무한한 가능성을 자상하게 이끌어내어 주는 기라성 같은 인연입니다. 힘든 고난이 찾아와도 서로를 향한 변치 않는 위로와 격려를 아끼지 않는 단단하고 돈독한 상생 조합입니다.`,
+    const descs = [
+      `한 사람이 드립을 던지면 다른 한 사람이 찰떡같이 받아치는 유쾌한 티키타카가 일품입니다! 같이 있으면 텐션이 훅 올라가고 긍정적인 에너지를 주고받는 든든한 꿀조합입니다.`,
+      `서로의 장점을 기분 좋게 인정해주고 북돋아 줄 줄 아는 사이입니다. 대화를 나눌수록 유쾌한 영감이 샘솟으며, 함께 모임이나 프로젝트를 진행할 때 시너지가 배가됩니다.`,
+      `호흡이 안정적이고 대화가 막힘없이 이어집니다. 가끔 사소한 이견이 생겨도 웃으며 쿨하게 조율해낼 수 있는 건강하고 성숙한 호감 조합입니다.`,
     ];
-    finalDesc = descOptions[getDeterministicHashScore(m1Id, m2Id, 17, 0, descOptions.length - 1)];
-  } else if (elem1 === elem2) {
-    const labelOptions = [
-      `같은 ${elem1} 기운의 소울 메이트`,
-      `거울을 보듯 깊이 공감하는 소통`,
-      `${z1.name}와 ${z2.name}의 깊은 우정`,
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 4) % descs.length];
+  } else if (finalScore >= 60) {
+    // S (60 ~ 74점)
+    const labels = [
+      "은근히 마음 편한 힐링 조합",
+      "잔잔하고 부담 없는 안정적 인연",
+      "서로의 영역을 지켜주는 든든한 친구",
+      "오래 봐도 질리지 않는 담백한 사이",
     ];
-    finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 5) % labels.length];
 
-    const descOptions = [
-      `서로 같은 '${elem1}'의 오행 원소를 풍부하게 공유하고 있어, 처음 만난 순간부터 영혼 깊숙이 통하는 대단한 동질감을 경험하는 조합입니다. 굳이 말 한마디를 나누지 않아도 눈빛만으로 상대의 의도와 마음을 꿰뚫어 보며, 변함없이 곁을 지켜주는 든든한 동반자가 되어줍니다.`,
-      `서로 닮은꼴의 성향과 가치관을 지니고 있어 같은 방향을 바라보고 시원시원하게 나아가는 영혼의 단짝입니다. 갈등의 여지가 지극히 적으며, 서로에게 거울 같은 자극을 주며 동반 성장할 수 있는 완벽한 화합의 파트너십을 보여줍니다.`,
+    const descs = [
+      `불꽃처럼 격렬하진 않아도 묘하게 마음이 차분해지고 편안한 관계입니다. 서로 지나치게 간섭하지 않으면서도 필요할 때 곁에서 힘이 되어주는 담백하고 오래가는 궁합입니다.`,
+      `서로의 고유한 개성을 있는 그대로 존중해주는 쿨하고 성숙한 사이입니다. 굳이 매일 연락하지 않아도 오랜만에 만났을 때 어제 본 것처럼 편안함을 유지합니다.`,
+      `취향과 속도가 비슷해 함께 있을 때 피로감이 전혀 없습니다. 서로의 경계를 침범하지 않고 알맞은 보폭으로 길게 동행할 수 있는 안정적인 조합입니다.`,
     ];
-    finalDesc = descOptions[getDeterministicHashScore(m1Id, m2Id, 17, 0, descOptions.length - 1)];
-  } else if (isSajuClash) {
-    const labelOptions = [
-      `${nick1}과 ${nick2}의 긴장 속 혁신 케미`,
-      `서로의 맹점을 완벽하게 메우는 퍼즐`,
-      `뜨겁고 날카로운 자극의 관계 기류`,
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 6) % descs.length];
+  } else if (finalScore >= 45) {
+    // R (45 ~ 59점 - 일반적인 경우)
+    const labels = [
+      "코드가 맞을 땐 빵 터지는 현실 케미",
+      "적당한 거리두기가 보약인 인연",
+      "밀당과 조율이 필요한 보통 사이",
+      "가끔씩 정적 흐르는 알쏭달쏭 조합",
     ];
-    finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 7) % labels.length];
 
-    const descOptions = [
-      `${m1.nickname}님의 ${meta1.nick}과 ${m2.nickname}님의 ${meta2.nick}이 오행상 서로 극(剋)하며 은근한 텐션을 형성합니다. 하지만 이는 갈등이 아닌 서로의 맹점을 날카롭게 깨워주는 지적 자극제가 되며, 적절한 존중을 유지할 때 세상 어떤 조합보다 완벽하게 서로를 메워주는 훌륭한 퍼즐이 됩니다.`,
-      `서로 다른 시선과 가치관을 지녀 가끔씩 신선한 충격을 나누지만, 오히려 그렇기 때문에 평소에 생각해내지 못한 전혀 다른 창의적 각도의 해결책을 이끌어내며, 지적인 성장과 혁신을 최고치로 유도하는 파트너입니다.`,
+    const descs = [
+      `공통 관심사가 있을 때는 세상 재밌게 떠들다가도, 관점이 부딪히면 묘한 어색함이 흐르기도 합니다. 서로의 방식을 강요하지 않고 쿨하게 인정해줄 때 가장 편안하게 유지되는 현실적인 인연입니다.`,
+      `살아온 방식이나 생각의 결이 꽤 달라 가끔씩 물음표가 뜨는 관계입니다. 하지만 편견 없이 대화를 나누면 나와 전혀 다른 신선한 시야를 선물받을 수 있습니다.`,
+      `너무 바짝 붙어있기보다는 적당한 거리를 두고 만날 때 가장 유쾌합니다. 서로의 다름을 '틀림'이 아니라 '개성'으로 받아들이는 센스가 필요합니다.`,
     ];
-    finalDesc = descOptions[getDeterministicHashScore(m1Id, m2Id, 17, 0, descOptions.length - 1)];
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 8) % descs.length];
+  } else if (finalScore >= 35) {
+    // N (35 ~ 44점)
+    const labels = [
+      "다른 행성에서 온 외계인 조합",
+      "자존심 대결 금지! 양보가 필수인 사이",
+      "서로 다른 언어로 말하는 두 사람",
+      "말조심 필수! 아슬아슬 줄타기 케미",
+    ];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 9) % labels.length];
+
+    const descs = [
+      `세상을 바라보는 렌즈 자체가 완전히 상반되어 사소한 말투에도 오해가 생기기 쉽습니다. '쟤는 왜 저러지?' 대신 '저렇게 생각할 수도 있구나' 하고 한 템포 쉬어가는 여유가 절대적으로 필요합니다.`,
+      `둘 다 자기만의 주관과 고집이 뚜렷해 한 번 의견이 갈리면 팽팽한 줄다리기가 이어집니다. 이기려 들기보다 먼저 웃으며 한 발 물러서는 사람이 진짜 위너입니다.`,
+      `기질상 맞추려면 꽤 많은 에너지와 인내심이 요구됩니다. 공적인 거리감을 유지하거나 중간에서 분위기를 풀어줄 중재자가 있을 때 훨씬 편안합니다.`,
+    ];
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 10) % descs.length];
   } else {
-    const labelOptions = [
-      `온화함 속에서 은은히 피어나는 신뢰`,
-      `담백하고 편안한 상생 파트너`,
-      `${z1.name}와 ${z2.name}의 온화한 화합`,
+    // D (35점 미만 - 최악의 악연/상충)
+    const labels = [
+      "스치기만 해도 스파크! 일촉즉발 폭탄",
+      "단둘이 있으면 기빨리는 애증의 관계",
+      "파국 주의! 팽팽한 살기와 충돌 기류",
+      "물과 기름! 절대 안 섞이는 상극 조합",
     ];
-    finalLabel = labelOptions[getDeterministicHashScore(m1Id, m2Id, 7, 0, labelOptions.length - 1)];
+    finalLabel = labels[getDeterministicHash(m1Id, m2Id, 11) % labels.length];
 
-    const descOptions = [
-      `서로에게 불필요한 간섭과 요구를 하지 않으며, 한없이 편안하고 담백한 흐름을 지속하는 오행 조화입니다. 서로의 속도와 경계를 온전하게 존중하면서도, 보이지 않는 곳에서 항상 서로를 응원하며 오랜 신뢰를 묵직하게 쌓아 나가는 훌륭한 파트너십입니다.`,
-      `${z1.name}와 ${z2.name}의 유연한 기조가 사주는 온화함과 결합하여, 거친 파도가 없는 잔잔한 바다처럼 편안하게 동행할 수 있는 궁합을 형성합니다. 서로에게 훌륭한 쉼터이자 영감이 되어주며 안정감 있는 전진을 이끕니다.`,
+    const descs = [
+      `물과 기름처럼 기운이 정면으로 부딪히는 불꽃 튀는 상충 기류입니다! 둘이 단둘이 오래 있으면 사소한 불씨 하나로도 감정 소모가 극심해지니, 반드시 여럿이 함께 어울리거나 철저한 안전거리를 유지해야 합니다.`,
+      `성향, 가치관, 표현법까지 모든 게 극과 극입니다. 서로를 바꾸려고 들면 파국으로 치닫기 십상이니, '우린 완전히 다른 사람이다'를 인정하고 쿨하게 선을 지키는 게 상책입니다.`,
+      `자존심을 건드리는 순간 걷잡을 수 없이 삐걱거리는 살기(殺氣)가 서려 있습니다. 깊은 감정적 기대보다는 담백하고 깍듯한 예의를 갖추는 것이 서로의 평화를 지키는 지름길입니다.`,
     ];
-    finalDesc = descOptions[getDeterministicHashScore(m1Id, m2Id, 17, 0, descOptions.length - 1)];
+    finalDesc = descs[getDeterministicHash(m1Id, m2Id, 12) % descs.length];
   }
+
+  // 💬 REALISTIC SUB-ANALYSIS DESCRIPTIONS
+  // Saju Description
+  let sajuDesc = "";
+  if (isStemHarmony || isDaySixHarmony) {
+    sajuDesc = `${m1.nickname}님과 ${m2.nickname}님의 사주에 끈끈한 '합(合)'의 기운이 깃들어 있습니다. 첫인상부터 묘한 친밀감이 느껴지고, 함께 있을 때 심리적 안정감과 긍정적인 운의 상승을 체감할 수 있는 찰떡 사주 궁합입니다.`;
+  } else if (isDayClash) {
+    sajuDesc = `${m1.nickname}님과 ${m2.nickname}님의 일지(자리)가 정면으로 부딪히는 '상충(相沖)' 기류입니다. 성격과 생활 패턴이 정반대라 단둘이 오래 있으면 사소한 일로 자존심 싸움이 일어나기 쉬우니, 깍듯한 매너와 거리두기가 필수입니다.`;
+  } else if (isWonjin) {
+    sajuDesc = `${m1.nickname}님과 ${m2.nickname}님 사이에 묘하게 서운함이 싹트는 '원진(怨嗔)'의 기운이 감돕니다. 별일 아닌 일에도 오해가 생기기 쉬우니, 마음에 담아두지 말고 솔직하게 대화로 푸는 습관이 필요합니다.`;
+  } else if (isGen1to2) {
+    sajuDesc = `${m1.nickname}님의 기운이 ${m2.nickname}님을 부드럽게 생(生)해주는 흐름입니다. ${m1.nickname}님이 챙겨주고 이끌어줄 때 ${m2.nickname}님이 큰 힘을 얻으며 성과로 이어지는 생산적인 조력 관계입니다.`;
+  } else if (isGen2to1) {
+    sajuDesc = `${m2.nickname}님의 포근한 기운이 ${m1.nickname}님을 든든하게 받쳐주는 흐름입니다. ${m1.nickname}님이 지치거나 흔들릴 때 ${m2.nickname}님과의 대화에서 큰 위로와 용기를 얻는 훈훈한 관계입니다.`;
+  } else if (elem1 === elem2) {
+    sajuDesc = `두 분 모두 '${elem1}'의 동일한 오행 기운을 지녀 거울을 보듯 성향이 닮아 있습니다. 서로의 행동 패턴을 쉽게 예측할 수 있어 편안하지만, 고집을 부릴 땐 누구 하나 꺾지 않으므로 주의가 필요합니다.`;
+  } else {
+    sajuDesc = `사주 원소가 부딪히지 않고 평온하게 흐르는 무난한 오행 구성입니다. 큰 굴곡 없이 편안하게 서로를 알아가며 잔잔한 신뢰를 쌓아갈 수 있는 자연스러운 인연입니다.`;
+  }
+
+  // Zodiac Description
+  let zodiacDesc = "";
+  if (isZodiacCompatible) {
+    zodiacDesc = `${z1.name}(${ze1})과 ${z2.name}(${ze2})의 별자리 원소가 조화롭게 화합합니다. 대화할 때 리듬감이 잘 맞고 서로의 감정 상태를 금방 눈치채는 유쾌한 별자리 케미입니다.`;
+  } else if (isZodiacClash) {
+    zodiacDesc = `${z1.name}(${ze1})과 ${z2.name}(${ze2})의 상반된 성좌 기질이 부딪혀 팽팽한 긴장감이 형성됩니다. 서로 다른 관점이 신선한 자극이 되기도 하지만 피로감을 줄 수도 있습니다.`;
+  } else {
+    zodiacDesc = `${z1.name}와 ${z2.name}의 독특한 개성이 공존합니다. 서로 강요하지 않고 서로의 라이프스타일을 존중해줄 때 유쾌하고 신선한 대화를 나눌 수 있습니다.`;
+  }
+
+  // Ziwei Description
+  const ziweiStars = [
+    { name: "자미성", desc: "중심을 잡는 리더십" },
+    { name: "칠살성", desc: "거침없는 결단력과 추진력" },
+    { name: "천부성", desc: "너그럽고 풍요로운 포용력" },
+    { name: "태양성", desc: "시원시원하고 솔직한 열정" },
+    { name: "무곡성", desc: "신용과 약속을 중시하는 뚝심" },
+    { name: "천동성", desc: "해맑고 순수한 낙천성" },
+  ];
+  const sIdx1 = getDeterministicHash(m1Id, m2Id, 17) % ziweiStars.length;
+  const sIdx2 = getDeterministicHash(m1Id, m2Id, 29) % ziweiStars.length;
+  const ziweiDesc = `${m1.nickname}님의 ${ziweiStars[sIdx1].name}(${ziweiStars[sIdx1].desc})과 ${m2.nickname}님의 ${ziweiStars[sIdx2].name}(${ziweiStars[sIdx2].desc})이 만나, 각자의 재능을 침범하지 않고 밸런스를 맞추는 구조를 형성합니다.`;
+
+  // MBTI Description
+  let mbtiDesc = "";
+  if (isMbti1Ok && isMbti2Ok) {
+    let diffs = [];
+    if (code1[0] !== code2[0]) diffs.push("외향(E)과 내향(I)의 밸런스");
+    if (code1[1] !== code2[1]) diffs.push("현실감각(S)과 직관상상(N)의 교차");
+    if (code1[2] !== code2[2]) diffs.push("논리적 팩트(T)와 따뜻한 공감(F)");
+    if (code1[3] !== code2[3]) diffs.push("계획적인 준비(J)와 즉흥적 유연성(P)");
+
+    if (diffs.length === 0) {
+      mbtiDesc = `두 분 모두 ${code1}로 성향이 완벽히 일치합니다! 생각하는 회로와 의사결정 방식이 똑같아 '내 맘을 나보다 더 잘 아는 사람'처럼 소름 돋게 통합니다.`;
+    } else {
+      mbtiDesc = `${code1}와 ${code2} 성향의 만남으로, ${diffs.slice(0, 2).join(", ")}에서 오는 현실적인 케미가 돋보입니다. 서로의 부족한 부분을 보완해주는 실전형 조합입니다.`;
+    }
+  } else {
+    mbtiDesc = `성향 지표(MBTI) 대신 정통 사주 명식과 별자리 데이터를 중심으로 현실적인 기질 궁합을 분석했습니다.`;
+  }
+
+  const gradeInfo = getGradeFromScore(finalScore);
 
   return {
     member_id_1: m1Id,
     member_id_2: m2Id,
-    score: avgScore,
+    score: finalScore,
+    totalScore: finalScore, // Backward compatibility alias
+    grade: gradeInfo.grade,
     label: finalLabel,
     description: finalDesc,
     saju: {

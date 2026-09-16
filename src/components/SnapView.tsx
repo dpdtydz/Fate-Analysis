@@ -40,7 +40,7 @@ import {
   getRecentSnaps,
   RecentSnapItem
 } from "../lib/offlineVault";
-import { generateDynamicPairCompatibility } from "../utils/pairChemistry";
+import { generateDynamicPairCompatibility, getGradeFromScore } from "../utils/pairChemistry";
 import { shareToKakaoOrClipboard } from "../utils/shareHelper";
 import ZodiacAvatar from "./ZodiacAvatar";
 import SajuForm from "./SajuForm";
@@ -197,11 +197,13 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
     return partnersList.map((partner) => {
       try {
         const comp = generateDynamicPairCompatibility(snapData.creator, partner);
-        const score = comp?.totalScore ?? 80;
-        const grade = score >= 90 ? "S+" : score >= 80 ? "S" : score >= 70 ? "A" : score >= 60 ? "B" : "C";
-        return { partner, score, grade };
+        const score = comp?.score ?? comp?.totalScore ?? 52;
+        const gradeInfo = getGradeFromScore(score);
+        return { partner, score, grade: gradeInfo.grade, gradeInfo };
       } catch {
-        return { partner, score: 80, grade: "S" };
+        const score = 52;
+        const gradeInfo = getGradeFromScore(score);
+        return { partner, score, grade: gradeInfo.grade, gradeInfo };
       }
     });
   }, [snapData?.creator, partnersList]);
@@ -1124,8 +1126,9 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
   // - Guest can ONLY see themselves with the creator (strict privacy: other partners never leaked!)
   const m1 = snapData.creator;
   const m2 = activePartner!;
-  const pairScore = analysis?.totalScore ?? 82;
-  const pairGrade = pairScore >= 90 ? "S+" : pairScore >= 80 ? "S" : pairScore >= 70 ? "A" : pairScore >= 60 ? "B" : "C";
+  const pairScore = analysis ? (analysis.score ?? analysis.totalScore ?? 52) : 52;
+  const gradeInfo = getGradeFromScore(pairScore);
+  const pairGrade = gradeInfo.grade;
 
   return (
     <Layout maxWidth="2xl">
@@ -1263,12 +1266,20 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
                           {score}점
                         </span>
                         <span
-                          className={`text-[9px] font-bold px-1 py-0.2 rounded ${
-                            score >= 85
-                              ? "bg-rose-100 text-rose-700"
-                              : score >= 75
-                              ? "bg-amber-100 text-amber-700"
-                              : "bg-slate-100 text-slate-700"
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
+                            grade === "UR"
+                              ? "bg-amber-500 text-white font-extrabold shadow-xs"
+                              : grade === "SSR"
+                              ? "bg-rose-500 text-white font-bold"
+                              : grade === "SR"
+                              ? "bg-indigo-600 text-white font-semibold"
+                              : grade === "S"
+                              ? "bg-emerald-600 text-white font-semibold"
+                              : grade === "R"
+                              ? "bg-sky-600 text-white"
+                              : grade === "N"
+                              ? "bg-amber-600 text-white"
+                              : "bg-red-700 text-white"
                           }`}
                         >
                           {grade}
@@ -1370,10 +1381,29 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
                   <span className="text-2xl sm:text-3xl font-black font-mono text-seal leading-none my-0.5">
                     {pairScore}
                   </span>
-                  <span className="text-[10px] sm:text-xs font-extrabold text-wood">
-                    등급 {pairGrade}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <span className={`text-[10px] sm:text-xs font-black px-1.5 py-0.2 rounded ${
+                      pairGrade === "UR"
+                        ? "bg-amber-500 text-white shadow-xs"
+                        : pairGrade === "SSR"
+                        ? "bg-rose-500 text-white"
+                        : pairGrade === "SR"
+                        ? "bg-indigo-600 text-white"
+                        : pairGrade === "S"
+                        ? "bg-emerald-600 text-white"
+                        : pairGrade === "R"
+                        ? "bg-sky-600 text-white"
+                        : pairGrade === "N"
+                        ? "bg-amber-600 text-white"
+                        : "bg-red-700 text-white"
+                    }`}>
+                      {pairGrade}
+                    </span>
+                  </div>
                 </div>
+                <span className="text-[10px] font-bold text-ink-soft truncate max-w-[110px] text-center">
+                  {gradeInfo.title}
+                </span>
                 <div className="w-16 sm:w-20 border-t-2 border-dashed border-seal/40 my-1 animate-pulse" />
               </div>
 

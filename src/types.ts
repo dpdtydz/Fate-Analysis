@@ -226,7 +226,9 @@ export interface PairAnalysis {
   member_id_1: string;
   member_id_2: string;
   score: number;
-  label: string; // 4-character label, e.g. "환상호흡"
+  totalScore?: number;
+  grade?: string;
+  label: string; // e.g. "티키타카 척척 맞는 꿀잼 듀오"
   description: string;
   saju?: SubCompatibility;
   ziwei?: SubCompatibility;

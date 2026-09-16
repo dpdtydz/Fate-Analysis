@@ -287,8 +287,19 @@ export default function SnapStoryModal({
                 <span>{getMemberNickname(m1)}</span>
                 <span className="text-rose-400 text-sm">×</span>
                 <span>{getMemberNickname(m2)}</span>
-                <span className="ml-auto font-mono text-xl font-extrabold text-rose-400">
-                  {pairScore}점
+                <span className="ml-auto font-mono text-xl font-extrabold text-rose-400 flex items-center gap-1.5">
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-black leading-none ${
+                    pairGrade === "UR" ? "bg-gradient-to-r from-amber-400 to-rose-500 text-white shadow-xs" :
+                    pairGrade === "SSR" ? "bg-rose-500 text-white" :
+                    pairGrade === "SR" ? "bg-indigo-600 text-white" :
+                    pairGrade === "S" ? "bg-emerald-600 text-white" :
+                    pairGrade === "R" ? "bg-sky-600 text-white" :
+                    pairGrade === "N" ? "bg-amber-600 text-white" :
+                    "bg-red-700 text-white"
+                  }`}>
+                    {pairGrade}
+                  </span>
+                  <span>{pairScore}점</span>
                 </span>
               </h2>
               <p className="text-[11px] text-slate-300 font-semibold mt-0.5">
