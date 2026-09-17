@@ -1280,7 +1280,7 @@ export default function SnapView({ code: routeCode }: SnapViewProps) {
 
       <div className="py-6 sm:py-10 space-y-6 animate-fade-in">
         {/* Top Floating Badge & Actions */}
-        <div className="flex items-center justify-between text-xs text-ink-faint border-b border-line pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-ink-faint border-b border-line pb-3">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2 py-0.5 rounded-full bg-seal/10 text-seal font-semibold">
               {isHost ? "👑 비밀 궁합 보관함 (호스트)" : "🔒 1:1 비밀 인연 스냅"}
