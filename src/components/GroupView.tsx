@@ -25,6 +25,7 @@ import { getIljuMeta } from "../utils/iljuData";
 import { generateDedicatedChemistryCard, generateDedicatedGroupCard } from "../utils/cardGenerator";
 import { findMyMember } from "../utils/memberHelper";
 import { GroupViewSkeleton } from "./Skeleton";
+import { isNoExpireRoom } from "../utils/roomPolicy";
 
 const isMbtiRegistered = (m?: any): boolean => {
   if (!m || !m.mbti) return false;
@@ -1005,7 +1006,8 @@ export default function GroupView({ code }: GroupViewProps) {
           return;
         }
         const roomData = roomSnap.data();
-        if (roomData && roomData.expire_at) {
+        // 보관 정책 예외 방(roomPolicy)은 만료 검사를 건너뛴다
+        if (roomData && roomData.expire_at && !isNoExpireRoom(code)) {
           const expireDate = new Date(roomData.expire_at);
           if (expireDate < new Date()) {
             setError("만료된 모임입니다 (생성 후 30일 경과).");

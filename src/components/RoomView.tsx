@@ -14,6 +14,7 @@ import ZodiacAvatar, { spaceImageSrc, SPACE_NAMES, calculateSpaceKey, calculateM
 import { cacheRoomSnapshot, getCachedRoomSnapshot, recordRecentRoom } from "../lib/offlineVault";
 import { generateDynamicPairCompatibility } from "../utils/pairChemistry";
 import { RoomViewSkeleton } from "./Skeleton";
+import { isNoExpireRoom } from "../utils/roomPolicy";
 
 interface RoomViewProps {
   code: string;
@@ -105,7 +106,8 @@ export default function RoomView({ code }: RoomViewProps) {
         }
 
         latestRoomData = roomData;
-        if (roomData && roomData.expire_at) {
+        // 보관 정책 예외 방(roomPolicy)은 만료 검사를 건너뛴다
+        if (roomData && roomData.expire_at && !isNoExpireRoom(code)) {
           const expireDate = new Date(roomData.expire_at);
           if (!isNaN(expireDate.getTime()) && expireDate < new Date()) {
             setError("만료된 모임입니다 (생성 후 30일 경과).");
